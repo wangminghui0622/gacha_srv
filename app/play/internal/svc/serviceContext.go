@@ -72,7 +72,7 @@ type ServiceContext struct {
 	MemoryMatchChampionEvModel  gamemodelnc.MemoryMatchChampionEventsModel
 	MemoryMatchChampionPayModel gamemodelnc.MemoryMatchChampionPayoutsModel
 
-	// MoneyRpc 资金服务客户端（玩法发奖现金/积分 CreditWallet 入账，走 Etcd；旧 MoneyRpc）
+	// MoneyRpc 资金服务客户端（玩法发奖现金/积分 CreditWallet 入账，走 Etcd；旧 UserRpc）
 	MoneyRpc moneyClient.Money
 	// MarketingRpc 营销服务客户端（锁报价/读报价/券名/发券，走 Etcd；旧同服务直连表）
 	MarketingRpc marketingClient.Marketing

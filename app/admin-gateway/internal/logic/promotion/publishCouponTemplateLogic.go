@@ -26,7 +26,7 @@ func NewPublishCouponTemplateLogic(ctx context.Context, svcCtx *svc.ServiceConte
 	}
 }
 
-// PublishCouponTemplate 透传 game-rpc（requestId 幂等：同号同内容重放返回已发布版本）。
+// PublishCouponTemplate 透传 marketing-rpc（requestId 幂等：同号同内容重放返回已发布版本）。
 func (l *PublishCouponTemplateLogic) PublishCouponTemplate(in *marketing.PublishCouponTemplateRequest) (*marketing.CouponTemplate, error) {
 	return l.svcCtx.MarketingRpc.PublishCouponTemplate(l.ctx, in)
 }

@@ -1,5 +1,4 @@
 package identity
-
 import (
 	"context"
 
@@ -26,7 +25,7 @@ func NewWeChatLoginLogic(ctx context.Context, svcCtx *svc.ServiceContext) *WeCha
 	}
 }
 
-// WeChatLogin 微信登录：透传 user 服务（6005 未配置/6006 微信接口失败/1013 未绑定原样还原），签发 JWT
+// WeChatLogin 微信登录：透传 identity 服务（6005 未配置/6006 微信接口失败/1013 未绑定原样还原），签发 JWT
 func (l *WeChatLoginLogic) WeChatLogin(req *types.WeChatLoginReq) (resp *types.LoginResp, err error) {
 	if req.TenantId != 1 {
 		return nil, errorx.NewCodeError(errorx.CodeParamError, "tenant 非法（本仓单租户=1）")

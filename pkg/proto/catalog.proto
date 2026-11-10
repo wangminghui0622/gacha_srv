@@ -50,7 +50,7 @@ enum FulfillmentMode {
   FULFILLMENT_MODE_NONE = 3;
 }
 
-// Money 金额（最小单位 + 币种，与 server_v2 luckybox.common.v2.Money 同形状）
+// Money 金额（最小单位 + 币种）
 message Money {
   int64 amountMinor = 1; // 最小单位金额（分）
   string currency = 2;   // 币种（3 字母，如 CNY）

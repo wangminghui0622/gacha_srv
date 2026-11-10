@@ -39,7 +39,7 @@ func (l *GetComboChainLogic) GetComboChain(configId int64) (resp *types.ComboCha
 	}
 	slots := make([]types.DigPrizeItem, 0, len(r.GlobalSlots))
 	for _, s := range r.GlobalSlots {
-		slots = append(slots, digPrizeItemOf(s))
+		slots = append(slots, prizeItemToView(s))
 	}
 	shared := make([]types.ComboChainSharedPrizeItem, 0, len(r.SharedPrizes))
 	for _, p := range r.SharedPrizes {
@@ -50,7 +50,7 @@ func (l *GetComboChainLogic) GetComboChain(configId int64) (resp *types.ComboCha
 			TierWeight:           p.TierWeight,
 			ConcentrateThreshold: p.ConcentrateThreshold,
 			StreakThreshold:      p.StreakThreshold,
-			Prize:                digPrizeItemOf(p.Prize),
+			Prize:                prizeItemToView(p.Prize),
 		})
 	}
 	return &types.ComboChainDetailResp{

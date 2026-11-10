@@ -5,8 +5,8 @@ import (
 	"gacha_srv/app/gateway/internal/types"
 )
 
-// digPrizeItemOf game.PrizeItem → 网关 DigPrizeItem 视图映射
-func digPrizeItemOf(p *playClient.PrizeItem) types.DigPrizeItem {
+// prizeItemToView play.PrizeItem → 网关 DigPrizeItem 视图映射
+func prizeItemToView(p *playClient.PrizeItem) types.DigPrizeItem {
 	if p == nil {
 		return types.DigPrizeItem{}
 	}

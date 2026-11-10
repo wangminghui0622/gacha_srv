@@ -26,7 +26,7 @@ func NewGetCouponTemplateLogic(ctx context.Context, svcCtx *svc.ServiceContext) 
 	}
 }
 
-// GetCouponTemplate 透传 game-rpc（最新已发布版本）。
+// GetCouponTemplate 透传 marketing-rpc（最新已发布版本）。
 func (l *GetCouponTemplateLogic) GetCouponTemplate(in *marketing.GetCouponTemplateRequest) (*marketing.CouponTemplate, error) {
 	return l.svcCtx.MarketingRpc.GetCouponTemplate(l.ctx, in)
 }

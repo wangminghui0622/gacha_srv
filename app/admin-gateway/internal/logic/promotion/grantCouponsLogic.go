@@ -26,7 +26,7 @@ func NewGrantCouponsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Gran
 	}
 }
 
-// GrantCoupons 透传 game-rpc（发最新已发布版本；requestId 幂等）。
+// GrantCoupons 透传 marketing-rpc（发最新已发布版本；requestId 幂等）。
 func (l *GrantCouponsLogic) GrantCoupons(in *marketing.GrantCouponsRequest) (*marketing.GrantCouponsReply, error) {
 	return l.svcCtx.MarketingRpc.GrantCoupons(l.ctx, in)
 }

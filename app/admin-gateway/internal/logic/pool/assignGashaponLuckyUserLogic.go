@@ -19,7 +19,7 @@ type AssignGashaponLuckyUserLogic struct {
 }
 
 // AssignGashaponLuckyUser 指定幸运用户（gacha.pool:assign_lucky；
-// 扭蛋 LUCKY 奖指派，userId=0 清除，透传 game-rpc）。
+// 扭蛋 LUCKY 奖指派，userId=0 清除，透传 play-rpc）。
 func NewAssignGashaponLuckyUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *AssignGashaponLuckyUserLogic {
 	return &AssignGashaponLuckyUserLogic{
 		Logger: logx.WithContext(ctx),

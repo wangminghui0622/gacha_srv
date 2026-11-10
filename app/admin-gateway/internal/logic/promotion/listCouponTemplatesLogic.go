@@ -26,7 +26,7 @@ func NewListCouponTemplatesLogic(ctx context.Context, svcCtx *svc.ServiceContext
 	}
 }
 
-// ListCouponTemplates 透传 game-rpc（模板版本游标分页）。
+// ListCouponTemplates 透传 marketing-rpc（模板版本游标分页）。
 func (l *ListCouponTemplatesLogic) ListCouponTemplates(in *marketing.ListCouponTemplateVersionsRequest) (*marketing.ListCouponTemplateVersionsReply, error) {
 	return l.svcCtx.MarketingRpc.ListCouponTemplateVersions(l.ctx, in)
 }

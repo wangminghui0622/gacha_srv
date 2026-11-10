@@ -26,7 +26,7 @@ func NewGetLoyaltyDefaultsLogic(ctx context.Context, svcCtx *svc.ServiceContext)
 	}
 }
 
-// GetLoyaltyDefaults 透传 game-rpc（无配置行时返回平台默认）。
+// GetLoyaltyDefaults 透传 marketing-rpc（无配置行时返回平台默认）。
 func (l *GetLoyaltyDefaultsLogic) GetLoyaltyDefaults(in *marketing.GetTenantLoyaltyDefaultsRequest) (*marketing.TenantLoyaltyDefaults, error) {
 	return l.svcCtx.MarketingRpc.GetTenantLoyaltyDefaults(l.ctx, in)
 }

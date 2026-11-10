@@ -46,7 +46,7 @@ func (l *ListComboChainRecordsLogic) ListComboChainRecords(req *types.ComboChain
 	for _, it := range r.Items {
 		awards := make([]types.DigPrizeItem, 0, len(it.Awards))
 		for _, a := range it.Awards {
-			awards = append(awards, digPrizeItemOf(a))
+			awards = append(awards, prizeItemToView(a))
 		}
 		items = append(items, types.ComboChainRecordItem{
 			RecordId:  it.RecordId,

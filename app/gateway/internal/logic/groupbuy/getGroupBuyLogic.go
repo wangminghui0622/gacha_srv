@@ -43,7 +43,7 @@ func (l *GetGroupBuyLogic) GetGroupBuy(configId int64) (resp *types.GroupBuyDeta
 			PrizeIndex: p.PrizeIndex,
 			Quantity:   p.Quantity,
 			Sent:       p.Sent,
-			Prize:      digPrizeItemOf(p.Prize),
+			Prize:      prizeItemToView(p.Prize),
 		})
 	}
 	return &types.GroupBuyDetailResp{

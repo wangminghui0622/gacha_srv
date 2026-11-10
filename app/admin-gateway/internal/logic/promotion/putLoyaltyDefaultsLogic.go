@@ -26,7 +26,7 @@ func NewPutLoyaltyDefaultsLogic(ctx context.Context, svcCtx *svc.ServiceContext)
 	}
 }
 
-// PutLoyaltyDefaults 透传 game-rpc（loyalty_offset_config upsert）。
+// PutLoyaltyDefaults 透传 marketing-rpc（loyalty_offset_config upsert）。
 func (l *PutLoyaltyDefaultsLogic) PutLoyaltyDefaults(in *marketing.PutTenantLoyaltyDefaultsRequest) (*marketing.TenantLoyaltyDefaults, error) {
 	return l.svcCtx.MarketingRpc.PutTenantLoyaltyDefaults(l.ctx, in)
 }
