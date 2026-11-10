@@ -2,7 +2,7 @@
 // 管理控制台网关接口聚合：只做 import，各业务模块定义在 pkg/api_admin/desc/*.api
 // （规范 03-api-proto：syntax/info 放 desc/common.api）
 // 生成：bash script/goctl.sh admin-gateway
-// 注意：只生成 app_admin/gateway（管理网关），绝不跑 goctl gateway（播放器网关）
+// 注意：只生成 app/admin-gateway（管理网关），绝不跑 goctl gateway（播放器网关）
 // ════════════════════════════════════════════════════════════════
 import "desc/common.api"
 import "desc/session.api"
@@ -13,4 +13,4 @@ import "desc/campaign.api"
 import "desc/eligibility.api"
 import "desc/risk.api"
 import "desc/promotion.api"
-import "desc/payment.api"
+import "desc/money.api"

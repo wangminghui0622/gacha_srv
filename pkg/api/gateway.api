@@ -4,5 +4,5 @@
 // 生成：bash script/goctl.sh gateway
 // ════════════════════════════════════════════════════════════════
 import "desc/common.api"
-import "desc/user.api"
+import "desc/identity.api"
 import "desc/draw.api"

@@ -80,6 +80,22 @@ fi
 sleep 3
 curl -s -m 5 "http://$REG/v2/_catalog" && echo " ✓"
 
+# ── 2b. 准备基础镜像（Docker Hub 被墙：alpine/mysql/redis 走镜像源拉取 + 重打 tag）──
+# 清空镜像后 Docker Hub 无法重拉，必须在此预拉；etcd 来自 quay.io 可达，无需处理。
+prepare_base() { # $1=镜像源完整名 $2=本地 tag
+  if ! docker image inspect "$2" >/dev/null 2>&1; then
+    echo "   拉取 $2（源 $1）"
+    docker pull "$1" || { echo "   拉取 $1 失败（镜像源不可用？）" >&2; exit 1; }
+    docker tag "$1" "$2"
+  else
+    echo "   $2 已存在，跳过"
+  fi
+}
+echo "   准备基础镜像（构建用 alpine + 基础设施 mysql/redis）"
+prepare_base "$MIRROR/library/alpine:3.20" "alpine:3.20"
+prepare_base "$MIRROR/library/mysql:8" "mysql:8"
+prepare_base "$MIRROR/library/redis:7-alpine" "redis:7-alpine"
+
 # ── 3. 基础设施 ──
 log "3/7 部署基础设施（MySQL/Redis/Etcd）"
 docker stack deploy -c deploy/swarm/infra-stack.yaml gacha-infra 2>&1 | tail -4

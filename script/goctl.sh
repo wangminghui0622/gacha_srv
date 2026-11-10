@@ -13,7 +13,7 @@ set -eu
 
 PKG_DIR="pkg"
 API_FILE="${PKG_DIR}/api/gateway.api"
-API_ADMIN_FILE="${PKG_DIR}/api/admin-gateway.api"
+API_ADMIN_FILE="${PKG_DIR}/api_admin/gateway.api"
 RPC_SERVICES="identity money draw base marketing play task catalog thirdparty ops"
 
 gen_gateway() {

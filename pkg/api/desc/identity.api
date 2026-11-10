@@ -62,7 +62,7 @@ type (
 // 公开接口：注册 / 登录
 @server (
 	prefix: /gacha/api/v1
-	group:  user
+	group: identity
 	tags:   "用户"
 )
 service gateway-api {
@@ -78,7 +78,7 @@ service gateway-api {
 // 受保护接口：JwtAuth 中间件校验令牌并把 userId 写入上下文
 @server (
 	prefix:     /gacha/api/v1
-	group:      user
+	group: identity
 	middleware: JwtAuth
 	tags:       "用户"
 )

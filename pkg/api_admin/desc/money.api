@@ -27,7 +27,7 @@ type (
 // 全部需会话 + 权限点（resource: payment.route）
 @server (
 	prefix:     /console/v2/api
-	group:      payment
+	group: money
 	middleware: RequestId
 	middleware: ConsoleAuth
 	middleware: ConsoleAuthorize

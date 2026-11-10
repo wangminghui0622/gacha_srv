@@ -5,8 +5,8 @@
 1. `pkg/api/gateway.api` 只做聚合导入，每个业务模块一个文件放 `pkg/api/desc/`：
 
 ```go
-import "desc/user.api"
-import "desc/payment.api"
+import "desc/identity.api"
+import "desc/money.api"
 ```
 
 2. 每个模块文件结构：中文分隔横幅 → `type (...)` 请求/响应结构（每个字段上方一行中文注释）→ `@server` 块 → `service gateway-api`。
