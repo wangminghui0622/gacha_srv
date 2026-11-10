@@ -1,0 +1,574 @@
+syntax = "proto3";
+
+package marketing;
+option go_package = "./marketing";
+
+// 营销服务（9315）：促销（报价/券/忠诚度）+ 活动（签到/兑换码/转盘/活动宝箱资格）。
+// 由旧仓 game.proto 拆出，promotion 与 campaign 两域合并（用户拍板 2026-11-09），
+// RPC 形状与字段序号不变。
+// SAGA 分支 03：LockQuote（正向）/ ReleaseQuote（补偿，barrier 内 FOR UPDATE）。
+// CommitQuote 由 money 捕获分支（07）sub-call：幂等、无 barrier（USED 直接成功）。
+// 报价安全不变式：价格一律服务端算（gross 由网关取自 draw 服务端定价或挖宝箱配置），客户端只传选择。
+// 活动发奖无 outbox/Kafka：本地事务先落 participation+PENDING 流水，事务外幂等外部发放，失败重试补发 PENDING。
+service Marketing {
+    // QuoteCheckout 报价试算：券/积分抵扣/活动宝箱资格全抵计算 + 落 OPEN 报价锁（幂等 uk request_id：撞键读回原报价）
+    rpc QuoteCheckout(QuoteCheckoutReq) returns (QuoteCheckoutResp);
+    // LockQuote SAGA 03 正向：quote OPEN→LOCKED、券/资格 AVAILABLE→LOCKED（barrier + FOR UPDATE）
+    rpc LockQuote(LockQuoteReq) returns (LockQuoteResp);
+    // ReleaseQuote SAGA 03 补偿：quote LOCKED→RELEASED、券/资格 LOCKED→AVAILABLE（USED 不回退）
+    rpc ReleaseQuote(ReleaseQuoteReq) returns (ReleaseQuoteResp);
+    // CommitQuote SAGA 07 sub-call：quote LOCKED→USED（幂等）
+    rpc CommitQuote(CommitQuoteReq) returns (CommitQuoteResp);
+    // ── 玩法域跨服务只读（play-rpc 拆分后经 RPC 读报价/券模板，不直连营销库）──
+    // GetQuote 读报价状态与锁定信息（玩法 lock 校验/readback/memorymatch 实付展示）
+    rpc GetQuote(GetQuoteReq) returns (GetQuoteResp);
+    // GetCouponTemplateByNo 按模板单号查券模板（玩法发奖展示券名；NotFound 调用方静默降级）
+    rpc GetCouponTemplateByNo(GetCouponTemplateByNoReq) returns (CouponTemplateItem);
+    // GrantPlayCoupon 玩法结算发券：coupon_no="uc_"+requestId 幂等（撞键读回原券）
+    rpc GrantPlayCoupon(GrantPlayCouponReq) returns (GrantPlayCouponResp);
+    // ClaimCoupon 领取券：coupon_no="uc_"+claimRequestId 确定性派生，幂等
+    rpc ClaimCoupon(ClaimCouponReq) returns (ClaimCouponResp);
+    // ListUserCoupons 我的券列表（含模板信息）
+    rpc ListUserCoupons(ListUserCouponsReq) returns (ListUserCouponsResp);
+    // ListCouponTemplates 券模板列表（领取页；claimed=该用户是否已领过）
+    rpc ListCouponTemplates(ListCouponTemplatesReq) returns (ListCouponTemplatesResp);
+    // ── M14d 控制台：券模板不可变版本/发券/忠诚度默认值（消息形状照抄 server_v2 promotion）──
+    rpc PublishCouponTemplate(PublishCouponTemplateRequest) returns (CouponTemplate);
+    rpc GetCouponTemplate(GetCouponTemplateRequest) returns (CouponTemplate);
+    rpc ListCouponTemplateVersions(ListCouponTemplateVersionsRequest) returns (ListCouponTemplateVersionsReply);
+    rpc GrantCoupons(GrantCouponsRequest) returns (GrantCouponsReply);
+    rpc GetTenantLoyaltyDefaults(GetTenantLoyaltyDefaultsRequest) returns (TenantLoyaltyDefaults);
+    rpc PutTenantLoyaltyDefaults(PutTenantLoyaltyDefaultsRequest) returns (TenantLoyaltyDefaults);
+    // ── M11 campaign 活动域 ──
+    // ListCampaigns 活动列表 + 我的状态
+    rpc ListCampaigns(ListCampaignsReq) returns (ListCampaignsResp);
+    // CampaignPreview 参与预览（kind 分发，无写入）
+    rpc CampaignPreview(CampaignPreviewReq) returns (CampaignPreviewResp);
+    // CampaignParticipate 统一参与入口（kind 分发 + idem_key 幂等重放 + PENDING 补发）
+    rpc CampaignParticipate(CampaignParticipateReq) returns (CampaignParticipateResp);
+    // ---- 活动宝箱资格 ----
+    rpc ListCampaignBoxEntitlements(ListCampaignBoxEntitlementsReq) returns (ListCampaignBoxEntitlementsResp);
+    rpc GetCampaignBoxEntitlement(GetCampaignBoxEntitlementReq) returns (GetCampaignBoxEntitlementResp);
+    // ── M14d 控制台：活动版本化（消息形状照抄 server_v2 campaign）──
+    rpc CreateCampaignDraft(CreateCampaignDraftRequest) returns (Campaign);
+    rpc PublishCampaign(PublishCampaignRequest) returns (Campaign);
+    rpc GetCampaign(GetCampaignRequest) returns (Campaign);
+}
+
+message QuoteCheckoutReq {
+    string requestId = 1;        // 幂等键（= 网关 gid）
+    int64  userId = 2;           // 用户ID（网关 JWT 注入）
+    int64  boxId = 3;            // 宝箱ID（纯标签：draw 箱 id 或挖宝箱 id）
+    int64  userCouponId = 4;     // 使用券的 user_coupons.id；0=不用券
+    bool   useLoyaltyOffset = 5; // 是否使用积分抵扣（与券互斥）
+    int64  grossFen = 6;         // 宝箱原价（分；网关取自服务端定价，服务端校验 >0）
+    string entitlementNo = 7;    // 活动宝箱资格单号（空=不用；与券/积分互斥；全抵后 payable=0）
+}
+
+message QuoteCheckoutResp {
+    string quoteToken = 1;          // "q_"+requestId（后续 LockQuote/ReleaseQuote/CommitQuote 用）
+    int64  grossFen = 2;            // 宝箱原价（分）
+    int64  couponDiscountFen = 3;   // 券/资格抵扣金额（分）
+    string couponNo = 4;            // 使用的券号（空=未用券）
+    int64  loyaltyPointsDebit = 5;  // 实际扣积分（点）
+    int64  loyaltyFen = 6;          // 积分抵扣金额（分，LOYALTY 腿）
+    int64  payableFen = 7;          // 实付总额（分）= cashFen + loyaltyFen
+    int64  cashFen = 8;             // 现金腿金额（分）
+    int64  loyaltyPointBalance = 9; // 用户积分余额（前端展示）
+    int64  loyaltyOffsetRate = 10;  // 每元消耗积分（配置值，默认 10）
+    int64  loyaltyMaxFen = 11;      // 积分最高可抵金额（分，订单原价×上限比例）
+}
+
+message LockQuoteReq {
+    string requestId = 1;  // 全局事务 gid（DTM 屏障键）
+    string quoteToken = 2; // 报价令牌
+}
+
+message LockQuoteResp {
+    string quoteToken = 1;
+    string status = 2;     // 锁定后状态（LOCKED；幂等重发亦返回 LOCKED）
+    bool   newLocked = 3;  // true=本次由 OPEN 锁成 LOCKED；false=此前已锁（幂等重发/重复购买）
+    int64  userId = 4;     // 报价所属用户（玩法 lock 绑定用户）
+    int64  grossFen = 5;   // 报价总额分（玩法锁内价格校验）
+    int64  boxId = 6;      // 报价宝箱ID（玩法箱型校验；0=未绑定）
+}
+
+message GetQuoteReq {
+    string quoteToken = 1; // 报价令牌
+}
+
+message GetQuoteResp {
+    string quoteToken = 1;
+    string status = 2;      // 报价状态（OPEN/LOCKED/USED/RELEASED/EXPIRED）
+    int64  userId = 3;      // 报价所属用户
+    int64  grossFen = 4;    // 报价总额分
+    int64  boxId = 5;       // 报价宝箱ID（0=未绑定）
+    int64  payableFen = 6;  // 实付总额分（memorymatch 会话展示）
+    string couponNo = 7;    // 报价关联券号（空=未用券）
+}
+
+message GetCouponTemplateByNoReq {
+    string templateNo = 1; // 券模板单号
+}
+
+message GrantPlayCouponReq {
+    string requestId = 1;  // 发券幂等键（玩法 grantNo）：coupon_no="uc_"+requestId
+    int64  userId = 2;     // 用户ID
+    string templateNo = 3; // 券模板单号
+}
+
+message GrantPlayCouponResp {
+    string couponNo = 1; // 券号（幂等重发返回原券号）
+}
+
+message ReleaseQuoteReq {
+    string requestId = 1;  // 全局事务 gid（DTM 屏障键）
+    string quoteToken = 2; // 报价令牌
+}
+
+message ReleaseQuoteResp {
+    string quoteToken = 1;
+    string status = 2; // 释放后状态（RELEASED；已 USED 不回退，返回 USED）
+}
+
+message CommitQuoteReq {
+    string quoteToken = 1; // 报价令牌（07 捕获 sub-call；无 barrier，幂等）
+}
+
+message CommitQuoteResp {
+    string quoteToken = 1;
+    string status = 2; // USED
+}
+
+message ClaimCouponReq {
+    int64  userId = 1;         // 用户ID
+    string templateNo = 2;     // 券模板单号
+    string claimRequestId = 3; // 领取幂等键：coupon_no="uc_"+claimRequestId
+}
+
+message ClaimCouponResp {
+    string couponNo = 1; // 券号（幂等重发返回原券号）
+}
+
+message CouponItem {
+    int64  id = 1;            // user_coupons.id
+    string couponNo = 2;      // 券号
+    string templateNo = 3;    // 模板单号
+    string name = 4;          // 券名称（模板名）
+    int64  kind = 5;          // 类型：1 FIXED_MINOR 2 PERCENT_BPS 3 FREE
+    int64  value = 6;         // 面值：kind1=分；kind2=bps；kind3=0
+    int64  minGross = 7;      // 使用门槛（分）
+    int64  status = 8;        // 1 AVAILABLE 2 LOCKED 3 USED 4 EXPIRED
+    string expiresAt = 9;     // 过期时间（空=无期限）
+    bool   usable = 10;       // 当前可用（AVAILABLE 且未过期）
+}
+
+message ListUserCouponsReq {
+    int64 userId = 1;
+}
+
+message ListUserCouponsResp {
+    repeated CouponItem items = 1;
+}
+
+message CouponTemplateItem {
+    int64  id = 1;         // 模板 id
+    string templateNo = 2; // 模板单号
+    string name = 3;       // 券名称
+    int64  kind = 4;       // 类型（同 CouponItem）
+    int64  value = 5;      // 面值
+    int64  minGross = 6;   // 使用门槛（分）
+    int64  status = 7;     // 0 草稿 1 已发布 2 已停用
+    bool   claimed = 8;    // 该用户是否已领过（未核销的券）
+}
+
+message ListCouponTemplatesReq {
+    int64 userId = 1;
+}
+
+message ListCouponTemplatesResp {
+    repeated CouponTemplateItem items = 1;
+}
+
+// ============================================================
+// 玩家面：活动列表/预览/参与
+// ============================================================
+
+// PrizeItem 奖品统一结构（campaign 发奖 / 转盘槽 / 玩法揭晓共用，玩法域同形状复制）
+message PrizeItem {
+    int64  kind = 1;             // 1 CASH 2 POINTS 3 COUPON 4 GACHA_BOX
+    string amount = 2;           // 现金金额（元字符串，kind=1）
+    int64  points = 3;           // 积分数（kind=2）
+    string couponTemplateNo = 4; // 券模板单号（kind=3）
+    string couponName = 5;       // 券名称（kind=3，展示）
+    int64  boxId = 6;            // 宝箱ID（kind=4）
+    string boxName = 7;          // 宝箱名称（kind=4，展示）
+}
+
+// WheelSlotItem 转盘槽位（预览用；不暴露奖品详情之外的库存细节）
+message WheelSlotItem {
+    int64     slotIndex = 1;
+    string    label = 2;
+    int64     weight = 3;
+    PrizeItem prize = 4;
+    int64     remaining = 5; // -1=不限量
+}
+
+message ListCampaignsReq {
+    int64 userId = 1;
+}
+
+message CampaignItem {
+    string campaignKey = 1;
+    string name = 2;
+    int64  kind = 3;         // 1 SIGN_IN 2 REDEMPTION_CODE 3 PRIZE_WHEEL
+    int64  startAt = 4;      // unix 秒
+    int64  endAt = 5;        // unix 秒
+    bool   inWindow = 6;
+    bool   signedToday = 7;  // 签到：今日是否已签
+    int64  streak = 8;       // 签到：连续天数
+    int64  totalDays = 9;    // 签到：累计天数
+    int64  spinsLeft = 10;   // 转盘：今日剩余次数（-1=不限）
+    int64  spinDailyLimit = 11; // 转盘：每日上限
+}
+
+message ListCampaignsResp {
+    repeated CampaignItem items = 1;
+}
+
+message CampaignPreviewReq {
+    int64  userId = 1;
+    string campaignKey = 2;
+    string code = 3; // 兑换码预览：code 非空时返回可兑换奖品
+}
+
+message CampaignPreviewResp {
+    string campaignKey = 1;
+    int64  kind = 2;
+    bool   alreadyParticipated = 3; // 签到：今日已签
+    int64  streak = 4;
+    int64  nextStreak = 5;          // 签到：下次签到将获得的连续天数
+    int64  spinsLeft = 6;           // 转盘：今日剩余次数（-1=不限）
+    int64  spinDailyLimit = 7;
+    int64  redemptionTimes = 8;     // 兑换码：该用户已兑次数
+    int64  redemptionUserLimit = 9; // 兑换码：每用户上限
+    repeated PrizeItem previewPrizes = 10; // 预览奖品（签到下一日奖励 / 兑换码奖品）
+    repeated WheelSlotItem slots = 11;     // 转盘槽位
+}
+
+message CampaignParticipateReq {
+    int64  userId = 1;
+    string requestId = 2;   // 幂等键（= 客户端 Idempotency-Key）
+    string campaignKey = 3;
+    string code = 4;        // 兑换码参与：必填
+}
+
+message CampaignParticipateResp {
+    string requestId = 1;
+    string idemKey = 2;
+    bool   replayed = 3;    // true=幂等重放（返回首次结果）
+    int64  streak = 4;      // 签到：本次后连续天数
+    int64  spinsLeft = 5;   // 转盘：本次后今日剩余次数
+    repeated PrizeItem prizes = 6; // 本次获得奖品
+}
+
+// ============================================================
+// 活动宝箱资格
+// ============================================================
+
+message EntitlementItem {
+    string entitlementNo = 1;
+    int64  boxId = 2;
+    string boxName = 3;
+    int64  status = 4;    // 1 AVAILABLE 2 LOCKED 3 USED
+    int64  grantedAt = 5; // unix 秒
+}
+
+message ListCampaignBoxEntitlementsReq {
+    int64 userId = 1;
+}
+
+message ListCampaignBoxEntitlementsResp {
+    repeated EntitlementItem items = 1;
+}
+
+message GetCampaignBoxEntitlementReq {
+    int64  userId = 1;
+    string entitlementNo = 2;
+}
+
+message GetCampaignBoxEntitlementResp {
+    string entitlementNo = 1;
+    int64  boxId = 2;
+    int64  status = 3;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// M14d 控制台：活动版本化（server_v2 campaign 形状，字段名/编号/枚举名照抄）
+// 仅实现 SIGN_IN/REDEMPTION_CODE/PRIZE_WHEEL 三种活动，其余枚举值保留用于 JSON 形状兼容。
+// ══════════════════════════════════════════════════════════════════════════
+
+enum CampaignKind {
+    CAMPAIGN_KIND_UNSPECIFIED = 0;
+    CAMPAIGN_KIND_SIGN_IN = 1;
+    CAMPAIGN_KIND_REDEMPTION_CODE = 2;
+    CAMPAIGN_KIND_COST_RANK = 3;
+    CAMPAIGN_KIND_REGISTRATION_GIFT = 4;
+    CAMPAIGN_KIND_COST_AWARD = 5;
+    CAMPAIGN_KIND_INVITE_COST_AWARD = 6;
+    CAMPAIGN_KIND_COST_AWARD_MULTIPLE = 7;
+    CAMPAIGN_KIND_COST_GIFT_COUPON = 8;
+    CAMPAIGN_KIND_COST_GIFT_COUPON_ONCE = 9;
+    CAMPAIGN_KIND_COST_GIFT_COUPON_SUMMARY = 10;
+    CAMPAIGN_KIND_ITEM_EXCHANGE = 11;
+    CAMPAIGN_KIND_RANDOM_DISCOUNT = 12;
+    CAMPAIGN_KIND_PRIZE_WHEEL = 13;
+    CAMPAIGN_KIND_STEP_BY_STEP = 14;
+    CAMPAIGN_KIND_COST_AWARD_OFFSET = 15;
+    CAMPAIGN_KIND_LUCKY_NUM = 16;
+    CAMPAIGN_KIND_RECALL = 17;
+    CAMPAIGN_KIND_TEAM_PK = 18;
+    CAMPAIGN_KIND_TASK = 19;
+    CAMPAIGN_KIND_TREASURE_PASSED = 20;
+    CAMPAIGN_KIND_BLOGGER_PROMOTION = 21;
+    CAMPAIGN_KIND_LOTTERY = 22;
+    CAMPAIGN_KIND_SPEND_LADDER = 23;
+    CAMPAIGN_KIND_ATTRIBUTED_SPEND = 24;
+    CAMPAIGN_KIND_WEIGHTED_DRAW = 25;
+    CAMPAIGN_KIND_ONCE_GRANT = 26;
+    CAMPAIGN_KIND_SEQUENCE = 27;
+    CAMPAIGN_KIND_EXCHANGE = 28;
+    CAMPAIGN_KIND_CHECKOUT_RULE = 29;
+}
+
+enum PrizeKind {
+    PRIZE_KIND_UNSPECIFIED = 0;
+    PRIZE_KIND_CASH = 1;
+    PRIZE_KIND_BONUS = 2;
+    PRIZE_KIND_REDEEM_POINT = 3;
+    PRIZE_KIND_LOYALTY_POINT = 4;
+    PRIZE_KIND_COUPON = 10;
+    PRIZE_KIND_ITEM = 20;
+    PRIZE_KIND_PAIR_CARD_APPEARANCE = 30;
+    PRIZE_KIND_GACHA_BOX = 200;
+}
+
+enum CampaignState {
+    CAMPAIGN_STATE_UNSPECIFIED = 0;
+    CAMPAIGN_STATE_DRAFT = 1;
+    CAMPAIGN_STATE_PUBLISHED = 2;
+}
+
+message Prize {
+    PrizeKind kind = 1;
+    int64 amount = 2;   // 现金=分、积分=点数
+    uint64 refId = 3;   // COUPON=券模板ID 等引用
+    uint32 count = 4;   // 发放数量
+}
+
+message SignInReward {
+    uint32 day = 1;          // 1 起且必须连续
+    int64 loyaltyPoints = 2; // 每日固定积分
+    repeated Prize prizes = 3;
+}
+
+message SignInConfig {
+    repeated SignInReward rewards = 1;
+}
+
+message RedemptionCodeSpec {
+    string code = 1;
+    int64 loyaltyPoints = 2;
+    uint32 maxRedemptions = 3;
+    uint32 perUserLimit = 4;
+    repeated Prize prizes = 5;
+}
+
+message RedemptionConfig {
+    repeated RedemptionCodeSpec codes = 1;
+}
+
+message WeightedSlot {
+    uint32 weight = 1;
+    repeated Prize prizes = 2;
+    uint32 dailyStock = 3; // 0=不限日库存
+}
+
+message PrizeWheelConfig {
+    repeated WeightedSlot slots = 1;
+    uint32 dailyLimit = 2; // 每人每日次数，0=不限
+}
+
+// 仅含本仓实现的三种活动配置；字段号与 server_v2 CampaignConfig 对齐（13=PRIZE_WHEEL）
+message CampaignConfig {
+    SignInConfig signIn = 1;
+    RedemptionConfig redemption = 2;
+    PrizeWheelConfig prizeWheel = 13;
+}
+
+message Campaign {
+    uint64 tenantId = 1;
+    uint64 campaignId = 2;
+    string campaignKey = 3;
+    CampaignKind kind = 4;
+    string name = 5;
+    CampaignState state = 6;
+    uint32 version = 7;           // 所查版本号
+    int64 startAtUnixMillis = 8;
+    int64 endAtUnixMillis = 9;
+    CampaignConfig config = 10;
+    uint32 publishedVersion = 11; // head 已发布版本（0=从未发布）
+}
+
+message CreateCampaignDraftRequest {
+    uint64 tenantId = 1;
+    string campaignKey = 2;
+    CampaignKind kind = 3;
+    string name = 4;
+    int64 startAtUnixMillis = 5;
+    int64 endAtUnixMillis = 6;
+    CampaignConfig config = 7;
+    uint64 campaignId = 8; // 非 0=在已有活动上追加下一版草稿（kind/key 保持不变）
+}
+
+message PublishCampaignRequest {
+    uint64 tenantId = 1;
+    uint64 campaignId = 2; // 发布其最新 DRAFT 版本
+}
+
+message GetCampaignRequest {
+    uint64 tenantId = 1;
+    uint64 campaignId = 2;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// M14d 控制台：券模板不可变版本/发券/忠诚度默认值（server_v2 promotion 形状）
+// ══════════════════════════════════════════════════════════════════════════
+
+enum CouponTemplateStatus {
+    COUPON_TEMPLATE_STATUS_UNSPECIFIED = 0;
+    COUPON_TEMPLATE_STATUS_PUBLISHED = 1;
+}
+
+enum CouponTemplateKind {
+    COUPON_TEMPLATE_KIND_UNSPECIFIED = 0;
+    COUPON_TEMPLATE_KIND_FIXED_MINOR = 1;
+    COUPON_TEMPLATE_KIND_PERCENT_BPS = 2;
+    COUPON_TEMPLATE_KIND_FREE = 3;
+    COUPON_TEMPLATE_KIND_CUSTOM_MINOR = 4;
+    COUPON_TEMPLATE_KIND_DRAW_REWARD = 5;
+}
+
+enum DiscountFunder {
+    DISCOUNT_FUNDER_UNSPECIFIED = 0;
+    DISCOUNT_FUNDER_PLATFORM = 1;
+    DISCOUNT_FUNDER_MERCHANT = 2;
+}
+
+enum CheckoutScene {
+    CHECKOUT_SCENE_UNSPECIFIED = 0;
+    CHECKOUT_SCENE_GACHA_DRAW = 1;
+    CHECKOUT_SCENE_MEMORY_MATCH_PURCHASE = 2;
+}
+
+message CouponTemplate {
+    uint64 templateId = 1;
+    uint64 version = 2;
+    uint64 tenantId = 3;
+    CouponTemplateStatus status = 4;
+    CouponTemplateKind kind = 5;
+    int64 amountMinor = 6;
+    int64 minGrossMinor = 7;
+    string currency = 8;
+    DiscountFunder funder = 9;
+    CheckoutScene scene = 10; // UNSPECIFIED=全场景
+    int32 percentBps = 11;    // PERCENT_BPS 万分比，10000=100%
+    int64 minUnitPriceMinor = 12;
+    int64 maxUnitPriceMinor = 13;
+    uint32 minItemCount = 14;
+    uint32 maxItemCount = 15;
+    string targetBusinessKey = 16;
+    uint32 validityDays = 17;
+    uint64 rewardTemplateId = 18;
+    uint32 rewardCount = 19;
+}
+
+message PublishCouponTemplateRequest {
+    string requestId = 1;      // 幂等：同号同内容重放返回已发布版本
+    CouponTemplate template = 2;
+}
+
+message GetCouponTemplateRequest {
+    uint64 tenantId = 1;
+    uint64 templateId = 2;
+}
+
+message ListCouponTemplateVersionsRequest {
+    uint64 tenantId = 1;
+    uint64 afterTemplateId = 2; // 游标（模板ID）
+    uint64 afterVersion = 3;    // 游标（版本号）
+    uint32 pageSize = 4;        // 默认 20，上限 100
+}
+
+message ListCouponTemplateVersionsReply {
+    repeated CouponTemplate templates = 1;
+    uint64 nextAfterTemplateId = 2;
+    uint64 nextAfterVersion = 3;
+}
+
+enum UserCouponStatus {
+    USER_COUPON_STATUS_UNSPECIFIED = 0;
+    USER_COUPON_STATUS_AVAILABLE = 1;
+    USER_COUPON_STATUS_LOCKED = 2;
+    USER_COUPON_STATUS_USED = 3;
+    USER_COUPON_STATUS_EXPIRED = 4;
+}
+
+enum CouponGrantSource {
+    COUPON_GRANT_SOURCE_UNSPECIFIED = 0;
+    COUPON_GRANT_SOURCE_CONSOLE = 1;
+    COUPON_GRANT_SOURCE_CAMPAIGN = 2;
+    COUPON_GRANT_SOURCE_CHECKOUT_REWARD = 3;
+}
+
+message UserCoupon {
+    uint64 id = 1;
+    uint64 tenantId = 2;
+    uint64 userId = 3;
+    uint64 templateId = 4;
+    uint64 templateVersion = 5;
+    UserCouponStatus status = 6;
+    int64 customAmountMinor = 7;
+    int64 expiresAtUnixMillis = 8;
+    CouponGrantSource source = 9;
+    string sourceId = 10; // 幂等来源键（console 发券=requestId#序号）
+}
+
+message GrantCouponsRequest {
+    string requestId = 1;        // 幂等：同号重放返回同一批券
+    uint64 tenantId = 2;
+    uint64 userId = 3;
+    uint64 templateId = 4;       // 发最新已发布版本
+    uint32 count = 5;
+    int64 customAmountMinor = 6; // 仅 CUSTOM_MINOR，须 ≤ 模板 amountMinor
+    CouponGrantSource source = 7;
+    uint64 campaignId = 8;       // source=CAMPAIGN 时填写
+}
+
+message GrantCouponsReply {
+    repeated UserCoupon coupons = 1;
+}
+
+message TenantLoyaltyDefaults {
+    uint64 tenantId = 1;
+    uint64 loyaltyPointsPerMajor = 2; // 0=平台默认 10
+    uint32 maxGrossBps = 3;           // 0=平台默认 7000（上限 10000）
+}
+
+message GetTenantLoyaltyDefaultsRequest {
+    uint64 tenantId = 1;
+}
+
+message PutTenantLoyaltyDefaultsRequest {
+    TenantLoyaltyDefaults defaults = 1;
+}

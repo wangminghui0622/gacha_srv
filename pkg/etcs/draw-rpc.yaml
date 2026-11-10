@@ -1,0 +1,30 @@
+Name: draw.rpc
+# 本机开发全链路：绑定回环地址，Etcd 注册固定 127.0.0.1（避免网卡/VPN 切换后注册 IP 失效）
+ListenOn: 127.0.0.1:9313
+
+Etcd:
+  Hosts:
+    - 127.0.0.1:2379
+  Key: draw.rpc
+
+MySQL:
+  DataSource: root:we7root@tcp(127.0.0.1:3306)/gacha_draw?charset=utf8mb4&parseTime=True&loc=Local
+
+# 缓存版宝箱/奖池条目模型使用的 Redis
+CacheRedis:
+  - Host: 127.0.0.1:6379
+    Pass: "we7redis"
+
+Log:
+  ServiceName: draw-rpc
+  Mode: console
+  Level: info
+
+# 指标/健康端点
+DevServer:
+  Enabled: true
+  Host: 0.0.0.0
+  Port: 9393
+  EnableMetrics: true
+  EnablePprof: false  # 默认开着,显式关闭
+  HealthPath: /healthz

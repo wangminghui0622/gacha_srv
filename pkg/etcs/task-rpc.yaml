@@ -1,0 +1,30 @@
+Name: task.rpc
+# 本机开发全链路：绑定回环地址，Etcd 注册固定 127.0.0.1（避免网卡/VPN 切换后注册 IP 失效）
+# 任务域 = 旧仓 game-rpc 拆出的任务/签到/通行证/会员。
+ListenOn: 127.0.0.1:9317
+
+Etcd:
+  Hosts:
+    - 127.0.0.1:2379
+  Key: task.rpc
+
+MySQL:
+  DataSource: root:we7root@tcp(127.0.0.1:3306)/gacha_task?charset=utf8mb4&parseTime=True&loc=Local
+
+# 运营库跨库直读（旧仓 game 服务同款：task_plan_head/version 计划快照只读，新仓照抄保留）
+OpsMySQL:
+  DataSource: root:we7root@tcp(127.0.0.1:3306)/gacha_ops?charset=utf8mb4&parseTime=True&loc=Local
+
+Log:
+  ServiceName: task-rpc
+  Mode: console
+  Level: info
+
+# 指标/健康端点
+DevServer:
+  Enabled: true
+  Host: 0.0.0.0
+  Port: 9397
+  EnableMetrics: true
+  EnablePprof: false  # 默认开着,显式关闭
+  HealthPath: /healthz

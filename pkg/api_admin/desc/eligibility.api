@@ -1,0 +1,69 @@
+// ════════════════════════════════════════════════════════════════
+// 条件政策控制台（ConsoleEligibilityHTTPService 契约照抄 server_v2）：
+// 创建政策草稿 → 修订（CAS）→ 发布（config_hash CAS）→ 列表/详情。
+// 请求/响应线格式（protojson camelCase）由各 handler 用 restx.ParseProto/
+// WriteProto 直接收发 base proto 消息，此处类型仅驱动 goctl 路由表生成。
+// ════════════════════════════════════════════════════════════════
+
+type (
+	ListPoliciesReq {
+		AfterPolicyId int64 `form:"afterPolicyId,optional"`
+		PageSize      int64 `form:"pageSize,optional"`
+	}
+	GetPolicyReq {
+		PolicyId int64 `path:"policyId"`
+		Version  int64 `path:"version"`
+	}
+	// 创建政策草稿（body=CreatePolicyDraftRequest 形状；handler 覆盖 tenantId=1）
+	CreatePolicyReq {
+		TenantId int64 `json:"tenantId,optional"`
+	}
+	// 创建修订（body=CreatePolicyRevisionRequest 形状；policyId 取路径）
+	CreatePolicyRevisionReq {
+		TenantId int64 `json:"tenantId,optional"`
+		PolicyId int64 `path:"policyId"`
+	}
+	// 发布（body 取 expectedConfigHash；policyId/version 取路径）
+	PublishPolicyReq {
+		PolicyId int64 `path:"policyId"`
+		Version  int64 `path:"version"`
+	}
+	// 响应由 handler 用 base.EligibilityPolicyRecord 输出（protojson），此处占位驱动路由生成
+	EligibilityResp {
+		PolicyId int64 `json:"policyId"`
+	}
+	ListPoliciesResp {
+		Policies []string `json:"policies"`
+	}
+)
+
+// 全部需会话 + 权限点（resource: eligibility.policy）
+@server (
+	prefix:     /console/v2/api
+	group:      eligibility
+	middleware: RequestId
+	middleware: ConsoleAuth
+	middleware: ConsoleAuthorize
+	tags:       "条件政策"
+)
+service admin-api {
+	@doc "条件政策列表（eligibility.policy:read；游标分页）"
+	@handler ListPolicies
+	get /eligibility/policies (ListPoliciesReq) returns (ListPoliciesResp)
+
+	@doc "条件政策详情（eligibility.policy:read；version 0=当前版本）"
+	@handler GetPolicy
+	get /eligibility/policies/:policyId/versions/:version (GetPolicyReq) returns (EligibilityResp)
+
+	@doc "创建条件政策草稿（eligibility.policy:create）"
+	@handler CreatePolicy
+	post /eligibility/policies (CreatePolicyReq) returns (EligibilityResp)
+
+	@doc "创建条件政策修订（eligibility.policy:write；expectedLatestVersion CAS）"
+	@handler CreatePolicyRevision
+	post /eligibility/policies/:policyId/revisions (CreatePolicyRevisionReq) returns (EligibilityResp)
+
+	@doc "发布条件政策（eligibility.policy:publish；expectedConfigHash CAS）"
+	@handler PublishPolicy
+	post /eligibility/policies/:policyId/versions/:version/publish (PublishPolicyReq) returns (EligibilityResp)
+}

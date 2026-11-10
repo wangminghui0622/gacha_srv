@@ -1,0 +1,613 @@
+syntax = "proto3";
+
+package ops;
+option go_package = "./ops";
+
+import "google/protobuf/timestamp.proto";
+
+// ────────────────────────────────────────────────────────────────
+// 运营服务（ops-rpc 9320）：管理控制台地基（M14a）
+// 唯一 ops 服务：旧仓 app_admin/ops 原样迁移 → 新仓 app/ops（admin-gateway 专用；玩家网关不调 ops）。
+// 旧仓 proto_admin/ops.proto 已并入本文件（内容一致），新仓统一单 proto 目录 pkg/proto。
+// 契约照抄 server_v2：
+//   - 控制台会话 = identity v2 ConsoleSessionService
+//     （EdDSA JWT / refresh 旋转 / TOTP 两步登录 / 会话吊销）
+//   - 权限 = authorization v2 AuthorizationService
+//     （角色 CRUD / 角色权限 / 主体角色 / Authorize 决策 / 权限目录 / 有效权限）
+// 服务划分可调整（两者合一为 ops-rpc），请求/响应字段与 server_v2 同名同构。
+// ────────────────────────────────────────────────────────────────
+
+
+// ── 服务定义 ──
+service Ops {
+    // 会话（ConsoleSessionService）
+    rpc ConsoleLogin(ConsoleLoginRequest) returns (ConsoleLoginReply);
+    rpc ConsoleRefresh(ConsoleRefreshRequest) returns (ConsoleSessionTokens);
+    rpc ConsoleLogout(ConsoleLogoutRequest) returns (ConsoleLogoutReply);
+    rpc OpenConsoleAccount(OpenConsoleAccountRequest) returns (OpenConsoleAccountReply);
+    rpc ResetConsoleTotp(ResetConsoleTotpRequest) returns (ResetConsoleTotpReply);
+    // 授权（AuthorizationService）
+    rpc Authorize(AuthorizeRequest) returns (AuthorizationDecision);
+    rpc ListEffectiveGrants(ListEffectiveGrantsRequest) returns (ListEffectiveGrantsReply);
+    rpc ListPermissionCatalog(ListPermissionCatalogRequest) returns (ListPermissionCatalogReply);
+    rpc ListRoles(ListRolesRequest) returns (ListRolesReply);
+    rpc GetRole(GetRoleRequest) returns (Role);
+    rpc CreateRole(CreateRoleRequest) returns (Role);
+    rpc UpdateRole(UpdateRoleRequest) returns (Role);
+    rpc PutRolePermissions(PutRolePermissionsRequest) returns (Role);
+    rpc ListRoleMembers(ListRoleMembersRequest) returns (ListRoleMembersReply);
+    rpc GetPrincipalRoles(GetPrincipalRolesRequest) returns (PrincipalRoles);
+    rpc PutPrincipalRoles(PutPrincipalRolesRequest) returns (PrincipalRoles);
+    // 审计（内部：网关异步写）
+    rpc WriteAudit(WriteAuditRequest) returns (WriteAuditReply);
+    // 任务计划（M14e，TaskService 控制台侧）
+    rpc ListTasks(ListTasksRequest) returns (ListTasksReply);
+    rpc CreateTaskPlanDraft(CreateTaskPlanDraftRequest) returns (TaskPlan);
+    rpc GetTaskPlan(GetTaskPlanRequest) returns (TaskPlan);
+    rpc ListTaskPlans(ListTaskPlansRequest) returns (ListTaskPlansReply);
+    rpc RequestTaskPlanPublication(RequestTaskPlanPublicationRequest) returns (TaskPlanPublicationApproval);
+    rpc ApproveTaskPlanPublication(ApproveTaskPlanPublicationRequest) returns (TaskPlanPublicationApproval);
+    rpc GetTaskPlanPublicationApproval(GetTaskPlanPublicationApprovalRequest) returns (TaskPlanPublicationApproval);
+    rpc PublishTaskPlan(PublishTaskPlanRequest) returns (TaskPlan);
+    // 报表（M14e，ReportingService）
+    rpc ListMetricDefinitions(ListMetricDefinitionsRequest) returns (ListMetricDefinitionsReply);
+    rpc SaveDashboard(SaveDashboardRequest) returns (Dashboard);
+    rpc PublishDashboard(PublishDashboardRequest) returns (Dashboard);
+    rpc GetDashboard(GetDashboardRequest) returns (Dashboard);
+    rpc QueryDashboard(QueryDashboardRequest) returns (QueryDashboardReply);
+    rpc QueryUserProfitCurve(QueryUserProfitCurveRequest) returns (QueryUserProfitCurveReply);
+    // 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
+    rpc ApplyMetricEvent(ApplyMetricEventRequest) returns (ApplyMetricEventReply);
+}
+
+
+// ── 枚举（与 server_v2 authorization v2 同值同序）──
+enum DataScope {
+    DATA_SCOPE_UNSPECIFIED = 0;
+    DATA_SCOPE_SELF = 1;
+    DATA_SCOPE_TEAM = 2;
+    DATA_SCOPE_DEPARTMENT = 3;
+    DATA_SCOPE_ORGANIZATION = 4;
+    DATA_SCOPE_CUSTOM = 5;
+    DATA_SCOPE_ALL = 6;
+}
+enum ApprovalMode {
+    APPROVAL_MODE_UNSPECIFIED = 0;
+    APPROVAL_MODE_NONE = 1;
+    APPROVAL_MODE_SINGLE = 2;
+    APPROVAL_MODE_DUAL_CONTROL = 3;
+}
+
+// ── 会话（ConsoleSessionService 契约）──
+message ConsoleLoginRequest {
+    uint64 tenant_id = 1;
+    string username = 2;
+    string password = 3;
+    string otp_code = 4;
+    string client_fingerprint = 5;
+    string login_ticket = 6;
+}
+message ConsoleTotpChallenge {
+    string login_ticket = 1;
+    bool setup_required = 2;
+    string totp_secret = 3;
+    string totp_uri = 4;
+}
+message ConsoleSessionTokens {
+    string access_token = 1;
+    string refresh_token = 2;
+    string token_type = 3;
+    int64 access_expires_at_unix = 4;
+    int64 refresh_expires_at_unix = 5;
+    string session_id = 6;
+}
+message ConsoleLoginReply {
+    ConsoleSessionTokens session = 1;
+    ConsoleTotpChallenge totp_challenge = 2;
+}
+message ConsoleRefreshRequest {
+    string refresh_token = 1;
+    string client_fingerprint = 2;
+}
+message ConsoleLogoutRequest {
+    string session_id = 1;
+}
+message ConsoleLogoutReply {
+    bool revoked = 1;
+}
+message OpenConsoleAccountRequest {
+    uint64 tenant_id = 1;
+    string username = 2;
+    string password = 3;
+    string display_name = 4;
+}
+message OpenConsoleAccountReply {
+    uint64 principal_id = 1;
+    uint64 tenant_id = 2;
+    string username = 3;
+    string role_code = 4;
+}
+message ResetConsoleTotpRequest {
+    uint64 tenant_id = 1;
+    uint64 principal_id = 2;
+}
+message ResetConsoleTotpReply {
+    bool reset = 1;
+    uint32 sessions_revoked = 2;
+}
+
+// ── 授权（AuthorizationService 契约）──
+message StringList {
+    repeated string values = 1;
+}
+message AttributeValue {
+    oneof value {
+        int64 int_value = 1;
+        string string_value = 2;
+        bool bool_value = 3;
+        StringList string_list = 4;
+    }
+}
+message AuthorizeRequest {
+    string request_id = 1;
+    uint64 actor_id = 2;
+    uint64 tenant_id = 3;
+    repeated string role_ids = 4; // JWT 快照仅供参考，服务端按 principal_roles 权威解析
+    string resource = 5;
+    string action = 6;
+    map<string, AttributeValue> subject = 8;
+    map<string, AttributeValue> resource_attributes = 9;
+    map<string, AttributeValue> context = 10;
+    string policy_code = 11;
+    string operation_id = 12;
+}
+message AuthorizationDecision {
+    string decision_id = 1;
+    uint64 policy_id = 2;
+    uint64 policy_version = 3;
+    bool allowed = 4;
+    string reason_code = 5;
+    repeated string matched_rule_ids = 6;
+    DataScope data_scope = 7;
+    repeated string allowed_fields = 8;
+    repeated string denied_fields = 9;
+    ApprovalMode approval_mode = 10;
+}
+message ListEffectiveGrantsRequest {
+    uint64 actor_id = 1;
+    uint64 tenant_id = 2;
+    repeated string role_ids = 3;
+    string policy_code = 4;
+}
+message PermissionGrant {
+    string resource = 1;
+    string action = 2;
+    DataScope data_scope = 3;
+    string rule_id = 4;
+}
+message PermissionNode {
+    string resource = 1;
+    repeated string actions = 2;
+    DataScope data_scope = 3;
+}
+message ListEffectiveGrantsReply {
+    uint64 policy_id = 1;
+    uint64 policy_version = 2;
+    repeated PermissionGrant grants = 3;
+    repeated PermissionNode nodes = 4;
+}
+message ListPermissionCatalogRequest {}
+message PermissionCatalogAction {
+    string code = 1;
+    string name = 2;
+}
+message PermissionCatalogResource {
+    string code = 1;
+    string name = 2;
+    repeated PermissionCatalogAction actions = 3;
+}
+message ListPermissionCatalogReply {
+    repeated PermissionCatalogResource resources = 1;
+}
+message RolePermission {
+    string resource = 1;
+    string action = 2;
+    DataScope data_scope = 3;
+    repeated string allowed_fields = 4;
+    repeated string denied_fields = 5;
+    string condition = 6;
+    ApprovalMode approval_mode = 7;
+}
+message Role {
+    uint64 id = 1;
+    uint64 tenant_id = 2;
+    string code = 3;
+    string name = 4;
+    bool enabled = 5;
+    uint64 version = 6;
+    repeated RolePermission permissions = 7;
+}
+message ListRolesRequest {
+    uint64 tenant_id = 1;
+}
+message ListRolesReply {
+    repeated Role roles = 1;
+}
+message GetRoleRequest {
+    uint64 tenant_id = 1;
+    uint64 role_id = 2;
+}
+message CreateRoleRequest {
+    uint64 tenant_id = 1;
+    string code = 2;
+    string name = 3;
+}
+message UpdateRoleRequest {
+    uint64 tenant_id = 1;
+    uint64 role_id = 2;
+    string name = 3;
+    bool enabled = 4;
+    uint64 expected_version = 5;
+}
+message PutRolePermissionsRequest {
+    uint64 tenant_id = 1;
+    uint64 role_id = 2;
+    uint64 expected_version = 3;
+    repeated RolePermission permissions = 4;
+}
+message RoleMember {
+    uint64 principal_id = 1;
+    string display_name = 2;
+}
+message ListRoleMembersRequest {
+    uint64 tenant_id = 1;
+    uint64 role_id = 2;
+    uint32 page_size = 3;
+    uint64 after_principal_id = 4;
+}
+message ListRoleMembersReply {
+    repeated RoleMember members = 1;
+    uint64 next_principal_id = 2;
+}
+message PrincipalRoles {
+    uint64 principal_id = 1;
+    uint64 tenant_id = 2;
+    uint64 version = 3;
+    repeated uint64 role_ids = 4;
+}
+message GetPrincipalRolesRequest {
+    uint64 tenant_id = 1;
+    uint64 principal_id = 2;
+}
+message PutPrincipalRolesRequest {
+    uint64 tenant_id = 1;
+    uint64 principal_id = 2;
+    uint64 expected_version = 3;
+    repeated uint64 role_ids = 4;
+}
+
+// ── 审计（内部 RPC：管理网关鉴权通过后异步写，走 gacha_ops.ops_audit_logs）──
+message WriteAuditRequest {
+    uint64 tenant_id = 1;
+    uint64 account_id = 2;
+    string operation_id = 3;
+    string resource = 4;
+    string action = 5;
+    string target_id = 6;
+    string request_id = 7;
+    string detail_json = 8;
+}
+message WriteAuditReply {
+    bool written = 1;
+}
+
+// ════════════════════════════════════════════════════════════════
+// M14e 任务计划/调度（契约照抄 server_v2 task v2 控制台侧：
+// task_plan 版本化 + 提请/审批/发布；ListTasks 进度列表空数据就位。
+// 玩家侧进度管线 ApplyProgress/ClaimTask/SignIn/ClaimPass/ClaimMember
+// 不在本仓范围）
+// ════════════════════════════════════════════════════════════════
+
+enum TaskPeriod {
+    TASK_PERIOD_UNSPECIFIED = 0;
+    TASK_PERIOD_ONCE = 1;
+    TASK_PERIOD_DAILY = 2;
+    TASK_PERIOD_WEEKLY = 3;
+}
+
+enum TaskMetric {
+    TASK_METRIC_UNSPECIFIED = 0;
+    TASK_METRIC_DRAW_COUNT = 1;
+    TASK_METRIC_DRAW_SPEND_MINOR = 2;
+    TASK_METRIC_LOGIN = 3;
+    TASK_METRIC_RECHARGE_MINOR = 4;
+    TASK_METRIC_SIGN_IN = 5;
+}
+
+enum TaskProgressState {
+    TASK_PROGRESS_STATE_UNSPECIFIED = 0;
+    TASK_PROGRESS_STATE_IN_PROGRESS = 1;
+    TASK_PROGRESS_STATE_CLAIMABLE = 2;
+    TASK_PROGRESS_STATE_FINISHED = 3;
+}
+
+enum TaskPlanStatus {
+    TASK_PLAN_STATUS_UNSPECIFIED = 0;
+    TASK_PLAN_STATUS_DRAFT = 1;
+    TASK_PLAN_STATUS_PUBLISHED = 2;
+    TASK_PLAN_STATUS_RETIRED = 3;
+}
+
+message CouponRewardReference {
+    uint64 template_id = 1;
+    uint64 template_version = 2;
+}
+message InventoryRewardReference {
+    uint64 product_id = 1;
+    uint64 sku_id = 2;
+    uint64 product_version = 3;
+}
+message TaskRewardDefinition {
+    uint32 count = 1;
+    oneof target {
+        CouponRewardReference coupon = 2;
+        InventoryRewardReference inventory = 3;
+    }
+}
+
+message TaskDefinition {
+    uint64 task_id = 1;
+    uint64 version = 2;
+    string name = 3;
+    TaskPeriod period = 4;
+    TaskMetric metric = 5;
+    int64 target = 6;
+    uint32 cycle_limit = 7; // 0 = 不限
+    string reward_template_id = 8;
+    uint32 reward_count = 9;
+    TaskRewardDefinition reward = 10;
+}
+
+message ListTasksRequest {
+    uint64 user_id = 1;
+    TaskPeriod period = 2;
+    uint32 page_size = 3;
+    string page_token = 4;
+    uint64 tenant_id = 5;
+}
+
+message TaskView {
+    TaskDefinition definition = 1;
+    int64 progress = 2;
+    uint32 claimed = 3;
+    TaskProgressState state = 4;
+}
+
+message ListTasksReply {
+    repeated TaskView tasks = 1;
+    string next_page_token = 2;
+}
+
+message TaskPlan {
+    uint64 version = 1;
+    TaskPlanStatus status = 2;
+    repeated TaskDefinition tasks = 3;
+    repeated PassSeason passes = 4;
+    repeated MemberTier member_tiers = 5;
+    bytes config_hash = 6;
+    int64 created_at_unix_millis = 7;
+    int64 published_at_unix_millis = 8;
+}
+
+message PassSeason {
+    uint64 pass_id = 1;
+    uint64 version = 2;
+    string name = 3;
+    int64 xp_per_level = 4;
+    uint32 max_level = 5;
+    repeated PassReward rewards = 6;
+    int64 xp_per_spend_minor = 7;
+    PassPremiumLine premium_line = 8;
+    uint32 premium_member_level = 9;
+}
+message PassReward {
+    uint32 level = 1;
+    PassTrack track = 2;
+    string reward_template_id = 3;
+    uint32 reward_count = 4;
+    TaskRewardDefinition reward = 5;
+}
+enum PassTrack {
+    PASS_TRACK_UNSPECIFIED = 0;
+    PASS_TRACK_FREE = 1;
+    PASS_TRACK_PREMIUM = 2;
+}
+enum PassPremiumLine {
+    PASS_PREMIUM_LINE_UNSPECIFIED = 0;
+    PASS_PREMIUM_LINE_PAYMENT = 1;
+    PASS_PREMIUM_LINE_MEMBER = 2;
+}
+message MemberTier {
+    uint32 level = 1;
+    int64 spend_minor = 2;
+    string reward_template_id = 3;
+    uint32 reward_count = 4;
+    TaskRewardDefinition reward = 5;
+}
+
+message CreateTaskPlanDraftRequest {
+    uint64 expected_latest_version = 1;
+    repeated TaskDefinition tasks = 2;
+    repeated PassSeason passes = 3;
+    repeated MemberTier member_tiers = 4;
+}
+message GetTaskPlanRequest { uint64 version = 1; }
+message ListTaskPlansRequest { uint64 after_version = 1; uint32 page_size = 2; }
+message ListTaskPlansReply { repeated TaskPlan plans = 1; uint64 next_after_version = 2; }
+message PublishTaskPlanRequest { uint64 version = 1; bytes expected_config_hash = 2; }
+message RequestTaskPlanPublicationRequest { uint64 version = 1; bytes expected_config_hash = 2; uint64 requester_id = 3; }
+message ApproveTaskPlanPublicationRequest { uint64 version = 1; bytes expected_config_hash = 2; uint64 approver_id = 3; }
+message GetTaskPlanPublicationApprovalRequest { uint64 version = 1; }
+message TaskPlanPublicationApproval {
+    uint64 version = 1;
+    bytes config_hash = 2;
+    uint64 requester_id = 3;
+    uint64 approver_id = 4;
+    bool approved = 5;
+    int64 requested_at_unix_millis = 6;
+    int64 approved_at_unix_millis = 7;
+}
+
+// ════════════════════════════════════════════════════════════════
+// M14e 报表聚合（契约照抄 server_v2 reporting v2：
+// 指标目录/看板保存/发布/查询 + 用户盈亏曲线（半成品空态）。
+// 集成侧指标摄取管线不在本仓范围——看板查询数据恒空）
+// ════════════════════════════════════════════════════════════════
+
+enum StandardMetric {
+    STANDARD_METRIC_UNSPECIFIED = 0;
+    STANDARD_METRIC_IMPRESSIONS = 1;
+    STANDARD_METRIC_CLICKS = 2;
+    STANDARD_METRIC_CONVERSIONS = 3;
+    STANDARD_METRIC_SPEND = 4;
+    STANDARD_METRIC_REVENUE = 5;
+}
+enum DashboardStatus {
+    DASHBOARD_STATUS_UNSPECIFIED = 0;
+    DASHBOARD_STATUS_DRAFT = 1;
+    DASHBOARD_STATUS_PUBLISHED = 2;
+    DASHBOARD_STATUS_ARCHIVED = 3;
+}
+enum WidgetKind {
+    WIDGET_KIND_UNSPECIFIED = 0;
+    WIDGET_KIND_NUMBER = 1;
+    WIDGET_KIND_LINE = 2;
+    WIDGET_KIND_BAR = 3;
+    WIDGET_KIND_TABLE = 4;
+}
+enum MetricValueKind {
+    METRIC_VALUE_KIND_UNSPECIFIED = 0;
+    METRIC_VALUE_KIND_COUNT = 1;
+    METRIC_VALUE_KIND_MONEY = 2;
+}
+enum TimeGrain {
+    TIME_GRAIN_UNSPECIFIED = 0;
+    TIME_GRAIN_HOUR = 1;
+    TIME_GRAIN_DAY = 2;
+    TIME_GRAIN_MONTH = 3;
+}
+
+message MetricDefinition {
+    string metric_code = 1;
+    string title = 2;
+    StandardMetric standard_metric = 3;
+    MetricValueKind value_kind = 4;
+    repeated TimeGrain supported_grains = 5;
+    repeated string dimension_codes = 6;
+}
+message DashboardWidget {
+    uint64 widget_id = 1;
+    string widget_code = 2;
+    string title = 3;
+    WidgetKind kind = 4;
+    string metric_code = 5;
+    TimeGrain grain = 6;
+    string dimension_code = 7;
+    uint32 grid_x = 8;
+    uint32 grid_y = 9;
+    uint32 grid_width = 10;
+    uint32 grid_height = 11;
+    string display_options_json = 12;
+}
+message Dashboard {
+    uint64 dashboard_id = 1;
+    string dashboard_code = 2;
+    string title = 3;
+    DashboardStatus status = 4;
+    uint64 version = 5;
+    repeated DashboardWidget widgets = 6;
+    uint64 tenant_id = 7;
+}
+message ListMetricDefinitionsRequest {}
+message ListMetricDefinitionsReply { repeated MetricDefinition metrics = 1; }
+message SaveDashboardRequest {
+    uint64 dashboard_id = 1;
+    uint64 expected_version = 2;
+    string dashboard_code = 3;
+    string title = 4;
+    repeated DashboardWidget widgets = 5;
+    uint64 tenant_id = 6;
+}
+message PublishDashboardRequest { uint64 dashboard_id = 1; uint64 expected_version = 2; uint64 tenant_id = 3; }
+message GetDashboardRequest { uint64 dashboard_id = 1; uint64 tenant_id = 2; }
+message QueryDashboardRequest {
+    uint64 dashboard_id = 1;
+    string provider_code = 2;
+    string external_account_id = 3;
+    google.protobuf.Timestamp from = 4;
+    google.protobuf.Timestamp to = 5;
+    map<string, string> dimension_values = 6;
+    uint32 max_data_points = 7;
+    bool skip_cache = 8;
+    uint64 tenant_id = 9;
+}
+message WidgetDataPoint {
+    google.protobuf.Timestamp bucket_start = 1;
+    string currency = 2;
+    int64 value = 3;
+}
+message WidgetQueryResult {
+    uint64 widget_id = 1;
+    string widget_code = 2;
+    string metric_code = 3;
+    TimeGrain grain = 4;
+    string dimension_code = 5;
+    repeated WidgetDataPoint points = 6;
+    bool truncated = 7;
+}
+message QueryDashboardReply {
+    Dashboard dashboard = 1;
+    repeated WidgetQueryResult results = 2;
+    bool cache_hit = 3;
+    google.protobuf.Timestamp generated_at = 4;
+}
+
+// 指标事件应用（M15d，内部 RPC）：integration outbox dispatcher 直连；
+// inbox event_id 幂等去重 + snapshot 修订号守卫 + 货币差量入桶（server_v2 ApplyMetric 同款）。
+message ApplyMetricEventRequest {
+    uint64 event_id = 1;      // 事件ID（outbox 行 id，inbox 去重键）
+    uint64 tenant_id = 2;     // 租户ID
+    string provider_code = 3; // 渠道编码
+    string external_account_id = 4; // 外部账户ID
+    string external_object_id = 5;  // 外部对象ID
+    StandardMetric standard_metric = 6; // 标准指标
+    google.protobuf.Timestamp bucket_start = 7; // 时间桶起点
+    uint32 bucket_seconds = 8; // 桶长秒
+    string dimension_key = 9;   // 维度键
+    int64 value = 10;           // 指标值
+    string currency = 11;       // 币种
+    uint64 source_revision = 12; // 源修订号
+}
+
+message ApplyMetricEventReply {
+    bool applied = 1; // 是否实际应用（event_id 已处理/修订号过期 → false）
+}
+message UserProfitCurvePoint {
+    google.protobuf.Timestamp bucket_start = 1;
+    int64 spend_minor = 2;
+    int64 award_cost_minor = 3;
+    int64 profit_minor = 4;
+    string currency = 5;
+}
+message QueryUserProfitCurveRequest {
+    uint64 tenant_id = 1;
+    uint64 user_id = 2;
+    TimeGrain grain = 3;
+    google.protobuf.Timestamp from = 4;
+    google.protobuf.Timestamp to = 5;
+}
+message QueryUserProfitCurveReply {
+    repeated UserProfitCurvePoint points = 1;
+    bool data_ready = 2; // false = 空态（照抄 server_v2：投影未迁入，前端展示空态）
+}
+

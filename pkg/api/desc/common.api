@@ -1,0 +1,22 @@
+syntax = "v1"
+
+info(
+	title:   "Gacha 抽盒平台网关接口"
+	desc:    "Gacha 抽盒平台 v1 网关接口定义（抽盒购买走 DTM SAGA 事务）"
+	author:  "Gacha Team"
+	version: "v1"
+)
+
+// ════════════════════════════════════════════════════════════════
+// 共享类型：分页请求（列表接口统一嵌入）
+// ════════════════════════════════════════════════════════════════
+
+type (
+	// 分页请求：page 从 1 开始；pageSize 服务端上限 100
+	PageReq {
+		// 页码，从 1 开始
+		Page int `json:"page,default=1" form:"page,default=1"`
+		// 每页条数（上限 100）
+		PageSize int `json:"pageSize,default=10" form:"pageSize,default=10"`
+	}
+)

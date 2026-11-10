@@ -1,0 +1,142 @@
+{
+	"pages": [
+		{
+			"path": "pages/login/index",
+			"style": {
+				"navigationBarTitleText": "登录"
+			}
+		},
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "盲盒",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/mine/index",
+			"style": {
+				"navigationBarTitleText": "我的",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/box-detail/index",
+			"style": {
+				"navigationBarTitleText": "宝箱详情"
+			}
+		},
+		{
+			"path": "pages/buy/index",
+			"style": {
+				"navigationBarTitleText": "购买"
+			}
+		},
+		{
+			"path": "pages/records/index",
+			"style": {
+				"navigationBarTitleText": "抽赏记录"
+			}
+		},
+		{
+			"path": "pages/campaigns/index",
+			"style": {
+				"navigationBarTitleText": "活动中心"
+			}
+		},
+		{
+			"path": "pages/wheel/index",
+			"style": {
+				"navigationBarTitleText": "幸运转盘"
+			}
+		},
+		{
+			"path": "pages/dig/index",
+			"style": {
+				"navigationBarTitleText": "挖宝箱"
+			}
+		},
+		{
+			"path": "pages/full-car/index",
+			"style": {
+				"navigationBarTitleText": "满车"
+			}
+		},
+		{
+			"path": "pages/gashapon/index",
+			"style": {
+				"navigationBarTitleText": "扭蛋"
+			}
+		},
+		{
+			"path": "pages/combo-chain/index",
+			"style": {
+				"navigationBarTitleText": "连击链"
+			}
+		},
+		{
+			"path": "pages/group-buy/index",
+			"style": {
+				"navigationBarTitleText": "拼团抽"
+			}
+		},
+		{
+			"path": "pages/memory-match/index",
+			"style": {
+				"navigationBarTitleText": "记忆翻牌"
+			}
+		},
+		{
+			"path": "pages/coupons/index",
+			"style": {
+				"navigationBarTitleText": "优惠券"
+			}
+		},
+		{
+			"path": "pages/tasks/index",
+			"style": {
+				"navigationBarTitleText": "任务中心"
+			}
+		},
+		{
+			"path": "pages/warehouse/index",
+			"style": {
+				"navigationBarTitleText": "我的仓库"
+			}
+		},
+		{
+			"path": "pages/recharge/index",
+			"style": {
+				"navigationBarTitleText": "充值"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "Gacha 盲盒",
+		"navigationBarBackgroundColor": "#FFFFFF",
+		"backgroundColor": "#F5F5F5"
+	},
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#FF6B35",
+		"backgroundColor": "#FFFFFF",
+		"borderStyle": "black",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"text": "首页"
+			},
+			{
+				"pagePath": "pages/mine/index",
+				"text": "我的"
+			}
+		]
+	},
+	"easycom": {
+		"autoscan": true,
+		"custom": {
+			"^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+		}
+	}
+}

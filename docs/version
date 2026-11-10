@@ -1,0 +1,16 @@
+# 工具链版本基线
+
+升级任一工具需全量回归：`bash test/run_all.sh` + `go test ./...`
+
+| 工具 | 版本 | 说明 |
+|------|------|------|
+| Go | 1.25.0（go.mod 声明；本机 1.26.8 构建兼容） | 与 dtm_shop 对齐 |
+| go-zero / goctl | v1.10.2 | 网关 + gRPC + Etcd |
+| gorm | v1.31.2（pin） | pkg/txutil 的 Statement.ConnPool workaround 依赖此版本，升级大版本前必须回归 txutil 单测 |
+| gorm-zero | v1.9.1 | 缓存模型 gormc |
+| protoc | 3.19.4 | proto 编译 |
+| DTM | vendored（源自 D:\dtm_shop\app\dtm，import 路径已改写为 gacha_srv/...） | app/dtm 随仓库提交，CI format/lint/test 排除 |
+| MySQL | 8.0（本机 8.0.46，已加密码；凭据由 deploy/dev 脚本注入，不落库） | 一服务一库 + 每业务库 dtm_barrier |
+| Redis | 8.0+（本机已加密码，同上） | draw 服务缓存模型使用 |
+| Etcd | 3.x（本机默认 2379） | 服务注册发现 |
+| Node | ^22.18 或更高 | 前端（web_admin / mini） |

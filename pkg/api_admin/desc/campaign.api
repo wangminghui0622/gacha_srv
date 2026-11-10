@@ -1,0 +1,48 @@
+// ════════════════════════════════════════════════════════════════
+// 活动控制台（ConsoleCampaignHTTPService 契约照抄 server_v2）：
+// 创建草稿（追加下一版）→ 发布最新 DRAFT → 查看。
+// 请求/响应线格式（protojson camelCase）由各 handler 用 restx.ParseProto/
+// WriteProto 直接收发 game proto 消息，此处类型仅驱动 goctl 路由表生成。
+// ════════════════════════════════════════════════════════════════
+
+type (
+	// 创建草稿请求（body=CreateCampaignDraftRequest 形状；handler 覆盖 tenantId=1）
+	CreateCampaignDraftReq {
+		TenantId int64 `json:"tenantId,optional"`
+	}
+	// 发布请求（body 仅 tenant_id；campaignId 取路径，handler 覆盖 tenantId=1）
+	PublishCampaignReq {
+		TenantId    int64 `json:"tenantId,optional"`
+		CampaignId  int64 `path:"campaignId"`
+	}
+	GetCampaignReq {
+		CampaignId int64 `path:"campaignId"`
+	}
+	// 响应由 handler 用 game.Campaign 输出（protojson），此处类型仅占位驱动路由生成
+	CampaignResp {
+		CampaignId int64 `json:"campaignId"`
+	}
+)
+
+// 全部需会话 + 权限点（resource: campaign.definition）
+@server (
+	prefix:     /console/v2/api
+	group:      campaign
+	middleware: RequestId
+	middleware: ConsoleAuth
+	middleware: ConsoleAuthorize
+	tags:       "活动"
+)
+service admin-api {
+	@doc "创建活动草稿（campaign.definition:write；可追加下一版草稿）"
+	@handler CreateCampaignDraft
+	post /campaigns/drafts (CreateCampaignDraftReq) returns (CampaignResp)
+
+	@doc "发布活动（campaign.definition:publish；发布最新 DRAFT 版本）"
+	@handler PublishCampaign
+	post /campaigns/:campaignId/publish (PublishCampaignReq) returns (CampaignResp)
+
+	@doc "查看活动（campaign.definition:read）"
+	@handler GetCampaign
+	get /campaigns/:campaignId (GetCampaignReq) returns (CampaignResp)
+}

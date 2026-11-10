@@ -1,0 +1,292 @@
+syntax = "proto3";
+
+package money;
+option go_package = "./money";
+
+// 资金服务（9312）：钱包/账本/资产发放 + 支付状态机 + DTM SAGA 分支 04/06/07。
+// 由旧仓 asset（user 拆出）与 payment 两域合并（用户拍板 2026-11-09），RPC 形状与字段序号不变。
+// 合并收益：支付分支对钱包的跨服务 RPC 变为同服务本地事务；退款流不再跨服务补偿。
+// 资金表不走缓存：FOR UPDATE 行锁 + 原子 UPDATE（参考 dtm_shop payment 服务）。
+// 钱包：4 种钱包 + available/held 双余额；FreezeWallet/PostHold/VoidHold
+//   供 SAGA 支付分支（04/07）内调用（自身非 DTM 分支），幂等由确定性键保证。
+// 分支 04 AuthorizeWalletPayment（正向）：建单+两腿，事务外调 FreezeWallet 冻结
+//   CASH/LOYALTY 两腿（内嵌非独立分支，幂等靠确定性键）；失败 Aborted 触发补偿。
+//   补偿 CancelPayment：全部 PENDING 腿 VoidHold 解冻、订单 CANCELED。
+// 分支 06 GrantAsset（正向）：开奖后奖品入吉仓；补偿 GrantAssetRevert 撤销。
+// 分支 07 CaptureWalletPayment（正向）：机械状态迁移（PostHold×2 + marketing.CommitQuote 核销报价
+//   + 订单 PAID），业务失败前置（04 冻结成功即足额），Aborted 属防御语义；补偿为空（末步注册防御）。
+// 错误语义：业务失败 codes.Aborted（触发补偿）；系统错误 codes.Internal（DTM 重试）。
+// 金额沿用 v1 惯例 string 元 + utils.YuanToFen；内部 int64 分。
+
+service Money {
+    // ── 资产（钱包/余额/入账/冻结）──
+    rpc GetBalance(GetBalanceReq) returns (GetBalanceResp);
+    rpc Recharge(RechargeReq) returns (RechargeResp);
+    rpc CreditWallet(CreditWalletReq) returns (CreditWalletResp);
+    rpc FreezeWallet(FreezeWalletReq) returns (FreezeWalletResp);
+    rpc PostHold(PostHoldReq) returns (PostHoldResp);
+    rpc VoidHold(VoidHoldReq) returns (VoidHoldResp);
+    rpc GetWallet(GetWalletReq) returns (GetWalletResp);
+    // ── 资产发放（SAGA 分支 06：开奖后发奖）──
+    rpc GrantAsset(GrantAssetReq) returns (GrantAssetResp);
+    rpc GrantAssetRevert(GrantAssetReq) returns (GrantAssetResp);
+    // ── 发奖落库查询（SAGA 04 补偿退款前置检查：draw 域资产未撤销即视为已发放）──
+    rpc CheckGrantsByRequestId(CheckGrantsByRequestIdReq) returns (CheckGrantsByRequestIdResp);
+    // ── 支付（SAGA 分支 04/07）──
+    rpc AuthorizeWalletPayment(AuthorizeWalletPaymentReq) returns (AuthorizeWalletPaymentResp);
+    rpc CancelPayment(CancelPaymentReq) returns (CancelPaymentResp);
+    rpc CaptureWalletPayment(CaptureWalletPaymentReq) returns (CaptureWalletPaymentResp);
+    rpc CaptureWalletPaymentRevert(CaptureWalletPaymentReq) returns (CaptureWalletPaymentResp);
+    rpc Refund(RefundReq) returns (RefundResp);
+    rpc GetPayment(GetPaymentReq) returns (GetPaymentResp);
+    // ── M14d 控制台：支付路由存管（半成品，无消费方；形状照抄 server_v2 payment_route）──
+    rpc GetPaymentRoute(GetPaymentRouteRequest) returns (GetPaymentRouteReply);
+    rpc PutPaymentRoute(PutPaymentRouteRequest) returns (PutPaymentRouteReply);
+}
+
+message GetBalanceReq {
+    int64 userId = 1; // 用户ID
+}
+
+message GetBalanceResp {
+    string balance = 1; // 余额（元，两位小数字符串；内部 int64 分）
+}
+
+message RechargeReq {
+    int64 userId = 1;  // 用户ID
+    string amount = 2; // 充值金额（元，两位小数）
+    string requestId = 3; // 幂等键：客户端生成，重复提交只生效一次
+}
+
+message RechargeResp {
+    string balance = 1; // 充值后余额（元）
+}
+
+// ══════════ 钱包 ══════════
+
+message CreditWalletReq {
+    int64 userId = 1;    // 用户ID
+    int32 kind = 2;      // 钱包类型：1 CASH 2 BONUS 3 REDEEM_POINT 4 LOYALTY_POINT
+    string amount = 3;   // 入账金额（元，两位小数）
+    string requestId = 4; // 幂等键：流水号确定性派生（"c_"+requestId）
+}
+
+message CreditWalletResp {
+    string balance = 1; // 该钱包可用余额（元）
+}
+
+message FreezeWalletReq {
+    int64 userId = 1;    // 用户ID
+    int32 kind = 2;      // 钱包类型（同 CreditWalletReq）
+    string amount = 3;   // 冻结金额（元，两位小数）
+    string bizType = 4;  // 业务类型（如 payment_leg）
+    string bizId = 5;    // 业务单号（幂等键：hold_no="h_"+bizId）
+    string requestId = 6; // 全局事务 gid（日志追踪用）
+    int64 expiresAt = 7;  // 过期时间（unix 秒，0=不过期）
+}
+
+message FreezeWalletResp {
+    string holdNo = 1; // 冻结单号
+    string frozen = 2; // 冻结金额（元；幂等重发返回已有 hold 的金额）
+}
+
+message PostHoldReq {
+    string holdNo = 1;  // 冻结单号
+    string bizType = 2; // 业务类型（校验用，防串单）
+    string bizId = 3;   // 业务单号（校验用）
+}
+
+message PostHoldResp {
+    int32 status = 1; // hold 状态：2=POSTED
+}
+
+message VoidHoldReq {
+    string holdNo = 1;  // 冻结单号
+    string bizType = 2; // 业务类型（校验用，防串单）
+    string bizId = 3;   // 业务单号（校验用）
+}
+
+message VoidHoldResp {
+    int32 status = 1; // hold 状态：3=VOIDED
+}
+
+message GetWalletReq {
+    int64 userId = 1; // 用户ID
+}
+
+message WalletKindBalance {
+    int32 kind = 1;       // 钱包类型
+    string available = 2; // 可用余额（元）
+    string held = 3;      // 冻结余额（元）
+}
+
+message GetWalletResp {
+    repeated WalletKindBalance kinds = 1; // 四类钱包（缺行按 0 返回）
+}
+
+// ══════════ 资产（SAGA 分支 06）══════════
+
+message GrantAssetReq {
+    int64 userId = 1;    // 用户ID
+    int64 boxId = 2;     // 宝箱ID
+    string requestId = 3; // 全局事务 gid：asset_no="a_"+requestId，uk 幂等
+}
+
+message GrantAssetResp {
+    int64 assetId = 1;   // 资产ID（谢谢参与=0）
+    string itemName = 2; // 奖品名称
+    string status = 3;   // granted=已发放 canceled=已撤销 skipped=空补偿
+}
+
+// CheckGrantsByRequestIdReq/Resp：SAGA 04 补偿退款前置检查（按 gid 查 draw 域资产）
+message CheckGrantsByRequestIdReq {
+    string requestId = 1; // 全局事务 gid：asset_no="a_"+requestId
+}
+
+message CheckGrantsByRequestIdResp {
+    bool granted = 1; // true=存在该 gid 关联且未撤销/未消耗返还的资产（视为已发放）
+}
+
+// ══════════ 支付（SAGA 分支 04/07）══════════
+
+message AuthorizeWalletPaymentReq {
+    string requestId = 1;    // 全局事务 gid（order_no="P"+requestId 确定性派生）
+    int64 userId = 2;        // 用户ID
+    int64 boxId = 3;         // 宝箱ID
+    string grossAmount = 4;  // 订单总额（元，两位小数）
+    string cashAmount = 5;   // 现金部分（元）
+    string loyaltyAmount = 6; // 积分抵现部分（元，M8 恒 "0"）
+    int64 loyaltyPointsDebit = 7; // 抵扣积分数（M8 恒 0）
+}
+
+message AuthorizeWalletPaymentResp {
+    string paymentNo = 1; // 支付单号
+    int32 status = 2;     // 订单状态：2=AWAITING_PAYMENT
+}
+
+message CancelPaymentReq {
+    string requestId = 1; // 全局事务 gid（定位支付单）
+}
+
+message CancelPaymentResp {
+    int32 status = 1; // 订单状态：6=CANCELED
+}
+
+message CaptureWalletPaymentReq {
+    string requestId = 1;   // 全局事务 gid（定位支付单）
+    string quoteToken = 2;  // 报价令牌（M10 起必传：07 内 sub-call marketing.CommitQuote 核销）
+}
+
+message CaptureWalletPaymentResp {
+    string paymentNo = 1; // 支付单号
+    int32 status = 2;     // 订单状态：3=PAID
+}
+
+message RefundReq {
+    string requestId = 1;        // 原订单 gid（定位支付单）
+    string refundRequestId = 2;  // 退款幂等键：refund_no="R"+refundRequestId
+}
+
+message RefundResp {
+    string refundNo = 1; // 退款单号
+    int32 status = 2;    // 退款状态：2=SUCCEEDED
+}
+
+message GetPaymentReq {
+    string requestId = 1; // 全局事务 gid（定位支付单）
+}
+
+message PaymentLegItem {
+    string legNo = 1;      // 资金腿单号
+    int32 walletKind = 2;  // 钱包类型
+    string amount = 3;     // 腿金额（元）
+    int32 status = 4;      // 腿状态：1 PENDING 2 POSTED 3 VOIDED
+}
+
+message GetPaymentResp {
+    string paymentNo = 1;       // 支付单号
+    int32 status = 2;           // 订单状态
+    string grossAmount = 3;     // 订单总额（元）
+    string cashAmount = 4;      // 现金部分（元）
+    string loyaltyAmount = 5;   // 积分抵现部分（元）
+    repeated PaymentLegItem legs = 6; // 资金腿列表
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// M14d 控制台：支付路由存管（消息形状照抄 server_v2 api/v2/payment，
+// 控制台 JSON 与 server_v2 kratos 输出逐字一致；本仓只存不改、无消费方）。
+// ══════════════════════════════════════════════════════════════════════════
+
+enum PaymentChannel {
+    PAYMENT_CHANNEL_UNSPECIFIED = 0;
+    PAYMENT_CHANNEL_WECHAT = 1;
+    PAYMENT_CHANNEL_ALIPAY = 2;
+}
+
+enum PaymentProvider {
+    PAYMENT_PROVIDER_UNSPECIFIED = 0;
+    PAYMENT_PROVIDER_NATIVE_WECHAT = 1;
+    PAYMENT_PROVIDER_NATIVE_ALIPAY = 2;
+    PAYMENT_PROVIDER_HUIFU = 3;
+    PAYMENT_PROVIDER_SHOUQIANBA = 4;
+    PAYMENT_PROVIDER_WEIBO = 5;
+}
+
+enum PaymentRouteMode {
+    PAYMENT_ROUTE_MODE_UNSPECIFIED = 0;
+    PAYMENT_ROUTE_MODE_AUTO = 1;
+    PAYMENT_ROUTE_MODE_PINNED = 2;
+}
+
+enum PaymentScene {
+    PAYMENT_SCENE_UNSPECIFIED = 0;
+    PAYMENT_SCENE_APP = 1;
+    PAYMENT_SCENE_MINI_PROGRAM = 2;
+    PAYMENT_SCENE_H5 = 3;
+}
+
+message PaymentRoutePolicy {
+    uint64 policyId = 1;
+    uint64 tenantId = 2;
+    PaymentChannel channel = 3;
+    PaymentScene scene = 4;
+    PaymentRouteMode mode = 5;
+    PaymentProvider pinnedProvider = 6;
+    string pinnedMerchantAccountId = 7;
+    uint64 version = 8; // 每次 PUT +1（CAS 用）
+}
+
+message PaymentRouteCandidate {
+    uint64 candidateId = 1;
+    uint64 policyId = 2;
+    PaymentProvider provider = 3;
+    string merchantAccountId = 4;
+    uint32 priority = 5; // 小值优先
+    uint32 weight = 6;   // 1..10000
+    bool enabled = 7;
+}
+
+// 控制台形状：tenant 由网关按单租户固定 1、operator 由 JWT 填充，body 不可伪造
+message GetPaymentRouteRequest {
+    PaymentChannel channel = 1;
+    PaymentScene scene = 2;
+}
+
+message GetPaymentRouteReply {
+    PaymentRoutePolicy policy = 1;
+    repeated PaymentRouteCandidate candidates = 2;
+}
+
+message PutPaymentRouteRequest {
+    PaymentChannel channel = 1;
+    PaymentScene scene = 2;
+    PaymentRoutePolicy policy = 3;
+    repeated PaymentRouteCandidate candidates = 4;
+    uint64 expectedVersion = 5; // CAS：新键=0；已有键须与当前 version 一致
+    uint64 operatorUserId = 6;  // 网关按 JWT 填充
+}
+
+message PutPaymentRouteReply {
+    PaymentRoutePolicy policy = 1;
+    repeated PaymentRouteCandidate candidates = 2;
+}

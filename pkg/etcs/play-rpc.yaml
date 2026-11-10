@@ -1,0 +1,45 @@
+Name: play.rpc
+# 本机开发全链路：绑定回环地址，Etcd 注册固定 127.0.0.1（避免网卡/VPN 切换后注册 IP 失效）
+# 玩法域 = 旧仓 game-rpc 拆出的 6 玩法 + 幸运指派 + 发奖标记。
+ListenOn: 127.0.0.1:9316
+
+Etcd:
+  Hosts:
+    - 127.0.0.1:2379
+  Key: play.rpc
+
+MySQL:
+  DataSource: root:we7root@tcp(127.0.0.1:3306)/gacha_play?charset=utf8mb4&parseTime=True&loc=Local
+
+# 资金服务（发奖现金 CreditWallet 入账，走 Etcd；旧 UserRpc）
+MoneyRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: money.rpc
+
+# 营销服务（券类奖品发券/释放退还，走 Etcd；§3.6 适配点：旧直连 user_coupons 表改走 RPC）
+MarketingRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: marketing.rpc
+
+# 玩法配置等缓存版模型使用的 Redis
+CacheRedis:
+  - Host: 127.0.0.1:6379
+    Pass: "we7redis"
+
+Log:
+  ServiceName: play-rpc
+  Mode: console
+  Level: info
+
+# 指标/健康端点
+DevServer:
+  Enabled: true
+  Host: 0.0.0.0
+  Port: 9396
+  EnableMetrics: true
+  EnablePprof: false  # 默认开着,显式关闭
+  HealthPath: /healthz

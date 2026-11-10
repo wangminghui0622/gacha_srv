@@ -1,0 +1,125 @@
+package logic
+
+import (
+	"context"
+	"errors"
+	"time"
+
+	"gacha_srv/app/base/base"
+	"gacha_srv/app/base/internal/repo"
+	"gacha_srv/app/base/internal/svc"
+	"gacha_srv/pkg/utils/errorx"
+
+	"github.com/zeromicro/go-zero/core/logx"
+	"gorm.io/gorm"
+)
+
+type ResolveRiskCaseLogic struct {
+	ctx    context.Context
+	svcCtx *svc.ServiceContext
+	logx.Logger
+}
+
+func NewResolveRiskCaseLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ResolveRiskCaseLogic {
+	return &ResolveRiskCaseLogic{
+		ctx:    ctx,
+		svcCtx: svcCtx,
+		Logger: logx.WithContext(ctx),
+	}
+}
+
+// ResolveRiskCase 风控案例结案（D4 状态机）：IN_REVIEW → RESOLVED/DISMISSED。
+// 事务内行锁案件；同 operation_id 事件已存在 → 字段全同幂等重放、异同冲突；
+// 状态非 IN_REVIEW 或非认领人 → 409 RISK_CASE_CONFLICT；resolution_code 1..64 必填。
+func (l *ResolveRiskCaseLogic) ResolveRiskCase(in *base.ResolveRiskCaseRequest) (*base.RiskCaseTransition, error) {
+	if in.CaseId == "" || in.OperationId == "" || in.ActorId <= 0 || (in.TenantId != 0 && in.TenantId != 1) {
+		return nil, errorx.NewCodeError(errorx.CodeRiskCaseInvalid, "caseId/operationId/actorId 不能为空且 tenantId 须为 1")
+	}
+	if in.Status != base.RiskCaseStatus_RISK_CASE_STATUS_RESOLVED &&
+		in.Status != base.RiskCaseStatus_RISK_CASE_STATUS_DISMISSED {
+		return nil, errorx.NewCodeError(errorx.CodeRiskCaseInvalid, "目标状态须为 RESOLVED 或 DISMISSED")
+	}
+	if in.ResolutionCode == "" || len(in.ResolutionCode) > 64 {
+		return nil, errorx.NewCodeError(errorx.CodeRiskCaseInvalid, "resolutionCode 须 1..64 字符")
+	}
+	target := int64(in.Status) // 3 RESOLVED / 4 DISMISSED
+	eventType := int64(repo.RiskEventTypeResolved)
+	if target == repo.RiskCaseStatusDismissed {
+		eventType = repo.RiskEventTypeDismissed
+	}
+
+	var transition *base.RiskCaseTransition
+	err := l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
+		c, err := repo.LockRiskCaseByCaseNo(tx, in.CaseId)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errorx.NewCodeError(errorx.CodeRiskCaseNotFound, "风控案例不存在")
+		}
+		if err != nil {
+			return err
+		}
+		// 幂等重放判断：同 operation_id 事件已存在
+		ev, err := repo.GetRiskCaseEvent(tx, in.OperationId)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// 首次：状态必须 IN_REVIEW 且操作员=认领人
+			if c.Status != repo.RiskCaseStatusInReview {
+				return errorx.NewCodeError(errorx.CodeRiskCaseStateInvalid, "风控案例须先认领（IN_REVIEW）才能结案")
+			}
+			if c.AssignedActorID != int64(in.ActorId) {
+				return errorx.NewCodeError(errorx.CodeRiskCaseStateInvalid, "仅认领人可结案")
+			}
+			occurredAt := time.Now()
+			if err := repo.UpdateRiskCaseStatus(tx, &repo.RiskCaseRow{
+				ID: c.ID, Status: target, AssignedActorID: c.AssignedActorID,
+				ResolutionCode: in.ResolutionCode,
+			}); err != nil {
+				return err
+			}
+			if err := repo.InsertRiskCaseEvent(tx, &repo.RiskCaseEventRow{
+				EventID:        in.OperationId,
+				CaseID:         in.CaseId,
+				EventType:      eventType,
+				FromStatus:     repo.RiskCaseStatusInReview,
+				ToStatus:       target,
+				ActorID:        int64(in.ActorId),
+				ResolutionCode: in.ResolutionCode,
+				OccurredAt:     occurredAt,
+			}); err != nil {
+				return err
+			}
+			transition = &base.RiskCaseTransition{
+				CaseId:               in.CaseId,
+				Status:               in.Status,
+				ActorId:              in.ActorId,
+				OccurredAtUnixMillis: occurredAt.UnixMilli(),
+			}
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		// 重放：字段全同 → 幂等返回同迁移；异同 → 冲突
+		if ev.CaseID == in.CaseId && ev.EventType == eventType &&
+			ev.FromStatus == repo.RiskCaseStatusInReview &&
+			ev.ToStatus == target &&
+			ev.ActorID == int64(in.ActorId) &&
+			ev.ResolutionCode == in.ResolutionCode {
+			transition = &base.RiskCaseTransition{
+				CaseId:               in.CaseId,
+				Status:               in.Status,
+				ActorId:              in.ActorId,
+				OccurredAtUnixMillis: ev.OccurredAt.UnixMilli(),
+			}
+			return nil
+		}
+		return errorx.NewCodeError(errorx.CodeRiskCaseStateInvalid, "同 operation_id 异参数冲突")
+	})
+	if err != nil {
+		if errorx.IsCodeError(err) {
+			return nil, err
+		}
+		l.Errorf("ResolveRiskCase failed, caseId: %s, err: %v", in.CaseId, err)
+		return nil, errorx.FromMySQLError(err)
+	}
+	l.Infof("ResolveRiskCase success, caseId: %s, target: %d, code: %s", in.CaseId, target, in.ResolutionCode)
+	return transition, nil
+}

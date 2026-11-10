@@ -1,0 +1,1020 @@
+syntax = "proto3";
+
+package play;
+option go_package = "./play";
+
+// 玩法服务（9315）：挖宝箱/满车/扭蛋/连击链/拼团抽/记忆翻牌（6 种自包含玩法）+ 幸运指派 + 发奖标记。
+// 从旧仓 game.proto 拆出（报价/campaign/task RPC 分别归 promotion/campaign/task），
+// RPC 形状与字段序号不变。
+// 各玩法 SAGA 分支：03 Lock（正向）/ Release（补偿，barrier 内 FOR UPDATE）、
+// 05 Settle/Revert、06 Grant/空补偿（现金/积分走 asset 服务，券走 promotion 服务本地插入）。
+// 玩法安全不变式：价格一律服务端算，客户端只传选择；Lock/Release 请求字段号对齐（DTM 补偿透传正向载荷字节）。
+service Play {
+    // ---- M11 dig 挖宝箱 ----
+    rpc ListDigBoxes(ListDigBoxesReq) returns (ListDigBoxesResp);
+    rpc GetDigBoxSession(GetDigBoxSessionReq) returns (GetDigBoxSessionResp);
+    // LockDigBox SAGA 03 正向：报价+券锁（与 LockQuote 同源 helper）+ 会话位图置位
+    rpc LockDigBox(LockDigBoxReq) returns (LockDigBoxResp);
+    // ReleaseDigBox SAGA 03 补偿：位图清位 + 计数回滚 + 报价/券释放
+    rpc ReleaseDigBox(ReleaseDigBoxReq) returns (ReleaseDigBoxResp);
+    // SettleDigBox SAGA 05 正向：揭晓格子奖品 + 落记录 + 满格置 COMPLETED
+    rpc SettleDigBox(SettleDigBoxReq) returns (SettleDigBoxResp);
+    // SettleDigBoxRevert SAGA 05 补偿：记录置撤销 + 清位（与 03 补偿幂等）
+    rpc SettleDigBoxRevert(SettleDigBoxReq) returns (SettleDigBoxResp);
+    // GrantDigPrizes SAGA 06 正向：逐奖幂等发放（现金/积分走 asset.CreditWallet，券本地插入）；
+    // 永不 Aborted（只 Internal 重试），补偿为空——捕获在授权成功后 Aborted 属纯防御路径
+    rpc GrantDigPrizes(GrantDigPrizesReq) returns (GrantDigPrizesResp);
+    // GrantDigPrizesRevert SAGA 06 补偿：空操作（注册防御）
+    rpc GrantDigPrizesRevert(GrantDigPrizesReq) returns (GrantDigPrizesResp);
+    // ListDigRecords 挖宝记录（requestId 精确查询或分页列表）
+    rpc ListDigRecords(ListDigRecordsReq) returns (ListDigRecordsResp);
+
+    // ---- M12 满车 full_car ----
+    // GetFullCar 满车视图（座位/整车奖/余票/价）
+    rpc GetFullCar(GetFullCarReq) returns (GetFullCarResp);
+    // LockFullCar SAGA 03 正向：报价锁 + state FOR UPDATE + 分配座位 + 余票-1
+    rpc LockFullCar(LockFullCarReq) returns (LockFullCarResp);
+    // ReleaseFullCar SAGA 03 补偿：释放座位（seats[i]==userId 才清）+ 余票+1 + 报价释放
+    rpc ReleaseFullCar(ReleaseFullCarReq) returns (ReleaseFullCarResp);
+    // SettleFullCar SAGA 05 正向：regular 奖 + 落记录 + 最后一票触发整车结算（确定性 seed=gid）
+    rpc SettleFullCar(SettleFullCarReq) returns (SettleFullCarResp);
+    // SettleFullCarRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删整车奖 + DEPARTED→OPEN + 余票+1 + 库存回补
+    rpc SettleFullCarRevert(SettleFullCarReq) returns (SettleFullCarResp);
+    // GrantFullCarPrizes SAGA 06 正向：regular 奖 + 整车结算奖逐奖幂等发放；永不 Aborted，补偿为空
+    rpc GrantFullCarPrizes(GrantFullCarPrizesReq) returns (GrantFullCarPrizesResp);
+    // GrantFullCarPrizesRevert SAGA 06 补偿：空操作（注册防御）
+    rpc GrantFullCarPrizesRevert(GrantFullCarPrizesReq) returns (GrantFullCarPrizesResp);
+    // ListFullCarRecords 满车记录（requestId 精确查询或分页列表）
+    rpc ListFullCarRecords(ListFullCarRecordsReq) returns (ListFullCarRecordsResp);
+
+    // ---- M12 扭蛋 gashapon ----
+    // GetGashapon 扭蛋视图（特别奖进度/余票/参与人数/价）
+    rpc GetGashapon(GetGashaponReq) returns (GetGashaponResp);
+    // LockGashapon SAGA 03 正向：报价锁 + state FOR UPDATE + participants/records 追加 + 余票-count
+    rpc LockGashapon(LockGashaponReq) returns (LockGashaponResp);
+    // ReleaseGashapon SAGA 03 补偿：按 requestId 弹出记录 + participants-count + 余票+count + 报价释放
+    rpc ReleaseGashapon(ReleaseGashaponReq) returns (ReleaseGashaponResp);
+    // SettleGashapon SAGA 05 正向：抽 count 个 regular 奖 + 分阶段 LUCKY 判定 + 清空时终局 LAST/MVP/LUCKY
+    rpc SettleGashapon(SettleGashaponReq) returns (SettleGashaponResp);
+    // SettleGashaponRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删特别奖 + sent 回退 + SETTLED→OPEN + 库存回补
+    rpc SettleGashaponRevert(SettleGashaponReq) returns (SettleGashaponResp);
+    // GrantGashaponPrizes SAGA 06 正向：regular 奖 + 特别奖逐奖幂等发放；永不 Aborted，补偿为空
+    rpc GrantGashaponPrizes(GrantGashaponPrizesReq) returns (GrantGashaponPrizesResp);
+    // GrantGashaponPrizesRevert SAGA 06 补偿：空操作（注册防御）
+    rpc GrantGashaponPrizesRevert(GrantGashaponPrizesReq) returns (GrantGashaponPrizesResp);
+    // ListGashaponRecords 扭蛋记录（requestId 精确查询或分页列表）
+    rpc ListGashaponRecords(ListGashaponRecordsReq) returns (ListGashaponRecordsResp);
+    // AssignGashaponLuckyUser 幸运指派（仅 LUCKY 奖；userId=0 删除）。无 HTTP 路由（无管理员鉴权），供 ops/admin 直调
+    rpc AssignGashaponLuckyUser(AssignGashaponLuckyUserReq) returns (AssignGashaponLuckyUserResp);
+
+    // ---- M13 连击链 combo_chain ----
+    // GetComboChain 连击链视图（车次进度/当前车余票/全局奖槽/共享奖/我的连击）
+    rpc GetComboChain(GetComboChainReq) returns (GetComboChainResp);
+    // LockComboChain SAGA 03 正向：报价锁 + state FOR UPDATE + participants 追加（每用户每车 1 票）+ 余票-1
+    rpc LockComboChain(LockComboChainReq) returns (LockComboChainResp);
+    // ReleaseComboChain SAGA 03 补偿：按 userId 弹出参与 + 余票+1 + 报价释放
+    rpc ReleaseComboChain(ReleaseComboChainReq) returns (ReleaseComboChainResp);
+    // SettleComboChain SAGA 05 正向：落记录；最后一票触发整车结算（COMBO_TIER 触发/全局奖分布/连击判定/车次推进）
+    rpc SettleComboChain(SettleComboChainReq) returns (SettleComboChainResp);
+    // SettleComboChainRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删结算奖 + 连击快照回滚 + 车次回退
+    rpc SettleComboChainRevert(SettleComboChainReq) returns (SettleComboChainResp);
+    // GrantComboChainPrizes SAGA 06 正向：本 gid 触发的结算奖逐奖幂等发放；永不 Aborted，补偿为空
+    rpc GrantComboChainPrizes(GrantComboChainPrizesReq) returns (GrantComboChainPrizesResp);
+    // GrantComboChainPrizesRevert SAGA 06 补偿：空操作（注册防御）
+    rpc GrantComboChainPrizesRevert(GrantComboChainPrizesReq) returns (GrantComboChainPrizesResp);
+    // ListComboChainRecords 连击链记录（requestId 精确查询或分页列表）
+    rpc ListComboChainRecords(ListComboChainRecordsReq) returns (ListComboChainRecordsResp);
+
+    // ---- M13 拼团抽 group_buy ----
+    // GetGroupBuy 拼团视图（成团进度/我的下注/幸运奖进度/价）
+    rpc GetGroupBuy(GetGroupBuyReq) returns (GetGroupBuyResp);
+    // LockGroupBuy SAGA 03 正向：报价锁 + state FOR UPDATE + bets 追加 + 余位-count
+    rpc LockGroupBuy(LockGroupBuyReq) returns (LockGroupBuyResp);
+    // ReleaseGroupBuy SAGA 03 补偿：按 draw_id 弹出下注 + 余位+count + 报价释放
+    rpc ReleaseGroupBuy(ReleaseGroupBuyReq) returns (ReleaseGroupBuyResp);
+    // SettleGroupBuy SAGA 05 正向：落记录；最后一注触发整批结算（普通槽洗牌分配/子奖/幸运奖加权池）
+    rpc SettleGroupBuy(SettleGroupBuyReq) returns (SettleGroupBuyResp);
+    // SettleGroupBuyRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删结算奖 + 库存/幸运回补 + SETTLED→OPEN
+    rpc SettleGroupBuyRevert(SettleGroupBuyReq) returns (SettleGroupBuyResp);
+    // GrantGroupBuyPrizes SAGA 06 正向：本 gid 触发的结算奖逐奖幂等发放；永不 Aborted，补偿为空
+    rpc GrantGroupBuyPrizes(GrantGroupBuyPrizesReq) returns (GrantGroupBuyPrizesResp);
+    // GrantGroupBuyPrizesRevert SAGA 06 补偿：空操作（注册防御）
+    rpc GrantGroupBuyPrizesRevert(GrantGroupBuyPrizesReq) returns (GrantGroupBuyPrizesResp);
+    // ListGroupBuyRecords 拼团记录（requestId 精确查询或分页列表）
+    rpc ListGroupBuyRecords(ListGroupBuyRecordsReq) returns (ListGroupBuyRecordsResp);
+
+    // ---- M15b 记忆翻牌 MemoryMatch（消息/语义照抄 server_v2 gacha memory_match）----
+    rpc GetMemoryMatchConfig(GetMemoryMatchConfigReq) returns (GetMemoryMatchConfigResp);
+    rpc GetMemoryMatchAppearance(GetMemoryMatchAppearanceReq) returns (GetMemoryMatchAppearanceResp);
+    rpc SetMemoryMatchAppearance(SetMemoryMatchAppearanceReq) returns (SetMemoryMatchAppearanceResp);
+    rpc SelectMemoryMatchDestiny(SelectMemoryMatchDestinyReq) returns (SelectMemoryMatchDestinyResp);
+    rpc SelectMemoryMatchSecondDestiny(SelectMemoryMatchSecondDestinyReq) returns (SelectMemoryMatchSecondDestinyResp);
+    rpc GetMemoryMatchSession(GetMemoryMatchSessionReq) returns (GetMemoryMatchSessionResp);
+    rpc GetMemoryMatchSessionByRequest(GetMemoryMatchSessionByRequestReq) returns (GetMemoryMatchSessionByRequestResp);
+    rpc GetMemoryMatchRound(GetMemoryMatchRoundReq) returns (GetMemoryMatchRoundResp);
+    rpc ApplyMemoryMatchPair(ApplyMemoryMatchPairReq) returns (ApplyMemoryMatchPairResp);
+    rpc ApplyMemoryMatchDestinyDraw(ApplyMemoryMatchDestinyDrawReq) returns (ApplyMemoryMatchDestinyDrawResp);
+    rpc CompleteMemoryMatchRound(CompleteMemoryMatchRoundReq) returns (CompleteMemoryMatchRoundResp);
+    rpc SkipMemoryMatch(SkipMemoryMatchReq) returns (SkipMemoryMatchResp);
+    // SAGA 分支：03 Lock/LockMemoryMatchRevert（release=补偿）、05 Settle/SettleMemoryMatchRevert、
+    // 06 GrantMemoryMatchPrizes/空补偿（购买时无奖，发奖在终局结算同步完成）
+    rpc LockMemoryMatch(LockMemoryMatchReq) returns (LockMemoryMatchResp);
+    rpc LockMemoryMatchRevert(LockMemoryMatchReq) returns (LockMemoryMatchResp);
+    rpc SettleMemoryMatch(SettleMemoryMatchReq) returns (SettleMemoryMatchResp);
+    rpc SettleMemoryMatchRevert(SettleMemoryMatchReq) returns (SettleMemoryMatchResp);
+    rpc GrantMemoryMatchPrizes(GrantMemoryMatchPrizesReq) returns (GrantMemoryMatchPrizesResp);
+    rpc GrantMemoryMatchPrizesRevert(GrantMemoryMatchPrizesReq) returns (GrantMemoryMatchPrizesResp);
+
+    // CheckPrizesGranted SAGA 04 补偿（CancelPayment）退款前置检查：
+    // 该 gid 的 06 发奖是否已成功落库（prize_grant_marks uk request_id）。
+    // 已发放则 payment 不执行 VoidHold 退钱（资产已发放不追回，钱保持扣除，冻结保持可恢复）
+    rpc CheckPrizesGranted(CheckPrizesGrantedReq) returns (CheckPrizesGrantedResp);
+}
+
+// PrizeItem 奖品统一结构（campaign 发奖 / 转盘槽 / 玩法揭晓共用，活动域同形状复制）
+message PrizeItem {
+    int64  kind = 1;             // 1 CASH 2 POINTS 3 COUPON 4 GACHA_BOX
+    string amount = 2;           // 现金金额（元字符串，kind=1）
+    int64  points = 3;           // 积分数（kind=2）
+    string couponTemplateNo = 4; // 券模板单号（kind=3）
+    string couponName = 5;       // 券名称（kind=3，展示）
+    int64  boxId = 6;            // 宝箱ID（kind=4）
+    string boxName = 7;          // 宝箱名称（kind=4，展示）
+}
+
+// ============================================================
+// M11 dig 挖宝箱
+// ============================================================
+
+message DigBoxItem {
+    int64  boxId = 1;     // = dig_box_configs.id
+    string name = 2;
+    string price = 3;     // 单格价格（元字符串）
+    int64  cellCount = 4;
+}
+
+message ListDigBoxesReq {
+}
+
+message ListDigBoxesResp {
+    repeated DigBoxItem items = 1;
+}
+
+message GetDigBoxSessionReq {
+    int64 userId = 1;
+    int64 boxId = 2; // = config id
+}
+
+message GetDigBoxSessionResp {
+    bool   hasSession = 1;
+    string sessionNo = 2;
+    int64  occupiedBitmap = 3; // bit=1 已挖（cell_index 为位号）
+    int64  totalCellsPaid = 4;
+    int64  status = 5;         // 1 PLAYING 2 COMPLETED 3 CANCELED
+    int64  cellCount = 6;
+}
+
+message LockDigBoxReq {
+    string requestId = 1;          // 全局事务 gid（DTM 屏障键）
+    string quoteToken = 2;
+    int64  configId = 3;
+    string sessionNo = 4;          // "dg_"+userId+"_"+configId
+    repeated int64 cellIndexes = 5; // 所选格子（0 起；takeAll 时忽略）
+    bool   takeAll = 6;            // 一键占满全部空格
+    int64  totalPriceFen = 7;      // 本次总额（分；锁内重算校验相等）
+}
+
+message LockDigBoxResp {
+    string sessionNo = 1;
+    string status = 2; // LOCKED（幂等重发亦返回 LOCKED）
+}
+
+message ReleaseDigBoxReq {
+    string requestId = 1;  // 全局事务 gid（DTM 屏障键）
+    string quoteToken = 2;
+    int64  configId = 3;             // 与 LockDigBoxReq 字段号对齐（DTM 补偿透传正向载荷字节）
+    string sessionNo = 4;
+    repeated int64 cellIndexes = 5;  // 本次锁定格子（0 起；补偿精确回滚依据）
+    bool   takeAll = 6;              // 网关已把 takeAll 解析为显式格子，直调时补偿无法精确回滚
+    int64  totalPriceFen = 7;        // 本次锁定金额（分；回滚累计实付用）
+}
+
+message ReleaseDigBoxResp {
+    string sessionNo = 1;
+    string status = 2; // RELEASED
+}
+
+message SettleDigBoxReq {
+    string requestId = 1;          // 全局事务 gid（DTM 屏障键）
+    int64  userId = 2;
+    int64  configId = 3;
+    string sessionNo = 4;
+    repeated int64 cellIndexes = 5;
+    bool   takeAll = 6;
+    string price = 7;              // 本次实付（元字符串；记录用）
+}
+
+message SettleDigBoxResp {
+    int64  recordId = 1;
+    string status = 2; // SETTLED（幂等重发读回原记录）
+}
+
+message GrantDigPrizesReq {
+    string requestId = 1; // 全局事务 gid（= 记录 request_id）
+    int64  userId = 2;
+}
+
+message GrantDigPrizesResp {
+    string status = 1; // GRANTED（幂等重发亦返回 GRANTED）
+}
+
+message ListDigRecordsReq {
+    int64  userId = 1;
+    string requestId = 2; // 非空=精确查一条（购买轮询），空=分页列表
+    int64  page = 3;      // 从 1 开始
+    int64  pageSize = 4;  // 上限 100
+}
+
+message DigRecordItem {
+    int64  recordId = 1;
+    string requestId = 2;
+    int64  configId = 3;
+    string cellsChosen = 4;        // 逗号分隔（0 起）
+    repeated PrizeItem prizes = 5; // 揭晓奖品
+    string price = 6;              // 本次实付（元字符串）
+    int64  status = 7;             // 1 正常 2 已撤销
+    int64  createdAt = 8;          // unix 秒
+}
+
+message ListDigRecordsResp {
+    repeated DigRecordItem items = 1;
+    int64  total = 2;
+}
+
+// ============================================================
+// M12 满车 full_car
+// ============================================================
+
+// FullCarSeatItem 座位视图（userId=0 表示空位）
+message FullCarSeatItem {
+    int64 seatIndex = 1;
+    int64 userId = 2;
+}
+
+// FullCarAwardItem 整车结算奖
+message FullCarAwardItem {
+    int64     seatIndex = 1;
+    int64     userId = 2;
+    PrizeItem prize = 3;
+    int64     tier = 4; // 1 LUCKY 2 NORMAL
+}
+
+message GetFullCarReq {
+    int64 configId = 1;
+}
+
+message GetFullCarResp {
+    int64  configId = 1;
+    string name = 2;
+    string price = 3;               // 单抽（占一座）价格（元字符串）
+    int64  seatCount = 4;
+    repeated FullCarSeatItem seats = 5;
+    repeated FullCarAwardItem awards = 6; // DEPARTED 后可见整车奖
+    int64  remainingTickets = 7;
+    int64  status = 8;              // 1 OPEN 2 DEPARTED
+}
+
+// LockFullCarReq / ReleaseFullCarReq 字段号对齐（DTM 补偿透传正向载荷字节）
+message LockFullCarReq {
+    string requestId = 1;      // 全局事务 gid（DTM 屏障键）
+    string quoteToken = 2;
+    int64  configId = 3;
+    int64  userId = 4;
+    int64  seatIndex = 5;      // 请求座位（-1=自动分配首个空位）
+    int64  totalPriceFen = 6;  // 本次总额（分；锁内校验=price_fen）
+}
+
+message LockFullCarResp {
+    int64  seatIndex = 1; // 实际分配座位
+    string status = 2;    // LOCKED
+}
+
+message ReleaseFullCarReq {
+    string requestId = 1;
+    string quoteToken = 2;
+    int64  configId = 3;
+    int64  userId = 4;
+    int64  seatIndex = 5;
+    int64  totalPriceFen = 6;
+}
+
+message ReleaseFullCarResp {
+    int64  seatIndex = 1;
+    string status = 2; // RELEASED
+}
+
+message SettleFullCarReq {
+    string requestId = 1; // 全局事务 gid（DTM 屏障键）
+    int64  userId = 2;
+    int64  configId = 3;
+    int64  seatIndex = 4; // 已锁定座位
+    string price = 5;     // 本次实付（元字符串；记录用）
+}
+
+message SettleFullCarResp {
+    int64  recordId = 1;
+    string entryName = 2; // regular 奖条目名称（谢谢参与=谢谢参与）
+    bool   isPrize = 3;
+    bool   departed = 4;  // 本次是否触发整车结算
+    string status = 5;    // SETTLED
+}
+
+message GrantFullCarPrizesReq {
+    string requestId = 1; // 全局事务 gid（= 记录 request_id）
+    int64  userId = 2;
+    int64  configId = 3;
+}
+
+message GrantFullCarPrizesResp {
+    string status = 1; // GRANTED
+}
+
+message ListFullCarRecordsReq {
+    int64  userId = 1;
+    string requestId = 2; // 非空=精确查一条（购买轮询），空=分页列表
+    int64  page = 3;      // 从 1 开始
+    int64  pageSize = 4;  // 上限 100
+}
+
+message FullCarRecordItem {
+    int64  recordId = 1;
+    string requestId = 2;
+    int64  configId = 3;
+    int64  seatIndex = 4;
+    string entryName = 5;
+    bool   isPrize = 6;
+    string price = 7;
+    int64  status = 8;    // 1 正常 2 已撤销
+    int64  createdAt = 9; // unix 秒
+}
+
+message ListFullCarRecordsResp {
+    repeated FullCarRecordItem items = 1;
+    int64  total = 2;
+}
+
+// ============================================================
+// M12 扭蛋 gashapon
+// ============================================================
+
+// GashaponSpecialPrizeItem 特别奖配置视图（含进度）
+message GashaponSpecialPrizeItem {
+    int64     prizeIndex = 1;
+    string    specialKind = 2; // LAST / MVP / LUCKY
+    int64     quantity = 3;
+    int64     sent = 4;        // 已发数量
+    int64     stageOrder = 5;  // 0=不分阶段（LUCKY 专用）
+    PrizeItem prize = 6;
+}
+
+// GashaponEntryOutcome regular 奖结果（谢谢参与 kind 无法用 PrizeItem 表达，单独结构）
+message GashaponEntryOutcome {
+    string name = 1;
+    bool   isPrize = 2;
+}
+
+message GetGashaponReq {
+    int64 configId = 1;
+}
+
+message GetGashaponResp {
+    int64  configId = 1;
+    string name = 2;
+    string price = 3;           // 单抽价格（元字符串）
+    int64  remainingTickets = 4;
+    int64  totalTickets = 5;
+    int64  participants = 6;    // 参与人数（去重）
+    int64  status = 7;          // 1 OPEN 2 SETTLED
+    repeated GashaponSpecialPrizeItem specialPrizes = 8;
+}
+
+// LockGashaponReq / ReleaseGashaponReq 字段号对齐（DTM 补偿透传正向载荷字节）
+message LockGashaponReq {
+    string requestId = 1;
+    string quoteToken = 2;
+    int64  configId = 3;
+    int64  userId = 4;
+    int64  count = 5;          // 本次抽数（1..余票）
+    int64  totalPriceFen = 6;  // 锁内校验=price_fen×count
+}
+
+message LockGashaponResp {
+    int64  count = 1;
+    string status = 2; // LOCKED
+}
+
+message ReleaseGashaponReq {
+    string requestId = 1;
+    string quoteToken = 2;
+    int64  configId = 3;
+    int64  userId = 4;
+    int64  count = 5;
+    int64  totalPriceFen = 6;
+}
+
+message ReleaseGashaponResp {
+    int64  count = 1;
+    string status = 2; // RELEASED
+}
+
+message SettleGashaponReq {
+    string requestId = 1; // 全局事务 gid（DTM 屏障键）
+    int64  userId = 2;
+    int64  configId = 3;
+    int64  count = 4;     // 已锁定抽数
+    string price = 5;     // 本次实付（元字符串；记录用）
+}
+
+message SettleGashaponResp {
+    int64  recordId = 1;
+    repeated GashaponEntryOutcome regularPrizes = 2; // 本次 regular 奖（含谢谢参与）
+    repeated PrizeItem specialAwards = 3;            // 本次新增特别奖
+    bool   settled = 4;                              // 本次是否清空结算
+    string status = 5;                               // SETTLED
+}
+
+message GrantGashaponPrizesReq {
+    string requestId = 1;
+    int64  userId = 2;
+    int64  configId = 3;
+}
+
+message GrantGashaponPrizesResp {
+    string status = 1; // GRANTED
+}
+
+message ListGashaponRecordsReq {
+    int64  userId = 1;
+    string requestId = 2; // 非空=精确查一条，空=分页列表
+    int64  page = 3;
+    int64  pageSize = 4;
+}
+
+message GashaponRecordItem {
+    int64  recordId = 1;
+    string requestId = 2;
+    int64  configId = 3;
+    int64  count = 4;
+    repeated GashaponEntryOutcome entries = 5;
+    string price = 6;
+    int64  status = 7;    // 1 正常 2 已撤销
+    int64  createdAt = 8; // unix 秒
+}
+
+message ListGashaponRecordsResp {
+    repeated GashaponRecordItem items = 1;
+    int64  total = 2;
+}
+
+message AssignGashaponLuckyUserReq {
+    int64  configId = 1;
+    int64  prizeIndex = 2; // 仅 LUCKY 特别奖可指派
+    int64  userId = 3;     // 0=删除指派
+}
+
+message AssignGashaponLuckyUserResp {
+    string status = 1; // ASSIGNED / CLEARED
+}
+
+// ============================================================
+// M13 连击链 combo_chain
+// ============================================================
+
+// ComboChainSharedPrizeItem 共享奖视图（含进度；连击奖 quantity=-1 无限量仅展示）
+message ComboChainSharedPrizeItem {
+    string    kind = 1;                  // COMBO_TIER / EMPTY_STREAK / WIN_STREAK
+    int64     quantity = 2;
+    int64     remaining = 3;             // COMBO_TIER=剩余库存；连击奖=-1
+    int64     tierWeight = 4;
+    int64     concentrateThreshold = 5;
+    int64     streakThreshold = 6;
+    PrizeItem prize = 7;
+}
+
+message GetComboChainReq {
+    int64 configId = 1;
+    int64 userId = 2; // 我的连击计数（网关 JWT 注入）
+}
+
+message GetComboChainResp {
+    int64  configId = 1;
+    string name = 2;
+    string price = 3;            // 单票价格（元字符串）
+    int64  ticketsPerCar = 4;
+    int64  totalCars = 5;
+    int64  carIndex = 6;         // 当前车号（1 起）
+    int64  participants = 7;     // 当前车已购票人数
+    int64  remainingTickets = 8; // 当前车余票
+    int64  status = 9;           // 1 OPEN 2 SETTLED
+    repeated PrizeItem globalSlots = 10;              // 全局奖槽（按车次分组展示全部）
+    repeated ComboChainSharedPrizeItem sharedPrizes = 11;
+    int64  emptyStreak = 12;     // 我的空手连击
+    int64  winStreak = 13;       // 我的中奖连击
+}
+
+// LockComboChainReq / ReleaseComboChainReq 字段号对齐（DTM 补偿透传正向载荷字节）
+message LockComboChainReq {
+    string requestId = 1;      // 全局事务 gid（DTM 屏障键）
+    string quoteToken = 2;
+    int64  configId = 3;
+    int64  userId = 4;
+    int64  totalPriceFen = 5;  // 锁内校验=price_fen
+}
+
+message LockComboChainResp {
+    string status = 1; // LOCKED
+}
+
+message ReleaseComboChainReq {
+    string requestId = 1;
+    string quoteToken = 2;
+    int64  configId = 3;
+    int64  userId = 4;
+    int64  totalPriceFen = 5;
+}
+
+message ReleaseComboChainResp {
+    string status = 1; // RELEASED
+}
+
+message SettleComboChainReq {
+    string requestId = 1; // 全局事务 gid（DTM 屏障键）
+    int64  userId = 2;
+    int64  configId = 3;
+    string price = 4;     // 本次实付（元字符串；记录用）
+}
+
+message SettleComboChainResp {
+    int64  recordId = 1;
+    repeated PrizeItem awards = 2; // 本 gid 触发结算时新增结算奖（非结算票为空）
+    bool   settled = 3;            // 本次是否触发整车结算
+    string status = 4;             // SETTLED
+}
+
+message GrantComboChainPrizesReq {
+    string requestId = 1; // 全局事务 gid（= 记录 request_id）
+    int64  userId = 2;
+    int64  configId = 3;
+}
+
+message GrantComboChainPrizesResp {
+    string status = 1; // GRANTED
+}
+
+message ListComboChainRecordsReq {
+    int64  userId = 1;
+    string requestId = 2; // 非空=精确查一条（购买轮询），空=分页列表
+    int64  page = 3;
+    int64  pageSize = 4;
+}
+
+message ComboChainRecordItem {
+    int64  recordId = 1;
+    string requestId = 2;
+    int64  configId = 3;
+    int64  carIndex = 4;
+    string price = 5;
+    repeated PrizeItem awards = 6; // 本单触发的结算奖（展示/轮询揭晓）
+    int64  status = 7;             // 1 正常 2 已撤销
+    int64  createdAt = 8;          // unix 秒
+}
+
+message ListComboChainRecordsResp {
+    repeated ComboChainRecordItem items = 1;
+    int64  total = 2;
+}
+
+// ============================================================
+// M13 拼团抽 group_buy
+// ============================================================
+
+// GroupBuyLuckyPrizeItem 幸运奖视图（含进度）
+message GroupBuyLuckyPrizeItem {
+    int64     prizeIndex = 1;
+    int64     quantity = 2;
+    int64     sent = 3;
+    PrizeItem prize = 4;
+}
+
+message GetGroupBuyReq {
+    int64 configId = 1;
+    int64 userId = 2; // 我的下注数（网关 JWT 注入）
+}
+
+message GetGroupBuyResp {
+    int64  configId = 1;
+    string name = 2;
+    string price = 3;           // 单注价格（元字符串）
+    int64  targetBetCount = 4;
+    int64  perBetAwardLimit = 5; // 0=默认 slotCount-target+1
+    int64  remainingBets = 6;
+    int64  myBets = 7;           // 我的下注数（本团内）
+    int64  participants = 8;     // 参与人数（去重）
+    int64  status = 9;           // 1 OPEN 2 SETTLED
+    repeated GroupBuyLuckyPrizeItem luckyPrizes = 10;
+}
+
+// LockGroupBuyReq / ReleaseGroupBuyReq 字段号对齐（DTM 补偿透传正向载荷字节）
+message LockGroupBuyReq {
+    string requestId = 1;
+    string quoteToken = 2;
+    int64  configId = 3;
+    int64  userId = 4;
+    int64  count = 5;          // 本次下注数（1..余位）
+    int64  totalPriceFen = 6;  // 锁内校验=price_fen×count
+}
+
+message LockGroupBuyResp {
+    int64  count = 1;
+    string status = 2; // LOCKED
+}
+
+message ReleaseGroupBuyReq {
+    string requestId = 1;
+    string quoteToken = 2;
+    int64  configId = 3;
+    int64  userId = 4;
+    int64  count = 5;
+    int64  totalPriceFen = 6;
+}
+
+message ReleaseGroupBuyResp {
+    int64  count = 1;
+    string status = 2; // RELEASED
+}
+
+message SettleGroupBuyReq {
+    string requestId = 1; // 全局事务 gid（DTM 屏障键）
+    int64  userId = 2;
+    int64  configId = 3;
+    int64  count = 4;     // 已锁定下注数
+    string price = 5;     // 本次实付（元字符串；记录用）
+}
+
+message SettleGroupBuyResp {
+    int64  recordId = 1;
+    repeated PrizeItem awards = 2; // 本 gid 触发结算时新增结算奖（含其他用户；非成团注为空）
+    bool   settled = 3;            // 本次是否触发整批结算
+    string status = 4;             // SETTLED
+}
+
+message GrantGroupBuyPrizesReq {
+    string requestId = 1; // 全局事务 gid（= 记录 request_id）
+    int64  userId = 2;
+    int64  configId = 3;
+}
+
+message GrantGroupBuyPrizesResp {
+    string status = 1; // GRANTED
+}
+
+message ListGroupBuyRecordsReq {
+    int64  userId = 1;
+    string requestId = 2; // 非空=精确查一条（购买轮询），空=分页列表
+    int64  page = 3;
+    int64  pageSize = 4;
+}
+
+message GroupBuyRecordItem {
+    int64  recordId = 1;
+    string requestId = 2;
+    int64  configId = 3;
+    int64  count = 4;
+    string price = 5;
+    repeated PrizeItem awards = 6; // 本单触发的结算奖（展示/轮询揭晓）
+    int64  status = 7;             // 1 正常 2 已撤销
+    int64  createdAt = 8;          // unix 秒
+}
+
+message ListGroupBuyRecordsResp {
+    repeated GroupBuyRecordItem items = 1;
+    int64  total = 2;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// M15b 记忆翻牌 MemoryMatch：54 张卡（9 图案×6，pattern=(card-1)/6+1）、初始手牌 9、
+// 命运/第二命运状态机、SHA256 计数器流 RNG（roundSeed/seed_commitment/final_hash 可审计）、
+// 终局按 total_pair_count 精确匹配奖档、擂主换擂打款（钱包入账）。
+// 玩法语义照抄 server_v2 gacha memory_match；PENDING 为本仓新增（支付 SAGA 未完成）。
+// ══════════════════════════════════════════════════════════════════════════
+
+enum MemoryMatchSessionState {
+    MEMORY_MATCH_SESSION_STATE_UNSPECIFIED = 0;
+    MEMORY_MATCH_SESSION_STATE_PENDING = 1;             // 支付 SAGA 未完成（本仓新增）
+    MEMORY_MATCH_SESSION_STATE_AWAITING_DESTINY = 2;    // 等待选命运
+    MEMORY_MATCH_SESSION_STATE_AWAITING_SECOND_DESTINY = 3; // 等待选第二命运
+    MEMORY_MATCH_SESSION_STATE_PLAYING = 4;
+    MEMORY_MATCH_SESSION_STATE_SETTLING = 5;            // 终局结算中（发奖事务）
+    MEMORY_MATCH_SESSION_STATE_COMPLETED = 6;
+    MEMORY_MATCH_SESSION_STATE_EXPIRED = 7;             // 补偿/过期
+}
+
+enum MemoryMatchRoundState {
+    MEMORY_MATCH_ROUND_STATE_UNSPECIFIED = 0;
+    MEMORY_MATCH_ROUND_STATE_READY = 1;
+    MEMORY_MATCH_ROUND_STATE_PLAYING = 2;
+    MEMORY_MATCH_ROUND_STATE_RESOLVED = 3;
+    MEMORY_MATCH_ROUND_STATE_SKIPPED = 4;
+}
+
+enum MemoryMatchDeckStrategy {
+    MEMORY_MATCH_DECK_STRATEGY_UNSPECIFIED = 0;
+    MEMORY_MATCH_DECK_STRATEGY_DYNAMIC = 1; // 按 pattern_weights 洗牌
+    MEMORY_MATCH_DECK_STRATEGY_EXACT = 2;   // 试发至 AutoResolve 配对数落入 [exactMin,exactMax]
+}
+
+message MemoryMatchFaceItem {
+    int32  patternId = 1; // 1..9
+    string name = 2;
+    string imageUrl = 3;
+}
+
+message MemoryMatchFacePreset {
+    int32  presetId = 1;
+    string name = 2;
+    repeated MemoryMatchFaceItem faces = 3; // 恰 9 张
+}
+
+message MemoryMatchBackPreset {
+    int32  presetId = 1;
+    string name = 2;
+    string backImageUrl = 3;
+    string faceBackgroundImageUrl = 4;
+}
+
+message MemoryMatchEntryItem {
+    int64  entryId = 1;
+    string name = 2;
+    int64  totalPairCount = 3;
+    PrizeItem prize = 4;      // 谢谢参与 kind=0
+    int64  remaining = 5;     // -1 不限量
+}
+
+message MemoryMatchChampionInfo {
+    bool   exists = 1;
+    int64  userId = 2;
+    int64  totalPairCount = 3;
+    string pendingIncome = 4; // 待结算分成（元字符串）
+}
+
+message MemoryMatchConfigItem {
+    int64  configId = 1;
+    string name = 2;
+    int64  roundsPerPurchase = 3;
+    int64  maxPairCount = 4;
+    string purchasePrice = 5;           // 元字符串
+    int64  walletKind = 6;              // 1 现金
+    bool   secondDestinyEnabled = 7;
+    MemoryMatchDeckStrategy deckStrategy = 8;
+    repeated int64 patternWeights = 9;  // DYNAMIC 9 图案权重
+    int64  exactMinPairCount = 10;
+    int64  exactMaxPairCount = 11;
+    int64  exactAttemptLimit = 12;
+    repeated MemoryMatchFacePreset facePresets = 13;
+    repeated MemoryMatchBackPreset backPresets = 14;
+    int64  defaultFacePresetId = 15;
+    int64  defaultBackPresetId = 16;
+    int64  championMinTotalPairs = 17;
+    int64  championShareBps = 18;
+    int64  status = 19;                 // 1 上架
+    repeated MemoryMatchEntryItem entries = 20;
+}
+
+message GetMemoryMatchConfigReq {
+    int64 configId = 1;
+    int64 userId = 2; // 网关 JWT 注入（外观/擂主归属判定）
+}
+
+message GetMemoryMatchConfigResp {
+    MemoryMatchConfigItem config = 1;
+    MemoryMatchChampionInfo champion = 2;
+    MemoryMatchAppearanceView appearance = 3;
+}
+
+// MemoryMatchAppearanceView 外观视图：当前选择（已存或默认）+ 已拥有权益正面预设
+message MemoryMatchAppearanceView {
+    int64  facePresetId = 1;
+    int64  backPresetId = 2;
+    repeated int64 ownedFacePresetIds = 3; // 权益表存在即拥有
+}
+
+message GetMemoryMatchAppearanceReq {
+    int64 configId = 1;
+    int64 userId = 2;
+}
+
+message GetMemoryMatchAppearanceResp {
+    MemoryMatchAppearanceView appearance = 1;
+}
+
+message SetMemoryMatchAppearanceReq {
+    int64 configId = 1;
+    int64 userId = 2;
+    int64 facePresetId = 3; // 非默认需权益
+    int64 backPresetId = 4;
+}
+
+message SetMemoryMatchAppearanceResp {
+    MemoryMatchAppearanceView appearance = 1;
+}
+
+message SelectMemoryMatchDestinyReq {
+    int64 sessionId = 1;
+    int64 userId = 2;
+    int32 patternId = 3; // 1..9
+}
+
+message SelectMemoryMatchDestinyResp {
+    int32  patternId = 1;
+    string status = 2; // SELECTED
+}
+
+message SelectMemoryMatchSecondDestinyReq {
+    int64 sessionId = 1;
+    int64 userId = 2;
+    int32 patternId = 3; // 1..9
+}
+
+message SelectMemoryMatchSecondDestinyResp {
+    int32  patternId = 1;
+    string status = 2; // SELECTED
+}
+
+message MemoryMatchRoundBrief {
+    int64  roundNo = 1;
+    MemoryMatchRoundState state = 2;
+    int64  pairCount = 3;
+}
+
+message MemoryMatchSettlementView {
+    int64  totalPairCount = 1;
+    string finalHash = 2;        // hex
+    PrizeItem prize = 3;         // 无匹配档 kind=0
+    int64  status = 4;           // 1 待发奖 2 已发奖
+}
+
+message GetMemoryMatchSessionReq {
+    int64 sessionId = 1;
+    int64 userId = 2;
+}
+
+message GetMemoryMatchSessionResp {
+    int64  sessionId = 1;
+    int64  configId = 2;
+    MemoryMatchSessionState state = 3;
+    int64  purchasedRounds = 4;
+    int64  completedRounds = 5;
+    int64  currentRound = 6;
+    int32  destinyPatternId = 7;
+    bool   secondDestinyEnabled = 8;
+    int32  secondDestinyPatternId = 9;
+    repeated MemoryMatchRoundBrief rounds = 10;
+    MemoryMatchSettlementView settlement = 11; // SETTLING/COMPLETED 后有值
+    int64  facePresetId = 12;
+    int64  backPresetId = 13;
+}
+
+message GetMemoryMatchRoundReq {
+    int64 sessionId = 1;
+    int64 userId = 2;
+    int64 roundNo = 3;
+}
+
+// GetMemoryMatchSessionByRequest 按 requestId（= DTM gid）查会话：网关购买端点轮询/幂等重放用。
+// 本仓新增内部 RPC：老项目购买同步返回会话；本仓购买走异步 SAGA，网关按 requestId 轮询到
+// 会话建立后返回老项目购买响应形状。
+message GetMemoryMatchSessionByRequestReq {
+    string requestId = 1;
+    int64  userId = 2;
+}
+
+message GetMemoryMatchSessionByRequestResp {
+    int64  sessionId = 1;
+    MemoryMatchSessionState state = 2;
+    int64  purchasedRounds = 3;
+    int64  paidMinor = 4; // 券后实付（分；取报价 payable，报价缺失回退购买价）
+    int64  facePresetId = 5;
+    int64  backPresetId = 6;
+}
+
+message GetMemoryMatchRoundResp {
+    int64  roundNo = 1;
+    MemoryMatchRoundState state = 2;
+    repeated int64 handCardIds = 3; // 当前手牌（1..54，≤9 张）
+    int64  drawPosition = 4;        // 已抽到牌堆位置（9..54）
+    int64  pairCount = 5;
+    int64  maxPairCount = 6;
+    int64  availableDestiny = 7;
+    int64  destinyDraws = 8;
+    string seedCommitment = 9;      // hex；READY 时已可展示（提前兑现可审计性）
+    repeated string actions = 10;   // pair:a:b / replenish:c / destinyDraw:c
+    bool   terminal = 11;           // 已达终局（可 complete）
+    string resultHash = 12;         // hex；RESOLVED/SKIPPED 后
+    int32  destinyPatternId = 13;
+    int32  secondDestinyPatternId = 14;
+}
+
+message ApplyMemoryMatchPairReq {
+    int64 sessionId = 1;
+    int64 userId = 2;
+    int64 roundNo = 3;
+    int32 firstCard = 4;  // 1..54
+    int32 secondCard = 5; // 1..54，≠ firstCard，同图案
+}
+
+message ApplyMemoryMatchPairResp {
+    GetMemoryMatchRoundResp round = 1;
+}
+
+message ApplyMemoryMatchDestinyDrawReq {
+    int64 sessionId = 1;
+    int64 userId = 2;
+    int64 roundNo = 3;
+}
+
+message ApplyMemoryMatchDestinyDrawResp {
+    GetMemoryMatchRoundResp round = 1;
+}
+
+message CompleteMemoryMatchRoundReq {
+    int64 sessionId = 1;
+    int64 userId = 2;
+    int64 roundNo = 3;
+}
+
+message CompleteMemoryMatchRoundResp {
+    GetMemoryMatchRoundResp round = 1;
+    MemoryMatchSessionState sessionState = 2;
+    MemoryMatchSettlementView settlement = 3; // 末回合触发终局结算后有值
+}
+
+message SkipMemoryMatchReq {
+    int64 sessionId = 1;
+    int64 userId = 2;
+}
+
+message SkipMemoryMatchResp {
+    int64  sessionId = 1;
+    MemoryMatchSessionState sessionState = 2;
+    MemoryMatchSettlementView settlement = 3;
+}
+
+// ── SAGA 分支（03 Lock/Release、05 Settle/Revert、06 Grant/空补偿）──
+// LockMemoryMatchReq / LockMemoryMatchRevertReq 字段号对齐（DTM 补偿透传正向载荷字节）
+message LockMemoryMatchReq {
+    string requestId = 1;    // 全局事务 gid（= 会话 request_id uk）
+    string quoteToken = 2;
+    int64  configId = 3;
+    int64  userId = 4;
+    int64  facePresetId = 5; // 0=默认
+    int64  backPresetId = 6; // 0=默认
+    int64  totalPriceFen = 7; // 锁内校验 = purchase_price_minor（原价；券抵扣体现在报价 payable/cash）
+}
+
+message LockMemoryMatchResp {
+    int64  sessionId = 1;
+    string status = 2; // LOCKED / RELEASED
+}
+
+message SettleMemoryMatchReq {
+    string requestId = 1; // 全局事务 gid（DTM 屏障键）
+    int64  userId = 2;
+    int64  configId = 3;
+    int64  sessionId = 4;
+    string price = 5;     // 本次实付（元字符串；记录用）
+}
+
+message SettleMemoryMatchResp {
+    int64  sessionId = 1;
+    MemoryMatchSessionState state = 2; // 正向 AWAITING_DESTINY；Revert 回 PENDING
+}
+
+message GrantMemoryMatchPrizesReq {
+    string requestId = 1;
+    int64  userId = 2;
+    int64  sessionId = 3;
+    int64  configId = 4;
+}
+
+message GrantMemoryMatchPrizesResp {
+    string status = 1; // NO_PRIZES_AT_PURCHASE（购买时无奖，终局结算同步发奖）
+}
+
+// CheckPrizesGrantedReq/Resp：SAGA 04 补偿退款前置检查（按 gid 查发奖落库标记）
+message CheckPrizesGrantedReq {
+    string requestId = 1; // 全局事务 gid
+}
+
+message CheckPrizesGrantedResp {
+    bool granted = 1; // true=该 gid 的 06 发奖已落库（含现金/积分入账、发券）
+}

@@ -1,0 +1,39 @@
+syntax = "v1"
+
+info(
+	title:   "Gacha 管理控制台网关接口"
+	desc:    "Gacha 管理控制台 v2 网关接口（/console/v2/api，契约照抄 server_v2 console）"
+	author:  "Gacha Team"
+	version: "v2"
+)
+
+// ════════════════════════════════════════════════════════════════
+// 线格式约定（M14 设计 D9，与播放器网关不同）：
+//   1. 成功/失败响应均为 protojson 编码：camelCase 字段名、uint64
+//      序列化为 JSON 字符串、枚举为名字面量（如 "DATA_SCOPE_ALL"）
+//      ——与 server_v2 kratos http 输出一致；
+//   2. 错误体为 kratos 形 {"code":<HTTP状态码>, "message":..., "reason":...}，
+//      不是播放器网关的 {code,msg,data} 信封。
+// 下方类型仅作路由契约文档与 goctl 生成占位；handler 实际用 protojson
+// 直连 ops-rpc 的 proto 消息，保证与 server_v2 字段名逐字一致。
+// ════════════════════════════════════════════════════════════════
+
+type (
+	// 健康检查响应
+	HealthResp {
+		// 状态（"ok"）
+		Status string `json:"status"`
+	}
+)
+
+// 系统（ConsoleSystemService）：健康检查，公开、无中间件（免 X-Request-Id）
+@server (
+	prefix: /console/v2/api
+	group:  system
+	tags:   "系统"
+)
+service admin-api {
+	@doc "健康检查"
+	@handler Health
+	get /health returns (HealthResp)
+}

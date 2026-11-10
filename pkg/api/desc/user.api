@@ -1,0 +1,97 @@
+// ════════════════════════════════════════════════════════════════
+// 用户域：注册 / 登录 / 资料 / 余额 / 充值（错误码段 1000-1999）
+// ════════════════════════════════════════════════════════════════
+
+type (
+	// 注册请求
+	RegisterReq {
+		// 用户名（3-32 位，中文/字母/数字/@_!&*）
+		Username string `json:"username" validate:"required,min=3,max=32,name"`
+		// 密码（6-32 位，中文/字母/数字/@_!&*）
+		Password string `json:"password" validate:"required,min=6,max=32,passwordFormat"`
+		// 昵称（可选，默认取用户名）
+		Nickname string `json:"nickname,optional" validate:"omitempty,max=32,name"`
+	}
+	// 注册响应
+	RegisterResp {
+		// 新用户ID
+		UserId int64 `json:"userId"`
+	}
+	// 登录请求
+	LoginReq {
+		// 用户名
+		Username string `json:"username" validate:"required,min=3,max=32,name"`
+		// 密码
+		Password string `json:"password" validate:"required,min=6,max=32,passwordFormat"`
+	}
+	// 登录响应
+	LoginResp {
+		// 用户ID
+		UserId int64 `json:"userId"`
+		// JWT（后续请求放 Authorization: Bearer <token>）
+		Token string `json:"token"`
+	}
+	// 用户资料（含余额）
+	UserProfile {
+		// 用户ID
+		UserId int64 `json:"userId"`
+		// 用户名
+		Username string `json:"username"`
+		// 昵称
+		Nickname string `json:"nickname"`
+		// 余额（元，两位小数字符串）
+		Balance string `json:"balance"`
+	}
+	// 充值请求（mock：直接加款）
+	RechargeReq {
+		// 充值金额（元，两位小数，必须大于 0）
+		Amount string `json:"amount" validate:"required,dgt=0"`
+	}
+	// 充值响应
+	RechargeResp {
+		// 充值后余额（元）
+		Balance string `json:"balance"`
+	}
+	// 余额响应
+	BalanceResp {
+		// 余额（元）
+		Balance string `json:"balance"`
+	}
+)
+
+// 公开接口：注册 / 登录
+@server (
+	prefix: /gacha/api/v1
+	group:  user
+	tags:   "用户"
+)
+service gateway-api {
+	@doc "注册"
+	@handler Register
+	post /user/register (RegisterReq) returns (RegisterResp)
+
+	@doc "登录"
+	@handler Login
+	post /user/login (LoginReq) returns (LoginResp)
+}
+
+// 受保护接口：JwtAuth 中间件校验令牌并把 userId 写入上下文
+@server (
+	prefix:     /gacha/api/v1
+	group:      user
+	middleware: JwtAuth
+	tags:       "用户"
+)
+service gateway-api {
+	@doc "用户资料（含余额）"
+	@handler Profile
+	get /user/profile returns (UserProfile)
+
+	@doc "余额查询"
+	@handler Balance
+	get /user/balance returns (BalanceResp)
+
+	@doc "充值（mock，直接加款）"
+	@handler Recharge
+	post /user/recharge (RechargeReq) returns (RechargeResp)
+}

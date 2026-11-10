@@ -1,0 +1,274 @@
+syntax = "proto3";
+
+package draw;
+
+option go_package = "./draw";
+
+// 抽奖服务：宝箱展示 + 开奖（SAGA 分支）
+service Draw {
+  // 宝箱列表（静态配置，直查 MySQL）
+  rpc ListBoxes(ListBoxesReq) returns (ListBoxesResp);
+  // 宝箱详情（含奖池条目与公示概率；宝箱/条目走缓存读）
+  rpc BoxDetail(BoxDetailReq) returns (BoxDetailResp);
+  // SAGA 正向分支：按公示概率开奖 + 扣条目库存 + 落记录 + 中奖入吉仓
+  rpc SettleDraw(SettleDrawReq) returns (SettleDrawResp);
+  // SAGA 补偿分支：记录置已撤销 + 吉仓撤销 + 归还库存（无记录=空补偿）
+  rpc SettleDrawRevert(SettleDrawReq) returns (SettleDrawResp);
+  // 抽赏记录（分页）
+  rpc ListRecords(ListRecordsReq) returns (ListRecordsResp);
+  // 按请求单号查询抽赏记录（网关购买轮询用；校验记录归属）
+  rpc GetRecord(GetRecordReq) returns (GetRecordResp);
+  // 吉仓物品列表
+  rpc ListWarehouse(ListWarehouseReq) returns (ListWarehouseResp);
+  // 滚动中奖最近中奖列表（首页 marquee 数据源；M12）
+  rpc ListRollingDrawRecentWins(ListRollingDrawRecentWinsReq) returns (ListRollingDrawRecentWinsResp);
+  // ── M14b 控制台：赏池草稿/版本/发布（server_v2 GachaService 池管理契约）──
+  // 创建赏池草稿（Idempotency-Key 幂等；poolId=0 新建自动分配）
+  rpc CreatePoolDraft(CreatePoolDraftReq) returns (BoxDraft);
+  // 赏池版本详情
+  rpc GetPoolVersion(GetPoolVersionReq) returns (BoxDraft);
+  // 赏池版本列表（含草稿；游标分页）
+  rpc ListPoolVersions(ListPoolVersionsReq) returns (ListPoolVersionsResp);
+  // 已发布赏池列表（游标分页）
+  rpc ListPublishedPools(ListPublishedPoolsReq) returns (ListPublishedPoolsResp);
+  // 提请发布（申请人；同人同 hash 幂等）
+  rpc RequestPoolPublication(RequestPoolPublicationReq) returns (PoolPublicationApproval);
+  // 审批发布（审批人 ≠ 申请人；重复批准幂等）
+  rpc ApprovePoolPublication(ApprovePoolPublicationReq) returns (PoolPublicationApproval);
+  // 发布（物化线上表 draw_boxes/draw_pool_entries；已发布幂等返回）
+  rpc PublishPool(PublishPoolReq) returns (BoxDraft);
+}
+
+message ListBoxesReq {}
+
+message BoxItem {
+  int64 boxId = 1;        // 宝箱ID
+  string boxName = 2;     // 宝箱名称
+  string price = 3;       // 单抽价格（元，两位小数）
+  string description = 4; // 描述
+  bool soldOut = 5;       // 是否售罄（无任何可抽中奖条目）
+}
+
+message ListBoxesResp {
+  repeated BoxItem boxes = 1;
+}
+
+message BoxDetailReq {
+  int64 boxId = 1; // 宝箱ID
+}
+
+message PoolEntryItem {
+  int64 entryId = 1;      // 条目ID
+  string name = 2;        // 条目名称
+  int32 weight = 3;       // 权重
+  int32 remaining = 4;    // 剩余库存：-1=不限量 0=售罄
+  bool isPrize = 5;       // 是否奖品（false=谢谢参与）
+  string probability = 6; // 公示概率（如 "12.50%"）
+}
+
+message BoxDetailResp {
+  int64 boxId = 1;
+  string boxName = 2;
+  string price = 3;       // 元，两位小数
+  string description = 4;
+  bool soldOut = 5;
+  repeated PoolEntryItem entries = 6; // 概率公示
+}
+
+message SettleDrawReq {
+  int64 boxId = 1;      // 宝箱ID
+  int64 userId = 2;     // 抽奖用户ID（网关从 JWT 取，不信客户端）
+  string requestId = 3; // 全局事务 gid（= 网关幂等键）
+  string price = 4;     // 本次实付价格（元，两位小数；M8 网关传箱价，M10 起传报价实付）
+  int64 loyaltyPointsDebit = 5; // 抵扣积分数（M8 恒 0，M10 起用）
+}
+
+message SettleDrawResp {
+  bool success = 1;     // 是否开奖成功
+  string prizeName = 2; // 开奖条目名称（谢谢参与时为"谢谢参与"）
+  bool isPrize = 3;     // 是否中奖
+  int64 recordId = 4;   // 抽赏记录ID（幂等重复返回已有记录）
+}
+
+message ListRecordsReq {
+  int64 userId = 1;
+  int64 page = 2;     // 页码，从 1 开始
+  int64 pageSize = 3; // 每页条数
+}
+
+message RecordItem {
+  int64 recordId = 1;
+  string requestId = 2;
+  int64 boxId = 3;
+  string boxName = 4;
+  string entryName = 5;
+  bool isPrize = 6;
+  string price = 7;   // 本次抽盒价格（元）
+  int64 createdAt = 8; // unix 秒
+  int32 status = 9;    // 记录状态：1 正常 2 已撤销（SAGA 补偿后）
+}
+
+message ListRecordsResp {
+  repeated RecordItem records = 1;
+  int64 total = 2;
+}
+
+message GetRecordReq {
+  string requestId = 1; // 全局事务 gid
+  int64 userId = 2;     // 查询用户（网关从 JWT 取，不信客户端）
+}
+
+message GetRecordResp {
+  RecordItem record = 1;
+}
+
+message ListWarehouseReq {
+  int64 userId = 1;
+}
+
+message WarehouseItem {
+  int64 itemId = 1;
+  int64 recordId = 2;
+  int64 boxId = 3;
+  string boxName = 4;
+  string itemName = 5;
+  int64 createdAt = 6; // unix 秒
+}
+
+message ListWarehouseResp {
+  repeated WarehouseItem items = 1;
+}
+
+// ============================================================
+// M12 滚动中奖（draw_records 即 feed；等级读时 join entries+盒规则判定）
+// ============================================================
+
+message ListRollingDrawRecentWinsReq {
+  int64 limit = 1;      // 默认 20，上限 50；marqueeOnly 默认 10
+  bool marqueeOnly = 2; // 只看高档/限量（扫描 10x 上限 500 行，过滤 NORMAL）
+  int64 boxId = 3;      // 可选：只看某盒（等级阈值取该盒规则）
+}
+
+message RollingDrawWinItem {
+  string requestId = 1;
+  int64 userId = 2;
+  int64 boxId = 3;
+  string entryName = 4;
+  int64 displayValueFen = 5; // 展示价（分）
+  int32 tier = 6;            // 1 NORMAL 2 HIGH_VALUE 3 LIMITED
+  int64 wonAt = 7;           // unix 秒
+}
+
+message ListRollingDrawRecentWinsResp {
+  repeated RollingDrawWinItem wins = 1;
+  int64 highValueThresholdFen = 2; // 参考阈值（指定 boxId 时返回该盒阈值，否则 0）
+}
+
+// ============================================================
+// M14b 控制台：赏池草稿/版本/发布（server_v2 GachaService 池管理契约）
+// 流程：CreatePoolDraft（Idempotency-Key 幂等）→ RequestPoolPublication
+// （requester）→ ApprovePoolPublication（approver ≠ requester）→ PublishPool
+// （物化 draw_boxes/draw_pool_entries + 标记 PUBLISHED，幂等）。
+// ============================================================
+
+// PoolStatus 赏池版本状态（与 server_v2 PoolStatus 同值）
+enum PoolStatus {
+  POOL_STATUS_UNSPECIFIED = 0;
+  POOL_STATUS_DRAFT = 1;
+  POOL_STATUS_PUBLISHED = 2;
+}
+
+// PoolEntryDraft 奖池条目草稿（映射 draw_pool_entries）
+message PoolEntryDraft {
+  int64 entryId = 1;          // 条目ID（0=新建）
+  string name = 2;            // 条目名称
+  int32 weight = 3;           // 权重（公示概率分母）
+  int32 quantity = 4;         // 总库存：-1=不限量（如谢谢参与）
+  bool isPrize = 5;           // 是否奖品（false=谢谢参与）
+  int64 displayValueFen = 6;  // 展示价（分），滚动中奖等级判定用
+  bool rollingLimited = 7;    // 滚动限量标记（LIMITED 等级）
+}
+
+// BoxDraft 宝箱草稿（= 赏池版本；映射 draw_boxes + draw_pool_entries）
+message BoxDraft {
+  int64 poolId = 1;               // 赏池 id（=宝箱 id；0=新建，创建时分配）
+  int64 version = 2;              // 版本号（创建草稿时分配，从 1 递增）
+  PoolStatus status = 3;          // 状态
+  string boxName = 4;             // 宝箱名称
+  int64 price = 5;                // 单抽价格（分）
+  string description = 6;         // 宝箱描述
+  repeated PoolEntryDraft entries = 7; // 奖池条目
+  string rollingRulesJson = 8;    // 滚动中奖规则 JSON（空=非滚动盒）
+  bytes configHash = 9;           // 配置哈希 SHA256（密封时计算）
+  int64 publishedAtUnixMillis = 10; // 发布时间（unix 毫秒；未发布=0）
+}
+
+// PoolPublicationApproval 发布审批（与 server_v2 同构）
+message PoolPublicationApproval {
+  int64 poolId = 1;
+  int64 version = 2;
+  bytes configHash = 3;
+  int64 requesterId = 4;
+  int64 approverId = 5; // 0=待审批
+  bool approved = 6;
+}
+
+message CreatePoolDraftReq {
+  BoxDraft box = 1;            // 草稿配置（poolId=0 新建 / 非 0 更新既有宝箱）
+  string idempotencyKey = 2;   // 幂等键（= HTTP Idempotency-Key 头）
+}
+
+message RequestPoolPublicationReq {
+  int64 poolId = 1;
+  int64 version = 2;
+  bytes expectedConfigHash = 3; // 期望配置哈希（校验当前草稿未变）
+  int64 requesterId = 4;        // 申请人（管理网关从会话取，不信客户端）
+}
+
+message ApprovePoolPublicationReq {
+  int64 poolId = 1;
+  int64 version = 2;
+  bytes expectedConfigHash = 3;
+  int64 approverId = 4;         // 审批人（管理网关从会话取）
+}
+
+message PublishPoolReq {
+  int64 poolId = 1;
+  int64 version = 2;
+  bytes expectedConfigHash = 3;
+}
+
+message GetPoolVersionReq {
+  int64 poolId = 1;
+  int64 version = 2;
+}
+
+message ListPoolVersionsReq {
+  int64 afterPoolId = 1; // 游标（含）；0=从头
+  int64 afterVersion = 2;
+  int32 pageSize = 3;    // 默认 20，上限 100
+}
+
+message PoolVersionSummary {
+  int64 poolId = 1;
+  int64 version = 2;
+  PoolStatus status = 3;
+}
+
+message ListPoolVersionsResp {
+  repeated PoolVersionSummary versions = 1;
+  int64 nextAfterPoolId = 2; // 0=无更多
+  int64 nextAfterVersion = 3;
+}
+
+message ListPublishedPoolsReq {
+  int64 afterPoolId = 1;
+  int64 afterVersion = 2;
+  int32 pageSize = 3;
+}
+
+message ListPublishedPoolsResp {
+  repeated BoxDraft pools = 1;
+  int64 nextAfterPoolId = 2;
+  int64 nextAfterVersion = 3;
+}

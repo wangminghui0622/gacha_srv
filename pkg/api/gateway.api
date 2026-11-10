@@ -1,0 +1,8 @@
+// ════════════════════════════════════════════════════════════════
+// 网关接口聚合：只做 import，各业务模块定义在 pkg/api/desc/*.api
+// （规范 03-api-proto：syntax/info 放 desc/common.api）
+// 生成：bash script/goctl.sh gateway
+// ════════════════════════════════════════════════════════════════
+import "desc/common.api"
+import "desc/user.api"
+import "desc/draw.api"

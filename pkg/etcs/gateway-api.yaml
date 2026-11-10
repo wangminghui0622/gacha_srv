@@ -1,0 +1,66 @@
+Name: gateway-api
+Host: 0.0.0.0
+Port: 9310
+
+IdentityRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: identity.rpc
+
+MoneyRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: money.rpc
+
+DrawRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: draw.rpc
+
+BaseRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: base.rpc
+
+MarketingRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: marketing.rpc
+
+PlayRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: play.rpc
+
+TaskRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: task.rpc
+
+# DTM Server gRPC 地址
+DtmServer:
+  Target: "127.0.0.1:36790"
+
+# 各 RPC 服务直连地址（供 DTM 回调，DTM 不接 Etcd）
+# 覆盖 7 个 SAGA 分支目标：01/02 base、03 marketing、04/06/07 money、05 draw 或 play
+BaseRpcDirect: "127.0.0.1:9314"
+MarketingRpcDirect: "127.0.0.1:9315"
+MoneyRpcDirect: "127.0.0.1:9312"
+DrawRpcDirect: "127.0.0.1:9313"
+PlayRpcDirect: "127.0.0.1:9316"
+
+# 指标/健康端点
+DevServer:
+  Enabled: true
+  Host: 0.0.0.0
+  Port: 9390
+  EnableMetrics: true
+  EnablePprof: false  # 默认开着,显式关闭
+  HealthPath: /healthz

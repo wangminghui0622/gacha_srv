@@ -1,0 +1,11 @@
+# test 环境：基础设施内置 + 业务服务不映射宿主机端口（CI/集成测试隔离）。
+# 与 dev 的区别：不暴露业务服务端口到宿主机，避免与本地 dev 实例冲突；数据库为隔离实例。
+# 启动：bash deploy/scripts/deploy.sh test up
+name: gacha-test
+
+include:
+  - path: ../common/infra/compose.yaml
+  - path: ../common/services.yaml
+
+# test 无需额外 override：业务服务仅在 backend 网络内互通（expose），不映射宿主机端口。
+# 基础设施端口（MySQL/Redis/Etcd）由 infra/compose.yaml 映射，可按 .env 改端口避免与 dev 冲突。

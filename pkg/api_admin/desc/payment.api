@@ -1,0 +1,44 @@
+// ════════════════════════════════════════════════════════════════
+// 支付路由控制台（ConsolePaymentRouteService 契约照抄 server_v2）：
+// GET /payment/routes（query channel/scene）→ 读取路由策略 + 候选；
+// PUT /payment/routes（body=channel/scene/policy/candidates/expectedVersion）→
+// CAS 存管 + 审计。operatorUserId 取会话主体（不接受客户端传入）。
+// 线格式（protojson camelCase）由各 handler 用 restx.ParseProto/WriteProto
+// 直接收发 payment proto 消息，此处类型仅驱动 goctl 路由表生成。
+// ════════════════════════════════════════════════════════════════
+
+type (
+	GetPaymentRouteReq {
+		Channel int64 `form:"channel,optional"`
+		Scene   int64 `form:"scene,optional"`
+	}
+	// body=PutPaymentRouteRequest 形状（channel/scene/policy/candidates/expectedVersion）
+	PutPaymentRouteReq {
+		Channel int64 `json:"channel,optional"`
+		Scene   int64 `json:"scene,optional"`
+	}
+	// 响应由 handler 用 payment.GetPaymentRoutePolicyReply 输出（protojson），
+	// 此处类型仅占位驱动路由生成
+	PaymentRouteResp {
+		PolicyId int64 `json:"policyId"`
+	}
+)
+
+// 全部需会话 + 权限点（resource: payment.route）
+@server (
+	prefix:     /console/v2/api
+	group:      payment
+	middleware: RequestId
+	middleware: ConsoleAuth
+	middleware: ConsoleAuthorize
+	tags:       "支付路由"
+)
+service admin-api {
+	@doc "读取支付路由（payment.route:read；query channel/scene）"
+	@handler GetPaymentRoute
+	get /payment/routes (GetPaymentRouteReq) returns (PaymentRouteResp)
+
+	@doc "配置支付路由（payment.route:write；expectedVersion CAS + 审计）"
+	@handler PutPaymentRoute
+	put /payment/routes (PutPaymentRouteReq) returns (PaymentRouteResp)
+}

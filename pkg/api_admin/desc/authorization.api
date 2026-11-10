@@ -1,0 +1,183 @@
+// ════════════════════════════════════════════════════════════════
+// 权限域（AuthorizationService 契约照抄 server_v2）：
+// 权限目录 / 角色 CRUD / 角色权限（乐观锁）/ 角色成员 / 主体角色（乐观锁）
+// ════════════════════════════════════════════════════════════════
+
+type (
+	// 权限目录响应（资源 → 动作，含中文名）
+	ListPermissionCatalogResp {
+		Resources []PermissionCatalogResource `json:"resources"`
+	}
+	PermissionCatalogResource {
+		// 资源码（如 authorization.role）
+		Code string `json:"code"`
+		// 中文名（如 权限管理）
+		Name string `json:"name"`
+		// 动作列表
+		Actions []PermissionCatalogAction `json:"actions"`
+	}
+	PermissionCatalogAction {
+		// 动作码（read/write/create/publish...）
+		Code string `json:"code"`
+		// 中文名（查看/修改/创建/发布...）
+		Name string `json:"name"`
+	}
+	// 有效权限（Authorize 后聚合，网关转给前端）
+	PermissionGrant {
+		Resource  string `json:"resource"`
+		Action    string `json:"action"`
+		// 1 SELF / 2 TEAM / 3 DEPARTMENT / 4 ORGANIZATION / 5 CUSTOM / 6 ALL
+		DataScope int64 `json:"dataScope"`
+		// rbac.<role_code>.<resource>.<action>
+		RuleId string `json:"ruleId"`
+	}
+	PermissionNode {
+		Resource  string   `json:"resource"`
+		Actions   []string `json:"actions"`
+		DataScope int64    `json:"dataScope"`
+	}
+	// 当前有效权限响应
+	ListEffectiveGrantsResp {
+		PolicyId      uint64            `json:"policyId"`
+		PolicyVersion uint64            `json:"policyVersion"`
+		Grants        []PermissionGrant `json:"grants"`
+		Nodes         []PermissionNode  `json:"nodes"`
+	}
+	// 角色权限行（PUT /authorization/roles/:roleId/permissions 整表替换）
+	RolePermission {
+		Resource      string   `json:"resource"`
+		Action        string   `json:"action"`
+		DataScope     int64    `json:"dataScope"`
+		AllowedFields []string `json:"allowedFields,optional"`
+		DeniedFields  []string `json:"deniedFields,optional"`
+		// CEL 表达式（可为空）
+		Condition string `json:"condition,optional"`
+		// 1 NONE / 2 SINGLE / 3 DUAL_CONTROL
+		ApprovalMode int64 `json:"approvalMode"`
+	}
+	// 角色（含权限行；version 乐观锁）
+	Role {
+		Id       uint64 `json:"id"`
+		TenantId uint64 `json:"tenantId"`
+		Code     string `json:"code"`
+		Name     string `json:"name"`
+		Enabled  bool   `json:"enabled"`
+		Version  uint64 `json:"version"`
+		// 创建/修改角色不返回权限行，仅 GetRole 返回
+		Permissions []RolePermission `json:"permissions,optional"`
+	}
+	// 角色列表请求（tenantId 查询参数）
+	ListRolesReq {
+		TenantId uint64 `form:"tenantId,optional"`
+	}
+	ListRolesResp {
+		Roles []Role `json:"roles"`
+	}
+	// 查看角色请求
+	GetRoleReq {
+		TenantId uint64 `form:"tenantId,optional"`
+		RoleId   uint64 `path:"roleId"`
+	}
+	// 创建角色请求
+	CreateRoleReq {
+		TenantId uint64 `json:"tenantId,optional"`
+		// 角色码（唯一，如 promotion-admin）
+		Code string `json:"code"`
+		// 中文名
+		Name string `json:"name"`
+	}
+	// 修改角色请求（expectedVersion 乐观锁，冲突 → 409）
+	UpdateRoleReq {
+		TenantId        uint64 `json:"tenantId,optional"`
+		RoleId          uint64 `path:"roleId"`
+		Name            string `json:"name"`
+		Enabled         bool   `json:"enabled"`
+		ExpectedVersion uint64 `json:"expectedVersion"`
+	}
+	// 配置角色权限请求（整表替换 + 版本自增）
+	PutRolePermissionsReq {
+		TenantId        uint64           `json:"tenantId,optional"`
+		RoleId          uint64           `path:"roleId"`
+		ExpectedVersion uint64           `json:"expectedVersion"`
+		Permissions     []RolePermission `json:"permissions"`
+	}
+	// 角色成员（分页游标 afterPrincipalId）
+	RoleMember {
+		PrincipalId uint64 `json:"principalId"`
+		DisplayName string `json:"displayName"`
+	}
+	ListRoleMembersReq {
+		TenantId         uint64 `form:"tenantId,optional"`
+		RoleId           uint64 `path:"roleId"`
+		PageSize         uint32 `form:"pageSize,optional"`
+		AfterPrincipalId uint64 `form:"afterPrincipalId,optional"`
+	}
+	ListRoleMembersResp {
+		Members         []RoleMember `json:"members"`
+		NextPrincipalId uint64       `json:"nextPrincipalId"`
+	}
+	// 主体角色（version 为主体行的 role_version 乐观锁）
+	PrincipalRoles {
+		PrincipalId uint64   `json:"principalId"`
+		TenantId    uint64   `json:"tenantId"`
+		Version     uint64   `json:"version"`
+		RoleIds     []uint64 `json:"roleIds"`
+	}
+	GetPrincipalRolesReq {
+		TenantId    uint64 `form:"tenantId,optional"`
+		PrincipalId uint64 `path:"principalId"`
+	}
+	PutPrincipalRolesReq {
+		TenantId        uint64   `json:"tenantId,optional"`
+		PrincipalId     uint64   `path:"principalId"`
+		ExpectedVersion uint64   `json:"expectedVersion"`
+		RoleIds         []uint64 `json:"roleIds"`
+	}
+)
+
+// 全部需会话 + 权限点（resource: authorization.role）
+@server (
+	prefix:     /console/v2/api
+	group:      authorization
+	middleware: RequestId
+	middleware: ConsoleAuth
+	middleware: ConsoleAuthorize
+	tags:       "权限"
+)
+service admin-api {
+	@doc "查看权限目录（authorization.role:read）"
+	@handler ListPermissionCatalog
+	get /authorization/permissions returns (ListPermissionCatalogResp)
+
+	@doc "角色列表（authorization.role:read）"
+	@handler ListRoles
+	get /authorization/roles (ListRolesReq) returns (ListRolesResp)
+
+	@doc "查看角色（authorization.role:read）"
+	@handler GetRole
+	get /authorization/roles/:roleId (GetRoleReq) returns (Role)
+
+	@doc "创建角色（authorization.role:write）"
+	@handler CreateRole
+	post /authorization/roles (CreateRoleReq) returns (Role)
+
+	@doc "修改角色（authorization.role:write，乐观锁）"
+	@handler UpdateRole
+	put /authorization/roles/:roleId (UpdateRoleReq) returns (Role)
+
+	@doc "配置角色权限（authorization.role:write，整表替换）"
+	@handler PutRolePermissions
+	put /authorization/roles/:roleId/permissions (PutRolePermissionsReq) returns (Role)
+
+	@doc "角色成员（authorization.role:read）"
+	@handler ListRoleMembers
+	get /authorization/roles/:roleId/members (ListRoleMembersReq) returns (ListRoleMembersResp)
+
+	@doc "查看主体角色（authorization.role:read）"
+	@handler GetPrincipalRoles
+	get /authorization/principals/:principalId/roles (GetPrincipalRolesReq) returns (PrincipalRoles)
+
+	@doc "配置主体角色（authorization.role:write，乐观锁）"
+	@handler PutPrincipalRoles
+	put /authorization/principals/:principalId/roles (PutPrincipalRolesReq) returns (PrincipalRoles)
+}

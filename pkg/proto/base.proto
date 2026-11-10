@@ -1,0 +1,242 @@
+syntax = "proto3";
+
+package base;
+option go_package = "./base";
+
+// 基础服务（9314）：资格评估 eligibility + 风控 risk（DTM SAGA 分支 01/02）。
+// 分支 01 EvaluatePolicy（正向）：评估当前 scene 生效策略（版本解析走 redis 短 TTL 缓存
+//   gacha:base:policy:scene:{scene}→policy_no + gormc 缓存表，未命中默认放行），
+//   决策结果写入 decision_log（uk decision_no="d_"+requestId，barrier 事务内落库），
+//   拒绝时返回 Aborted(5001)（落库后再返回，日志不随补偿撤销）；
+//   补偿 EvaluatePolicyRevert：空（日志只追加，barrier 幂等标记即可）。
+// 分支 02 RiskEvaluate（正向）：金额阈值等规则任一命中即拒绝，命中案例落 risk_cases
+//   （uk case_no="rk_"+requestId，barrier 事务内）后返回 Aborted(5002)；
+//   补偿 RiskEvaluateRevert：空（案例人工处置，不自动撤销）。
+// 人工处置/控制台：ClaimRiskCase/ResolveRiskCase/ListRiskCases（案件状态机）与
+// CreatePolicyDraft/CreatePolicyRevision/GetPolicy/ListPolicies/PublishPolicy
+// （版本化条件政策+CEL，M14d 起由 console 管理；分支 01 评估 published 版本）。
+// 错误语义：业务失败 codes.Aborted（触发补偿）；系统错误 codes.Internal（DTM 重试）。
+// 金额：risk 事实用 int64 分（内部口径，网关换算后传入）。
+
+service Base {
+    rpc EvaluatePolicy(EvaluatePolicyReq) returns (EvaluatePolicyResp);
+    rpc EvaluatePolicyRevert(EvaluatePolicyReq) returns (EvaluatePolicyResp);
+    rpc RiskEvaluate(RiskEvaluateReq) returns (RiskEvaluateResp);
+    rpc RiskEvaluateRevert(RiskEvaluateReq) returns (RiskEvaluateResp);
+    // ── M14d 控制台：条件政策（版本化+CEL，消息形状照抄 server_v2 eligibility）──
+    rpc CreatePolicyDraft(CreatePolicyDraftRequest) returns (EligibilityPolicyRecord);
+    rpc CreatePolicyRevision(CreatePolicyRevisionRequest) returns (EligibilityPolicyRecord);
+    rpc GetPolicy(GetPolicyRequest) returns (EligibilityPolicyRecord);
+    rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesReply);
+    rpc PublishPolicy(PublishPolicyRequest) returns (EligibilityPolicyRecord);
+    // ── M14d 控制台：风控案件状态机（消息形状照抄 server_v2 risk）──
+    rpc ClaimRiskCase(ClaimRiskCaseRequest) returns (RiskCaseTransition);
+    rpc ResolveRiskCase(ResolveRiskCaseRequest) returns (RiskCaseTransition);
+    rpc ListRiskCases(ListRiskCasesRequest) returns (ListRiskCasesReply);
+}
+
+message EvaluatePolicyReq {
+    string requestId = 1; // 全局事务 gid（decision_no="d_"+requestId 确定性派生）
+    int64 userId = 2;     // 用户ID
+    int64 boxId = 3;      // 宝箱ID
+    string scene = 4;     // 场景：DISCOVER/VIEW/DRAW/BOOK
+}
+
+message EvaluatePolicyResp {
+    bool allowed = 1;      // 是否放行
+    string policyNo = 2;   // 评估所用策略单号
+    string reason = 3;     // 拒绝原因（中文，可透出；放行为空）
+}
+
+message RiskEvaluateReq {
+    string requestId = 1;  // 全局事务 gid（case_no="rk_"+requestId 确定性派生）
+    int64 userId = 2;      // 用户ID
+    int64 boxId = 3;       // 宝箱ID
+    string scene = 4;      // 场景：DISCOVER/VIEW/DRAW/BOOK
+    int64 amountFen = 5;   // 订单总额（分，内部口径）
+}
+
+message RiskEvaluateResp {
+    bool passed = 1;   // 是否通过
+    string caseNo = 2; // 命中案例单号（未命中为空）
+    string ruleNo = 3; // 命中规则单号（未命中为空）
+    string reason = 4; // 拒绝原因（中文，可透出；通过为空）
+}
+
+// ── M14d 控制台：风控案件状态机（server_v2 risk 形状）──
+
+enum RiskDecisionAction {
+    RISK_DECISION_ACTION_UNSPECIFIED = 0;
+    RISK_DECISION_ACTION_ALLOW = 1;
+    RISK_DECISION_ACTION_OBSERVE = 2;
+    RISK_DECISION_ACTION_CHALLENGE = 3;
+    RISK_DECISION_ACTION_LIMIT = 4;
+    RISK_DECISION_ACTION_REVIEW = 5;
+    RISK_DECISION_ACTION_DENY = 6;
+}
+
+enum RiskCaseStatus {
+    RISK_CASE_STATUS_UNSPECIFIED = 0;
+    RISK_CASE_STATUS_OPEN = 1;
+    RISK_CASE_STATUS_IN_REVIEW = 2;
+    RISK_CASE_STATUS_RESOLVED = 3;
+    RISK_CASE_STATUS_DISMISSED = 4;
+}
+
+enum RiskCaseEventType {
+    RISK_CASE_EVENT_TYPE_UNSPECIFIED = 0;
+    RISK_CASE_EVENT_TYPE_OPENED = 1;
+    RISK_CASE_EVENT_TYPE_CLAIMED = 2;
+    RISK_CASE_EVENT_TYPE_RESOLVED = 3;
+    RISK_CASE_EVENT_TYPE_DISMISSED = 4;
+}
+
+message ClaimRiskCaseRequest {
+    string caseId = 1;      // 案例单号
+    uint64 actorId = 2;     // 认领操作员ID
+    string operationId = 3; // 操作幂等号（event_id，同号同参重放返回同迁移）
+    uint64 tenantId = 4;    // 租户（单租户固定 1）
+}
+
+message ResolveRiskCaseRequest {
+    string caseId = 1;         // 案例单号
+    uint64 actorId = 2;        // 处置操作员ID（须与认领人一致）
+    string operationId = 3;    // 操作幂等号
+    RiskCaseStatus status = 4; // 目标状态：RESOLVED/DISMISSED
+    string resolutionCode = 5; // 处置码（1..64 字符）
+    uint64 tenantId = 6;       // 租户
+}
+
+message RiskCaseTransition {
+    string caseId = 1;
+    RiskCaseStatus status = 2;
+    uint64 actorId = 3;
+    int64 occurredAtUnixMillis = 4;
+}
+
+message ListRiskCasesRequest {
+    uint64 actorId = 1;                  // 按认领人过滤（0=全部）
+    RiskCaseStatus status = 2;           // 按状态过滤（0=全部）
+    uint32 pageSize = 3;                 // 默认 20，上限 100
+    int64 beforeCreatedAtUnixMillis = 4; // 游标：早于该时间
+    string beforeCaseId = 5;             // 游标：同时间戳时的 tie-break
+    uint64 tenantId = 6;                 // 租户
+}
+
+message RiskCaseSummary {
+    string caseId = 1;
+    string decisionId = 2;
+    string sceneCode = 3;
+    uint64 userId = 4;
+    uint64 deviceId = 5;
+    RiskDecisionAction action = 6;
+    int32 riskScore = 7;
+    RiskCaseStatus status = 8;
+    uint64 assignedActorId = 9;
+    int64 createdAtUnixMillis = 10;
+}
+
+message ListRiskCasesReply {
+    repeated RiskCaseSummary cases = 1;
+    int64 nextBeforeCreatedAtUnixMillis = 2;
+    string nextBeforeCaseId = 3;
+}
+
+// ── M14d 控制台：条件政策（server_v2 eligibility 形状，版本化 + CEL）──
+
+enum EligibilityScene {
+    ELIGIBILITY_SCENE_UNSPECIFIED = 0;
+    ELIGIBILITY_SCENE_DISCOVER = 1;
+    ELIGIBILITY_SCENE_VIEW = 2;
+    ELIGIBILITY_SCENE_DRAW = 3;
+    ELIGIBILITY_SCENE_BOOK = 4;
+}
+
+enum PolicyStatus {
+    POLICY_STATUS_UNSPECIFIED = 0;
+    POLICY_STATUS_DRAFT = 1;
+    POLICY_STATUS_PUBLISHED = 2;
+    POLICY_STATUS_RETIRED = 3;
+}
+
+enum RuleCombination {
+    RULE_COMBINATION_UNSPECIFIED = 0;
+    RULE_COMBINATION_ALL = 1;
+    RULE_COMBINATION_ANY = 2;
+}
+
+message EligibilityRule {
+    string ruleId = 1;      // 版本内唯一
+    string expression = 2;  // CEL 表达式（facts.xxx），输出必须 bool
+    string failureCode = 3; // 失败原因码（拒绝时透出）
+}
+
+message PolicyVersion {
+    uint64 policyId = 1;
+    uint64 version = 2;
+    PolicyStatus status = 3;
+    EligibilityScene scene = 4;
+    RuleCombination combination = 5;
+    repeated EligibilityRule rules = 6;
+    repeated string requiredFacts = 7; // 必需事实键（缺失即拒绝 MISSING_REQUIRED_FACT）
+    bytes configHash = 8;              // 发布 CAS：SHA256(Deterministic proto marshal)
+}
+
+message EligibilityPolicy {
+    uint64 policyId = 1;
+    uint64 tenantId = 2;
+    string code = 3;
+    string name = 4;
+    uint64 currentVersion = 5; // 生效版本（0=未发布）
+    uint64 latestVersion = 6;  // 最新版本号
+}
+
+message EligibilityPolicyRecord {
+    EligibilityPolicy policy = 1;
+    PolicyVersion policyVersion = 2;
+}
+
+message CreatePolicyDraftRequest {
+    uint64 tenantId = 1;
+    string code = 2;
+    string name = 3;
+    EligibilityScene scene = 4;
+    RuleCombination combination = 5;
+    repeated EligibilityRule rules = 6;
+    repeated string requiredFacts = 7;
+}
+
+message CreatePolicyRevisionRequest {
+    uint64 tenantId = 1;
+    uint64 policyId = 2;
+    string name = 3;
+    EligibilityScene scene = 4;
+    RuleCombination combination = 5;
+    repeated EligibilityRule rules = 6;
+    repeated string requiredFacts = 7;
+    uint64 expectedLatestVersion = 8; // CAS：与头最新版本号不符 → 409
+}
+
+message GetPolicyRequest {
+    uint64 tenantId = 1;
+    uint64 policyId = 2;
+    uint64 version = 3; // 0=current_version 指向版本；非 0=指定版本
+}
+
+message ListPoliciesRequest {
+    uint64 tenantId = 1;
+    uint64 afterPolicyId = 2; // 游标
+    uint32 pageSize = 3;      // 默认 20，上限 100
+}
+
+message ListPoliciesReply {
+    repeated EligibilityPolicyRecord policies = 1;
+    uint64 nextAfterPolicyId = 2;
+}
+
+message PublishPolicyRequest {
+    uint64 tenantId = 1;
+    uint64 policyId = 2;
+    uint64 version = 3;           // 待发布 DRAFT 版本号
+    bytes expectedConfigHash = 4; // CAS：与版本行 config_hash 不符 → 409
+}

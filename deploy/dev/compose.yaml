@@ -1,0 +1,38 @@
+# dev 环境：基础设施内置 + 业务服务端口映射到宿主机（本地调试）。
+# 启动：bash deploy/scripts/deploy.sh dev up
+name: gacha-dev
+
+include:
+  - path: ../common/infra/compose.yaml
+  - path: ../common/services.yaml
+
+services:
+  # 业务服务端口映射到宿主机（127.0.0.1 仅本机），便于本地调试直连
+  dtm:
+    ports:
+      - "127.0.0.1:36789:36789"
+      - "127.0.0.1:36790:36790"
+  base-rpc:
+    ports: ["127.0.0.1:9314:9314"]
+  catalog-rpc:
+    ports: ["127.0.0.1:9318:9318"]
+  draw-rpc:
+    ports: ["127.0.0.1:9313:9313"]
+  task-rpc:
+    ports: ["127.0.0.1:9317:9317"]
+  ops-rpc:
+    ports: ["127.0.0.1:9320:9320"]
+  thirdparty-rpc:
+    ports: ["127.0.0.1:9319:9319"]
+  identity-rpc:
+    ports: ["127.0.0.1:9311:9311"]
+  money-rpc:
+    ports: ["127.0.0.1:9312:9312"]
+  marketing-rpc:
+    ports: ["127.0.0.1:9315:9315"]
+  play-rpc:
+    ports: ["127.0.0.1:9316:9316"]
+  gateway:
+    ports: ["127.0.0.1:9310:9310"]
+  admin-gateway:
+    ports: ["127.0.0.1:9321:9321"]

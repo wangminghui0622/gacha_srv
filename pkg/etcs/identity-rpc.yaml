@@ -1,0 +1,44 @@
+Name: identity.rpc
+# 本机开发全链路：绑定回环地址，Etcd 注册固定 127.0.0.1（避免网卡/VPN 切换后注册 IP 失效）
+ListenOn: 127.0.0.1:9311
+
+Etcd:
+  Hosts:
+    - 127.0.0.1:2379
+  Key: identity.rpc
+
+MySQL:
+  DataSource: root:we7root@tcp(127.0.0.1:3306)/gacha_identity?charset=utf8mb4&parseTime=True&loc=Local
+
+# JWT 密钥占位符：生产替换走发布流程，禁止提交真实密钥
+JwtAuth:
+  AccessSecret: "your-secret-key-change-in-production"
+  AccessExpire: 7200
+
+# 手机号盲索引密钥占位符：生产替换走发布流程，禁止提交真实密钥（32B base64，两把必须不同）
+PhoneCrypto:
+  EncKey: "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
+  IndexKey: "ZmVkY2JhOTg3NjU0MzIxMGZlZGNiYTk4NzY1NDMyMTA="
+  EncKeyID: "dev-enc-v1"
+  IndexVersion: 1
+
+# 第三方服务（验证码/微信 code 交换，走 Etcd）
+ThirdpartyRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: thirdparty.rpc
+
+Log:
+  ServiceName: identity-rpc
+  Mode: console
+  Level: info
+
+# 指标/健康端点
+DevServer:
+  Enabled: true
+  Host: 0.0.0.0
+  Port: 9391
+  EnableMetrics: true
+  EnablePprof: false  # 默认开着,显式关闭
+  HealthPath: /healthz

@@ -1,0 +1,195 @@
+syntax = "proto3";
+
+package catalog;
+
+option go_package = "./catalog";
+
+// 商城服务（catalog 9316）：SPU/SKU 商品目录控制台（M14c）。
+// 契约照抄 server_v2 CatalogService：草稿（live 表）→ 发布（快照只读）→
+// 修订/变体修订（草稿 blob）→ 修订发布（版本前进 + 幂等重放）。
+// 错误码段 4000：4001 商品不存在 / 4002 版本或状态冲突 / 4003 校验失败。
+
+
+// 商城服务：商品目录（SPU/SKU 草稿→发布→修订，M14c 控制台契约）
+service Catalog {
+  // 创建商品（DRAFT + version 1；选项/SKU 全量校验）
+  rpc CreateProduct(CreateProductRequest) returns (Product);
+  // 查看商品（ACTIVE 读已发布快照，否则读 live 草稿表）
+  rpc GetProduct(GetProductRequest) returns (Product);
+  // 商品列表（游标分页，摘要）
+  rpc ListProducts(ListProductsRequest) returns (ListProductsReply);
+  // 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
+  rpc PublishProduct(PublishProductRequest) returns (Product);
+  // 读取已发布快照（任意历史版本）
+  rpc GetPublishedProduct(GetPublishedProductRequest) returns (Product);
+  // 保存修订（改标题/SKU 字段；草稿 blob；同内容幂等）
+  rpc SaveProductRevision(SaveProductRevisionRequest) returns (Product);
+  // 保存变体修订（增删规格值/SKU；稳定 SKU 组合不可变）
+  rpc SaveProductVariantRevision(SaveProductVariantRevisionRequest) returns (Product);
+  // 读取修订草稿
+  rpc GetProductRevision(GetProductRevisionRequest) returns (Product);
+  // 发布修订（版本前进 expected+1；已发布幂等重放）
+  rpc PublishProductRevision(PublishProductRevisionRequest) returns (Product);
+}
+
+
+
+// ProductStatus 商品状态（与 server_v2 同值）
+enum ProductStatus {
+  PRODUCT_STATUS_UNSPECIFIED = 0;
+  PRODUCT_STATUS_DRAFT = 1;
+  PRODUCT_STATUS_ACTIVE = 2;
+  PRODUCT_STATUS_ARCHIVED = 3;
+}
+
+// FulfillmentMode 履约方式（与 server_v2 同值）
+enum FulfillmentMode {
+  FULFILLMENT_MODE_UNSPECIFIED = 0;
+  FULFILLMENT_MODE_PHYSICAL = 1;
+  FULFILLMENT_MODE_DIGITAL = 2;
+  FULFILLMENT_MODE_NONE = 3;
+}
+
+// Money 金额（最小单位 + 币种，与 server_v2 luckybox.common.v2.Money 同形状）
+message Money {
+  int64 amountMinor = 1; // 最小单位金额（分）
+  string currency = 2;   // 币种（3 字母，如 CNY）
+}
+
+message OptionValue {
+  uint64 optionValueId = 1; // 选项值ID
+  uint64 optionId = 2;      // 所属选项ID
+  string value = 3;         // 值（如 红色）
+  int32 sortOrder = 4;      // 排序
+}
+
+message ProductOption {
+  uint64 optionId = 1;              // 选项ID（如 颜色）
+  string name = 2;                  // 选项名
+  int32 sortOrder = 3;              // 排序
+  repeated OptionValue values = 4;  // 选项值
+}
+
+message SKUSelection {
+  uint64 optionId = 1;      // 所选选项ID
+  uint64 optionValueId = 2; // 所选选项值ID
+}
+
+message SKU {
+  uint64 skuId = 1;                  // SKU ID
+  uint64 productId = 2;              // 所属商品ID
+  string skuCode = 3;                // SKU 编码（全局唯一）
+  string title = 4;                  // SKU 标题
+  ProductStatus status = 5;          // 状态
+  FulfillmentMode fulfillmentMode = 6; // 履约方式
+  Money salePrice = 7;               // 售价
+  Money referencePrice = 8;          // 参考价
+  repeated SKUSelection selections = 9; // 规格组合（每选项恰一条）
+  string externalCode = 10;          // 外部编码
+}
+
+message Product {
+  uint64 productId = 1;             // 商品ID
+  string productCode = 2;           // 商品编码
+  string title = 3;                 // 标题
+  ProductStatus status = 4;         // 状态
+  repeated ProductOption options = 5; // 规格选项
+  repeated SKU skus = 6;            // SKU 列表
+  uint64 version = 7;               // 版本号
+}
+
+message CreateOptionValueInput {
+  string value = 1;     // 值
+  int32 sortOrder = 2;  // 排序
+}
+
+message CreateProductOptionInput {
+  string name = 1;                         // 选项名
+  int32 sortOrder = 2;                     // 排序
+  repeated CreateOptionValueInput values = 3; // 选项值
+}
+
+message CreateSKUSelectionInput {
+  int32 optionIndex = 1; // 选项下标（指向 request.options）
+  int32 valueIndex = 2;  // 值下标（指向该选项的 values）
+}
+
+message CreateSKUInput {
+  string skuCode = 1;              // SKU 编码
+  string title = 2;                // SKU 标题
+  FulfillmentMode fulfillmentMode = 3; // 履约方式
+  Money salePrice = 4;             // 售价
+  Money referencePrice = 5;        // 参考价
+  repeated CreateSKUSelectionInput selections = 6; // 规格选择（按 optionIndex/valueIndex）
+  string externalCode = 7;         // 外部编码
+}
+
+message CreateProductRequest {
+  string productCode = 1;                          // 商品编码
+  string title = 2;                                // 标题
+  repeated CreateProductOptionInput options = 3;   // 规格选项
+  repeated CreateSKUInput skus = 4;                // SKU 列表
+}
+
+message GetProductRequest {
+  uint64 productId = 1; // 商品ID
+}
+
+message ProductSummary {
+  uint64 productId = 1;   // 商品ID
+  string productCode = 2; // 商品编码
+  string title = 3;       // 标题
+  ProductStatus status = 4; // 状态
+  uint64 version = 5;     // 版本号
+}
+
+message ListProductsRequest {
+  uint64 afterProductId = 1; // 游标：上一页最后商品ID（0=首页）
+  uint32 pageSize = 2;       // 每页条数（默认 20，上限 100）
+}
+
+message ListProductsReply {
+  repeated ProductSummary products = 1; // 商品摘要列表
+  uint64 nextAfterProductId = 2;        // 下一页游标（0=无下一页）
+}
+
+message GetPublishedProductRequest {
+  uint64 productId = 1; // 商品ID
+  uint64 version = 2;   // 版本号（必须）
+}
+
+message PublishProductRequest {
+  uint64 productId = 1;       // 商品ID
+  uint64 expectedVersion = 2; // 期望版本（CAS）
+}
+
+message ReviseSKUInput {
+  uint64 skuId = 1;                 // 要修订的 SKU ID（必须命中现版本 SKU）
+  string title = 2;                 // 新标题
+  string externalCode = 3;          // 新外部编码
+  FulfillmentMode fulfillmentMode = 4; // 新履约方式
+  Money salePrice = 5;              // 新售价
+  Money referencePrice = 6;         // 新参考价
+}
+
+message SaveProductRevisionRequest {
+  uint64 productId = 1;       // 商品ID
+  uint64 expectedVersion = 2; // 期望版本（必须等于当前已发布版本）
+  string title = 3;           // 新商品标题
+  repeated ReviseSKUInput skus = 4; // 修订的 SKU（数量必须与现版本一致）
+}
+
+message GetProductRevisionRequest {
+  uint64 productId = 1; // 商品ID
+}
+
+message PublishProductRevisionRequest {
+  uint64 productId = 1;       // 商品ID
+  uint64 expectedVersion = 2; // 期望版本（= 草稿 base_version，必须 ≥2）
+}
+
+message SaveProductVariantRevisionRequest {
+  uint64 productId = 1;        // 商品ID
+  uint64 expectedVersion = 2;  // 期望版本（必须等于当前已发布版本，≥2）
+  CreateProductRequest product = 3; // 完整新版本（code 必须与现版本一致）
+}

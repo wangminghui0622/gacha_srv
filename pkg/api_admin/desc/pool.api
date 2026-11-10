@@ -1,0 +1,147 @@
+// ════════════════════════════════════════════════════════════════
+// 赏池控制台（ConsolePoolHTTPService 契约照抄 server_v2）：
+// 草稿 → 提请发布 → 审批（单审批人，≠ 申请人）→ 发布（物化线上表）；
+// 箱子读取（getbox/getboxview 均映射本仓 BoxDetail）；
+// 幸运指派（server_v2 路径 /gacha/boxes/:boxId/lucky-assignment 适配为
+// 扭蛋配置 /gacha/gashapons/:configId/lucky-assignment，本仓指派实体是扭蛋 LUCKY 奖）。
+// 不实现 console.pool.createbox：server_v2 的 box-instance 概念本仓无对应物
+// （本仓箱子即 draw_boxes，由赏池发布物化，不做独立箱子实例）。
+// 请求/响应线格式（protojson camelCase）由各 handler 用 restx.ParseProto/WriteProto
+// 直接收发 proto 消息，此处类型仅驱动 goctl 路由表生成。
+// ════════════════════════════════════════════════════════════════
+
+type (
+	// 创建赏池草稿请求（body=BoxDraft 形状；幂等键走 Idempotency-Key 头）
+	CreatePoolDraftReq {
+		PoolId               int64              `json:"poolId,optional"`
+		Version              int64              `json:"version,optional"`
+		Status               string             `json:"status,optional"`
+		BoxName              string             `json:"boxName"`
+		Price                int64              `json:"price"`
+		Description          string             `json:"description,optional"`
+		Entries              []PoolEntryDraft   `json:"entries"`
+		RollingRulesJson     string             `json:"rollingRulesJson,optional"`
+		ConfigHash           string             `json:"configHash,optional"`
+		PublishedAtUnixMillis int64             `json:"publishedAtUnixMillis,optional"`
+	}
+	PoolEntryDraft {
+		EntryId          int64  `json:"entryId,optional"`
+		Name             string `json:"name"`
+		Weight           int64  `json:"weight"`
+		Quantity         int64  `json:"quantity"`
+		IsPrize          bool   `json:"isPrize"`
+		DisplayValueFen  int64  `json:"displayValueFen,optional"`
+		RollingLimited   bool   `json:"rollingLimited,optional"`
+	}
+	// 版本/审批请求体（expectedConfigHash base64）
+	PoolKeyReq {
+		PoolId             int64  `path:"poolId"`
+		Version            int64  `path:"version"`
+		ExpectedConfigHash string `json:"expectedConfigHash"`
+	}
+	// 提请发布（requesterId 由网关从会话注入，不接受客户端传入）
+	RequestPoolPublicationReq {
+		PoolId             int64  `path:"poolId"`
+		Version            int64  `path:"version"`
+		ExpectedConfigHash string `json:"expectedConfigHash"`
+	}
+	// 审批发布（approverId 由网关从会话注入）
+	ApprovePoolPublicationReq {
+		PoolId             int64  `path:"poolId"`
+		Version            int64  `path:"version"`
+		ExpectedConfigHash string `json:"expectedConfigHash"`
+	}
+	// 发布
+	PublishPoolReq {
+		PoolId             int64  `path:"poolId"`
+		Version            int64  `path:"version"`
+		ExpectedConfigHash string `json:"expectedConfigHash"`
+	}
+	// 版本详情
+	GetPoolVersionReq {
+		PoolId  int64 `path:"poolId"`
+		Version int64 `path:"version"`
+	}
+	// 版本列表（游标）
+	ListPoolVersionsReq {
+		AfterPoolId  int64 `form:"afterPoolId,optional"`
+		AfterVersion int64 `form:"afterVersion,optional"`
+		PageSize     int64 `form:"pageSize,optional"`
+	}
+	// 箱子读取
+	GetBoxReq {
+		BoxId int64 `path:"boxId"`
+	}
+	GetBoxViewReq {
+		BoxId int64 `path:"boxId"`
+	}
+	// 幸运指派（扭蛋 LUCKY 奖；userId=0 清除指派）
+	AssignGashaponLuckyUserReq {
+		ConfigId   int64 `path:"configId"`
+		PrizeIndex int64 `json:"prizeIndex"`
+		UserId     int64 `json:"userId"`
+	}
+	// 各响应由 handler 用 proto 消息输出（protojson），此处类型仅占位驱动路由生成
+	BoxDraftResp {
+		PoolId int64 `json:"poolId"`
+	}
+	PoolPublicationApprovalResp {
+		PoolId int64 `json:"poolId"`
+	}
+	ListPoolVersionsResp {
+		Versions []string `json:"versions"`
+	}
+	AssignGashaponLuckyUserResp {
+		Status string `json:"status"`
+	}
+	BoxDetailResp {
+		BoxId int64 `json:"boxId"`
+	}
+)
+
+// 全部需会话 + 权限点（resource: gacha.pool）
+@server (
+	prefix:     /console/v2/api
+	group:      pool
+	middleware: RequestId
+	middleware: ConsoleAuth
+	middleware: ConsoleAuthorize
+	tags:       "赏池"
+)
+service admin-api {
+	@doc "创建赏池草稿（gacha.pool:create；幂等键走 Idempotency-Key 头）"
+	@handler CreatePoolDraft
+	post /gacha/pools/drafts (CreatePoolDraftReq) returns (BoxDraftResp)
+
+	@doc "赏池版本列表（gacha.pool:read；游标分页）"
+	@handler ListPoolVersions
+	get /gacha/pools (ListPoolVersionsReq) returns (ListPoolVersionsResp)
+
+	@doc "赏池版本详情（gacha.pool:read）"
+	@handler GetPoolVersion
+	get /gacha/pools/:poolId/versions/:version (GetPoolVersionReq) returns (BoxDraftResp)
+
+	@doc "发布赏池（gacha.pool:publish）"
+	@handler PublishPool
+	post /gacha/pools/:poolId/versions/:version/publish (PublishPoolReq) returns (BoxDraftResp)
+
+	@doc "提请发布赏池（gacha.pool:request_publication；申请人=会话主体）"
+	@handler RequestPoolPublication
+	post /gacha/pools/:poolId/versions/:version/publication-request (RequestPoolPublicationReq) returns (PoolPublicationApprovalResp)
+
+	@doc "审批赏池发布（gacha.pool:approve_publication；审批人=会话主体，≠ 申请人）"
+	@handler ApprovePoolPublication
+	post /gacha/pools/:poolId/versions/:version/approval (ApprovePoolPublicationReq) returns (PoolPublicationApprovalResp)
+
+	@doc "读取箱子（gacha.pool:read）"
+	@handler GetBox
+	get /gacha/boxes/:boxId (GetBoxReq) returns (BoxDetailResp)
+
+	@doc "箱子库存与玩法状态（gacha.pool:read）"
+	@handler GetBoxView
+	get /gacha/boxes/:boxId/view (GetBoxViewReq) returns (BoxDetailResp)
+
+	@doc "指定幸运用户（gacha.pool:assign_lucky；扭蛋 LUCKY 奖，userId=0 清除）"
+	@handler AssignGashaponLuckyUser
+	post /gacha/gashapons/:configId/lucky-assignment (AssignGashaponLuckyUserReq) returns (AssignGashaponLuckyUserResp)
+}

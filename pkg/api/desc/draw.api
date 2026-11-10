@@ -1,0 +1,165 @@
+// ════════════════════════════════════════════════════════════════
+// 游戏域：宝箱 / 购买开奖 / 抽赏记录 / 吉仓（错误码段 2000-2999）
+// ════════════════════════════════════════════════════════════════
+// 共享类型（PageReq 等）定义在 desc/common.api：单文件校验/编辑时需显式 import
+import "common.api"
+
+type (
+	// 宝箱列表项
+	BoxItem {
+		// 宝箱ID
+		BoxId int64 `json:"boxId"`
+		// 宝箱名称
+		BoxName string `json:"boxName"`
+		// 单抽价格（元，两位小数）
+		Price string `json:"price"`
+		// 描述
+		Description string `json:"description"`
+		// 是否售罄（无任何可抽中奖条目）
+		SoldOut bool `json:"soldOut"`
+	}
+	// 宝箱列表（静态配置、数量少，不分页）
+	BoxListResp {
+		// 宝箱列表
+		List []BoxItem `json:"list"`
+	}
+	// 宝箱详情路径参数
+	BoxDetailPathReq {
+		// 宝箱ID
+		BoxId int64 `path:"boxId" validate:"gte=1"`
+	}
+	// 奖池条目（概率公示）
+	PoolEntryItem {
+		// 条目ID
+		EntryId int64 `json:"entryId"`
+		// 条目名称
+		Name string `json:"name"`
+		// 权重
+		Weight int32 `json:"weight"`
+		// 剩余库存：-1=不限量 0=售罄
+		Remaining int32 `json:"remaining"`
+		// 是否奖品（false=谢谢参与）
+		IsPrize bool `json:"isPrize"`
+		// 公示概率（如 "12.50%"）
+		Probability string `json:"probability"`
+	}
+	// 宝箱详情（概率公示）
+	BoxDetailResp {
+		// 宝箱ID
+		BoxId int64 `json:"boxId"`
+		// 宝箱名称
+		BoxName string `json:"boxName"`
+		// 单抽价格（元，两位小数）
+		Price string `json:"price"`
+		// 描述
+		Description string `json:"description"`
+		// 是否售罄
+		SoldOut bool `json:"soldOut"`
+		// 奖池条目（概率公示）
+		Entries []PoolEntryItem `json:"entries"`
+	}
+	// 购买开奖请求（金额与 userId 由网关取服务端数据，不信客户端）
+	BuyBoxReq {
+		// 宝箱ID
+		BoxId int64 `json:"boxId" validate:"required,gte=1"`
+	}
+	// 购买开奖响应：事务已提交（pending），开奖结果轮询 /draw/records
+	BuyBoxResp {
+		// 全局事务单号（= DTM gid；客户端轮询用）
+		RequestId string `json:"requestId"`
+		// 事务状态：pending=已提交待开奖 success=幂等重试命中已有记录
+		Status string `json:"status"`
+	}
+	// 抽赏记录项
+	DrawRecordItem {
+		// 记录ID
+		RecordId int64 `json:"recordId"`
+		// 全局事务单号
+		RequestId string `json:"requestId"`
+		// 宝箱ID
+		BoxId int64 `json:"boxId"`
+		// 宝箱名称
+		BoxName string `json:"boxName"`
+		// 开奖条目名称（谢谢参与时为"谢谢参与"）
+		EntryName string `json:"entryName"`
+		// 是否中奖
+		IsPrize bool `json:"isPrize"`
+		// 记录状态：1 正常 2 已撤销
+		Status int64 `json:"status"`
+		// 本次抽盒价格（元）
+		Price string `json:"price"`
+		// 开奖时间（unix 秒）
+		CreatedAt int64 `json:"createdAt"`
+	}
+	// 抽赏记录查询：requestId 有值时精确查一条（购买轮询），否则分页列表
+	// GET 查询参数绑定走 form 标签（go-zero httpx 的 formUnmarshaler），json 标签仅供响应序列化
+	RecordsReq {
+		PageReq
+		// 全局事务单号（购买轮询用；此时忽略分页）
+		RequestId string `json:"requestId,optional" form:"requestId,optional"`
+	}
+	// 抽赏记录列表（分页响应固定结构 list/total）
+	RecordsListResp {
+		// 记录列表
+		List []DrawRecordItem `json:"list"`
+		// 总数
+		Total int64 `json:"total"`
+	}
+	// 吉仓物品项
+	WarehouseItem {
+		// 物品ID
+		ItemId int64 `json:"itemId"`
+		// 关联抽赏记录ID
+		RecordId int64 `json:"recordId"`
+		// 宝箱ID
+		BoxId int64 `json:"boxId"`
+		// 宝箱名称
+		BoxName string `json:"boxName"`
+		// 物品名称
+		ItemName string `json:"itemName"`
+		// 入库时间（unix 秒）
+		CreatedAt int64 `json:"createdAt"`
+	}
+	// 吉仓列表（v1 服务端上限 500 条，分页随 RPC 同步补）
+	WarehouseListResp {
+		// 物品列表
+		List []WarehouseItem `json:"list"`
+	}
+)
+
+// 公开接口：宝箱列表 / 详情（概率公示）
+@server (
+	prefix: /gacha/api/v1
+	group:  draw
+	tags:   "抽盒"
+)
+service gateway-api {
+	@doc "宝箱列表"
+	@handler BoxList
+	get /boxes returns (BoxListResp)
+
+	@doc "宝箱详情（概率公示）"
+	@handler BoxDetail
+	get /boxes/:boxId (BoxDetailPathReq) returns (BoxDetailResp)
+}
+
+// 受保护接口：购买开奖（DTM SAGA）/ 抽赏记录 / 吉仓
+@server (
+	prefix:     /gacha/api/v1
+	group:      draw
+	middleware: JwtAuth
+	tags:       "抽盒"
+)
+service gateway-api {
+	@doc "购买开奖（提交 DTM SAGA 事务，异步开奖，客户端轮询记录）"
+	@handler BoxBuy
+	post /box/buy (BuyBoxReq) returns (BuyBoxResp)
+
+	@doc "抽赏记录（requestId 精确查询或分页列表）"
+	@handler Records
+	get /draw/records (RecordsReq) returns (RecordsListResp)
+
+	@doc "吉仓物品列表"
+	@handler Warehouse
+	get /warehouse returns (WarehouseListResp)
+}

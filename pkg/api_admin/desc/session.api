@@ -1,0 +1,153 @@
+// ════════════════════════════════════════════════════════════════
+// 会话域（ConsoleSessionService 契约照抄 server_v2）：
+// 登录（TOTP 两步）/ 刷新（旋转+指纹）/ 退出 / 有效权限 /
+// 开通控制台账号 / 重置 TOTP
+// ════════════════════════════════════════════════════════════════
+
+type (
+	// 控制台登录请求（两步：无 TOTP 绑定 → 回挑战；已绑定且带 otpCode → 直接签令牌；
+	// loginTicket 用于携带 TOTP 挑战票据完成第二步）
+	ConsoleLoginReq {
+		// 租户（缺省 1）
+		TenantId uint64 `json:"tenantId,optional"`
+		// 用户名
+		Username string `json:"username"`
+		// 口令
+		Password string `json:"password"`
+		// TOTP 6 位码（第二步）
+		OtpCode string `json:"otpCode,optional"`
+		// 客户端指纹（绑定会话）
+		ClientFingerprint string `json:"clientFingerprint"`
+		// TOTP 挑战票据（第一步返回）
+		LoginTicket string `json:"loginTicket,optional"`
+	}
+	// TOTP 挑战（账号未绑定 TOTP 时登录第一步返回）
+	ConsoleTotpChallenge {
+		// 挑战票据（5 分钟有效，第二步回传）
+		LoginTicket string `json:"loginTicket"`
+		// 是否需要首次绑定
+		SetupRequired bool `json:"setupRequired"`
+		// TOTP 密钥（base32，仅首次绑定返回）
+		TotpSecret string `json:"totpSecret"`
+		// otpauth URI（前端生成二维码）
+		TotpUri string `json:"totpUri"`
+	}
+	// 会话令牌对（登录/刷新产物）
+	ConsoleSessionTokens {
+		// EdDSA JWT（Bearer）
+		AccessToken string `json:"accessToken"`
+		// 刷新令牌（随机，库中只存哈希）
+		RefreshToken string `json:"refreshToken"`
+		// "Bearer"
+		TokenType string `json:"tokenType"`
+		// 访问令牌过期（Unix 秒）
+		AccessExpiresAtUnix int64 `json:"accessExpiresAtUnix"`
+		// 刷新令牌过期（Unix 秒）
+		RefreshExpiresAtUnix int64 `json:"refreshExpiresAtUnix"`
+		// 会话 ID（JWT jti）
+		SessionId string `json:"sessionId"`
+	}
+	// 登录响应（session 与 totpChallenge 二选一）
+	ConsoleLoginResp {
+		Session       ConsoleSessionTokens `json:"session,optional"`
+		TotpChallenge ConsoleTotpChallenge `json:"totpChallenge,optional"`
+	}
+	// 刷新请求
+	ConsoleRefreshReq {
+		RefreshToken      string `json:"refreshToken"`
+		ClientFingerprint string `json:"clientFingerprint"`
+	}
+	// 退出请求（sessionId = 当前 JWT 的 jti）
+	ConsoleLogoutReq {
+		SessionId string `json:"sessionId"`
+	}
+	// 退出响应
+	ConsoleLogoutResp {
+		Revoked bool `json:"revoked"`
+	}
+	// 开通控制台账号请求（operator 动作；角色绑定走 PutPrincipalRoles）
+	OpenConsoleAccountReq {
+		// 租户（缺省 1）
+		TenantId uint64 `json:"tenantId,optional"`
+		// 用户名（1-64）
+		Username string `json:"username"`
+		// 口令（≥12 字节）
+		Password string `json:"password"`
+		// 显示名（1-128）
+		DisplayName string `json:"displayName"`
+	}
+	// 开通账号响应（不回传口令；TOTP 首登 setup）
+	OpenConsoleAccountResp {
+		PrincipalId uint64 `json:"principalId"`
+		TenantId    uint64 `json:"tenantId"`
+		Username    string `json:"username"`
+		// server_v2 契约常量："promotion-admin"
+		RoleCode string `json:"roleCode"`
+	}
+	// 重置账号 TOTP 请求
+	ResetConsoleTotpReq {
+		// 租户（缺省 1）
+		TenantId uint64 `json:"tenantId,optional"`
+		// 主体 ID（路径参数）
+		PrincipalId uint64 `path:"principalId"`
+	}
+	// 重置 TOTP 响应（同时吊销该账号全部活跃会话）
+	ResetConsoleTotpResp {
+		Reset           bool   `json:"reset"`
+		SessionsRevoked uint32 `json:"sessionsRevoked"`
+	}
+)
+
+// 公开：登录 / 刷新（RequestId 中间件全链路，health 除外）
+@server (
+	prefix:     /console/v2/api
+	group:      session
+	middleware: RequestId
+	tags:       "会话"
+)
+service admin-api {
+	@doc "控制台登录（TOTP 两步）"
+	@handler ConsoleLogin
+	post /session/login (ConsoleLoginReq) returns (ConsoleLoginResp)
+
+	@doc "刷新令牌（旋转 + 指纹校验 + 重放家族吊销）"
+	@handler ConsoleRefresh
+	post /session/refresh (ConsoleRefreshReq) returns (ConsoleSessionTokens)
+}
+
+// 需会话（ConsoleAuth：EdDSA 验签 + Redis 吊销检查），免权限点（目录 Public）
+@server (
+	prefix:     /console/v2/api
+	group:      session
+	middleware: RequestId
+	middleware: ConsoleAuth
+	tags:       "会话"
+)
+service admin-api {
+	@doc "退出登录（吊销指定会话）"
+	@handler ConsoleLogout
+	post /session/logout (ConsoleLogoutReq) returns (ConsoleLogoutResp)
+
+	@doc "当前有效权限"
+	@handler ConsolePermissions
+	get /session/permissions returns (ListEffectiveGrantsResp)
+}
+
+// 需会话 + 权限点（ConsoleAuthorize 调 ops-rpc Authorize）
+@server (
+	prefix:     /console/v2/api
+	group:      session
+	middleware: RequestId
+	middleware: ConsoleAuth
+	middleware: ConsoleAuthorize
+	tags:       "会话"
+)
+service admin-api {
+	@doc "开通控制台账号（identity.console_account:create）"
+	@handler OpenConsoleAccount
+	post /session/accounts (OpenConsoleAccountReq) returns (OpenConsoleAccountResp)
+
+	@doc "重置账号 TOTP（identity.console_account:reset_totp）"
+	@handler ResetConsoleTotp
+	post /session/accounts/:principalId/totp-reset (ResetConsoleTotpReq) returns (ResetConsoleTotpResp)
+}

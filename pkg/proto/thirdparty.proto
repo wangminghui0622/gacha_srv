@@ -1,0 +1,234 @@
+syntax = "proto3";
+
+package thirdparty;
+option go_package = "./thirdparty";
+
+import "google/protobuf/timestamp.proto";
+
+// 第三方服务（M15a 激活，9317）：验证码收发 + 微信 code 交换；M15d 补 integration 全套：
+// 微信小程序全家（access_token/手机号/二维码/urllink）+ 支付宝 OAuth + 腾讯广告点击 +
+// provider 指标接入（gacha_thirdparty 首建库）。
+// 契约照抄 server_v2 integration（captcha/wechat/thirdparty/metrics）：
+//   SendCaptcha/CheckCaptcha：Redis 存储（TTL 15min、Lua 一次性消费、
+//     频控 60s 内重发/24h 超 10 次 → busy、DryRun 跳过真实短信、
+//     888 前缀测试号跳过阿里云、两通道都关且非 DryRun → disabled）
+//   ExchangeWeChatCode：Mini=jscode2session / App=oauth2 access_token
+//     （APIBase/OAuthBase 可配，场景测试指向本地 mock server）
+//   GetWeChatMiniProgramAccessToken：本地 2h 缓存 + Redis token store +
+//     /cgi-bin/token（expires_in 减 60s 余量）
+//   GetWeChatMiniProgramPhoneNumber：errcode 40001/42001 清 token 重试一次
+//   GenerateWeChatMiniProgramQrCode：scene 必填、page 空用 DefaultPage、width 0→430
+//   TxAdClick：按 wechat_open_id 去重落库（CountByOpenID>0 跳过，uk 仲裁并发）
+//   GetAliPayOauthToken：authorization_code/refresh_token 换 token，union_id=open_id
+//   GetAliPayUserInfo：老项目空回复 stub（照抄）
+//   IngestProviderMetrics：校验 + 幂等（request_id/idempotency_key + request_hash）
+//     + 新旧修订仲裁（current 严格大于才更新）+ outbox 事件
+// kuaidi100 承接方 delivery 属 B 类不克隆，留占位。
+service Thirdparty {
+    rpc SendCaptcha(SendCaptchaReq) returns (SendCaptchaResp);
+    rpc CheckCaptcha(CheckCaptchaReq) returns (CheckCaptchaResp);
+    rpc ExchangeWeChatCode(ExchangeWeChatCodeReq) returns (ExchangeWeChatCodeResp);
+    rpc GetWeChatMiniProgramAccessToken(GetWeChatMiniProgramAccessTokenReq) returns (GetWeChatMiniProgramAccessTokenResp);
+    rpc GetWeChatMiniProgramPhoneNumber(GetWeChatMiniProgramPhoneNumberReq) returns (GetWeChatMiniProgramPhoneNumberResp);
+    rpc GenerateWeChatMiniProgramQrCode(GenerateWeChatMiniProgramQrCodeReq) returns (GenerateWeChatMiniProgramQrCodeResp);
+    rpc GenerateWeChatMiniProgramUrlLink(GenerateWeChatMiniProgramUrlLinkReq) returns (GenerateWeChatMiniProgramUrlLinkResp);
+    rpc TxAdClick(TxAdClickReq) returns (TxAdClickResp);
+    rpc GetAliPayOauthToken(GetAliPayOauthTokenReq) returns (GetAliPayOauthTokenResp);
+    rpc GetAliPayUserInfo(GetAliPayUserInfoReq) returns (GetAliPayUserInfoResp);
+    rpc IngestProviderMetrics(IngestProviderMetricsReq) returns (IngestProviderMetricsResp);
+}
+
+// 验证码场景（照抄 server_v2 CaptchaScene；UNSPECIFIED 也按 LOGIN 处理）
+enum CaptchaScene {
+    CAPTCHA_SCENE_UNSPECIFIED = 0;
+    CAPTCHA_SCENE_LOGIN = 1; // 登录验证码
+}
+
+message SendCaptchaReq {
+    int64 tenantId = 1;  // 租户ID（本仓单租户，恒 1）
+    string phone = 2;    // 大陆手机号（11 位 1[3-9]，非法 → 6004）
+    CaptchaScene scene = 3; // 场景
+}
+
+message SendCaptchaResp {
+    int64 expiresAtUnix = 1; // 验证码过期时间（unix 秒，TTL 15min）
+}
+
+message CheckCaptchaReq {
+    int64 tenantId = 1;  // 租户ID
+    string phone = 2;    // 手机号
+    string code = 3;     // 验证码
+    CaptchaScene scene = 4; // 场景
+}
+
+message CheckCaptchaResp {
+}
+
+// 微信 OAuth 场景（照抄 server_v2 WeChatOAuthScene）
+enum WeChatOAuthScene {
+    WECHAT_OAUTH_SCENE_UNSPECIFIED = 0;
+    WECHAT_OAUTH_SCENE_APP = 1;          // App：GET {OAuthBase}/sns/oauth2/access_token
+    WECHAT_OAUTH_SCENE_MINI_PROGRAM = 2; // 小程序：GET {APIBase}/sns/jscode2session
+}
+
+message ExchangeWeChatCodeReq {
+    int64 tenantId = 1; // 租户ID
+    WeChatOAuthScene scene = 2; // 授权场景
+    string code = 3;    // 登录 code
+}
+
+message ExchangeWeChatCodeResp {
+    string openId = 1;     // openid
+    string unionId = 2;    // unionid（可能为空）
+    string sessionKey = 3; // session_key（小程序场景返回）
+}
+
+// ==================== M15d：微信小程序全家（照抄 server_v2 wechat.proto） ====================
+
+message GetWeChatMiniProgramAccessTokenReq {
+    int64 tenantId = 1; // 租户ID
+}
+
+message GetWeChatMiniProgramAccessTokenResp {
+    string accessToken = 1; // 小程序 access_token
+}
+
+message GetWeChatMiniProgramPhoneNumberReq {
+    int64 tenantId = 1; // 租户ID
+    string phoneCode = 2; // getPhoneNumber 动态令牌 code
+}
+
+message GetWeChatMiniProgramPhoneNumberResp {
+    string phoneNumber = 1; // 手机号（purePhoneNumber 优先，空则 phoneNumber）
+    string countryCode = 2; // 国家码
+}
+
+message GenerateWeChatMiniProgramQrCodeReq {
+    int64 tenantId = 1; // 租户ID
+    string scene = 2;   // 场景值（必填，最大 32 可见字符）
+    string page = 3;    // 页面路径（空用 DefaultPage）
+    uint32 width = 4;   // 二维码宽度（0 → 430）
+    bool checkPath = 5; // 是否检查 page 存在
+}
+
+message GenerateWeChatMiniProgramQrCodeResp {
+    bytes imagePng = 1; // 小程序码 PNG
+}
+
+message GenerateWeChatMiniProgramUrlLinkReq {
+    int64 tenantId = 1; // 租户ID
+    string path = 2;    // 页面路径（必填）
+    string query = 3;   // 页面参数
+}
+
+message GenerateWeChatMiniProgramUrlLinkResp {
+    string urlLink = 1; // url_link
+}
+
+// ==================== M15d：支付宝 OAuth（照抄 server_v2 thirdparty.proto） ====================
+
+enum AliPayOAuthGrantType {
+    ALIPAY_OAUTH_GRANT_TYPE_UNSPECIFIED = 0;
+    ALIPAY_OAUTH_GRANT_TYPE_AUTHORIZATION_CODE = 1;
+    ALIPAY_OAUTH_GRANT_TYPE_REFRESH_TOKEN = 2;
+}
+
+message GetAliPayOauthTokenReq {
+    AliPayOAuthGrantType grantType = 1; // 授权类型
+    string authCode = 2;      // authorization_code 场景必填
+    string refreshToken = 3;  // refresh_token 场景必填
+}
+
+message GetAliPayOauthTokenResp {
+    string userId = 1;       // 支付宝 user_id
+    string accessToken = 2;  // access_token
+    string refreshToken = 3; // refresh_token
+    string openId = 4;       // open_id
+    string unionId = 5;      // union_id（= open_id）
+}
+
+message GetAliPayUserInfoReq {
+    string accessToken = 1; // access_token
+}
+
+// 老项目空回复 stub（照抄：RPC 存在、返回空结构）
+message GetAliPayUserInfoResp {
+    string openId = 1;
+    string avatar = 2;
+    string nickName = 3;
+}
+
+// ==================== M15d：腾讯广告点击（照抄 server_v2 thirdparty.proto；ReportAction 死代码不搬） ====================
+
+message TxAdClickReq {
+    int64 tenantId = 1;         // 租户ID
+    string accountId = 2;       // 广告账户ID
+    string callback = 3;        // 回传地址（原样保存语义，本仓不落库）
+    string clickId = 4;         // 点击ID
+    string clickTime = 5;       // 点击时间（unix 秒字符串，照抄老项目字段类型）
+    string promotedObjectId = 6; // 推广对象ID（原样保存语义，本仓不落库）
+    string wechatOpenId = 7;    // 微信 openid（必填，去重键）
+    string deviceOsType = 8;    // 设备系统类型
+}
+
+message TxAdClickResp {
+}
+
+// ==================== M15d：provider 指标接入（照抄 server_v2 metrics.proto） ====================
+
+// 标准指标（adapter 与报表共用语义）
+enum StandardMetric {
+    STANDARD_METRIC_UNSPECIFIED = 0;
+    STANDARD_METRIC_IMPRESSIONS = 1;
+    STANDARD_METRIC_CLICKS = 2;
+    STANDARD_METRIC_CONVERSIONS = 3;
+    STANDARD_METRIC_SPEND = 4;
+    STANDARD_METRIC_REVENUE = 5;
+}
+
+message ProviderMetricSample {
+    string providerMetricCode = 1;   // 渠道原始指标编码
+    StandardMetric standardMetric = 2; // 标准指标
+    string externalObjectId = 3;     // 外部对象ID（广告计划/创意）
+    google.protobuf.Timestamp bucketStart = 4; // 时间桶起点（UTC 对齐）
+    uint32 bucketSeconds = 5;        // 桶长秒（3600/86400）
+    string dimensionKey = 6;         // 维度键（all 或细分值）
+    int64 value = 7;                 // 指标值（>=0）
+    string currency = 8;             // 币种（计数指标空；金额指标 3 位大写）
+    uint64 sourceRevision = 9;       // 源修订号（新旧仲裁）
+}
+
+message IngestProviderMetricsReq {
+    string requestId = 1;        // 请求ID（幂等键一）
+    string idempotencyKey = 2;   // 幂等键二
+    string providerCode = 3;     // 渠道编码
+    string externalAccountId = 4; // 外部账户ID
+    repeated ProviderMetricSample samples = 5; // 样本（1..200，槽位不重复）
+    int64 tenantId = 6;          // 租户ID
+}
+
+message IngestProviderMetricsResp {
+    uint64 batchId = 1;      // 批次ID（重放返回原批次）
+    uint32 acceptedCount = 2; // 接受样本数（新修订）
+    uint32 staleCount = 3;    // 过期样本数（旧修订）
+    bool replayed = 4;        // 是否幂等重放
+}
+
+// 指标快照变更事件（outbox 载荷；event_id = outbox 行 id，AUTO_INCREMENT 后回填）
+message MetricSnapshotChanged {
+    uint64 eventId = 1;        // 事件ID（outbox 行 id）
+    uint64 rawId = 2;          // 样本ID
+    uint64 batchId = 3;        // 批次ID
+    string providerCode = 4;   // 渠道编码
+    string externalAccountId = 5; // 外部账户ID
+    string externalObjectId = 6;  // 外部对象ID
+    StandardMetric standardMetric = 7; // 标准指标
+    google.protobuf.Timestamp bucketStart = 8; // 时间桶起点
+    uint32 bucketSeconds = 9;  // 桶长秒
+    string dimensionKey = 10;  // 维度键
+    int64 value = 11;          // 指标值
+    string currency = 12;      // 币种
+    uint64 sourceRevision = 13; // 源修订号
+    google.protobuf.Timestamp occurredAt = 14; // 发生时间
+    int64 tenantId = 15;       // 租户ID
+}

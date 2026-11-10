@@ -1,0 +1,196 @@
+syntax = "proto3";
+
+package task;
+option go_package = "./task";
+
+// 玩家任务服务（9317）：任务/签到/通行证/会员。
+// 从旧仓 game.proto 拆出（玩法/promotion/campaign RPC 分别归 play/promotion/campaign），
+// RPC 形状与字段序号不变。
+// 语义照抄 server_v2 api/v2/task：period 键 once/2006-01-02/%04d-W%02d（Asia/Shanghai）；
+// SIGN_IN 非外部事件（Apply 拒绝）；claim requestId 幂等重放原样回；legacy 字符串奖励只记录不发放
+// （结构化奖励在计划发布侧被 7019 拒绝）。计划快照跨库只读 gacha_ops（控制台发布即生效）。
+// ListTasksResp.tasks/nextPageToken 与老项目字段一致；passes/member 为本仓前端展示扩展。
+service Task {
+    // ApplyTaskProgress/UnlockPass 为内部 RPC（网关购买挂钩/通行证解锁，无 HTTP 路由）
+    rpc ListTasks(ListTasksReq) returns (ListTasksResp);
+    rpc SignInTask(SignInTaskReq) returns (SignInTaskResp);
+    rpc ClaimTask(ClaimTaskReq) returns (ClaimTaskResp);
+    rpc ClaimPassReward(ClaimPassRewardReq) returns (ClaimPassRewardResp);
+    rpc ClaimMemberReward(ClaimMemberRewardReq) returns (ClaimMemberRewardResp);
+    rpc ApplyTaskProgress(ApplyTaskProgressReq) returns (ApplyTaskProgressResp);
+    rpc UnlockPass(UnlockPassReq) returns (UnlockPassResp);
+}
+
+enum TaskPeriod {
+    TASK_PERIOD_UNSPECIFIED = 0;
+    TASK_PERIOD_ONCE = 1;
+    TASK_PERIOD_DAILY = 2;
+    TASK_PERIOD_WEEKLY = 3;
+}
+
+enum TaskMetric {
+    TASK_METRIC_UNSPECIFIED = 0;
+    TASK_METRIC_DRAW_COUNT = 1;
+    TASK_METRIC_DRAW_SPEND_MINOR = 2;
+    TASK_METRIC_LOGIN = 3;
+    TASK_METRIC_RECHARGE_MINOR = 4;
+    TASK_METRIC_SIGN_IN = 5;
+}
+
+enum TaskProgressState {
+    TASK_PROGRESS_STATE_UNSPECIFIED = 0;
+    TASK_PROGRESS_STATE_IN_PROGRESS = 1;
+    TASK_PROGRESS_STATE_CLAIMABLE = 2;
+    TASK_PROGRESS_STATE_FINISHED = 3;
+}
+
+enum PassTrack {
+    PASS_TRACK_UNSPECIFIED = 0;
+    PASS_TRACK_FREE = 1;
+    PASS_TRACK_PREMIUM = 2;
+}
+
+enum PassPremiumLine {
+    PASS_PREMIUM_LINE_UNSPECIFIED = 0;
+    PASS_PREMIUM_LINE_PAYMENT = 1;
+    PASS_PREMIUM_LINE_MEMBER = 2;
+}
+
+message TaskDefinition {
+    uint64 taskId = 1;
+    uint64 version = 2;
+    string name = 3;
+    TaskPeriod period = 4;
+    TaskMetric metric = 5;
+    int64  target = 6;
+    uint32 cycleLimit = 7; // 0 = 不限
+    string rewardTemplateId = 8;
+    uint32 rewardCount = 9;
+}
+
+message TaskView {
+    TaskDefinition definition = 1;
+    int64  progress = 2; // SIGN_IN=streak，其他=amount
+    uint32 claimed = 3;
+    TaskProgressState state = 4;
+}
+
+message ListTasksReq {
+    int64  userId = 1;
+    TaskPeriod period = 2;
+    uint32 pageSize = 3;
+    string pageToken = 4;
+}
+
+message ListTasksResp {
+    repeated TaskView tasks = 1;
+    string nextPageToken = 2;
+    repeated PassView passes = 3; // 通行证赛季+用户进度（本仓前端展示扩展）
+    MemberView member = 4;        // 会员档位+用户消费（本仓前端展示扩展）
+}
+
+message PassRewardView {
+    uint32 level = 1;
+    PassTrack track = 2;
+    string rewardTemplateId = 3;
+    uint32 rewardCount = 4;
+}
+
+message PassView {
+    int64  passId = 1;
+    int64  version = 2;
+    string name = 3;
+    int64  xpPerLevel = 4;
+    uint32 maxLevel = 5;
+    repeated PassRewardView rewards = 6;
+    int64  xpPerSpendMinor = 7;
+    PassPremiumLine premiumLine = 8;
+    uint32 premiumMemberLevel = 9;
+    int64  xp = 10;      // 用户当前 XP
+    uint32 level = 11;   // 用户当前等级（xp/xpPerLevel 封顶 maxLevel）
+    bool   premium = 12; // 高级线已解锁
+}
+
+message MemberTierView {
+    uint32 level = 1;
+    int64  spendMinor = 2;
+    string rewardTemplateId = 3;
+    uint32 rewardCount = 4;
+}
+
+message MemberView {
+    repeated MemberTierView tiers = 1;
+    int64  spendMinor = 2; // 用户累计消费
+    uint32 level = 3;      // 用户当前会员等级（0=未达最低档）
+}
+
+message SignInTaskReq {
+    int64  userId = 1;
+    int64  taskId = 2;
+    int64  version = 3;
+}
+
+message SignInTaskResp {
+    uint32 streak = 1;
+    string calendarDate = 2;
+    bool   alreadySigned = 3;
+}
+
+message ClaimTaskReq {
+    int64  userId = 1;
+    int64  taskId = 2;
+    int64  version = 3;
+    string requestId = 4;
+}
+
+message ClaimTaskResp {
+    string rewardTemplateId = 1;
+    uint32 rewardCount = 2;
+    uint32 claimed = 3;
+}
+
+message ClaimPassRewardReq {
+    int64  userId = 1;
+    int64  passId = 2;
+    uint32 level = 3;
+    PassTrack track = 4;
+    string requestId = 5;
+}
+
+message ClaimPassRewardResp {
+    uint32 level = 1;
+    PassTrack track = 2;
+    string rewardTemplateId = 3;
+    uint32 rewardCount = 4;
+}
+
+message ClaimMemberRewardReq {
+    int64  userId = 1;
+    uint32 level = 2;
+    string requestId = 3;
+}
+
+message ClaimMemberRewardResp {
+    string rewardTemplateId = 1;
+    uint32 rewardCount = 2;
+    uint32 claimed = 3;
+}
+
+// ApplyTaskProgress 内部 RPC（无 HTTP 路由）：网关购买成功后同步挂钩（D4）
+// eventId="pay:"+订单号；metric=DRAW_SPEND_MINOR；amount=实付 minor。INSERT IGNORE 事件幂等。
+message ApplyTaskProgressReq {
+    int64  userId = 1;
+    string eventId = 2;
+    TaskMetric metric = 3;
+    int64  amount = 4;
+}
+
+message ApplyTaskProgressResp {}
+
+// UnlockPass 内部 RPC（无 HTTP 路由）：仅 PAYMENT 线合法（老项目玩家面无此端点，照抄）。
+message UnlockPassReq {
+    int64  userId = 1;
+    int64  passId = 2;
+}
+
+message UnlockPassResp {}

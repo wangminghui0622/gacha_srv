@@ -1,0 +1,68 @@
+# product 环境：外部托管基础设施 + 生产级多副本编排。
+# 多副本说明：
+#   - DTM 多副本：MySQL(gacha_dtm) 共享全局事务 + 存储层锁(LockOneGlobalTransaction) 协调，避免重复处理；
+#   - 所有 RPC 多副本：go-zero + Etcd 服务发现（gateway/服务间负载均衡）；
+#   - DTM→RPC 回调：回调地址为服务名 + DTM 默认 round_robin（GrpcServiceConfig），负载均衡到各副本；
+#   - gateway→DTM：DtmServer.Target 为服务名 + GRPC_SERVICE_CONFIG=round_robin（services.yaml 注入）。
+# 部署：docker stack deploy -c deploy/product/compose.yaml gacha（Swarm 集群多机）；
+#     单机多副本用 docker compose --compatibility up（把 deploy.replicas 映射为 --scale）。
+# 启动：bash deploy/product.sh up（或 deploy.sh 对应入口）
+name: gacha-product
+
+include:
+  - path: ../common/services.yaml
+
+# 统一多副本 + 资源限制锚点
+x-scale: &scale
+  deploy:
+    replicas: 2
+    # DNSRR 端点模式：gRPC round_robin 需要解析到多个副本 IP（VIP 模式只返回单个 VIP，round_robin 失效）
+    endpoint_mode: dnsrr
+    restart_policy:
+      condition: on-failure
+      delay: 5s
+    update_config:
+      parallelism: 1
+      delay: 10s
+      failure_action: rollback
+      order: start-first
+    rollback_config:
+      parallelism: 1
+      delay: 5s
+      order: stop-first
+    resources:
+      limits:
+        memory: 512M
+      reservations:
+        memory: 128M
+
+services:
+  # DTM 协调器多副本（存储层锁协调，见上方说明）
+  dtm:
+    <<: *scale
+  # 10 个 RPC 全部多副本
+  base-rpc:
+    <<: *scale
+  catalog-rpc:
+    <<: *scale
+  draw-rpc:
+    <<: *scale
+  task-rpc:
+    <<: *scale
+  ops-rpc:
+    <<: *scale
+  thirdparty-rpc:
+    <<: *scale
+  identity-rpc:
+    <<: *scale
+  money-rpc:
+    <<: *scale
+  marketing-rpc:
+    <<: *scale
+  play-rpc:
+    <<: *scale
+  # 2 个网关多副本（无状态，可水平扩展）
+  gateway:
+    <<: *scale
+  admin-gateway:
+    <<: *scale

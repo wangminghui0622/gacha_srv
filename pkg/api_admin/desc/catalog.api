@@ -1,0 +1,135 @@
+// ════════════════════════════════════════════════════════════════
+// 商品目录控制台（ConsoleCatalogHTTPService 契约照抄 server_v2）：
+// 创建商品（DRAFT）→ 首次发布（快照只读）→ 修订/变体修订（草稿 blob）
+// → 修订发布（版本前进）。请求/响应线格式（protojson camelCase）由各 handler
+// 用 restx.ParseProto/WriteProto 直接收发 catalog proto 消息，
+// 此处类型仅驱动 goctl 路由表生成。
+// ════════════════════════════════════════════════════════════════
+
+type (
+	// 商品列表（游标分页）
+	ListProductsReq {
+		AfterProductId int64 `form:"afterProductId,optional"`
+		PageSize       int64 `form:"pageSize,optional"`
+	}
+	// 创建商品请求（body=CreateProductRequest 形状）
+	CreateProductReq {
+		ProductCode string             `json:"productCode"`
+		Title       string             `json:"title"`
+		Options     []CreateOptionReq  `json:"options"`
+		Skus        []CreateSKUReq     `json:"skus"`
+	}
+	CreateOptionReq {
+		Name      string             `json:"name"`
+		SortOrder int64              `json:"sortOrder,optional"`
+		Values    []CreateValueReq   `json:"values"`
+	}
+	CreateValueReq {
+		Value     string `json:"value"`
+		SortOrder int64  `json:"sortOrder,optional"`
+	}
+	CreateSKUReq {
+		SkuCode         string             `json:"skuCode"`
+		Title           string             `json:"title"`
+		FulfillmentMode string             `json:"fulfillmentMode"`
+		SalePrice       MoneyReq           `json:"salePrice"`
+		ReferencePrice  MoneyReq           `json:"referencePrice"`
+		Selections      []SelectionReq     `json:"selections"`
+		ExternalCode    string             `json:"externalCode,optional"`
+	}
+	MoneyReq {
+		AmountMinor int64  `json:"amountMinor"`
+		Currency    string `json:"currency"`
+	}
+	SelectionReq {
+		OptionIndex int64 `json:"optionIndex"`
+		ValueIndex  int64 `json:"valueIndex"`
+	}
+	// 商品路径参数
+	GetProductReq {
+		ProductId int64 `path:"productId"`
+	}
+	// 发布/修订请求体（expectedVersion）
+	PublishProductReq {
+		ProductId       int64 `path:"productId"`
+		ExpectedVersion int64 `json:"expectedVersion"`
+	}
+	// 修订（改标题/SKU 字段）
+	SaveProductRevisionReq {
+		ProductId       int64          `path:"productId"`
+		ExpectedVersion int64          `json:"expectedVersion"`
+		Title           string         `json:"title"`
+		Skus            []ReviseSKUReq `json:"skus"`
+	}
+	ReviseSKUReq {
+		SkuId           int64    `json:"skuId"`
+		Title           string   `json:"title"`
+		ExternalCode    string   `json:"externalCode,optional"`
+		FulfillmentMode string   `json:"fulfillmentMode"`
+		SalePrice       MoneyReq `json:"salePrice"`
+		ReferencePrice  MoneyReq `json:"referencePrice"`
+	}
+	// 变体修订（完整新版本）
+	SaveProductVariantRevisionReq {
+		ProductId       int64             `path:"productId"`
+		ExpectedVersion int64             `json:"expectedVersion"`
+		Product         CreateProductReq  `json:"product"`
+	}
+	GetProductRevisionReq {
+		ProductId int64 `path:"productId"`
+	}
+	PublishProductRevisionReq {
+		ProductId       int64 `path:"productId"`
+		ExpectedVersion int64 `json:"expectedVersion"`
+	}
+	// 各响应由 handler 用 proto 消息输出（protojson），此处类型仅占位驱动路由生成
+	ProductResp {
+		ProductId int64 `json:"productId"`
+	}
+	ListProductsResp {
+		Products []string `json:"products"`
+	}
+)
+
+// 全部需会话 + 权限点（resource: catalog.product）
+@server (
+	prefix:     /console/v2/api
+	group:      catalog
+	middleware: RequestId
+	middleware: ConsoleAuth
+	middleware: ConsoleAuthorize
+	tags:       "商品"
+)
+service admin-api {
+	@doc "商品列表（catalog.product:read；游标分页）"
+	@handler ListProducts
+	get /catalog/products (ListProductsReq) returns (ListProductsResp)
+
+	@doc "创建商品（catalog.product:create；DRAFT）"
+	@handler CreateProduct
+	post /catalog/products (CreateProductReq) returns (ProductResp)
+
+	@doc "查看商品（catalog.product:read）"
+	@handler GetProduct
+	get /catalog/products/:productId (GetProductReq) returns (ProductResp)
+
+	@doc "首次发布商品（catalog.product:publish）"
+	@handler PublishProduct
+	post /catalog/products/:productId/publish (PublishProductReq) returns (ProductResp)
+
+	@doc "保存商品修订（catalog.product:write；同内容幂等）"
+	@handler SaveProductRevision
+	post /catalog/products/:productId/revision (SaveProductRevisionReq) returns (ProductResp)
+
+	@doc "保存 SKU 变体修订（catalog.product:write）"
+	@handler SaveProductVariantRevision
+	post /catalog/products/:productId/variant-revision (SaveProductVariantRevisionReq) returns (ProductResp)
+
+	@doc "查看商品修订（catalog.product:read）"
+	@handler GetProductRevision
+	get /catalog/products/:productId/revision (GetProductRevisionReq) returns (ProductResp)
+
+	@doc "发布商品修订（catalog.product:publish）"
+	@handler PublishProductRevision
+	post /catalog/products/:productId/revision/publish (PublishProductRevisionReq) returns (ProductResp)
+}

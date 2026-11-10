@@ -1,0 +1,77 @@
+// ════════════════════════════════════════════════════════════════
+// 营销控制台（ConsolePromotionHTTPService 契约照抄 server_v2）：
+// 券模板发布/列表/详情、发券、忠诚度默认值 Get/Put。
+// 线格式（protojson camelCase）由各 handler 用 restx.ParseProto/WriteProto
+// 直接收发 game proto 消息，此处类型仅驱动 goctl 路由表生成。
+// 路径 :tenantId 一致性校验：非 1 → 400（handler 统一单租户）。
+// ════════════════════════════════════════════════════════════════
+
+type (
+	// 券模板列表（游标分页）
+	ListCouponTemplatesReq {
+		TenantId        int64 `path:"tenantId"`
+		AfterTemplateId int64 `form:"afterTemplateId,optional"`
+		AfterVersion    int64 `form:"afterVersion,optional"`
+		PageSize        int64 `form:"pageSize,optional"`
+	}
+	GetCouponTemplateReq {
+		TenantId   int64 `path:"tenantId"`
+		TemplateId int64 `path:"templateId"`
+	}
+	// 发布券模板：body 直接是 template 对象（照抄 kratos body:"template"），
+	// handler 提 template 字段；requestId 取 X-Request-Id 头
+	PublishCouponTemplateReq {
+		TenantId int64 `path:"tenantId"`
+	}
+	// 发券：body=GrantCouponsRequest 形状；requestId 取 X-Request-Id，source=CONSOLE
+	GrantCouponsReq {
+		TenantId int64 `path:"tenantId"`
+	}
+	// 忠诚度默认值：body 直接是 defaults 对象（照抄 kratos body:"defaults"）
+	PutLoyaltyDefaultsReq {
+		TenantId int64 `path:"tenantId"`
+	}
+	// 响应由 handler 用 game.CouponTemplate/TenantLoyaltyDefaults 输出（protojson），
+	// 此处类型仅占位驱动路由生成
+	PromotionResp {
+		TemplateId int64 `json:"templateId"`
+	}
+	ListCouponTemplatesResp {
+		Templates []string `json:"templates"`
+	}
+)
+
+// 全部需会话 + 权限点（resource: promotion.*）
+@server (
+	prefix:     /console/v2/api
+	group:      promotion
+	middleware: RequestId
+	middleware: ConsoleAuth
+	middleware: ConsoleAuthorize
+	tags:       "营销"
+)
+service admin-api {
+	@doc "优惠券模板列表（promotion.coupon_template:read；游标分页）"
+	@handler ListCouponTemplates
+	get /promotion/tenants/:tenantId/coupon-templates (ListCouponTemplatesReq) returns (ListCouponTemplatesResp)
+
+	@doc "查看券模板（promotion.coupon_template:read）"
+	@handler GetCouponTemplate
+	get /promotion/tenants/:tenantId/coupon-templates/:templateId (GetCouponTemplateReq) returns (PromotionResp)
+
+	@doc "发布券模板（promotion.coupon_template:publish；X-Request-Id 幂等）"
+	@handler PublishCouponTemplate
+	post /promotion/tenants/:tenantId/coupon-templates (PublishCouponTemplateReq) returns (PromotionResp)
+
+	@doc "发放优惠券（promotion.user_coupon:grant；X-Request-Id 幂等）"
+	@handler GrantCoupons
+	post /promotion/tenants/:tenantId/coupon-grants (GrantCouponsReq) returns (PromotionResp)
+
+	@doc "查看忠诚度默认值（promotion.tenant_loyalty:read）"
+	@handler GetLoyaltyDefaults
+	get /promotion/tenants/:tenantId/loyalty-defaults (PutLoyaltyDefaultsReq) returns (PromotionResp)
+
+	@doc "配置忠诚度默认值（promotion.tenant_loyalty:write；body=defaults 对象）"
+	@handler PutLoyaltyDefaults
+	put /promotion/tenants/:tenantId/loyalty-defaults (PutLoyaltyDefaultsReq) returns (PromotionResp)
+}
