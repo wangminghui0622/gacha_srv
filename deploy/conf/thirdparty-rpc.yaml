@@ -1,0 +1,120 @@
+Name: thirdparty.rpc
+# 本机开发全链路：绑定回环地址，Etcd 注册固定 127.0.0.1（避免网卡/VPN 切换后注册 IP 失效）
+ListenOn: 0.0.0.0:9319
+
+Etcd:
+  Hosts:
+    - ${ETCD_ENDPOINTS}
+  Key: thirdparty.rpc
+
+# 验证码存储与频控（go-zero 内建段，Key 为必填命名空间字段——本服务不用自带锁/脚本，客户端直连 Host；
+# 存储语义照抄 server_v2 integration/sms RedisCaptchaStore）+ 微信小程序 access_token store（key
+# luckybox:integration:wechat:mini:access_token）
+Redis:
+  Host: ${REDIS_HOST}:6379
+  Type: node
+  Pass: "${REDIS_PASS}"
+  Key: thirdparty
+
+# M15d：gacha_thirdparty（provider 指标接入 batch/raw/current/outbox + 腾讯广告点击）
+MySQL:
+  DataSource: root:${MYSQL_PASS}@tcp(${MYSQL_HOST}:3306)/gacha_thirdparty?charset=utf8mb4&parseTime=True&loc=Local
+
+# 短信双通道（照抄 server_v2；DryRun 开时跳过真实发送，验证码仍写 Redis 可调试读取；
+# 888 前缀测试号跳过阿里云；两通道都关且非 DryRun → 6003）
+Sms:
+  DryRun: true
+  Aliyun:
+    Enabled: false
+    AccessKeyID: ""
+    AccessKeySecret: ""
+    SignName: ""
+    TemplateCode: ""
+  Tencent:
+    Enabled: false
+    AccessKeyID: ""
+    AccessKeySecret: ""
+    SignName: ""
+    TemplateID: ""
+    AppID: ""
+
+# 微信 code 交换 + 小程序全家（M15a Mini jscode2session / App oauth2；M15d access_token/手机号/
+# 二维码/urllink；未配置 → 6005；APIBase/OAuthBase 可指向本地 mock server 供场景测试；App 留空 = 6005 负例）
+# Mini 为开发占位配置（mock server test/tools/wechatmock），生产替换走发布流程
+Wechat:
+  Mini:
+    AppID: "dev-appid"
+    AppSecret: "dev-secret"
+    APIBase: "http://127.0.0.1:9410"
+    DefaultPage: "pages/index/index"
+  App:
+    AppID: ""
+    AppSecret: ""
+    OAuthBase: ""
+
+# 支付宝 OAuth（D3 手写 RSA2；开发配置指向本地 alipaymock 9411 供场景 32 正例，
+# 公钥空跳过验签=开发模式；全空 = 6007 负例）
+Alipay:
+  AppID: "dev-alipay-appid"
+  AppPrivateKey: |-
+    -----BEGIN PRIVATE KEY-----
+    MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDWGHP66GKAbGQ0
+    uTuB+YyldEohBdbnOGnNNa2wp93bKcDDaL/dKqF2iZFyK+p1rVzloPDhQlCVOSen
+    xbHpb81MP32eP2udMn5AVKqs77m5QozE49Zn4vKmD7oy8JjXZYD3TkCbFg5+XJWI
+    eo9kcSi0I59zSqp5IK4ZC50FpyO4OnbVIiX/NtAo+ndQ1Ws+YPtZ5PTIH05L9u7u
+    P45iwXIA0lM4AFUB8MWV5ZzUNxwkn1J3tyhRn65nZ7Gvv8+nzinhw5SIJT4NmzrT
+    vVfK0tovl/NiZZdXjIbyHFBeJEj/QygxX3n+cDDnxkWBrAuadg1DMHHjcUIT2Aml
+    cVE5cRSTAgMBAAECggEAXofzheDfxUaWxDTZkp0mPdPn+0bBydw90w8Vfv/P1LpN
+    07pHpRbyrg01/ExpvMXsU7PJSBzoycqvuMNwt9rWsgkCpUHpeUJXPn5j0fITdjpt
+    P24+OCab7zjYhS94vPqjhA64NgH6Kk8k81ryP247g7aK6/QW617DoGlhTqKrAed3
+    KrlxhZnkEl6W60HtKhGLW2KpVTCvZGderM9/z38snEgWGx2swbJHh8XvGLTU5Wbd
+    AQ9QD/s7CAA/sWP7OzXgxvE+JrVI4IsElfCn9J04bMD4MetrRgcCfXNQ7paPJ8fU
+    5fIbXktRuKWNO6NUIRN/2nht6ZEEvoelhThLieD0sQKBgQD+IfOcdrZX6UdmeZxb
+    21niSHSTVK1J9TBdmVsTNznlkMUL0eMRe1cgtPHmOeLN+T3uGOI3oerZuylK+b65
+    xROSmB7bkdXmv9XWozlE7pcihqalBndEG8sipyj7QWDja4D/RYwiiZMnw7yHBlxP
+    VLgqqVGniugc/SreBHg5LsudOQKBgQDXqzAOhJsH3ZUibfTElAqmi/5dk86MpBKC
+    CvDFz4FRycdivhkEuBI5WGgDuT/hsBfu9xUfZ1rHbVcqh4Ig2p/NjjlEtOtZaS3s
+    kDo0KoakAuuDCvWmCRrfZFn1+8ctOFOqhR95dccEECFduPW66AxrOzvGmorXORZJ
+    p/Io/9cMKwKBgQDixoVPUBfzZvYSGd9PkPQqmyF7/4oLf0LDo3/EK/n8Qy2zGH6a
+    MQhU5WMfYPRlfU6oU4g6wMCDvyJgB3EM8TJAFIMkyISqPvGhcVI/kvFHHAVFKfnv
+    yyWALM7DN1owVtRr9zHP+Bha2a44h5KEMEOPvjxhV/E9PSWtrStjS8Di8QKBgQCk
+    co/uQgbEdJ0m55jf29JTNCP8zpuMef7y0czNyG/fIXC7RiBljMW4nESTskmXmWJm
+    gFjG3VRHBISWlUUQMCPx5SSd0yYxwxWVcFQxOsv3e5KBFXZB6GdpN2exPQ6e2HhT
+    abaaMshRvMr0X/hfUFlH2p61zVlYytrHxxvLT2l2iQKBgHUn8Wp3vOZWLCV74Vj3
+    Ijv0WQgpbNjmoxtCKskp/MWrioFLjiLivNFZPej0QHiioBgaTLYxnx1jyHugjzgu
+    AQVOxGrpp02vMmqGPFeeQG9/8/0gJNCDwBUhbOBx+MyUYrSHCMqSldvG3ukpWd8b
+    VP5ijH1v6vGA/KUzmXr2kZ+r
+    -----END PRIVATE KEY-----
+  AlipayPublicKey: ""
+  Production: false
+  APIBase: "http://127.0.0.1:9411"
+
+# 腾讯广告（M15d RecordClick 只按 openid 去重落库；Accounts 空 = 6009 负例，
+# 开发占位账户供场景 32 正例；AccessToken 仅 ReportAction 使用——死代码未克隆）
+TencentAd:
+  Accounts:
+    - AccountID: 1
+      AccessToken: "dev-access-token"
+      UserActionSetID: 1
+  MiniAppID: ""
+
+# ops-rpc 客户端（M15d 指标事件 outbox 直投 ApplyMetricEvent，走 Etcd）
+OpsRpc:
+  Etcd:
+    Hosts:
+      - ${ETCD_ENDPOINTS}
+    Key: ops.rpc
+
+Log:
+  ServiceName: thirdparty-rpc
+  Mode: console
+  Level: info
+
+# 指标/健康端点
+DevServer:
+  Enabled: true
+  Host: 0.0.0.0
+  Port: 9399
+  EnableMetrics: true
+  EnablePprof: false  # 默认开着,显式关闭
+  HealthPath: /healthz

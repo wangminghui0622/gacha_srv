@@ -101,17 +101,13 @@ func (l *SettleDrawRevertLogic) SettleDrawRevert(in *draw.SettleDrawReq) (*draw.
 		}
 
 		// ① 记录 → 已撤销（盲更新：仅 status=1 才动）
-		if err := db.Model(&drawmodelnc.DrawRecords{}).
-			Where("id = ? AND status = ?", rec.Id, recordStatusNormal).
-			Update("status", recordStatusCanceled).Error; err != nil {
+		if err := db.Model(&drawmodelnc.DrawRecords{}).Where("id = ? AND status = ?", rec.Id, recordStatusNormal).Update("status", recordStatusCanceled).Error; err != nil {
 			return err
 		}
 
 		// ② 吉仓 → 出仓（中奖才有仓；盲更新仅 status=1 才动）
 		if rec.IsPrize == 1 {
-			if err := db.Model(&drawmodelnc.DrawWarehouseItems{}).
-				Where("record_id = ? AND status = ?", rec.Id, warehouseStatusIn).
-				Update("status", warehouseStatusOut).Error; err != nil {
+			if err := db.Model(&drawmodelnc.DrawWarehouseItems{}).Where("record_id = ? AND status = ?", rec.Id, warehouseStatusIn).Update("status", warehouseStatusOut).Error; err != nil {
 				return err
 			}
 		}
@@ -122,12 +118,9 @@ func (l *SettleDrawRevertLogic) SettleDrawRevert(in *draw.SettleDrawReq) (*draw.
 		var e drawmodel.DrawPoolEntries
 		var findErr error
 		if rec.EntryId > 0 {
-			findErr = db.Clauses(clause.Locking{Strength: "UPDATE"}).
-				Where("id = ?", rec.EntryId).First(&e).Error
+			findErr = db.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id = ?", rec.EntryId).First(&e).Error
 		} else {
-			findErr = db.Clauses(clause.Locking{Strength: "UPDATE"}).
-				Where("box_id = ? AND name = ? AND is_prize = 1", rec.BoxId, rec.EntryName).
-				First(&e).Error
+			findErr = db.Clauses(clause.Locking{Strength: "UPDATE"}).Where("box_id = ? AND name = ? AND is_prize = 1", rec.BoxId, rec.EntryName).First(&e).Error
 		}
 		if errors.Is(findErr, gorm.ErrRecordNotFound) {
 			l.Errorf("compensate skip stock: entry not found, entryId: %d, boxId: %d, name: %s", rec.EntryId, rec.BoxId, rec.EntryName)

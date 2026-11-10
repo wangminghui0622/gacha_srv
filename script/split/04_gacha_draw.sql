@@ -178,7 +178,7 @@ UPDATE `draw_pool_entries` SET `display_value_fen` = 5000,  `rolling_limited` = 
 
 DROP PROCEDURE IF EXISTS `__upgrade_draw_records_fairness`;
 
-DELIMITER 
+DELIMITER $$
 CREATE PROCEDURE `__upgrade_draw_records_fairness`()
 BEGIN
   IF NOT EXISTS (
@@ -196,7 +196,7 @@ BEGIN
     ALTER TABLE `draw_records`
       ADD COLUMN `audit_hash` varchar(64) NOT NULL DEFAULT '' COMMENT '审计哈希（hex，64 字符；SHA256 覆盖种子+条目+结果，公平性可验证）' AFTER `seed_hex`;
   END IF;
-END
+END$$
 DELIMITER ;
 
 CALL `__upgrade_draw_records_fairness`();

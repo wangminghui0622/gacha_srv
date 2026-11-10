@@ -15,7 +15,7 @@ include:
 # 统一多副本 + 资源限制锚点
 x-scale: &scale
   deploy:
-    replicas: 2
+    replicas: 3
     # DNSRR 端点模式：gRPC round_robin 需要解析到多个副本 IP（VIP 模式只返回单个 VIP，round_robin 失效）
     endpoint_mode: dnsrr
     restart_policy:

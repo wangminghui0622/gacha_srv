@@ -120,13 +120,10 @@ func (l *EvaluatePolicyLogic) EvaluatePolicy(in *base.EvaluatePolicyReq) (*base.
 		// 屏障级跳过（分支已成功）：读库如实返回已有决策
 		return l.readBackDecision(decisionNo, in)
 	}
-
 	// ③ 拒绝：日志已落库，返回 Aborted 触发补偿
 	if denied {
-		l.Errorf("EvaluatePolicy denied, requestId: %s, scene: %s, policy: %s, ruleId: %d, reason: %s",
-			in.RequestId, in.Scene, policyNo, matchedRuleId, reason)
-		return nil, status.Error(codes.Aborted,
-			fmt.Sprintf("code=%d msg=%s", errorx.CodePolicyDenied, reason))
+		l.Errorf("EvaluatePolicy denied, requestId: %s, scene: %s, policy: %s, ruleId: %d, reason: %s", in.RequestId, in.Scene, policyNo, matchedRuleId, reason)
+		return nil, status.Error(codes.Aborted, fmt.Sprintf("code=%d msg=%s", errorx.CodePolicyDenied, reason))
 	}
 	l.Infof("EvaluatePolicy allowed, requestId: %s, scene: %s, policy: %s", in.RequestId, in.Scene, policyNo)
 	return &base.EvaluatePolicyResp{Allowed: true, PolicyNo: policyNo}, nil
@@ -134,9 +131,9 @@ func (l *EvaluatePolicyLogic) EvaluatePolicy(in *base.EvaluatePolicyReq) (*base.
 
 // resolvedPolicy 场景解析结果：生效版本行 + 头
 type resolvedPolicy struct {
-	head      *repo.EligibilityHead
-	version   *repo.EligibilityVersionRow
-	rules     []repo.EligibilityRuleRow
+	head          *repo.EligibilityHead
+	version       *repo.EligibilityVersionRow
+	rules         []repo.EligibilityRuleRow
 	requiredFacts []string
 }
 
@@ -203,11 +200,11 @@ func (l *EvaluatePolicyLogic) evaluate(in *base.EvaluatePolicyReq) (policyNo str
 // published_at 最新者（同刻取 head id 大者）。无 → nil。
 func (l *EvaluatePolicyLogic) resolvePolicy(sceneInt int32) (*resolvedPolicy, error) {
 	var row struct {
-		HeadID          int64
-		PolicyCode      string
-		Version         int64
-		Combination     int32
-		RequiredFacts   string
+		HeadID        int64
+		PolicyCode    string
+		Version       int64
+		Combination   int32
+		RequiredFacts string
 	}
 	err := l.svcCtx.DB.WithContext(l.ctx).Table("eligibility_policies AS h").
 		Select("h.id AS head_id, h.policy_code, v.version, v.combination, v.required_facts").
@@ -236,9 +233,9 @@ func (l *EvaluatePolicyLogic) resolvePolicy(sceneInt int32) (*resolvedPolicy, er
 		}
 	}
 	return &resolvedPolicy{
-		head:      &repo.EligibilityHead{ID: row.HeadID, PolicyCode: row.PolicyCode},
-		version:   &repo.EligibilityVersionRow{Version: row.Version, Combination: row.Combination},
-		rules:     rules,
+		head:          &repo.EligibilityHead{ID: row.HeadID, PolicyCode: row.PolicyCode},
+		version:       &repo.EligibilityVersionRow{Version: row.Version, Combination: row.Combination},
+		rules:         rules,
 		requiredFacts: requiredFacts,
 	}, nil
 }

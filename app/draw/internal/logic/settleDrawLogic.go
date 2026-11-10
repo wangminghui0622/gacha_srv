@@ -92,8 +92,7 @@ func (l *SettleDrawLogic) SettleDraw(in *draw.SettleDrawReq) (*draw.SettleDrawRe
 
 		// ① FOR UPDATE 锁宝箱行：校验存在与上架；价格取锁行（不信外部传参）
 		var b drawmodel.DrawBoxes
-		if err := db.Clauses(clause.Locking{Strength: "UPDATE"}).
-			Where("id = ?", in.BoxId).First(&b).Error; err != nil {
+		if err := db.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id = ?", in.BoxId).First(&b).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return status.Error(codes.Aborted, "code=3001 msg=宝箱不存在")
 			}
@@ -102,7 +101,6 @@ func (l *SettleDrawLogic) SettleDraw(in *draw.SettleDrawReq) (*draw.SettleDrawRe
 		if b.Status != 1 {
 			return status.Error(codes.Aborted, "code=3003 msg=宝箱已下架")
 		}
-
 		// 实付价格：M8 网关传箱价，M10 起传报价实付（券/积分抵扣后）；缺省回退锁行价格。
 		// price=0 合法：券全抵/免单券（M10 免单订单实付为 0）
 		priceFen := b.Price
@@ -113,7 +111,6 @@ func (l *SettleDrawLogic) SettleDraw(in *draw.SettleDrawReq) (*draw.SettleDrawRe
 			}
 			priceFen = f
 		}
-
 		// ② M12 滚动剔除：滚动盒（rolling_rules_json 非空）解析规则，
 		//    无效 → Aborted 2005；本仓 SettleDraw 恒单抽，单抽剔除按开关生效
 		singlePercent := 0
@@ -129,11 +126,9 @@ func (l *SettleDrawLogic) SettleDraw(in *draw.SettleDrawReq) (*draw.SettleDrawRe
 				singlePercent = rules.SingleDrawExcludedPercent
 			}
 		}
-
 		// ③ FOR UPDATE 锁本箱全部条目：并发开奖串行化，remaining 读改原子
 		var entries []drawmodel.DrawPoolEntries
-		if err := db.Clauses(clause.Locking{Strength: "UPDATE"}).
-			Where("box_id = ?", in.BoxId).Order("id ASC").Find(&entries).Error; err != nil {
+		if err := db.Clauses(clause.Locking{Strength: "UPDATE"}).Where("box_id = ?", in.BoxId).Order("id ASC").Find(&entries).Error; err != nil {
 			return err
 		}
 
@@ -142,7 +137,6 @@ func (l *SettleDrawLogic) SettleDraw(in *draw.SettleDrawReq) (*draw.SettleDrawRe
 		if rollingBox {
 			rollingExcluded = core.ExcludeRollingSet(rollingEntries(entries), singlePercent, rules.UserExcludedPercent)
 		}
-
 		// ④ 可抽条目：remaining>0（quantity=-1 的谢谢参与天然满足）；
 		//    被滚动剔除的条目不参与本次抽取；可抽中奖条目必须存在，
 		//    否则整箱售罄（含全剔除）→ Aborted 退款

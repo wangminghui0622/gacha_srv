@@ -1,0 +1,129 @@
+# 业务服务栈（Docker Swarm）：DTM + 10 RPC + 2 网关，每服务 3 副本。
+# 网络复用 infra 栈的 overlay 网络（external: gacha-infra_backend），服务名互连。
+#
+# 副本与负载均衡说明：
+#   - DTM 与 10 个 RPC 用 endpoint_mode: dnsrr（gRPC round_robin 需解析到多副本 IP，
+#     而非 VIP 单地址）；DTM 回调地址为服务名 + 内置 GrpcServiceConfig=round_robin，
+#     DTM 多副本靠 MySQL(gacha_dtm) 共享 + LockOneGlobalTransaction 锁协调，避免重复处理。
+#   - gateway/admin-gateway 用默认 VIP + 发布端口（对外 HTTP 入口，无内部 round_robin 调用方）。
+#   - RPC 服务经 Etcd 注册（go-zero figureOutListenOn：ListenOn=0.0.0.0 时用容器 overlay IP）。
+#
+# 部署：docker stack deploy -c deploy/swarm/services-stack.yaml gacha
+# 前置：先部署 infra-stack.yaml，再跑一次迁移（script/split/*.sql）。
+
+x-common-env: &common-env
+  MYSQL_HOST: mysql
+  MYSQL_PASS: we7root
+  REDIS_HOST: redis
+  REDIS_PASS: we7redis
+  ETCD_ENDPOINTS: etcd:2379
+  GRPC_SERVICE_CONFIG: '{"loadBalancingConfig":[{"round_robin":{}}]}'
+
+x-scale-dnsrr: &scale-dnsrr
+  deploy:
+    replicas: 3
+    endpoint_mode: dnsrr
+    restart_policy:
+      condition: on-failure
+      delay: 5s
+    update_config:
+      parallelism: 1
+      delay: 10s
+      failure_action: rollback
+      order: start-first
+    resources:
+      limits:
+        memory: 320M
+      reservations:
+        memory: 64M
+
+x-scale-vip: &scale-vip
+  deploy:
+    replicas: 3
+    restart_policy:
+      condition: on-failure
+      delay: 5s
+    resources:
+      limits:
+        memory: 320M
+      reservations:
+        memory: 64M
+
+services:
+  dtm:
+    image: 192.168.197.128:5000/gacha/dtm:prod
+    environment: *common-env
+    networks: [backend]
+    <<: *scale-dnsrr
+
+  base-rpc:
+    image: 192.168.197.128:5000/gacha/base-rpc:prod
+    environment: *common-env
+    networks: [backend]
+    <<: *scale-dnsrr
+  catalog-rpc:
+    image: 192.168.197.128:5000/gacha/catalog-rpc:prod
+    environment: *common-env
+    networks: [backend]
+    <<: *scale-dnsrr
+  draw-rpc:
+    image: 192.168.197.128:5000/gacha/draw-rpc:prod
+    environment: *common-env
+    networks: [backend]
+    <<: *scale-dnsrr
+  task-rpc:
+    image: 192.168.197.128:5000/gacha/task-rpc:prod
+    environment: *common-env
+    networks: [backend]
+    <<: *scale-dnsrr
+  ops-rpc:
+    image: 192.168.197.128:5000/gacha/ops-rpc:prod
+    environment: *common-env
+    networks: [backend]
+    <<: *scale-dnsrr
+  thirdparty-rpc:
+    image: 192.168.197.128:5000/gacha/thirdparty-rpc:prod
+    environment: *common-env
+    networks: [backend]
+    <<: *scale-dnsrr
+  identity-rpc:
+    image: 192.168.197.128:5000/gacha/identity-rpc:prod
+    environment: *common-env
+    networks: [backend]
+    <<: *scale-dnsrr
+  money-rpc:
+    image: 192.168.197.128:5000/gacha/money-rpc:prod
+    environment: *common-env
+    networks: [backend]
+    <<: *scale-dnsrr
+  marketing-rpc:
+    image: 192.168.197.128:5000/gacha/marketing-rpc:prod
+    environment: *common-env
+    networks: [backend]
+    <<: *scale-dnsrr
+  play-rpc:
+    image: 192.168.197.128:5000/gacha/play-rpc:prod
+    environment: *common-env
+    networks: [backend]
+    <<: *scale-dnsrr
+
+  gateway:
+    image: 192.168.197.128:5000/gacha/gateway:prod
+    environment: *common-env
+    networks: [backend]
+    ports:
+      - "9310:9310"
+    <<: *scale-vip
+
+  admin-gateway:
+    image: 192.168.197.128:5000/gacha/admin-gateway:prod
+    environment: *common-env
+    networks: [backend]
+    ports:
+      - "9321:9321"
+    <<: *scale-vip
+
+networks:
+  backend:
+    external: true
+    name: gacha-infra_backend

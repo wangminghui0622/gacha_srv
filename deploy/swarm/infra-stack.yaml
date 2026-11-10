@@ -1,0 +1,84 @@
+# 基础设施栈（Docker Swarm）：MySQL/Redis/Etcd 约束到 master 节点，
+# 挂 attachable overlay 网络 gacha-infra_backend（部署后实际网络名）。
+# 业务服务通过服务名 mysql/redis/etcd 互连，不依赖 host IP。
+#
+# 部署：docker stack deploy -c deploy/swarm/infra-stack.yaml gacha-infra
+services:
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: we7root
+    command:
+      - "mysqld"
+      - "--character-set-server=utf8mb4"
+      - "--collation-server=utf8mb4_0900_ai_ci"
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 45s
+    networks: [backend]
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.hostname == master]
+      restart_policy:
+        condition: on-failure
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "we7redis"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a we7redis ping | grep PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks: [backend]
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.hostname == master]
+      restart_policy:
+        condition: on-failure
+
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.16
+    environment:
+      ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379"
+      ETCD_ADVERTISE_CLIENT_URLS: "http://etcd:2379"
+    command: ["etcd", "--data-dir=/etcd-data"]
+    ports:
+      - "2379:2379"
+    volumes:
+      - etcd_data:/etcd-data
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [backend]
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.hostname == master]
+      restart_policy:
+        condition: on-failure
+
+networks:
+  backend:
+    driver: overlay
+    attachable: true
+
+volumes:
+  mysql_data:
+  redis_data:
+  etcd_data:

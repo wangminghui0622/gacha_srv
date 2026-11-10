@@ -1,0 +1,32 @@
+# DTM Server 配置文件
+# 用于存储分布式事务状态
+
+Store:
+  Driver: 'mysql'
+  Host: '${MYSQL_HOST}'
+  User: 'root'
+  # 本机开发密码（2026-10-26 起 MySQL root 加密码；与 pkg/etcs 各 DSN 同款本地凭据）
+  Password: '${MYSQL_PASS}'
+  Port: 3306
+  Db: 'gacha_dtm'
+  # 连接池收紧：三个业务服务各 MaxOpenConns=100，DTM 再开 500 会把
+  # MySQL 默认 max_connections=151 打满。DTM 是短事务驱动，100 足够。
+  MaxOpenConns: 100
+  MaxIdleConns: 20
+  ConnMaxLifeTime: 5
+
+# gRPC 端口（与 gateway-api.yaml 中 DtmServer.Target 的端口一致）
+HttpPort: 36789
+GrpcPort: 36790
+
+# 轮询未完成事务的间隔（秒）
+TransCronInterval: 3
+
+# gRPC/HTTP 请求超时（秒）
+RequestTimeout: 3
+
+# 日志级别：debug|info|warn|error
+LogLevel: 'info'
+
+# 时区设置（+8 为 Asia/Shanghai）
+TimeZoneOffset: '+8'

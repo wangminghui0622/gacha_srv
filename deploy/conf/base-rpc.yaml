@@ -1,0 +1,37 @@
+Name: base.rpc
+# 本机开发全链路：绑定回环地址，Etcd 注册固定 127.0.0.1（避免网卡/VPN 切换后注册 IP 失效）
+# 旧仓 base-rpc 整体搬迁（资格策略 + 风控），端口/库/错误码段不变。
+ListenOn: 0.0.0.0:9314
+
+Etcd:
+  Hosts:
+    - ${ETCD_ENDPOINTS}
+  Key: base.rpc
+
+MySQL:
+  DataSource: root:${MYSQL_PASS}@tcp(${MYSQL_HOST}:3306)/gacha_base?charset=utf8mb4&parseTime=True&loc=Local
+
+# 业务 Redis：场景→生效策略单号映射（发布策略时删除该键；键名避开 RpcServerConf 内嵌 Redis）
+BizRedis:
+  Host: ${REDIS_HOST}:6379
+  Pass: "${REDIS_PASS}"
+  Type: node
+
+# 缓存版已发布策略模型使用的 Redis
+CacheRedis:
+  - Host: ${REDIS_HOST}:6379
+    Pass: "${REDIS_PASS}"
+
+Log:
+  ServiceName: base-rpc
+  Mode: console
+  Level: info
+
+# 指标/健康端点
+DevServer:
+  Enabled: true
+  Host: 0.0.0.0
+  Port: 9394
+  EnableMetrics: true
+  EnablePprof: false  # 默认开着,显式关闭
+  HealthPath: /healthz

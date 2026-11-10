@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1
 # go-zero 服务通用镜像：COPY 本地已编译好的二进制 + 配置模板（不在镜像内编译）。
 #
 # 用法（构建上下文 = 仓库根目录）：
@@ -12,6 +11,8 @@ ARG BINARY
 ARG CONFIG
 
 FROM alpine:3.20
+ARG BINARY
+ARG CONFIG
 RUN apk add --no-cache ca-certificates tzdata gettext
 
 COPY deploy/bin/${BINARY} /app/server
