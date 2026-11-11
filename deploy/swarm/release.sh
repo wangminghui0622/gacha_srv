@@ -7,7 +7,10 @@
 # 回滚：bash release.sh rollback [service]              # 回滚到上一个（Swarm 保留上次 image+digest）
 set -euo pipefail
 
-REG="192.168.197.128:5000"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/env.sh"
+
+REG="$REGISTRY"
 STACK="${STACK:-gacha}"
 
 # 服务清单（stack 内服务名）

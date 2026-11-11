@@ -6,7 +6,10 @@
 #       不传服务名 = 全部；只传部分 = 只编译这些（加快迭代；配置始终全量重生成）。
 set -euo pipefail
 
-REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/env.sh"
+
+REPO="$(cd "$SCRIPT_DIR/../.." && pwd)"
 BIN="$REPO/deploy/bin"
 CONF="$REPO/deploy/conf"
 mkdir -p "$BIN" "$CONF"
@@ -82,6 +85,6 @@ echo ""
 echo ">> 完成：二进制 $(ls "$BIN" | wc -l) 个 + 配置 $(ls "$CONF" | wc -l) 个"
 ls -lh "$BIN" | awk 'NR>1 { printf "   %-16s %s\n", $9, $5 }'
 echo ""
-echo ">> 下一步：上传到 128 并一键部署"
-echo "   scp -r deploy/bin deploy/conf deploy/common/images script/split master@192.168.197.128:/home/master/gacha/"
-echo "   ssh master@192.168.197.128 'cd /home/master/gacha && bash deploy/swarm/bootstrap.sh <version>'"
+echo ">> 下一步：上传到主节点并一键部署（地址见 deploy/swarm/env.sh）"
+echo "   scp -r deploy/bin deploy/conf deploy/common/images script/split ${SSH_MASTER}:/home/master/gacha/"
+echo "   ssh ${SSH_MASTER} 'cd /home/master/gacha && bash deploy/swarm/bootstrap.sh <version>'"

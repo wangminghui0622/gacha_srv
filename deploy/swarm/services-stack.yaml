@@ -13,9 +13,9 @@
 
 x-common-env: &common-env
   MYSQL_HOST: mysql
-  MYSQL_PASS: we7root
+  MYSQL_PASS: ${MYSQL_PASSWORD}
   REDIS_HOST: redis
-  REDIS_PASS: we7redis
+  REDIS_PASS: ${REDIS_PASSWORD}
   ETCD_ENDPOINTS: etcd:2379
   GRPC_SERVICE_CONFIG: '{"loadBalancingConfig":[{"round_robin":{}}]}'
 
@@ -51,64 +51,64 @@ x-scale-vip: &scale-vip
 
 services:
   dtm:
-    image: 192.168.197.128:5000/gacha/dtm:prod
+    image: ${REGISTRY}/gacha/dtm:prod
     environment: *common-env
     networks: [backend]
     <<: *scale-dnsrr
 
   base-rpc:
-    image: 192.168.197.128:5000/gacha/base-rpc:prod
+    image: ${REGISTRY}/gacha/base-rpc:prod
     environment: *common-env
     networks: [backend]
     <<: *scale-dnsrr
   catalog-rpc:
-    image: 192.168.197.128:5000/gacha/catalog-rpc:prod
+    image: ${REGISTRY}/gacha/catalog-rpc:prod
     environment: *common-env
     networks: [backend]
     <<: *scale-dnsrr
   draw-rpc:
-    image: 192.168.197.128:5000/gacha/draw-rpc:prod
+    image: ${REGISTRY}/gacha/draw-rpc:prod
     environment: *common-env
     networks: [backend]
     <<: *scale-dnsrr
   task-rpc:
-    image: 192.168.197.128:5000/gacha/task-rpc:prod
+    image: ${REGISTRY}/gacha/task-rpc:prod
     environment: *common-env
     networks: [backend]
     <<: *scale-dnsrr
   ops-rpc:
-    image: 192.168.197.128:5000/gacha/ops-rpc:prod
+    image: ${REGISTRY}/gacha/ops-rpc:prod
     environment: *common-env
     networks: [backend]
     <<: *scale-dnsrr
   thirdparty-rpc:
-    image: 192.168.197.128:5000/gacha/thirdparty-rpc:prod
+    image: ${REGISTRY}/gacha/thirdparty-rpc:prod
     environment: *common-env
     networks: [backend]
     <<: *scale-dnsrr
   identity-rpc:
-    image: 192.168.197.128:5000/gacha/identity-rpc:prod
+    image: ${REGISTRY}/gacha/identity-rpc:prod
     environment: *common-env
     networks: [backend]
     <<: *scale-dnsrr
   money-rpc:
-    image: 192.168.197.128:5000/gacha/money-rpc:prod
+    image: ${REGISTRY}/gacha/money-rpc:prod
     environment: *common-env
     networks: [backend]
     <<: *scale-dnsrr
   marketing-rpc:
-    image: 192.168.197.128:5000/gacha/marketing-rpc:prod
+    image: ${REGISTRY}/gacha/marketing-rpc:prod
     environment: *common-env
     networks: [backend]
     <<: *scale-dnsrr
   play-rpc:
-    image: 192.168.197.128:5000/gacha/play-rpc:prod
+    image: ${REGISTRY}/gacha/play-rpc:prod
     environment: *common-env
     networks: [backend]
     <<: *scale-dnsrr
 
   gateway:
-    image: 192.168.197.128:5000/gacha/gateway:prod
+    image: ${REGISTRY}/gacha/gateway:prod
     environment: *common-env
     networks: [backend]
     ports:
@@ -116,7 +116,7 @@ services:
     <<: *scale-vip
 
   admin-gateway:
-    image: 192.168.197.128:5000/gacha/admin-gateway:prod
+    image: ${REGISTRY}/gacha/admin-gateway:prod
     environment: *common-env
     networks: [backend]
     ports:

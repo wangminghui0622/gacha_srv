@@ -284,6 +284,7 @@ ssh master@192.168.197.128 'cd /home/master/gacha && bash deploy/swarm/teardown.
 
 | 脚本 | 位置 | 作用 |
 |------|------|------|
+| **`env.sh`** | 开发机/128 | **环境配置中心**：集群地址、SSH 用户、密码、镜像源（换服务器只改这一个文件） |
 | `build-binaries.sh` | 开发机 | 交叉编译 13 个二进制 + 生成配置模板（从 pkg/etcs sed） |
 | `bootstrap.sh` | 128 | 从零一键部署（7 步） |
 | `build-push.sh` | 128 | 构建镜像 + 推 registry + 记录 sha256 digest（`releases/<version>.digest`） |
@@ -291,9 +292,26 @@ ssh master@192.168.197.128 'cd /home/master/gacha && bash deploy/swarm/teardown.
 | `teardown.sh` | 128 | 清理（软清理 / --full 彻底） |
 | `infra-stack.yaml` / `services-stack.yaml` | 128 | Swarm 编排（infra / 业务服务，3 副本） |
 
-### 10.4 部署说明（为什么这样设计）
+### 10.4 换环境只需改 env.sh
 
-- **镜像全走本地 registry**（`192.168.197.128:5000/gacha/<svc>`），三节点自动拉取，不依赖手工 `save/load`；`services-stack.yaml` 已改为 registry 地址。
+所有脚本和编排 yaml 里**不再硬编码地址/密码**，统一从 `deploy/swarm/env.sh` 读取。换 3 台服务器只需改 `env.sh` 开头几个变量：
+
+```bash
+# 集群拓扑
+MASTER_IP / MASTER_USER / MASTER_NODE     # 主节点
+WORKER1_IP / WORKER1_USER / WORKER1_NODE  # 从机 1
+WORKER2_IP / WORKER2_USER / WORKER2_NODE  # 从机 2
+# 密码
+MYSQL_PASSWORD / REDIS_PASSWORD / SUDO_PASSWORD
+# 镜像源（Docker Hub 被墙时）
+MIRROR
+```
+
+yaml 里的 `${MYSQL_PASSWORD}`、`${REDIS_PASSWORD}`、`${REGISTRY}`、`${MASTER_NODE}` 由 `docker stack deploy` 从 shell 环境自动插值（bootstrap 已 export）。
+
+### 10.5 部署说明（为什么这样设计）
+
+- **镜像全走本地 registry**（`${REGISTRY}/gacha/<svc>`，默认 `192.168.197.128:5000`），三节点自动拉取，不依赖手工 `save/load`；`services-stack.yaml` 已改为 registry 地址。
 - **sha256 digest 锁版本**（对齐 server_v2）：`build-push.sh` 推送 `<version>` + `prod` 两个 tag，并记录每个镜像的 digest 到 `releases/<version>.digest`；`release.sh` 用 `@sha256:digest` 更新，回滚时 Swarm 恢复上一个 digest。`prod` 别名仅作 `stack deploy` 的初始指针。
 - **幂等 + 自愈**：bootstrap 各步可重复执行；服务 `on-failure` 自动重启；DTM 多副本靠 MySQL 共享 + 存储锁协调。
 - **注意**：`daemon.json` 只配 `insecure-registries`，**不要加 `live-restore`**（与 Swarm 模式不兼容，会导致 dockerd 启动失败）。

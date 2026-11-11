@@ -64,8 +64,7 @@ func (l *RiskEvaluateLogic) RiskEvaluate(in *base.RiskEvaluateReq) (*base.RiskEv
 
 	// ① 屏障事务外读启用规则（纯读）
 	var rules []basemodelnc.RiskRules
-	if err := l.svcCtx.DB.WithContext(l.ctx).
-		Where("scene = ? AND enabled = 1", in.Scene).Find(&rules).Error; err != nil {
+	if err := l.svcCtx.DB.WithContext(l.ctx).Where("scene = ? AND enabled = 1", in.Scene).Find(&rules).Error; err != nil {
 		l.Errorf("RiskEvaluate query rules failed, err: %v", err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -95,7 +94,6 @@ func (l *RiskEvaluateLogic) RiskEvaluate(in *base.RiskEvaluateReq) (*base.RiskEv
 		l.Errorf("RiskEvaluate get raw db failed, err: %v", err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-
 	caseNo := "rk_" + in.RequestId
 	businessRan := false
 	err = barrier.CallWithDB(rawDB, func(tx *sql.Tx) error {

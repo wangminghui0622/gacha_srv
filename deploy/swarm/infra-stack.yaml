@@ -7,7 +7,7 @@ services:
   mysql:
     image: mysql:8
     environment:
-      MYSQL_ROOT_PASSWORD: we7root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
     command:
       - "mysqld"
       - "--character-set-server=utf8mb4"
@@ -26,19 +26,20 @@ services:
     deploy:
       replicas: 1
       placement:
-        constraints: [node.hostname == master]
+        constraints:
+          - "node.hostname == ${MASTER_NODE}"
       restart_policy:
         condition: on-failure
 
   redis:
     image: redis:7-alpine
-    command: ["redis-server", "--appendonly", "yes", "--requirepass", "we7redis"]
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a we7redis ping | grep PONG"]
+      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD} ping | grep PONG"]
       interval: 10s
       timeout: 3s
       retries: 10
@@ -46,7 +47,8 @@ services:
     deploy:
       replicas: 1
       placement:
-        constraints: [node.hostname == master]
+        constraints:
+          - "node.hostname == ${MASTER_NODE}"
       restart_policy:
         condition: on-failure
 
@@ -69,7 +71,8 @@ services:
     deploy:
       replicas: 1
       placement:
-        constraints: [node.hostname == master]
+        constraints:
+          - "node.hostname == ${MASTER_NODE}"
       restart_policy:
         condition: on-failure
 

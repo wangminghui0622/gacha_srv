@@ -8,10 +8,13 @@
 #       （记录「服务名 sha256 digest」，供 release.sh 按 digest 锁版本，回滚时可靠）。
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/env.sh"
+
 VERSION="${1:?用法: build-push.sh <version> [service ...]}"
 shift || true
-REG="192.168.197.128:5000"
-cd "$(dirname "$0")/../.."   # 仓库根（/home/master/gacha）
+REG="$REGISTRY"
+cd "$SCRIPT_DIR/../.."   # 仓库根（/home/master/gacha）
 
 MANIFEST="deploy/swarm/releases/$VERSION.digest"
 mkdir -p deploy/swarm/releases

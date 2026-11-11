@@ -4,6 +4,9 @@
 # 用法：bash deploy/swarm/teardown.sh [--full]
 set -uo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/env.sh"
+
 FULL=0
 [ "${1:-}" = "--full" ] && FULL=1
 
@@ -18,13 +21,13 @@ if [ "$FULL" -eq 1 ]; then
   echo "==> 彻底清理：镜像/卷/容器/registry/swarm"
   docker rm -f registry 2>/dev/null || true
   # 从机先离开，管理器最后离开（否则从机会失去管理节点）
-  for w in slaver1@192.168.197.129 slaver2@192.168.197.131; do
+  for w in "${WORKERS[@]}"; do
     ssh -o StrictHostKeyChecking=no "$w" "docker swarm leave --force 2>/dev/null" < /dev/null || true
   done
   docker swarm leave --force 2>/dev/null || true
   # 清理三节点镜像 + 卷
   docker system prune -a -f --volumes 2>&1 | tail -1 || true
-  for w in slaver1@192.168.197.129 slaver2@192.168.197.131; do
+  for w in "${WORKERS[@]}"; do
     ssh -o StrictHostKeyChecking=no "$w" "docker system prune -a -f --volumes 2>&1 | tail -1" < /dev/null || true
   done
   echo "==> 彻底清理完成（二进制/config/SQL 文件保留在 /home/master/gacha）"
