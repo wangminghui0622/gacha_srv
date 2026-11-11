@@ -21,13 +21,13 @@ if [ "$FULL" -eq 1 ]; then
   echo "==> 彻底清理：镜像/卷/容器/registry/swarm"
   docker rm -f registry 2>/dev/null || true
   # 从机先离开，管理器最后离开（否则从机会失去管理节点）
-  for w in "${WORKERS[@]}"; do
+  for w in "${WORKERS_SSH[@]}"; do
     ssh -o StrictHostKeyChecking=no "$w" "docker swarm leave --force 2>/dev/null" < /dev/null || true
   done
   docker swarm leave --force 2>/dev/null || true
   # 清理三节点镜像 + 卷
   docker system prune -a -f --volumes 2>&1 | tail -1 || true
-  for w in "${WORKERS[@]}"; do
+  for w in "${WORKERS_SSH[@]}"; do
     ssh -o StrictHostKeyChecking=no "$w" "docker system prune -a -f --volumes 2>&1 | tail -1" < /dev/null || true
   done
   echo "==> 彻底清理完成（二进制/config/SQL 文件保留在 /home/master/gacha）"

@@ -1,6 +1,6 @@
 # gacha_srv 部署报告
 
-> 抽奖/盲盒系统（go-zero + gRPC + MySQL + Redis + Etcd + DTM SAGA）在 3 台虚拟机上的 Docker Swarm 集群部署，每服务 3 副本（含 DTM）。
+> 抽奖/盲盒系统（go-zero + gRPC + MySQL + Redis + Etcd + DTM SAGA）在 3 台服务器上的 Docker Swarm 集群部署，每服务 3 副本（含 DTM）。
 
 ## 1. 部署拓扑
 
@@ -297,14 +297,13 @@ ssh master@192.168.197.128 'cd /home/master/gacha && bash deploy/swarm/teardown.
 所有脚本和编排 yaml 里**不再硬编码地址/密码**，统一从 `deploy/swarm/env.sh` 读取。换 3 台服务器只需改 `env.sh` 开头几个变量：
 
 ```bash
-# 集群拓扑
-MASTER_IP / MASTER_USER / MASTER_NODE     # 主节点
-WORKER1_IP / WORKER1_USER / WORKER1_NODE  # 从机 1
-WORKER2_IP / WORKER2_USER / WORKER2_NODE  # 从机 2
-# 密码
-MYSQL_PASSWORD / REDIS_PASSWORD / SUDO_PASSWORD
-# 镜像源（Docker Hub 被墙时）
-MIRROR
+# 每台机器独立配置（三台密码可以各不相同）
+MASTER_IP / MASTER_USER / MASTER_NODE / MASTER_SUDO_PASS     # 主节点
+WORKER1_IP / WORKER1_USER / WORKER1_SUDO_PASS                # 从机 1
+WORKER2_IP / WORKER2_USER / WORKER2_SUDO_PASS                # 从机 2
+# 全局（与机器无关）
+MYSQL_PASSWORD / REDIS_PASSWORD      # MySQL/Redis 密码
+MIRROR                               # 镜像源（Docker Hub 被墙时）
 ```
 
 yaml 里的 `${MYSQL_PASSWORD}`、`${REDIS_PASSWORD}`、`${REGISTRY}`、`${MASTER_NODE}` 由 `docker stack deploy` 从 shell 环境自动插值（bootstrap 已 export）。

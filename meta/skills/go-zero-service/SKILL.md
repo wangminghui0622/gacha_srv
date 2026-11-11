@@ -84,7 +84,7 @@ service User {
 ## 第五步：收尾（缺一不可）
 
 1. `pkg/etcs/<svc>.yaml` 配置齐全（含中文注释的可调参数）。
-2. `deploy/windows/*.bat` 与 `deploy/linux/*.sh` 两套脚本的服务列表同步。
+2. `deploy/swarm/*.sh` 部署脚本的服务列表同步（原 deploy/linux、deploy/windows 已废弃）。
 3. `README.md` 端口表登记新服务。
 4. e2e 场景：新增 `test/scenario_NN_<主题>.sh`（头部注释写流程/前置/生产代码路径），`run_all.sh` 登记。
 5. `go test ./...` 通过；涉及接口的跑 `bash test/run_all.sh smoke`。

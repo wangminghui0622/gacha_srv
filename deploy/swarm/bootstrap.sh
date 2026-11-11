@@ -26,7 +26,7 @@ echo "   二进制 $(ls deploy/bin | wc -l) 个、配置 $(ls deploy/conf | wc -
 log "1/7 初始化 Swarm 集群（主节点 $MASTER_IP）"
 docker swarm init --advertise-addr "$MASTER_IP" 2>/dev/null && echo "   主节点已初始化为 Leader" || echo "   (已初始化，跳过)"
 TOKEN=$(docker swarm join-token -q worker 2>/dev/null)
-for w in "${WORKERS[@]}"; do
+for w in "${WORKERS_SSH[@]}"; do
   if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 "$w" "docker info 2>/dev/null | grep -q 'Swarm: active'" 2>/dev/null; then
     echo "   $w 已在集群中，跳过"
   else
@@ -39,26 +39,27 @@ docker node ls
 log "2/7 配置本地 registry（三节点 insecure-registries）"
 DAEMON="{\"insecure-registries\":[\"${REGISTRY}\"]}"
 # 写入各节点 daemon.json（仅当内容不同才重启 dockerd，避免不必要中断）
-for node in "$SSH_MASTER" "${WORKERS[@]}"; do
-  if [ "$node" = "$SSH_MASTER" ]; then
-    cur=$(cat /etc/docker/daemon.json 2>/dev/null || echo "")
-    if [ "$cur" != "$DAEMON" ]; then
-      printf '%s' "$DAEMON" > /tmp/daemon.json
-      echo "$SUDO_PASSWORD" | sudo -S cp /tmp/daemon.json /etc/docker/daemon.json 2>/dev/null
-      echo "$SUDO_PASSWORD" | sudo -S systemctl reset-failed docker 2>/dev/null
-      echo "$SUDO_PASSWORD" | sudo -S systemctl restart docker 2>/dev/null
-      echo "   主节点已配置并重启 dockerd"
-    else
-      echo "   主节点配置已就绪"
-    fi
+# 主节点：本地 sudo
+cur=$(cat /etc/docker/daemon.json 2>/dev/null || echo "")
+if [ "$cur" != "$DAEMON" ]; then
+  printf '%s' "$DAEMON" > /tmp/daemon.json
+  echo "$MASTER_SUDO_PASS" | sudo -S cp /tmp/daemon.json /etc/docker/daemon.json 2>/dev/null
+  echo "$MASTER_SUDO_PASS" | sudo -S systemctl reset-failed docker 2>/dev/null
+  echo "$MASTER_SUDO_PASS" | sudo -S systemctl restart docker 2>/dev/null
+  echo "   主节点已配置并重启 dockerd"
+else
+  echo "   主节点配置已就绪"
+fi
+# 从机：各自独立的 sudo 密码
+for i in "${!WORKERS_SSH[@]}"; do
+  node="${WORKERS_SSH[$i]}"
+  sp="${WORKERS_SUDO[$i]}"
+  cur=$(ssh -o StrictHostKeyChecking=no "$node" 'cat /etc/docker/daemon.json 2>/dev/null || echo ""' 2>/dev/null)
+  if [ "$cur" != "$DAEMON" ]; then
+    printf '%s' "$DAEMON" | ssh -o StrictHostKeyChecking=no "$node" "cat > /tmp/daemon.json; echo ${sp} | sudo -S -p '' cp /tmp/daemon.json /etc/docker/daemon.json 2>/dev/null; echo ${sp} | sudo -S -p '' systemctl reset-failed docker 2>/dev/null; echo ${sp} | sudo -S -p '' systemctl restart docker 2>/dev/null" < /dev/null
+    echo "   $node 已配置并重启 dockerd"
   else
-    cur=$(ssh -o StrictHostKeyChecking=no "$node" 'cat /etc/docker/daemon.json 2>/dev/null || echo ""' 2>/dev/null)
-    if [ "$cur" != "$DAEMON" ]; then
-      printf '%s' "$DAEMON" | ssh -o StrictHostKeyChecking=no "$node" "cat > /tmp/daemon.json; echo ${SUDO_PASSWORD} | sudo -S -p '' cp /tmp/daemon.json /etc/docker/daemon.json 2>/dev/null; echo ${SUDO_PASSWORD} | sudo -S -p '' systemctl reset-failed docker 2>/dev/null; echo ${SUDO_PASSWORD} | sudo -S -p '' systemctl restart docker 2>/dev/null" < /dev/null
-      echo "   $node 已配置并重启 dockerd"
-    else
-      echo "   $node 配置已就绪"
-    fi
+    echo "   $node 配置已就绪"
   fi
 done
 sleep 5

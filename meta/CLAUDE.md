@@ -12,7 +12,7 @@ Gacha 抽盒平台后端（重构版）：选盒 → 支付 → 按公示概率�
 - 部署于 `/gacha/` 子路径（网关 prefix `/gacha/api/v1`）；服务端口 9310-9321、DTM 36789/36790，见 `docs/standards/backend/01-architecture.md`
 - 后端：Go + go-zero 微服务（HTTP 网关 + gRPC + Etcd + DTM SAGA + GORM）
 - 前端：三个 Vue 3 + TypeScript + Vite 项目——`web_admin`（管理控制台，请求 `/console/v2/api` 走 9321 管理网关，dev 端口 9374）、`mini`（玩家小程序/H5，请求 `/gacha/api/v1` 走 9310 玩家网关，dev 端口 9375）、`app/dtm/admin`（DTM 管理端）
-- 数据库：gacha_identity / gacha_money / gacha_draw / gacha_base / gacha_marketing / gacha_play / gacha_task / gacha_catalog / gacha_thirdparty / gacha_ops / gacha_dtm（一服务一库 + 每业务库 dtm_barrier），初始化脚本 `script/split/01_databases.sql`（权威建库点）+ `02_*`~`12_*` 各库脚本；本机 MySQL/Redis 已加密码，开发环境凭据见 `deploy/dev/` 启动脚本（不入本文件、不重复散落）
+- 数据库：gacha_identity / gacha_money / gacha_draw / gacha_base / gacha_marketing / gacha_play / gacha_task / gacha_catalog / gacha_thirdparty / gacha_ops / gacha_dtm（一服务一库 + 每业务库 dtm_barrier），初始化脚本 `script/split/01_databases.sql`（权威建库点）+ `02_*`~`12_*` 各库脚本；本机 MySQL/Redis 已加密码，开发环境凭据见 `deploy/swarm/env.sh`（不入本文件、不重复散落）
 - 服务拓扑：gateway 9310（玩家网关）、identity 9311、money 9312（资产+支付合并）、draw 9313、base 9314、marketing 9315（营销+活动合并）、play 9316（玩法）、task 9317、catalog 9318、thirdparty 9319、ops 9320、admin-gateway 9321（管理网关）
 
 ## 命令
@@ -24,7 +24,7 @@ Gacha 抽盒平台后端（重构版）：选盒 → 支付 → 按公示概率�
 | 后端构建 | `go build ./...` |
 | 后端单测 | `go test ./...` |
 | 后端端到端 | `bash test/run_all.sh`（依赖本机 MySQL/Redis/Etcd 已启动） |
-| 本地起停 | `bash deploy/dev/start-infra.sh` → `bash deploy/dev/start.sh`（停止 `stop.sh`/`stop-infra.sh`） |
+| 本地起停 | `bash deploy/swarm/bootstrap.sh`（停止 `bash deploy/swarm/teardown.sh`） |
 | 前端安装/开发/构建 | `cd web_admin && npm install / npm run dev / npm run build`（含 tsc 类型检查）；`cd mini && npm install / npm run dev:h5 / npm run build:h5`；`cd app/dtm/admin && npm install / npm run dev / npm run build` |
 | 前端 lint | `cd web_admin && npm run lint`；其余前端项目同法 |
 
@@ -34,7 +34,7 @@ Gacha 抽盒平台后端（重构版）：选盒 → 支付 → 按公示概率�
 2. 接口统一响应 `{code, msg, data}`，`code == 0` 为成功，HTTP 状态码恒为 200。见 `docs/standards/common/api-conventions.md`。
 3. 错误码按服务分段（identity 1000-1999、money 2000-2999、draw 3000-3999、base 4000-4999、marketing 5000-5999、play 6000-6999、task 7000-7999、catalog 8000-8999、thirdparty 9000-9999、ops 10000-10999），新服务先登记错误码段再写代码。见 `docs/standards/backend/05-errors.md`。
 4. 金额一律用字符串（两位小数）传输，禁止 float 传递金额。
-5. 密钥、令牌不入库、不进日志、不进提交；配置文件中密钥只写占位符（本机 dev/test 环境凭据统一由 `deploy/dev/` 脚本注入，见脚本头注释）。
+5. 密钥、令牌不入库、不进日志、不进提交；配置文件中密钥只写占位符（环境凭据统一由 `deploy/swarm/env.sh` 配置，每台机器独立）。
 6. goctl 生成文件禁止手改（handler/logic 除外）；RPC 接口变更改 `pkg/proto/*.proto` 后 `bash script/goctl.sh <svc>` 重新生成；**网关路由直接手写 routes.go，不改 .api、禁跑 goctl gateway**（见 `docs/standards/backend/03-api-proto.md`）。
 7. 提交前必须通过 lint 与测试；分支、提交信息遵循 `docs/standards/common/git-workflow.md`。
 

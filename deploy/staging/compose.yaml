@@ -1,7 +1,0 @@
-# staging 环境：外部托管基础设施（MySQL/Redis/Etcd），只编排业务服务 + 迁移 job。
-# 业务服务通过 .env 里的 MYSQL_HOST/REDIS_HOST/ETCD_ENDPOINTS 指向外部地址。
-# 启动：bash deploy/scripts/deploy.sh staging up
-name: gacha-staging
-
-include:
-  - path: ../common/services.yaml

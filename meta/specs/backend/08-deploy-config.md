@@ -10,7 +10,7 @@
 
 ## 构建与启停（deploy/）
 
-6. `deploy/linux/*.sh` 与 `deploy/windows/*.bat` 成对维护，行为一致；统一参数 `{all|<服务名>|stop}`，用 case/goto 分发，中文 echo 带 ✅/√/× 标记。
+6. 部署脚本已统一为 `deploy/swarm/`（原 deploy/linux、deploy/windows 已废弃，2026-11-11）。
 7. 构建：`go build -o bin/<name>`；Linux 交叉编译固定 `CGO_ENABLED=0 GOOS=linux GOARCH=amd64`；产物 `bin/gateway`、`bin/identity-rpc`……（Windows 加 `.exe`）；`bin/`、`logs/` 必须 gitignore。
 8. 启动：从项目根目录执行（保证相对配置路径解析），`nohup <bin> -f <配置> > logs/<名>.log 2>&1 &`；启动顺序固定 **DTM → 各 RPC → 网关**，间隔留探活时间；停止先 `kill -15` 再 `kill -9`。
 9. 新增服务必须同步更新两套脚本的服务列表。

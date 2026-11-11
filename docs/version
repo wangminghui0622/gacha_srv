@@ -10,7 +10,7 @@
 | gorm-zero | v1.9.1 | 缓存模型 gormc |
 | protoc | 3.19.4 | proto 编译 |
 | DTM | vendored（源自 D:\dtm_shop\app\dtm，import 路径已改写为 gacha_srv/...） | app/dtm 随仓库提交，CI format/lint/test 排除 |
-| MySQL | 8.0（本机 8.0.46，已加密码；凭据由 deploy/dev 脚本注入，不落库） | 一服务一库 + 每业务库 dtm_barrier |
+| MySQL | 8.0（本机 8.0.46，已加密码；凭据由 deploy/swarm/env.sh 配置，不落库） | 一服务一库 + 每业务库 dtm_barrier |
 | Redis | 8.0+（本机已加密码，同上） | draw 服务缓存模型使用 |
 | Etcd | 3.x（本机默认 2379） | 服务注册发现 |
 | Node | ^22.18 或更高 | 前端（web_admin / mini） |

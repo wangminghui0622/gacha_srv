@@ -19,11 +19,11 @@
 
 ```bash
 # 1) 初始化数据库：按序号执行 script/split/ 下 01_databases.sql（权威建库点，11 库+屏障表）
-#    及 02_*~12_*（各库终态结构+种子）。本机 MySQL/Redis 已加密码，凭据见 deploy/dev/ 启动脚本。
+#    及 02_*~12_*（各库终态结构+种子）。本机 MySQL/Redis 已加密码，凭据见 deploy/swarm/env.sh。
 
-# 2) 启动依赖（Redis/Etcd；MySQL 后台常驻）与全部服务（DTM → 10 RPC → 2 网关）
-bash deploy/dev/start-infra.sh
-bash deploy/dev/start.sh        # 停止：bash deploy/dev/stop.sh
+# 2) 部署（Swarm，见 deploy.md / deploy/README.md）
+bash deploy/swarm/bootstrap.sh
+# 停止：bash deploy/swarm/teardown.sh
 
 # 3) 一键端到端回归（29 场景；慢场景 5/6/10 用 bash test/menu.sh 单独执行）
 bash test/run_all.sh
@@ -58,6 +58,6 @@ bash test/run_all.sh
 ## 🔑 工程铁律（摘要，完整见 CLAUDE.md）
 
 - 注释/文档/日志用中文；UI 文案走 i18n；统一响应 `{code, msg, data}`，HTTP 恒 200
-- 金额一律两位小数字符串；密钥不入库/不进日志/不进提交（配置文件只写占位符，本机开发凭据由 deploy/dev 脚本注入）
+- 金额一律两位小数字符串；密钥不入库/不进日志/不进提交（配置文件只写占位符，环境凭据由 deploy/swarm/env.sh 配置）
 - 一服务一库，服务间只走 RPC；跨服务资金操作必须 DTM SAGA（Aborted=补偿、Internal=重试）
 - goctl 生成文件禁止手改；网关路由手写 routes.go；提交前必须通过 lint 与测试
