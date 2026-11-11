@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 滚动更新服务到指定版本（按 sha256 digest 锁版本，版本更新第 3 步，在 128 上执行）。
-# 依赖：镜像已推到本地 registry，且 build-push.sh 已生成 deploy/swarm/releases/<version>.digest。
+# 依赖：镜像已推到本地 registry，且 build-push.sh 已生成 deploy/dev/swarm/releases/<version>.digest。
 # 用法：bash release.sh <version> [service ...]
 #       例：bash release.sh v1.0.1                      # 全部服务
 #            bash release.sh v1.0.1 money-rpc           # 只更新 money-rpc
@@ -8,7 +8,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/env.sh"
+ENV_DIR="${ENV_DIR:-$SCRIPT_DIR}"
+source "$ENV_DIR/env.sh"
 
 REG="$REGISTRY"
 STACK="${STACK:-gacha}"
@@ -24,7 +25,7 @@ update_one() { # $1 服务名 $2 版本
   local svc="$1" ver="$2"
   local digest="" image
   # 优先用 digest（不可变）；找不到 digest 清单时降级用 tag
-  local manifest="deploy/swarm/releases/$ver.digest"
+  local manifest="$SCRIPT_DIR/releases/$ver.digest"
   if [ -f "$manifest" ]; then
     digest=$(awk -v s="$svc" '$1==s{print $2}' "$manifest")
   fi

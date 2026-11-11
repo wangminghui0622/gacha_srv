@@ -2,7 +2,7 @@
 node_modules/
 
 # ===== 构建产物 =====
-bin/
+deploy/dev/bin/
 dist/
 *.exe
 

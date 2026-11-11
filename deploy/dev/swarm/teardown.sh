@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # 清理脚本（在 128 上执行）。默认只卸载 stack，保留镜像和文件；
 # --full 则彻底清理（含镜像、卷、swarm、registry），用于「从零重来」。
-# 用法：bash deploy/swarm/teardown.sh [--full]
+# 用法：bash deploy/dev/swarm/teardown.sh [--full]
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/env.sh"
+ENV_DIR="${ENV_DIR:-$SCRIPT_DIR}"
+source "$ENV_DIR/env.sh"
 
 FULL=0
 [ "${1:-}" = "--full" ] && FULL=1

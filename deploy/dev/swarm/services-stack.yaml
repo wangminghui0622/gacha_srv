@@ -12,11 +12,12 @@
 # 前置：先部署 infra-stack.yaml，再跑一次迁移（script/split/*.sql）。
 
 x-common-env: &common-env
-  MYSQL_HOST: mysql
+  MYSQL_HOST: ${MYSQL_HOST}
+  MYSQL_USER: ${MYSQL_USER}
   MYSQL_PASS: ${MYSQL_PASSWORD}
-  REDIS_HOST: redis
+  REDIS_HOST: ${REDIS_HOST}
   REDIS_PASS: ${REDIS_PASSWORD}
-  ETCD_ENDPOINTS: etcd:2379
+  ETCD_ENDPOINTS: ${ETCD_ENDPOINTS}
   GRPC_SERVICE_CONFIG: '{"loadBalancingConfig":[{"round_robin":{}}]}'
 
 x-scale-dnsrr: &scale-dnsrr
@@ -126,4 +127,4 @@ services:
 networks:
   backend:
     external: true
-    name: gacha-infra_backend
+    name: ${NETWORK_NAME}

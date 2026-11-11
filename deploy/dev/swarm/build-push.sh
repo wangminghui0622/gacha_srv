@@ -1,23 +1,24 @@
 #!/usr/bin/env bash
 # 构建镜像并推送到本地 registry，记录每个镜像的 sha256 digest（版本更新第 2 步，在 128 上执行）。
-# 前置：已把交叉编译好的二进制放到 deploy/bin/（第 1 步在本机完成，见 deploy.md）。
+# 前置：已把交叉编译好的二进制放到 deploy/dev/bin/（第 1 步在本机完成，见 deploy.md）。
 # 用法：bash build-push.sh <version> [service ...]
 #       例：bash build-push.sh v1.0.1                      # 全部 13 服务 + dtm
 #            bash build-push.sh v1.0.1 money-rpc draw-rpc  # 只构建指定服务
-# 产物：registry 里的 <version> 与 prod 两个 tag，以及 deploy/swarm/releases/<version>.digest
+# 产物：registry 里的 <version> 与 prod 两个 tag，以及 deploy/dev/swarm/releases/<version>.digest
 #       （记录「服务名 sha256 digest」，供 release.sh 按 digest 锁版本，回滚时可靠）。
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/env.sh"
+ENV_DIR="${ENV_DIR:-$SCRIPT_DIR}"
+source "$ENV_DIR/env.sh"
 
 VERSION="${1:?用法: build-push.sh <version> [service ...]}"
 shift || true
 REG="$REGISTRY"
-cd "$SCRIPT_DIR/../.."   # 仓库根（/home/master/gacha）
+cd "$SCRIPT_DIR/.."   # 环境根（deploy/dev），构建上下文（含 bin/conf/common/images）
 
-MANIFEST="deploy/swarm/releases/$VERSION.digest"
-mkdir -p deploy/swarm/releases
+MANIFEST="$SCRIPT_DIR/releases/$VERSION.digest"
+mkdir -p "$SCRIPT_DIR/releases"
 : > "$MANIFEST"   # 清空（若重复构建同一版本，覆盖）
 
 # 服务清单：二进制名 镜像名 [配置文件名]
@@ -40,7 +41,7 @@ ALL=(
 push_and_record() { # $1 二进制 $2 镜像名 $3 配置文件名（默认 $1.yaml）
   local conf="${3:-$1.yaml}"
   echo ">> 构建 gacha/$2:$VERSION"
-  docker build -q -f deploy/common/images/go.Dockerfile \
+  docker build -q -f common/images/go.Dockerfile \
     --build-arg BINARY="$1" --build-arg CONFIG="conf/$conf" \
     -t "gacha/$2:$VERSION" . >/dev/null
   docker tag "gacha/$2:$VERSION" "$REG/gacha/$2:$VERSION"
@@ -73,7 +74,7 @@ else
   done
   # DTM（配置格式不同）
   echo ">> 构建 gacha/dtm:$VERSION"
-  docker build -q -f deploy/common/images/dtm.Dockerfile \
+  docker build -q -f common/images/dtm.Dockerfile \
     --build-arg CONFIG="conf/dtm.yml" -t "gacha/dtm:$VERSION" . >/dev/null
   docker tag "gacha/dtm:$VERSION" "$REG/gacha/dtm:$VERSION"
   docker push "$REG/gacha/dtm:$VERSION" >/dev/null
