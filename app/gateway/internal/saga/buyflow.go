@@ -38,6 +38,8 @@ type BuyFlow struct {
 	Scene     string // 资格/风控场景：GASHAPON / FULL_CAR / ...
 	ConfigID  int64
 	FailMsg   string
+	// RequireRequestID 为 true 时强制 Idempotency-Key（memorymatch 专用；其它玩法可选）。
+	RequireRequestID bool
 
 	// UserCouponID / UseLoyaltyOffset 仅 memorymatch 等支持券的玩法使用；其它留零值。
 	UserCouponID     int64
@@ -58,6 +60,9 @@ func (f *BuyFlow) Run() (gid string, userID int64, alreadyDone bool, err error) 
 	userID, ok := middleware.UserIdFromCtx(f.Ctx)
 	if !ok || userID <= 0 {
 		return "", 0, false, errorx.NewCodeError(errorx.CodeUnauthorized, "未登录")
+	}
+	if f.RequireRequestID && f.RequestID == "" {
+		return "", 0, false, errorx.NewCodeError(errorx.CodeParamError, "Idempotency-Key 头必填（最长 64）")
 	}
 
 	// ① gid = Idempotency-Key（重试复用）或服务端 uuid
