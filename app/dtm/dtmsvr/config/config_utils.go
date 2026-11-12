@@ -62,6 +62,9 @@ func checkConfig(conf *Type) error {
 	if conf.RetryInterval < 10 {
 		return errors.New("RetryInterval should not be less than 10")
 	}
+	if conf.MaxRetryInterval != 0 && conf.MaxRetryInterval < conf.RetryInterval {
+		return errors.New("MaxRetryInterval should not be less than RetryInterval")
+	}
 	if conf.TimeoutToFail < conf.RetryInterval {
 		return errors.New("TimeoutToFail should not be less than RetryInterval")
 	}

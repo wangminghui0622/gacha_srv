@@ -90,6 +90,7 @@ type Type struct {
 	TransCronInterval             int64            `yaml:"TransCronInterval" default:"3"`
 	TimeoutToFail                 int64            `yaml:"TimeoutToFail" default:"35"`
 	RetryInterval                 int64            `yaml:"RetryInterval" default:"10"`
+	MaxRetryInterval              int64            `yaml:"MaxRetryInterval" default:"60"`
 	RequestTimeout                int64            `yaml:"RequestTimeout" default:"3"`
 	HTTPPort                      int64            `yaml:"HttpPort" default:"36789"`
 	GrpcPort                      int64            `yaml:"GrpcPort" default:"36790"`

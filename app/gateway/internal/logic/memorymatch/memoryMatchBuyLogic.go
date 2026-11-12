@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	baseClient "gacha_srv/app/base/baseClient"
 	"gacha_srv/app/gateway/internal/middleware"
 	"gacha_srv/app/gateway/internal/saga"
 	"gacha_srv/app/gateway/internal/svc"
@@ -74,14 +73,15 @@ func (l *MemoryMatchBuyLogic) successResp(sess *playClient.GetMemoryMatchSession
 	}
 }
 
-// MemoryMatchBuy 记忆翻牌购买：网关发起 DTM SAGA 事务（7 分支，与 FullCarBuy 同构，统一 builder 见 saga/builder.go）。
+// MemoryMatchBuy 记忆翻牌购买：网关发起 DTM SAGA 事务（同步预检资格+风控后 5 分支，与 FullCarBuy 同构，统一 builder 见 saga/builder.go）。
 //
-//	[01 base.EvaluatePolicy scene=MEMORY_MATCH → 02 base.RiskEvaluate → 03 play.LockMemoryMatch
-//	 锁报价+会话插入 PENDING+配置/外观/权益/价格校验 → 04 money.AuthorizeWalletPayment 建单冻结
-//	 → 05 play.SettleMemoryMatch PENDING→AWAITING_DESTINY（engine_seed+擂主分成）
-//	 → 06 play.GrantMemoryMatchPrizes 空操作（购买时无奖）→ 07 money.CaptureWalletPayment 捕获核销]
-//	补偿：[空 → 空 → LockMemoryMatchRevert 会话 EXPIRED+释放报价 → CancelPayment →
+//	[01 play.LockMemoryMatch 锁报价+会话插入 PENDING+配置/外观/权益/价格校验
+//	 → 02 money.AuthorizeWalletPayment 建单冻结
+//	 → 03 play.SettleMemoryMatch PENDING→AWAITING_DESTINY（engine_seed+擂主分成）
+//	 → 04 play.GrantMemoryMatchPrizes 空操作（购买时无奖）→ 05 money.CaptureWalletPayment 捕获核销]
+//	补偿：[LockMemoryMatchRevert 会话 EXPIRED+释放报价 → CancelPayment →
 //	      SettleMemoryMatchRevert 回 PENDING+清种子+回扣分成 → 空 → 空]
+//	同步预检：base.EvaluatePolicy（scene=MEMORY_MATCH）+ base.RiskEvaluate，拒绝立即返回 4001/4002。
 //
 // 安全不变式：
 //  1. userId 取 JWT 上下文，不接受客户端传入；
@@ -152,32 +152,14 @@ func (l *MemoryMatchBuyLogic) MemoryMatchBuy(req *types.MemoryMatchPurchaseReq) 
 		return nil, errorx.FromError(err)
 	}
 
+	// 同步预检：资格评估 + 风控评估（拒绝立即返回，不入分布式事务）
+	if err := saga.Precheck(l.ctx, l.Logger, l.svcCtx.BaseRpc, gid, userId, req.ConfigId, unitFen, "MEMORY_MATCH"); err != nil {
+		return nil, err
+	}
+
 	c := l.svcCtx.Config
 	b := saga.New(l.ctx, l.Logger, c.DtmServer.Target, gid).
-		// 01 资格评估（基础域）：scene=MEMORY_MATCH
-		Add(
-			c.BaseRpcDirect+"/base.Base/EvaluatePolicy",
-			c.BaseRpcDirect+"/base.Base/EvaluatePolicyRevert",
-			&baseClient.EvaluatePolicyReq{
-				RequestId: gid,
-				UserId:    userId,
-				BoxId:     req.ConfigId,
-				Scene:     "MEMORY_MATCH",
-			},
-		).
-		// 02 风控评估（基础域）
-		Add(
-			c.BaseRpcDirect+"/base.Base/RiskEvaluate",
-			c.BaseRpcDirect+"/base.Base/RiskEvaluateRevert",
-			&baseClient.RiskEvaluateReq{
-				RequestId: gid,
-				UserId:    userId,
-				BoxId:     req.ConfigId,
-				Scene:     "MEMORY_MATCH",
-				AmountFen: unitFen,
-			},
-		).
-		// 03 锁报价+会话插入 PENDING（玩法域）；补偿 LockMemoryMatchRevert 会话 EXPIRED+释放报价
+		// 01 锁报价+会话插入 PENDING（玩法域）；补偿 LockMemoryMatchRevert 会话 EXPIRED+释放报价
 		Add(
 			c.PlayRpcDirect+"/play.Play/LockMemoryMatch",
 			c.PlayRpcDirect+"/play.Play/LockMemoryMatchRevert",
@@ -191,7 +173,7 @@ func (l *MemoryMatchBuyLogic) MemoryMatchBuy(req *types.MemoryMatchPurchaseReq) 
 				TotalPriceFen: unitFen,
 			},
 		).
-		// 04 建单+冻结（资金域）
+		// 02 建单+冻结（资金域）
 		Add(
 			c.MoneyRpcDirect+"/money.Money/AuthorizeWalletPayment",
 			c.MoneyRpcDirect+"/money.Money/CancelPayment",
@@ -205,7 +187,7 @@ func (l *MemoryMatchBuyLogic) MemoryMatchBuy(req *types.MemoryMatchPurchaseReq) 
 				LoyaltyPointsDebit: 0,
 			},
 		).
-		// 05 PENDING→AWAITING_DESTINY（玩法域；sessionId 由会话 uk request_id 推导，提交时未知传 0）
+		// 03 PENDING→AWAITING_DESTINY（玩法域；sessionId 由会话 uk request_id 推导，提交时未知传 0）
 		Add(
 			c.PlayRpcDirect+"/play.Play/SettleMemoryMatch",
 			c.PlayRpcDirect+"/play.Play/SettleMemoryMatchRevert",
@@ -217,7 +199,7 @@ func (l *MemoryMatchBuyLogic) MemoryMatchBuy(req *types.MemoryMatchPurchaseReq) 
 				Price:     utils.FenToYuan(quote.PayableFen),
 			},
 		).
-		// 06 发奖空操作（玩法域）：购买时无奖，终局结算同步发奖；永不 Aborted、空补偿
+		// 04 发奖空操作（玩法域）：购买时无奖，终局结算同步发奖；永不 Aborted、空补偿
 		Add(
 			c.PlayRpcDirect+"/play.Play/GrantMemoryMatchPrizes",
 			c.PlayRpcDirect+"/play.Play/GrantMemoryMatchPrizesRevert",
@@ -228,7 +210,7 @@ func (l *MemoryMatchBuyLogic) MemoryMatchBuy(req *types.MemoryMatchPurchaseReq) 
 				ConfigId:  req.ConfigId,
 			},
 		).
-		// 07 捕获核销（资金域末步）：腿 POSTED、核销报价（CommitQuote）、订单 PAID
+		// 05 捕获核销（资金域末步）：腿 POSTED、核销报价（CommitQuote）、订单 PAID
 		Add(
 			c.MoneyRpcDirect+"/money.Money/CaptureWalletPayment",
 			c.MoneyRpcDirect+"/money.Money/CaptureWalletPaymentRevert",

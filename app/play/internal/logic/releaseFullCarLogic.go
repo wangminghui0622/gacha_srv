@@ -92,6 +92,15 @@ func (l *ReleaseFullCarLogic) ReleaseFullCar(in *play.ReleaseFullCarReq) (*play.
 			if err == nil {
 				seats := fullCarParseSeats(st.SeatsJson)
 				seat := in.SeatIndex
+				if seat < 0 {
+					// 自动选座：按 userId 反查座位释放
+					for i, u := range seats {
+						if u == q.GetUserId() {
+							seat = int64(i)
+							break
+						}
+					}
+				}
 				if seat >= 0 && int(seat) < len(seats) && seats[seat] == q.GetUserId() {
 					seats[seat] = 0
 					remaining := st.RemainingTickets + 1

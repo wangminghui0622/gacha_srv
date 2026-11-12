@@ -8,6 +8,7 @@ import (
 	"gacha_srv/app/base/internal/config"
 	"gacha_srv/app/base/internal/server"
 	"gacha_srv/app/base/internal/svc"
+	"gacha_srv/app/dtm/client/dtmcli"
 	"gacha_srv/pkg/utils/errorx"
 
 	"github.com/zeromicro/go-zero/core/conf"
@@ -21,6 +22,10 @@ var configFile = flag.String("f", "../../pkg/etcs/base-rpc.yaml", "the config fi
 
 func main() {
 	flag.Parse()
+
+	// dtm_barrier 屏障表名改为「每业务库内表」（无 schema 前缀）：
+	// 屏障 insert 与业务操作同库单事务，不再依赖全局 dtm_barrier 库（见 01_databases.sql）
+	dtmcli.SetBarrierTableName("dtm_barrier")
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c)

@@ -41,20 +41,20 @@ func (l *BoxBuyLogic) SetRequestId(id string) {
 
 // BoxBuy 购买开奖：网关发起 DTM SAGA 事务（参考 dtm_shop createOrderLogic 编排模式）。
 //
-// M10 起 7 分支（M11c 抽成共享构建器 SubmitDrawSaga，BoxBuy 与活动宝箱开箱共用）：
-//   [01 base.EvaluatePolicy 资格 → 02 base.RiskEvaluate 风控 → 03 marketing.LockQuote 锁券 →
-//    04 money.AuthorizeWalletPayment 建单+冻结 → 05 draw.SettleDraw 开奖 →
-//    06 money.GrantAsset 发资产 → 07 money.CaptureWalletPayment 捕获核销]
-//   补偿：[EvaluatePolicyRevert 空 → RiskEvaluateRevert 空 → ReleaseQuote 释放券 →
-//          CancelPayment 撤单解冻 → SettleDrawRevert 撤销开奖 → GrantAssetRevert 撤销资产 →
-//          CaptureWalletPaymentRevert 空]
+// M10 起（M11c 抽成共享构建器 SubmitDrawSaga，BoxBuy 与活动宝箱开箱共用）：
+//   同步预检：base.EvaluatePolicy 资格 + base.RiskEvaluate 风控（闸门，拒绝立即返回 4001/4002）
+//   5 分支 SAGA：
+//   [01 marketing.LockQuote 锁券 → 02 money.AuthorizeWalletPayment 建单+冻结 →
+//    03 draw.SettleDraw 开奖 → 04 money.GrantAsset 发资产 →
+//    05 money.CaptureWalletPayment 捕获核销]
+//   补偿：[ReleaseQuote → CancelPayment → SettleDrawRevert → GrantAssetRevert → 空]
 //
 // 安全不变式：
 //  1. userId 取 JWT 上下文，不接受客户端传入；
 //  2. 金额取 DrawRpc.BoxDetail 的 box.price（服务端定价），不接受客户端传入；
 //     券/积分抵扣由 marketing.QuoteCheckout（幂等 uk request_id=gid）服务端试算，
-//     客户端只传选择项（userCouponId/useLoyaltyOffset）；04/05 全用报价实付值；
-//     02 风控事实 amountFen 取箱价原价换算（分）。
+//     客户端只传选择项（userCouponId/useLoyaltyOffset）；02/03 全用报价实付值；
+//     风控事实 amountFen 取箱价原价换算（分）。
 //
 // Submit 立即返回 pending，前端轮询 /draw/records?requestId= 直到出记录。
 func (l *BoxBuyLogic) BoxBuy(req *types.BuyBoxReq) (resp *types.BuyBoxResp, err error) {

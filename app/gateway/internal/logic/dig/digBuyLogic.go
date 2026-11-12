@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	baseClient "gacha_srv/app/base/baseClient"
 	"gacha_srv/app/gateway/internal/middleware"
 	"gacha_srv/app/gateway/internal/saga"
 	"gacha_srv/app/gateway/internal/svc"
@@ -40,14 +39,14 @@ func (l *DigBuyLogic) SetRequestId(id string) {
 	l.requestId = id
 }
 
-// DigBuy 挖宝购买：网关发起 DTM SAGA 事务（7 分支，与 BoxBuy 同构，统一 builder 见 saga/builder.go）。
+// DigBuy 挖宝购买：网关发起 DTM SAGA 事务（同步预检资格+风控后 5 分支，与 BoxBuy 同构，统一 builder 见 saga/builder.go）。
 //
-//   [01 base.EvaluatePolicy scene=DIG_BOX → 02 base.RiskEvaluate → 03 play.LockDigBox
-//    锁报价+会话位图 → 04 money.AuthorizeWalletPayment 建单冻结 → 05 play.SettleDigBox
-//    揭晓+落记录 → 06 play.GrantDigPrizes 发奖（永不 Aborted，空补偿）→
-//    07 money.CaptureWalletPayment 捕获核销]
-//   补偿：[空 → 空 → ReleaseDigBox 清位回滚+释放报价 → CancelPayment →
-//         SettleDigBoxRevert 撤销记录 → 空 → 空]
+//	[01 play.LockDigBox 锁报价+会话位图 → 02 money.AuthorizeWalletPayment 建单冻结
+//	 → 03 play.SettleDigBox 揭晓+落记录 → 04 play.GrantDigPrizes 发奖（永不 Aborted，空补偿）
+//	 → 05 money.CaptureWalletPayment 捕获核销]
+//	补偿：[ReleaseDigBox 清位回滚+释放报价 → CancelPayment →
+//	      SettleDigBoxRevert 撤销记录 → 空 → 空]
+//	同步预检：base.EvaluatePolicy（scene=DIG_BOX）+ base.RiskEvaluate，拒绝立即返回 4001/4002。
 //
 // 安全不变式：
 //  1. userId 取 JWT 上下文，不接受客户端传入；
@@ -124,32 +123,14 @@ func (l *DigBuyLogic) DigBuy(req *types.DigBuyReq) (resp *types.DigBuyResp, err 
 		return nil, errorx.FromError(err)
 	}
 
+	// 同步预检：资格评估 + 风控评估（拒绝立即返回，不入分布式事务）
+	if err := saga.Precheck(l.ctx, l.Logger, l.svcCtx.BaseRpc, gid, userId, req.BoxId, grossFen, "DIG_BOX"); err != nil {
+		return nil, err
+	}
+
 	c := l.svcCtx.Config
 	b := saga.New(l.ctx, l.Logger, c.DtmServer.Target, gid).
-		// 01 资格评估（基础域）：scene=DIG_BOX
-		Add(
-			c.BaseRpcDirect+"/base.Base/EvaluatePolicy",
-			c.BaseRpcDirect+"/base.Base/EvaluatePolicyRevert",
-			&baseClient.EvaluatePolicyReq{
-				RequestId: gid,
-				UserId:    userId,
-				BoxId:     req.BoxId,
-				Scene:     "DIG_BOX",
-			},
-		).
-		// 02 风控评估（基础域）
-		Add(
-			c.BaseRpcDirect+"/base.Base/RiskEvaluate",
-			c.BaseRpcDirect+"/base.Base/RiskEvaluateRevert",
-			&baseClient.RiskEvaluateReq{
-				RequestId: gid,
-				UserId:    userId,
-				BoxId:     req.BoxId,
-				Scene:     "DIG_BOX",
-				AmountFen: grossFen,
-			},
-		).
-		// 03 锁报价+会话位图（玩法域）；补偿 ReleaseDigBox 清位回滚+释放报价
+		// 01 锁报价+会话位图（玩法域）；补偿 ReleaseDigBox 清位回滚+释放报价
 		Add(
 			c.PlayRpcDirect+"/play.Play/LockDigBox",
 			c.PlayRpcDirect+"/play.Play/ReleaseDigBox",
@@ -163,7 +144,7 @@ func (l *DigBuyLogic) DigBuy(req *types.DigBuyReq) (resp *types.DigBuyResp, err 
 				TotalPriceFen: grossFen,
 			},
 		).
-		// 04 建单+冻结（资金域）：挖宝无券/积分，gross=cash=实付
+		// 02 建单+冻结（资金域）：挖宝无券/积分，gross=cash=实付
 		Add(
 			c.MoneyRpcDirect+"/money.Money/AuthorizeWalletPayment",
 			c.MoneyRpcDirect+"/money.Money/CancelPayment",
@@ -177,7 +158,7 @@ func (l *DigBuyLogic) DigBuy(req *types.DigBuyReq) (resp *types.DigBuyResp, err 
 				LoyaltyPointsDebit: 0,
 			},
 		).
-		// 05 揭晓+落记录（玩法域）；补偿 SettleDigBoxRevert 撤销记录
+		// 03 揭晓+落记录（玩法域）；补偿 SettleDigBoxRevert 撤销记录
 		Add(
 			c.PlayRpcDirect+"/play.Play/SettleDigBox",
 			c.PlayRpcDirect+"/play.Play/SettleDigBoxRevert",
@@ -191,7 +172,7 @@ func (l *DigBuyLogic) DigBuy(req *types.DigBuyReq) (resp *types.DigBuyResp, err 
 				Price:       utils.FenToYuan(quote.PayableFen),
 			},
 		).
-		// 06 发奖（玩法域）：永不 Aborted、空补偿（奖品先于捕获且不追回）
+		// 04 发奖（玩法域）：永不 Aborted、空补偿（奖品先于捕获且不追回）
 		Add(
 			c.PlayRpcDirect+"/play.Play/GrantDigPrizes",
 			c.PlayRpcDirect+"/play.Play/GrantDigPrizesRevert",
@@ -200,7 +181,7 @@ func (l *DigBuyLogic) DigBuy(req *types.DigBuyReq) (resp *types.DigBuyResp, err 
 				UserId:    userId,
 			},
 		).
-		// 07 捕获核销（资金域末步）：腿 POSTED、核销报价（CommitQuote）、订单 PAID
+		// 05 捕获核销（资金域末步）：腿 POSTED、核销报价（CommitQuote）、订单 PAID
 		Add(
 			c.MoneyRpcDirect+"/money.Money/CaptureWalletPayment",
 			c.MoneyRpcDirect+"/money.Money/CaptureWalletPaymentRevert",

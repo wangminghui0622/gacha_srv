@@ -3,7 +3,6 @@ package combochain
 import (
 	"context"
 
-	baseClient "gacha_srv/app/base/baseClient"
 	"gacha_srv/app/gateway/internal/middleware"
 	"gacha_srv/app/gateway/internal/saga"
 	"gacha_srv/app/gateway/internal/svc"
@@ -39,15 +38,16 @@ func (l *ComboChainBuyLogic) SetRequestId(id string) {
 	l.requestId = id
 }
 
-// ComboChainBuy 连击链购票：网关发起 DTM SAGA 事务（7 分支，与 DigBuy/GashaponBuy 同构，统一 builder 见 saga/builder.go）。
+// ComboChainBuy 连击链购票：网关发起 DTM SAGA 事务（同步预检资格+风控后 5 分支，与 DigBuy/GashaponBuy 同构，统一 builder 见 saga/builder.go）。
 //
-//	[01 base.EvaluatePolicy scene=COMBO_CHAIN → 02 base.RiskEvaluate → 03 play.LockComboChain
-//	 锁报价+participants 追加+余票-1 → 04 money.AuthorizeWalletPayment 建单冻结
-//	 → 05 play.SettleComboChain 落记录+末票时整车结算（连击档触发/集中奖/全局槽分配/
-//	  连击累计）→ 06 play.GrantComboChainPrizes 发结算奖（永不 Aborted，空补偿）
-//	 → 07 money.CaptureWalletPayment 捕获核销]
-//	补偿：[空 → 空 → ReleaseComboChain 弹参与+余票+1+释放报价 → CancelPayment →
+//	[01 play.LockComboChain 锁报价+participants 追加+余票-1
+//	 → 02 money.AuthorizeWalletPayment 建单冻结
+//	 → 03 play.SettleComboChain 落记录+末票时整车结算（连击档触发/集中奖/全局槽分配/
+//	  连击累计）→ 04 play.GrantComboChainPrizes 发结算奖（永不 Aborted，空补偿）
+//	 → 05 money.CaptureWalletPayment 捕获核销]
+//	补偿：[ReleaseComboChain 弹参与+余票+1+释放报价 → CancelPayment →
 //	      SettleComboChainRevert 撤销记录/结算奖/连击快照/档位剩余 → 空 → 空]
+//	同步预检：base.EvaluatePolicy（scene=COMBO_CHAIN）+ base.RiskEvaluate，拒绝立即返回 4001/4002。
 //
 // 安全不变式：
 //  1. userId 取 JWT 上下文，不接受客户端传入；
@@ -103,32 +103,14 @@ func (l *ComboChainBuyLogic) ComboChainBuy(req *types.ComboChainBuyReq) (resp *t
 		return nil, errorx.FromError(err)
 	}
 
+	// 同步预检：资格评估 + 风控评估（拒绝立即返回，不入分布式事务）
+	if err := saga.Precheck(l.ctx, l.Logger, l.svcCtx.BaseRpc, gid, userId, req.ConfigId, unitFen, "COMBO_CHAIN"); err != nil {
+		return nil, err
+	}
+
 	c := l.svcCtx.Config
 	b := saga.New(l.ctx, l.Logger, c.DtmServer.Target, gid).
-		// 01 资格评估（基础域）：scene=COMBO_CHAIN
-		Add(
-			c.BaseRpcDirect+"/base.Base/EvaluatePolicy",
-			c.BaseRpcDirect+"/base.Base/EvaluatePolicyRevert",
-			&baseClient.EvaluatePolicyReq{
-				RequestId: gid,
-				UserId:    userId,
-				BoxId:     req.ConfigId,
-				Scene:     "COMBO_CHAIN",
-			},
-		).
-		// 02 风控评估（基础域）
-		Add(
-			c.BaseRpcDirect+"/base.Base/RiskEvaluate",
-			c.BaseRpcDirect+"/base.Base/RiskEvaluateRevert",
-			&baseClient.RiskEvaluateReq{
-				RequestId: gid,
-				UserId:    userId,
-				BoxId:     req.ConfigId,
-				Scene:     "COMBO_CHAIN",
-				AmountFen: unitFen,
-			},
-		).
-		// 03 锁报价+参与追加+余票-1（玩法域）；补偿 ReleaseComboChain 弹参与+余票+1+释放报价
+		// 01 锁报价+参与追加+余票-1（玩法域）；补偿 ReleaseComboChain 弹参与+余票+1+释放报价
 		Add(
 			c.PlayRpcDirect+"/play.Play/LockComboChain",
 			c.PlayRpcDirect+"/play.Play/ReleaseComboChain",
@@ -140,7 +122,7 @@ func (l *ComboChainBuyLogic) ComboChainBuy(req *types.ComboChainBuyReq) (resp *t
 				TotalPriceFen: unitFen,
 			},
 		).
-		// 04 建单+冻结（资金域）
+		// 02 建单+冻结（资金域）
 		Add(
 			c.MoneyRpcDirect+"/money.Money/AuthorizeWalletPayment",
 			c.MoneyRpcDirect+"/money.Money/CancelPayment",
@@ -154,7 +136,7 @@ func (l *ComboChainBuyLogic) ComboChainBuy(req *types.ComboChainBuyReq) (resp *t
 				LoyaltyPointsDebit: 0,
 			},
 		).
-		// 05 落记录+末票整车结算（玩法域）；补偿 SettleComboChainRevert 撤销记录/结算奖/连击快照/档位剩余
+		// 03 落记录+末票整车结算（玩法域）；补偿 SettleComboChainRevert 撤销记录/结算奖/连击快照/档位剩余
 		Add(
 			c.PlayRpcDirect+"/play.Play/SettleComboChain",
 			c.PlayRpcDirect+"/play.Play/SettleComboChainRevert",
@@ -165,7 +147,7 @@ func (l *ComboChainBuyLogic) ComboChainBuy(req *types.ComboChainBuyReq) (resp *t
 				Price:     utils.FenToYuan(quote.PayableFen),
 			},
 		).
-		// 06 发结算奖（玩法域）：永不 Aborted、空补偿（奖品先于捕获且不追回）
+		// 04 发结算奖（玩法域）：永不 Aborted、空补偿（奖品先于捕获且不追回）
 		Add(
 			c.PlayRpcDirect+"/play.Play/GrantComboChainPrizes",
 			c.PlayRpcDirect+"/play.Play/GrantComboChainPrizesRevert",
@@ -175,7 +157,7 @@ func (l *ComboChainBuyLogic) ComboChainBuy(req *types.ComboChainBuyReq) (resp *t
 				ConfigId:  req.ConfigId,
 			},
 		).
-		// 07 捕获核销（资金域末步）：腿 POSTED、核销报价（CommitQuote）、订单 PAID
+		// 05 捕获核销（资金域末步）：腿 POSTED、核销报价（CommitQuote）、订单 PAID
 		Add(
 			c.MoneyRpcDirect+"/money.Money/CaptureWalletPayment",
 			c.MoneyRpcDirect+"/money.Money/CaptureWalletPaymentRevert",

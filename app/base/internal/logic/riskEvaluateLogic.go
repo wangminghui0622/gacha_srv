@@ -2,7 +2,6 @@ package logic
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"strconv"
@@ -13,19 +12,14 @@ import (
 	"gacha_srv/app/base/internal/core"
 	"gacha_srv/app/base/internal/repo"
 	"gacha_srv/app/base/internal/svc"
-	"gacha_srv/app/dtm/client/dtmgrpc"
 	basemodelnc "gacha_srv/pkg/model_nocache/gacha_base"
 	"gacha_srv/pkg/utils/errorx"
-	"gacha_srv/pkg/utils/txutil"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
 )
-
-// errCaseDup 事务内哨兵：同 case_no 风控案例已存在（历史分支已评估）
-var errCaseDup = errors.New("risk case duplicated")
 
 // riskActionChallenge 本仓案件全部 CHALLENGE（D4：action 恒 3）
 const riskActionChallenge = 3
@@ -44,25 +38,24 @@ func NewRiskEvaluateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Risk
 	}
 }
 
-// RiskEvaluate SAGA 分支 02 正向：风控评估。
+// RiskEvaluate 风控评估（同步预检，非 SAGA 分支）。
 //
-// 错误语义（SAGA 分支铁律）：
-//   - 业务失败（规则命中）→ codes.Aborted(5002)，DTM 触发补偿
-//   - 系统错误 → codes.Internal，DTM 退避重试
+// 错误语义：
+//   - 业务失败（规则命中）→ CodeError(4002)，网关当场返回给前端
+//   - 系统错误 → codes.Internal，折叠为 500
 //
 // 关键设计：
-//   - 规则读取在屏障事务外（纯读）；命中案例在屏障事务内落库
-//     （uk case_no="rk_"+requestId 幂等），落库后返回 Aborted——
-//     案例人工处置（Claim/Resolve），不随补偿撤销。
-//   - 规则语义：启用规则任一命中即拒绝；全部未命中=通过（无落库，无屏障注册）。
+//   - 规则读取纯读（不占事务连接）；命中案例幂等落库（uk case_no="rk_"+requestId），
+//     落库后返回——案例人工处置（Claim/Resolve），不撤销。
+//   - 规则语义：启用规则任一命中即拒绝；全部未命中=通过（无落库）。
 //   - M14d：状态数值化 1 OPEN；risk_score 由 severity 映射（LOW 30/MEDIUM 60/HIGH 90）；
 //     action 恒 3 CHALLENGE。
 func (l *RiskEvaluateLogic) RiskEvaluate(in *base.RiskEvaluateReq) (*base.RiskEvaluateResp, error) {
 	if in.RequestId == "" || in.Scene == "" {
-		return nil, status.Error(codes.Aborted, "code=400 msg=requestId与scene不能为空")
+		return nil, errorx.NewCodeError(errorx.CodeParamError, "requestId与scene不能为空")
 	}
 
-	// ① 屏障事务外读启用规则（纯读）
+	// ① 读启用规则（纯读）
 	var rules []basemodelnc.RiskRules
 	if err := l.svcCtx.DB.WithContext(l.ctx).Where("scene = ? AND enabled = 1", in.Scene).Find(&rules).Error; err != nil {
 		l.Errorf("RiskEvaluate query rules failed, err: %v", err)
@@ -83,59 +76,36 @@ func (l *RiskEvaluateLogic) RiskEvaluate(in *base.RiskEvaluateReq) (*base.RiskEv
 	}
 	reason := fmt.Sprintf("触发风控规则（%s %s %s）", hit.FactKey, hit.Op, hit.ExpectedValue)
 
-	// ② 屏障事务内落案例（uk 幂等；撞键/屏障跳过=读回已有结果）
-	barrier, err := dtmgrpc.BarrierFromGrpc(l.ctx)
-	if err != nil {
-		l.Errorf("RiskEvaluate get barrier failed, err: %v", err)
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-	rawDB, err := l.svcCtx.DB.DB()
-	if err != nil {
-		l.Errorf("RiskEvaluate get raw db failed, err: %v", err)
-		return nil, status.Error(codes.Internal, err.Error())
-	}
+	// ② 落案例（uk case_no 幂等；撞键读回已有结果）
 	caseNo := "rk_" + in.RequestId
-	businessRan := false
-	err = barrier.CallWithDB(rawDB, func(tx *sql.Tx) error {
-		businessRan = true
-		db := txutil.WithTx(l.ctx, l.svcCtx.DB, tx)
-		entry := &basemodelnc.RiskCases{
-			CaseNo:    caseNo,
-			RuleNo:    hit.RuleNo,
-			Scene:     in.Scene,
-			UserId:    in.UserId,
-			BoxId:     in.BoxId,
-			AmountFen: in.AmountFen,
-			RiskScore: core.SeverityScoreOf(hit.Severity),
-			Action:    riskActionChallenge,
-			Status:    repo.RiskCaseStatusOpen, // 数值 1 OPEN（M14d 状态机起点）
-			CreatedAt: time.Now(),
-		}
-		if err := db.Create(entry).Error; err != nil {
-			if errors.Is(err, gorm.ErrDuplicatedKey) {
-				return errCaseDup
-			}
-			return err
-		}
-		return nil
-	})
-	if errors.Is(err, errCaseDup) || !businessRan {
-		// 同 case_no 已落库/屏障跳过：读回已有案例，幂等返回拒绝
-		return l.readBackCase(caseNo)
+	entry := &basemodelnc.RiskCases{
+		CaseNo:    caseNo,
+		RuleNo:    hit.RuleNo,
+		Scene:     in.Scene,
+		UserId:    in.UserId,
+		BoxId:     in.BoxId,
+		AmountFen: in.AmountFen,
+		RiskScore: core.SeverityScoreOf(hit.Severity),
+		Action:    riskActionChallenge,
+		Status:    repo.RiskCaseStatusOpen, // 数值 1 OPEN（M14d 状态机起点）
+		CreatedAt: time.Now(),
 	}
-	if err != nil {
+	if err := l.svcCtx.DB.WithContext(l.ctx).Create(entry).Error; err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			// 同 case_no 已落库：读回已有案例，幂等返回拒绝
+			return l.readBackCase(caseNo)
+		}
 		l.Errorf("RiskEvaluate failed, requestId: %s, err: %v", in.RequestId, err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	// ③ 命中：案例已落库，返回 Aborted 触发补偿
+	// ③ 命中：案例已落库，返回业务码
 	l.Errorf("RiskEvaluate rejected, requestId: %s, scene: %s, rule: %s, caseNo: %s, reason: %s",
 		in.RequestId, in.Scene, hit.RuleNo, caseNo, reason)
-	return nil, status.Error(codes.Aborted,
-		fmt.Sprintf("code=%d msg=%s", errorx.CodeRiskRejected, reason))
+	return nil, errorx.NewCodeError(errorx.CodeRiskRejected, reason)
 }
 
-// readBackCase 幂等/屏障跳过路径：读已有案例如实返回拒绝
+// readBackCase 幂等路径：读已有案例如实返回拒绝
 func (l *RiskEvaluateLogic) readBackCase(caseNo string) (*base.RiskEvaluateResp, error) {
 	entry, err := l.svcCtx.RiskCaseModel.FindOneByCaseNo(l.ctx, caseNo)
 	if err != nil {
@@ -148,7 +118,7 @@ func (l *RiskEvaluateLogic) readBackCase(caseNo string) (*base.RiskEvaluateResp,
 	}
 	msg := fmt.Sprintf("触发风控规则（%s），案例单号 %s", entry.RuleNo, entry.CaseNo)
 	l.Infof("readBackCase: rejected, caseNo: %s, rule: %s", caseNo, entry.RuleNo)
-	return nil, status.Error(codes.Aborted, fmt.Sprintf("code=%d msg=%s", errorx.CodeRiskRejected, msg))
+	return nil, errorx.NewCodeError(errorx.CodeRiskRejected, msg)
 }
 
 // evalFacts 规则评估事实集（风控专用；资格评估 M14d 起走 CEL）

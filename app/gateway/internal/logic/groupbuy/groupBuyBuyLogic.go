@@ -3,7 +3,6 @@ package groupbuy
 import (
 	"context"
 
-	baseClient "gacha_srv/app/base/baseClient"
 	"gacha_srv/app/gateway/internal/middleware"
 	"gacha_srv/app/gateway/internal/saga"
 	"gacha_srv/app/gateway/internal/svc"
@@ -39,15 +38,16 @@ func (l *GroupBuyBuyLogic) SetRequestId(id string) {
 	l.requestId = id
 }
 
-// GroupBuyBuy 拼团抽下注：网关发起 DTM SAGA 事务（7 分支，与 DigBuy/GashaponBuy 同构，统一 builder 见 saga/builder.go）。
+// GroupBuyBuy 拼团抽下注：网关发起 DTM SAGA 事务（同步预检资格+风控后 5 分支，与 DigBuy/GashaponBuy 同构，统一 builder 见 saga/builder.go）。
 //
-//	[01 base.EvaluatePolicy scene=GROUP_BUY → 02 base.RiskEvaluate → 03 play.LockGroupBuy
-//	 锁报价+bets 追加+余位-count → 04 money.AuthorizeWalletPayment 建单冻结
-//	 → 05 play.SettleGroupBuy 落记录+余位归零时整批结算（条目分配+子奖+幸运奖）
-//	 → 06 play.GrantGroupBuyPrizes 发结算奖（永不 Aborted，空补偿）
-//	 → 07 money.CaptureWalletPayment 捕获核销]
-//	补偿：[空 → 空 → ReleaseGroupBuy 弹注+余位+count+释放报价 → CancelPayment →
+//	[01 play.LockGroupBuy 锁报价+bets 追加+余位-count
+//	 → 02 money.AuthorizeWalletPayment 建单冻结
+//	 → 03 play.SettleGroupBuy 落记录+余位归零时整批结算（条目分配+子奖+幸运奖）
+//	 → 04 play.GrantGroupBuyPrizes 发结算奖（永不 Aborted，空补偿）
+//	 → 05 money.CaptureWalletPayment 捕获核销]
+//	补偿：[ReleaseGroupBuy 弹注+余位+count+释放报价 → CancelPayment →
 //	      SettleGroupBuyRevert 撤销记录/结算奖/lucky_sent/条目库存 → 空 → 空]
+//	同步预检：base.EvaluatePolicy（scene=GROUP_BUY）+ base.RiskEvaluate，拒绝立即返回 4001/4002。
 //
 // 安全不变式：
 //  1. userId 取 JWT 上下文，不接受客户端传入；
@@ -107,32 +107,14 @@ func (l *GroupBuyBuyLogic) GroupBuyBuy(req *types.GroupBuyBuyReq) (resp *types.G
 		return nil, errorx.FromError(err)
 	}
 
+	// 同步预检：资格评估 + 风控评估（拒绝立即返回，不入分布式事务）
+	if err := saga.Precheck(l.ctx, l.Logger, l.svcCtx.BaseRpc, gid, userId, req.ConfigId, grossFen, "GROUP_BUY"); err != nil {
+		return nil, err
+	}
+
 	c := l.svcCtx.Config
 	b := saga.New(l.ctx, l.Logger, c.DtmServer.Target, gid).
-		// 01 资格评估（基础域）：scene=GROUP_BUY
-		Add(
-			c.BaseRpcDirect+"/base.Base/EvaluatePolicy",
-			c.BaseRpcDirect+"/base.Base/EvaluatePolicyRevert",
-			&baseClient.EvaluatePolicyReq{
-				RequestId: gid,
-				UserId:    userId,
-				BoxId:     req.ConfigId,
-				Scene:     "GROUP_BUY",
-			},
-		).
-		// 02 风控评估（基础域）
-		Add(
-			c.BaseRpcDirect+"/base.Base/RiskEvaluate",
-			c.BaseRpcDirect+"/base.Base/RiskEvaluateRevert",
-			&baseClient.RiskEvaluateReq{
-				RequestId: gid,
-				UserId:    userId,
-				BoxId:     req.ConfigId,
-				Scene:     "GROUP_BUY",
-				AmountFen: grossFen,
-			},
-		).
-		// 03 锁报价+下注追加+余位-count（玩法域）；补偿 ReleaseGroupBuy 弹注+余位+count+释放报价
+		// 01 锁报价+下注追加+余位-count（玩法域）；补偿 ReleaseGroupBuy 弹注+余位+count+释放报价
 		Add(
 			c.PlayRpcDirect+"/play.Play/LockGroupBuy",
 			c.PlayRpcDirect+"/play.Play/ReleaseGroupBuy",
@@ -145,7 +127,7 @@ func (l *GroupBuyBuyLogic) GroupBuyBuy(req *types.GroupBuyBuyReq) (resp *types.G
 				TotalPriceFen: grossFen,
 			},
 		).
-		// 04 建单+冻结（资金域）
+		// 02 建单+冻结（资金域）
 		Add(
 			c.MoneyRpcDirect+"/money.Money/AuthorizeWalletPayment",
 			c.MoneyRpcDirect+"/money.Money/CancelPayment",
@@ -159,7 +141,7 @@ func (l *GroupBuyBuyLogic) GroupBuyBuy(req *types.GroupBuyBuyReq) (resp *types.G
 				LoyaltyPointsDebit: 0,
 			},
 		).
-		// 05 落记录+余位归零时整批结算（玩法域）；补偿 SettleGroupBuyRevert 撤销记录/结算奖/lucky_sent/条目库存
+		// 03 落记录+余位归零时整批结算（玩法域）；补偿 SettleGroupBuyRevert 撤销记录/结算奖/lucky_sent/条目库存
 		Add(
 			c.PlayRpcDirect+"/play.Play/SettleGroupBuy",
 			c.PlayRpcDirect+"/play.Play/SettleGroupBuyRevert",
@@ -171,7 +153,7 @@ func (l *GroupBuyBuyLogic) GroupBuyBuy(req *types.GroupBuyBuyReq) (resp *types.G
 				Price:     utils.FenToYuan(quote.PayableFen),
 			},
 		).
-		// 06 发结算奖（玩法域）：永不 Aborted、空补偿（奖品先于捕获且不追回）
+		// 04 发结算奖（玩法域）：永不 Aborted、空补偿（奖品先于捕获且不追回）
 		Add(
 			c.PlayRpcDirect+"/play.Play/GrantGroupBuyPrizes",
 			c.PlayRpcDirect+"/play.Play/GrantGroupBuyPrizesRevert",
@@ -181,7 +163,7 @@ func (l *GroupBuyBuyLogic) GroupBuyBuy(req *types.GroupBuyBuyReq) (resp *types.G
 				ConfigId:  req.ConfigId,
 			},
 		).
-		// 07 捕获核销（资金域末步）：腿 POSTED、核销报价（CommitQuote）、订单 PAID
+		// 05 捕获核销（资金域末步）：腿 POSTED、核销报价（CommitQuote）、订单 PAID
 		Add(
 			c.MoneyRpcDirect+"/money.Money/CaptureWalletPayment",
 			c.MoneyRpcDirect+"/money.Money/CaptureWalletPaymentRevert",

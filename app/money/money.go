@@ -4,11 +4,12 @@ import (
 	"flag"
 	"fmt"
 
+	"gacha_srv/app/dtm/client/dtmcli"
 	"gacha_srv/app/money/internal/config"
 	"gacha_srv/app/money/internal/server"
 	"gacha_srv/app/money/internal/svc"
-	"gacha_srv/pkg/utils/errorx"
 	"gacha_srv/app/money/money"
+	"gacha_srv/pkg/utils/errorx"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"
@@ -21,6 +22,9 @@ var configFile = flag.String("f", "../../pkg/etcs/money-rpc.yaml", "the config f
 
 func main() {
 	flag.Parse()
+
+	// dtm_barrier 屏障表名改为「每业务库内表」（无 schema 前缀）
+	dtmcli.SetBarrierTableName("dtm_barrier")
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c)

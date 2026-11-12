@@ -37,46 +37,50 @@ done
 docker node ls
 
 # ── 2. 本地 registry + insecure-registries 配置 ──
-log "2/7 配置本地 registry（三节点 insecure-registries）"
-DAEMON="{\"insecure-registries\":[\"${REGISTRY}\"]}"
-# 写入各节点 daemon.json（仅当内容不同才重启 dockerd，避免不必要中断）
-# 主节点：本地 sudo
-cur=$(cat /etc/docker/daemon.json 2>/dev/null || echo "")
-if [ "$cur" != "$DAEMON" ]; then
-  printf '%s' "$DAEMON" > /tmp/daemon.json
-  echo "$MASTER_SUDO_PASS" | sudo -S cp /tmp/daemon.json /etc/docker/daemon.json 2>/dev/null
-  echo "$MASTER_SUDO_PASS" | sudo -S systemctl reset-failed docker 2>/dev/null
-  echo "$MASTER_SUDO_PASS" | sudo -S systemctl restart docker 2>/dev/null
-  echo "   主节点已配置并重启 dockerd"
-else
-  echo "   主节点配置已就绪"
-fi
-# 从机：各自独立的 sudo 密码
-for i in "${!WORKERS_SSH[@]}"; do
-  node="${WORKERS_SSH[$i]}"
-  sp="${WORKERS_SUDO[$i]}"
-  cur=$(ssh -o StrictHostKeyChecking=no "$node" 'cat /etc/docker/daemon.json 2>/dev/null || echo ""' 2>/dev/null)
+if [ "$REGISTRY_BUILTIN" = "1" ]; then
+  log "2/7 配置本地 registry（三节点 insecure-registries）"
+  DAEMON="{\"insecure-registries\":[\"${REGISTRY}\"]}"
+  # 写入各节点 daemon.json（仅当内容不同才重启 dockerd，避免不必要中断）
+  # 主节点：本地 sudo
+  cur=$(cat /etc/docker/daemon.json 2>/dev/null || echo "")
   if [ "$cur" != "$DAEMON" ]; then
-    printf '%s' "$DAEMON" | ssh -o StrictHostKeyChecking=no "$node" "cat > /tmp/daemon.json; echo ${sp} | sudo -S -p '' cp /tmp/daemon.json /etc/docker/daemon.json 2>/dev/null; echo ${sp} | sudo -S -p '' systemctl reset-failed docker 2>/dev/null; echo ${sp} | sudo -S -p '' systemctl restart docker 2>/dev/null" < /dev/null
-    echo "   $node 已配置并重启 dockerd"
+    printf '%s' "$DAEMON" > /tmp/daemon.json
+    echo "$MASTER_SUDO_PASS" | sudo -S cp /tmp/daemon.json /etc/docker/daemon.json 2>/dev/null
+    echo "$MASTER_SUDO_PASS" | sudo -S systemctl reset-failed docker 2>/dev/null
+    echo "$MASTER_SUDO_PASS" | sudo -S systemctl restart docker 2>/dev/null
+    echo "   主节点已配置并重启 dockerd"
   else
-    echo "   $node 配置已就绪"
+    echo "   主节点配置已就绪"
   fi
-done
-sleep 5
-# 启动 registry（若未运行）
-if ! docker ps --format '{{.Names}}' | grep -q '^registry$'; then
-  # 拉 registry:2（Docker Hub 被墙走镜像源）
-  if ! docker image inspect registry:2 >/dev/null 2>&1; then
-    echo "   拉取 registry:2（镜像源 $MIRROR）"
-    docker pull "$MIRROR/library/registry:2"
-    docker tag "$MIRROR/library/registry:2" registry:2
+  # 从机：各自独立的 sudo 密码
+  for i in "${!WORKERS_SSH[@]}"; do
+    node="${WORKERS_SSH[$i]}"
+    sp="${WORKERS_SUDO[$i]}"
+    cur=$(ssh -o StrictHostKeyChecking=no "$node" 'cat /etc/docker/daemon.json 2>/dev/null || echo ""' 2>/dev/null)
+    if [ "$cur" != "$DAEMON" ]; then
+      printf '%s' "$DAEMON" | ssh -o StrictHostKeyChecking=no "$node" "cat > /tmp/daemon.json; echo ${sp} | sudo -S -p '' cp /tmp/daemon.json /etc/docker/daemon.json 2>/dev/null; echo ${sp} | sudo -S -p '' systemctl reset-failed docker 2>/dev/null; echo ${sp} | sudo -S -p '' systemctl restart docker 2>/dev/null" < /dev/null
+      echo "   $node 已配置并重启 dockerd"
+    else
+      echo "   $node 配置已就绪"
+    fi
+  done
+  sleep 5
+  # 启动 registry（若未运行）
+  if ! docker ps --format '{{.Names}}' | grep -q '^registry$'; then
+    # 拉 registry:2（Docker Hub 被墙走镜像源）
+    if ! docker image inspect registry:2 >/dev/null 2>&1; then
+      echo "   拉取 registry:2（镜像源 $MIRROR）"
+      docker pull "$MIRROR/library/registry:2"
+      docker tag "$MIRROR/library/registry:2" registry:2
+    fi
+    docker run -d --name registry -p 5000:5000 --restart unless-stopped registry:2
+    echo "   registry 已启动"
   fi
-  docker run -d --name registry -p 5000:5000 --restart unless-stopped registry:2
-  echo "   registry 已启动"
+  sleep 3
+  curl -s -m 5 "http://$REGISTRY/v2/_catalog" && echo " ✓"
+else
+  log "2/7 跳过本地 registry（外部仓库：$REGISTRY）"
 fi
-sleep 3
-curl -s -m 5 "http://$REGISTRY/v2/_catalog" && echo " ✓"
 
 # ── 2b. 准备基础镜像（Docker Hub 被墙：alpine/mysql/redis 走镜像源拉取 + 重打 tag）──
 # 清空镜像后 Docker Hub 无法重拉，必须在此预拉；etcd 来自 quay.io 可达，无需处理。

@@ -29,23 +29,8 @@ CREATE DATABASE IF NOT EXISTS `gacha_thirdparty`  DEFAULT CHARACTER SET utf8mb4;
 CREATE DATABASE IF NOT EXISTS `gacha_ops`         DEFAULT CHARACTER SET utf8mb4;
 CREATE DATABASE IF NOT EXISTS `gacha_dtm`         DEFAULT CHARACTER SET utf8mb4;
 
--- dtm_barrier 屏障库：dtmcli 子事务屏障默认表名 dtm_barrier.barrier（schema.table）。
--- SAGA 分支（settle/grant/cancelPayment 等）经 BarrierFromGrpc + CallWithDB 落屏障行
--- 防悬挂/重复；各业务库内的 `dtm_barrier` 表（02-12 各建）服务于 GORM 侧屏障模型，
--- 与本全局屏障库并存。缺此库时屏障 insert 报 Unknown database → 分支 Internal →
--- DTM 无限重试，属必建项。
-CREATE DATABASE IF NOT EXISTS `dtm_barrier` DEFAULT CHARACTER SET utf8mb4;
-CREATE TABLE IF NOT EXISTS `dtm_barrier`.`barrier` (
-  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
-  `trans_type` varchar(45) DEFAULT '' COMMENT '事务类型：saga/xa/tcc/msg',
-  `gid` varchar(128) DEFAULT '' COMMENT '全局事务ID',
-  `branch_id` varchar(128) DEFAULT '' COMMENT '分支事务ID：01/02...',
-  `op` varchar(45) DEFAULT '' COMMENT '操作类型：action=正向操作, compensate=补偿操作',
-  `barrier_id` varchar(45) DEFAULT '' COMMENT '屏障序号：同一分支内多次barrier调用的序号，从01开始递增',
-  `reason` varchar(45) DEFAULT '' COMMENT '描述信息，便于调试',
-  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '记录创建时间',
-  `update_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '记录更新时间',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_barrier` (`gid`,`branch_id`,`op`,`barrier_id`),
-  KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC COMMENT='DTM子事务屏障表（dtmcli 默认）';
+-- dtm_barrier 屏障表（每业务库内，见 02-12 各建）：dtmcli 子事务屏障默认表名已改为
+-- 「无 schema 前缀」（各服务 main() 调 dtmcli.SetBarrierTableName("dtm_barrier")），
+-- 屏障 insert 与业务操作同库单事务，不再依赖全局 dtm_barrier 库。
+-- 各业务库内的 `dtm_barrier` 表（uk `uk_barrier`(gid,branch_id,op,barrier_id)）为必建项：
+-- 缺该表时屏障 insert 报错 → 分支 Internal → DTM 无限重试。

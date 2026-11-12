@@ -91,7 +91,7 @@
 
 ## 5. 本仓自研基础设施（老项目没有）
 
-- **DTM SAGA**（app/dtm 单实例 36789/36790 + gacha_dtm 库）：老项目 Kratos 无分布式事务组件；本仓所有购买类流程（抽盒/挖宝/满车/扭蛋/连击/拼团/记忆翻牌）为 7 分支 SAGA（策略→风控→锁定→冻结→结算→发奖→捕获，分支目标 base/marketing/money/draw/play），带屏障表 + 幂等键 + 补偿。
+- **DTM SAGA**（app/dtm 单实例 36789/36790 + gacha_dtm 库）：老项目 Kratos 无分布式事务组件；本仓所有购买类流程（抽盒/挖宝/满车/扭蛋/连击/拼团/记忆翻牌）为「同步预检（资格+风控，网关直调 base）+ 5 分支 SAGA（锁定→冻结→结算→发奖→捕获，分支目标 marketing/money/draw/play）」，带屏障表 + 幂等键 + 补偿。
 - **errorx 统一错误码段**：按服务域 ×1000 分段（见上表），全仓登记于 docs/standards/backend/05-errors.md；DTM SAGA 分支用 status.Error(Aborted) 触发补偿，非 SAGA RPC 用 errorx.NewCodeError。
 - **管理网关 fail-closed 启动校验**：admin-gateway 启动时校验路由 ↔ pkg/adminop/operations.go 目录双向一致（老项目无此机制）。
 - **双网关**：玩家 9310 与管理 9321 分离（老项目同为两个 gateway，结构一致）。

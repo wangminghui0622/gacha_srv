@@ -16,7 +16,7 @@ mkdir -p "$BIN" "$CONF"
 
 # ── 1. 交叉编译 Linux 二进制 ──
 export CGO_ENABLED=0 GOOS=linux GOARCH=amd64
-LD='-s -w -trimpath'
+LD='-s -w'
 
 # 服务清单：目录名 -> 二进制名
 declare -A ALL=(

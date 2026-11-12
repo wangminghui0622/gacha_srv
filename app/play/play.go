@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 
+	"gacha_srv/app/dtm/client/dtmcli"
 	"gacha_srv/app/play/internal/config"
 	"gacha_srv/app/play/internal/server"
 	"gacha_srv/app/play/internal/svc"
@@ -21,6 +22,9 @@ var configFile = flag.String("f", "../../pkg/etcs/play-rpc.yaml", "the config fi
 
 func main() {
 	flag.Parse()
+
+	// dtm_barrier 屏障表名改为「每业务库内表」（无 schema 前缀）
+	dtmcli.SetBarrierTableName("dtm_barrier")
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c)

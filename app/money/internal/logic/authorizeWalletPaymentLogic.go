@@ -85,8 +85,7 @@ func (l *AuthorizeWalletPaymentLogic) AuthorizeWalletPayment(in *money.Authorize
 
 		// ① 建单：FOR UPDATE 锁单；uk_payment_no 撞键=重发/并发，读回已有单
 		var order gacha_money.PaymentOrders
-		err := db.Clauses(clause.Locking{Strength: "UPDATE"}).
-			Where("payment_no = ?", paymentNo).First(&order).Error
+		err := db.Clauses(clause.Locking{Strength: "UPDATE"}).Where("payment_no = ?", paymentNo).First(&order).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			now := time.Now()
 			order = gacha_money.PaymentOrders{
@@ -186,17 +185,13 @@ func (l *AuthorizeWalletPaymentLogic) AuthorizeWalletPayment(in *money.Authorize
 				}
 				return err
 			}
-			if err := db.Model(&gacha_money.PaymentLegs{}).
-				Where("leg_no = ?", leg.LegNo).
-				Update("hold_no", fr.HoldNo).Error; err != nil {
+			if err := db.Model(&gacha_money.PaymentLegs{}).Where("leg_no = ?", leg.LegNo).Update("hold_no", fr.HoldNo).Error; err != nil {
 				return err
 			}
 		}
 
 		// ④ CREATED→AWAITING_PAYMENT（行已锁，盲更新防御）
-		result := db.Model(&gacha_money.PaymentOrders{}).
-			Where("payment_no = ? AND status = ?", paymentNo, orderStatusCreated).
-			Update("status", orderStatusAwaiting)
+		result := db.Model(&gacha_money.PaymentOrders{}).Where("payment_no = ? AND status = ?", paymentNo, orderStatusCreated).Update("status", orderStatusAwaiting)
 		if result.Error != nil {
 			return result.Error
 		}

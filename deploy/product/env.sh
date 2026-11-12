@@ -38,11 +38,12 @@ export ETCD_ENDPOINTS="<外部Etcd地址>:2379"
 # ── 业务服务 overlay 网络名（外部时 bootstrap 自建）──
 export NETWORK_NAME="gacha_backend"
 
+# ── 镜像仓库（外部）──
+export REGISTRY_BUILTIN="0"
+export REGISTRY="<外部仓库地址>"       # 例如 harbor.example.com
+
 # ── 镜像源 ──
 export MIRROR="docker.1ms.run"
-
-# ── 派生值 ──
-export REGISTRY="${MASTER_IP}:5000"
 
 SSH_MASTER="${MASTER_USER}@${MASTER_IP}"
 WORKERS_SSH=("${WORKER1_USER}@${WORKER1_IP}" "${WORKER2_USER}@${WORKER2_IP}")

@@ -2,7 +2,6 @@ package logic
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,19 +11,14 @@ import (
 	"gacha_srv/app/base/internal/core"
 	"gacha_srv/app/base/internal/repo"
 	"gacha_srv/app/base/internal/svc"
-	"gacha_srv/app/dtm/client/dtmgrpc"
 	basemodelnc "gacha_srv/pkg/model_nocache/gacha_base"
 	"gacha_srv/pkg/utils/errorx"
-	"gacha_srv/pkg/utils/txutil"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
 )
-
-// errDecisionDup 事务内哨兵：同 decision_no 决策日志已存在（历史分支已评估）
-var errDecisionDup = errors.New("decision log duplicated")
 
 // missingRequiredFactReason 必需事实缺失的拒绝原因（server_v2 常量）
 const missingRequiredFactReason = "MISSING_REQUIRED_FACT"
@@ -43,87 +37,64 @@ func NewEvaluatePolicyLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Ev
 	}
 }
 
-// EvaluatePolicy SAGA 分支 01 正向：资格评估。
+// EvaluatePolicy 资格评估（同步预检，非 SAGA 分支）。
 //
-// 错误语义（SAGA 分支铁律）：
-//   - 业务失败（策略拒绝）→ codes.Aborted(5001)，DTM 触发补偿
-//   - 系统错误 → codes.Internal，DTM 退避重试
+// 错误语义：
+//   - 业务失败（策略拒绝）→ CodeError(4001)，网关当场返回给前端
+//   - 系统错误 → codes.Internal，折叠为 500
 //
 // 关键设计：
-//   - 评估在屏障事务外（纯读，不占事务连接）；决策日志在屏障事务内落库
-//     （uk decision_no="d_"+requestId 幂等），拒绝时先落库再返回 Aborted——
-//     决策日志只追加，不随补偿撤销。
+//   - 评估纯读（不占事务连接）；决策日志幂等落库（uk decision_no="d_"+requestId），
+//     拒绝时先落库再返回——决策日志只追加，不撤销。
 //   - 生效策略解析（M14d CEL 化）：head.current_version 指向 PUBLISHED 且 scene 匹配的
 //     版本中 published_at 最新者（同刻取 head id 大者）；无生效策略=默认放行。
 //   - 规则语义（CEL）：required_facts 缺失→拒绝 MISSING_REQUIRED_FACT；ALL=全部通过、
 //     ANY=至少一条通过；空规则列表=放行（种子策略）；失败规则的 failure_code 进 reason。
 func (l *EvaluatePolicyLogic) EvaluatePolicy(in *base.EvaluatePolicyReq) (*base.EvaluatePolicyResp, error) {
 	if in.RequestId == "" || in.Scene == "" {
-		return nil, status.Error(codes.Aborted, "code=400 msg=requestId与scene不能为空")
+		return nil, errorx.NewCodeError(errorx.CodeParamError, "requestId与scene不能为空")
 	}
 
-	// ① 屏障事务外评估（纯读）
+	// ① 纯读评估
 	policyNo, denied, matchedRuleId, reason, err := l.evaluate(in)
 	if err != nil {
 		return nil, err
 	}
 
-	// ② 屏障事务内落决策日志（uk 幂等；撞键/屏障跳过=读回已有结果）
-	barrier, err := dtmgrpc.BarrierFromGrpc(l.ctx)
-	if err != nil {
-		l.Errorf("EvaluatePolicy get barrier failed, err: %v", err)
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-	rawDB, err := l.svcCtx.DB.DB()
-	if err != nil {
-		l.Errorf("EvaluatePolicy get raw db failed, err: %v", err)
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
+	// ② 落决策日志（uk decision_no 幂等；撞键读回已有结果）
 	decisionNo := "d_" + in.RequestId
 	result := int64(1)
 	if denied {
 		result = 0
 	}
-	businessRan := false
-	err = barrier.CallWithDB(rawDB, func(tx *sql.Tx) error {
-		businessRan = true
-		db := txutil.WithTx(l.ctx, l.svcCtx.DB, tx)
-		entry := &basemodelnc.EligibilityDecisionLogs{
-			DecisionNo:    decisionNo,
-			Scene:         in.Scene,
-			PolicyNo:      policyNo,
-			UserId:        in.UserId,
-			BoxId:         in.BoxId,
-			Result:        result,
-			MatchedRuleId: matchedRuleId,
-			Reason:        reason,
-			CreatedAt:     time.Now(),
-		}
-		if err := db.Create(entry).Error; err != nil {
-			if errors.Is(err, gorm.ErrDuplicatedKey) {
-				return errDecisionDup
-			}
-			return err
-		}
-		return nil
-	})
-	if errors.Is(err, errDecisionDup) {
-		// 同 decision_no 已落库：读回已有结果，幂等返回
-		return l.readBackDecision(decisionNo, in)
+	entry := &basemodelnc.EligibilityDecisionLogs{
+		DecisionNo:    decisionNo,
+		Scene:         in.Scene,
+		PolicyNo:      policyNo,
+		UserId:        in.UserId,
+		BoxId:         in.BoxId,
+		Result:        result,
+		MatchedRuleId: matchedRuleId,
+		Reason:        reason,
+		CreatedAt:     time.Now(),
 	}
-	if err != nil {
+	if err := l.svcCtx.DB.WithContext(l.ctx).Create(entry).Error; err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			// 同 decision_no 已落库：读回已有结果，幂等返回
+			return l.readBackDecision(decisionNo, in)
+		}
 		l.Errorf("EvaluatePolicy failed, requestId: %s, err: %v", in.RequestId, err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	if !businessRan {
-		// 屏障级跳过（分支已成功）：读库如实返回已有决策
-		return l.readBackDecision(decisionNo, in)
-	}
-	// ③ 拒绝：日志已落库，返回 Aborted 触发补偿
+
+	// ③ 拒绝：日志已落库，返回业务码
 	if denied {
+		msg := reason
+		if msg == "" {
+			msg = "资格校验未通过"
+		}
 		l.Errorf("EvaluatePolicy denied, requestId: %s, scene: %s, policy: %s, ruleId: %d, reason: %s", in.RequestId, in.Scene, policyNo, matchedRuleId, reason)
-		return nil, status.Error(codes.Aborted, fmt.Sprintf("code=%d msg=%s", errorx.CodePolicyDenied, reason))
+		return nil, errorx.NewCodeError(errorx.CodePolicyDenied, msg)
 	}
 	l.Infof("EvaluatePolicy allowed, requestId: %s, scene: %s, policy: %s", in.RequestId, in.Scene, policyNo)
 	return &base.EvaluatePolicyResp{Allowed: true, PolicyNo: policyNo}, nil
@@ -137,7 +108,7 @@ type resolvedPolicy struct {
 	requiredFacts []string
 }
 
-// evaluate 屏障事务外纯读评估：返回 policyNo 与拒绝信息（拒绝时 matchedRuleId/reason 非空）
+// evaluate 纯读评估：返回 policyNo 与拒绝信息（拒绝时 matchedRuleId/reason 非空）
 func (l *EvaluatePolicyLogic) evaluate(in *base.EvaluatePolicyReq) (policyNo string, denied bool, matchedRuleId int64, reason string, err error) {
 	sceneInt, ok := core.SceneIntOf(in.Scene)
 	if !ok {
@@ -206,13 +177,9 @@ func (l *EvaluatePolicyLogic) resolvePolicy(sceneInt int32) (*resolvedPolicy, er
 		Combination   int32
 		RequiredFacts string
 	}
-	err := l.svcCtx.DB.WithContext(l.ctx).Table("eligibility_policies AS h").
-		Select("h.id AS head_id, h.policy_code, v.version, v.combination, v.required_facts").
-		Joins("JOIN eligibility_policy_versions AS v ON v.policy_id = h.id AND v.version = h.current_version").
-		Where("h.current_version > 0 AND v.status = ? AND v.scene = ?",
-			repo.PolicyStatusPublished, sceneInt).
-		Order("v.published_at DESC, h.id DESC").
-		Limit(1).Scan(&row).Error
+	err := l.svcCtx.DB.WithContext(l.ctx).Table("eligibility_policies AS h").Select("h.id AS head_id, h.policy_code, v.version, v.combination, v.required_facts").
+		Joins("JOIN eligibility_policy_versions AS v ON v.policy_id = h.id AND v.version = h.current_version").Where("h.current_version > 0 AND v.status = ? AND v.scene = ?", repo.PolicyStatusPublished, sceneInt).
+		Order("v.published_at DESC, h.id DESC").Limit(1).Scan(&row).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
@@ -257,7 +224,7 @@ func (l *EvaluatePolicyLogic) readBackDecision(decisionNo string, in *base.Evalu
 			msg = "资格校验未通过"
 		}
 		l.Infof("readBackDecision: denied, decisionNo: %s, policy: %s", decisionNo, entry.PolicyNo)
-		return nil, status.Error(codes.Aborted, fmt.Sprintf("code=%d msg=%s", errorx.CodePolicyDenied, msg))
+		return nil, errorx.NewCodeError(errorx.CodePolicyDenied, msg)
 	}
 	l.Infof("readBackDecision: allowed, decisionNo: %s, policy: %s", decisionNo, entry.PolicyNo)
 	return &base.EvaluatePolicyResp{Allowed: true, PolicyNo: entry.PolicyNo}, nil

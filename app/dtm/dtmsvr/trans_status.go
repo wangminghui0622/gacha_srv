@@ -261,7 +261,13 @@ func (t *TransGlobal) execBranch(ctx context.Context, branch *TransBranch, branc
 
 func (t *TransGlobal) getNextCronInterval(ctype cronType) int64 {
 	if ctype == cronBackoff {
-		return t.NextCronInterval * 2
+		interval := t.NextCronInterval * 2
+		// 退避上限：避免服务长时间不可达时重试间隔指数膨胀到数小时，
+		// 导致失败事务（含补偿）延迟过久。MaxRetryInterval<=0 表示不限制。
+		if conf.MaxRetryInterval > 0 && interval > conf.MaxRetryInterval {
+			interval = conf.MaxRetryInterval
+		}
+		return interval
 	}
 	if ctype == cronKeep {
 		return t.NextCronInterval

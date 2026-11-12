@@ -52,7 +52,7 @@ func NewSettleFullCarLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Set
 //
 // 错误语义：业务失败 → codes.Aborted；系统错误 → codes.Internal。
 func (l *SettleFullCarLogic) SettleFullCar(in *play.SettleFullCarReq) (*play.SettleFullCarResp, error) {
-	if in.RequestId == "" || in.UserId <= 0 || in.ConfigId <= 0 || in.SeatIndex < 0 {
+	if in.RequestId == "" || in.UserId <= 0 || in.ConfigId <= 0 {
 		return nil, status.Error(codes.Aborted, "code=400 msg=请求参数非法")
 	}
 
@@ -100,7 +100,18 @@ func (l *SettleFullCarLogic) SettleFullCar(in *play.SettleFullCarReq) (*play.Set
 
 		// ② 座位必须已由 03 分配（防绕过锁定直接结算）
 		seats := fullCarParseSeats(st.SeatsJson)
-		if in.SeatIndex >= int64(len(seats)) || seats[in.SeatIndex] != in.UserId {
+		seat := in.SeatIndex
+		if seat < 0 {
+			// 自动选座：03 自动分配后座位号不回传，按 userId 反查已分配座位
+			seat = -1
+			for i, u := range seats {
+				if u == in.UserId {
+					seat = int64(i)
+					break
+				}
+			}
+		}
+		if seat < 0 || seat >= int64(len(seats)) || seats[seat] != in.UserId {
 			return status.Error(codes.Aborted, fmt.Sprintf("code=%d msg=满车座位与请求不一致", errorx.CodeFullCarStateInvalid))
 		}
 
@@ -152,7 +163,7 @@ func (l *SettleFullCarLogic) SettleFullCar(in *play.SettleFullCarReq) (*play.Set
 			RequestId: in.RequestId,
 			UserId:    in.UserId,
 			ConfigId:  in.ConfigId,
-			SeatIndex: in.SeatIndex,
+			SeatIndex: seat,
 			EntryName: picked.Name,
 			IsPrize:   isPrizeEntryName(entries, picked.Id),
 			PriceFen:  priceFen,

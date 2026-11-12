@@ -3,7 +3,6 @@ package fullcar
 import (
 	"context"
 
-	baseClient "gacha_srv/app/base/baseClient"
 	"gacha_srv/app/gateway/internal/middleware"
 	"gacha_srv/app/gateway/internal/saga"
 	"gacha_srv/app/gateway/internal/svc"
@@ -39,14 +38,15 @@ func (l *FullCarBuyLogic) SetRequestId(id string) {
 	l.requestId = id
 }
 
-// FullCarBuy 满车购座：网关发起 DTM SAGA 事务（7 分支，与 DigBuy 同构，统一 builder 见 saga/builder.go）。
+// FullCarBuy 满车购座：网关发起 DTM SAGA 事务（同步预检资格+风控后 5 分支，与 DigBuy 同构，统一 builder 见 saga/builder.go）。
 //
-//	[01 base.EvaluatePolicy scene=FULL_CAR → 02 base.RiskEvaluate → 03 play.LockFullCar
-//	 锁报价+占座+余票-1 → 04 money.AuthorizeWalletPayment 建单冻结 → 05 play.SettleFullCar
-//	 抽 regular 奖+落记录（最后一票触发整车结算）→ 06 play.GrantFullCarPrizes 发整车奖
-//	 （永不 Aborted，空补偿）→ 07 money.CaptureWalletPayment 捕获核销]
-//	补偿：[空 → 空 → ReleaseFullCar 释座+余票+1+释放报价 → CancelPayment →
+//	[01 play.LockFullCar 锁报价+占座+余票-1 → 02 money.AuthorizeWalletPayment 建单冻结
+//	 → 03 play.SettleFullCar 抽 regular 奖+落记录（最后一票触发整车结算）
+//	 → 04 play.GrantFullCarPrizes 发整车奖（永不 Aborted，空补偿）
+//	 → 05 money.CaptureWalletPayment 捕获核销]
+//	补偿：[ReleaseFullCar 释座+余票+1+释放报价 → CancelPayment →
 //	      SettleFullCarRevert 撤销记录/整车奖/库存 → 空 → 空]
+//	同步预检：base.EvaluatePolicy（scene=FULL_CAR）+ base.RiskEvaluate，拒绝立即返回 4001/4002。
 //
 // 安全不变式：
 //  1. userId 取 JWT 上下文，不接受客户端传入；
@@ -102,32 +102,14 @@ func (l *FullCarBuyLogic) FullCarBuy(req *types.FullCarBuyReq) (resp *types.Full
 		return nil, errorx.FromError(err)
 	}
 
+	// 同步预检：资格评估 + 风控评估（拒绝立即返回，不入分布式事务）
+	if err := saga.Precheck(l.ctx, l.Logger, l.svcCtx.BaseRpc, gid, userId, req.ConfigId, unitFen, "FULL_CAR"); err != nil {
+		return nil, err
+	}
+
 	c := l.svcCtx.Config
 	b := saga.New(l.ctx, l.Logger, c.DtmServer.Target, gid).
-		// 01 资格评估（基础域）：scene=FULL_CAR
-		Add(
-			c.BaseRpcDirect+"/base.Base/EvaluatePolicy",
-			c.BaseRpcDirect+"/base.Base/EvaluatePolicyRevert",
-			&baseClient.EvaluatePolicyReq{
-				RequestId: gid,
-				UserId:    userId,
-				BoxId:     req.ConfigId,
-				Scene:     "FULL_CAR",
-			},
-		).
-		// 02 风控评估（基础域）
-		Add(
-			c.BaseRpcDirect+"/base.Base/RiskEvaluate",
-			c.BaseRpcDirect+"/base.Base/RiskEvaluateRevert",
-			&baseClient.RiskEvaluateReq{
-				RequestId: gid,
-				UserId:    userId,
-				BoxId:     req.ConfigId,
-				Scene:     "FULL_CAR",
-				AmountFen: unitFen,
-			},
-		).
-		// 03 锁报价+占座+余票-1（玩法域）；补偿 ReleaseFullCar 释座+余票+1+释放报价
+		// 01 锁报价+占座+余票-1（玩法域）；补偿 ReleaseFullCar 释座+余票+1+释放报价
 		Add(
 			c.PlayRpcDirect+"/play.Play/LockFullCar",
 			c.PlayRpcDirect+"/play.Play/ReleaseFullCar",
@@ -140,7 +122,7 @@ func (l *FullCarBuyLogic) FullCarBuy(req *types.FullCarBuyReq) (resp *types.Full
 				TotalPriceFen: unitFen,
 			},
 		).
-		// 04 建单+冻结（资金域）
+		// 02 建单+冻结（资金域）
 		Add(
 			c.MoneyRpcDirect+"/money.Money/AuthorizeWalletPayment",
 			c.MoneyRpcDirect+"/money.Money/CancelPayment",
@@ -154,7 +136,7 @@ func (l *FullCarBuyLogic) FullCarBuy(req *types.FullCarBuyReq) (resp *types.Full
 				LoyaltyPointsDebit: 0,
 			},
 		).
-		// 05 抽 regular 奖+落记录（玩法域）；补偿 SettleFullCarRevert 撤销记录/整车奖/库存
+		// 03 抽 regular 奖+落记录（玩法域）；补偿 SettleFullCarRevert 撤销记录/整车奖/库存
 		Add(
 			c.PlayRpcDirect+"/play.Play/SettleFullCar",
 			c.PlayRpcDirect+"/play.Play/SettleFullCarRevert",
@@ -166,7 +148,7 @@ func (l *FullCarBuyLogic) FullCarBuy(req *types.FullCarBuyReq) (resp *types.Full
 				Price:     utils.FenToYuan(quote.PayableFen),
 			},
 		).
-		// 06 发整车奖（玩法域）：永不 Aborted、空补偿（奖品先于捕获且不追回）
+		// 04 发整车奖（玩法域）：永不 Aborted、空补偿（奖品先于捕获且不追回）
 		Add(
 			c.PlayRpcDirect+"/play.Play/GrantFullCarPrizes",
 			c.PlayRpcDirect+"/play.Play/GrantFullCarPrizesRevert",
@@ -176,7 +158,7 @@ func (l *FullCarBuyLogic) FullCarBuy(req *types.FullCarBuyReq) (resp *types.Full
 				ConfigId:  req.ConfigId,
 			},
 		).
-		// 07 捕获核销（资金域末步）：腿 POSTED、核销报价（CommitQuote）、订单 PAID
+		// 05 捕获核销（资金域末步）：腿 POSTED、核销报价（CommitQuote）、订单 PAID
 		Add(
 			c.MoneyRpcDirect+"/money.Money/CaptureWalletPayment",
 			c.MoneyRpcDirect+"/money.Money/CaptureWalletPaymentRevert",

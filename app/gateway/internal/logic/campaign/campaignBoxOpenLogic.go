@@ -44,7 +44,7 @@ func (l *CampaignBoxOpenLogic) SetRequestId(id string) {
 //	② GetCampaignBoxEntitlement 校验资格（归属/AVAILABLE，5013/5014，marketing 域裁决）
 //	③ BoxDetail 取箱价（服务端定价）+ 售罄预检（快速失败 UX；SettleDraw 最终裁决）
 //	④ QuoteCheckout(gross=箱价, entitlementNo) → 资格全抵 payable=0（marketing 域裁决）
-//	⑤ SubmitDrawSaga 7 分支（03 LockQuote 锁资格 AVAILABLE→LOCKED；07 CommitQuote 核销 USED）
+//	⑤ SubmitDrawSaga（同步预检资格+风控后 5 分支：01 LockQuote 锁资格 AVAILABLE→LOCKED；05 CommitQuote 核销 USED）
 //	⑥ 返回 {requestId}，前端轮询 /draw/records?requestId=
 func (l *CampaignBoxOpenLogic) OpenCampaignBox(req *types.OpenCampaignBoxReq) (resp *types.OpenCampaignBoxResp, err error) {
 	userId, ok := middleware.UserIdFromCtx(l.ctx)

@@ -22,6 +22,10 @@ GrpcPort: 36790
 # 轮询未完成事务的间隔（秒）
 TransCronInterval: 3
 
+# 失败事务重试退避上限（秒）：指数退避（×2）封顶，避免服务长时间不可达时
+# 退避到数小时、导致失败事务补偿延迟过久。默认 60s（>= RetryInterval 10s）。
+MaxRetryInterval: 60
+
 # gRPC/HTTP 请求超时（秒）
 RequestTimeout: 3
 

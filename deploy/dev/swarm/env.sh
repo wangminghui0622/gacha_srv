@@ -41,11 +41,16 @@ export REDIS_PASSWORD="we7redis"
 
 export ETCD_ENDPOINTS="etcd:2379"    # 内置=服务名 etcd:2379；外部=IP:2379（多节点逗号分隔）
 
+# ── 镜像仓库（容器仓库）──
+#   1 = 本地（dev）：bootstrap 在 master 上跑 registry:2 + 配 insecure-registries
+#   0 = 外部（test/staging/product）：REGISTRY 填外部仓库地址，bootstrap 跳过本地仓库
+export REGISTRY_BUILTIN="1"
+export REGISTRY="192.168.197.128:5000"   # 本地=master:5000；外部=harbor.example.com 等（与 MYSQL_HOST 一样按环境填）
+
 # ── 镜像源（Docker Hub 被墙时拉基础镜像用）──
 export MIRROR="docker.1ms.run"
 
 # ── 派生值（脚本遍历用，一般不用改）──
-export REGISTRY="${MASTER_IP}:5000"  # 本地镜像仓库地址
 
 SSH_MASTER="${MASTER_USER}@${MASTER_IP}"
 # 从机 SSH 目标 与 sudo 密码，两个数组下标一一对应（增删从机需同时改两处）
