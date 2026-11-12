@@ -10,7 +10,6 @@ import (
 	gamemodel "gacha_srv/pkg/model/gacha_play"
 	gamemodelnc "gacha_srv/pkg/model_nocache/gacha_play"
 	"gacha_srv/pkg/utils"
-	"math/bits"
 	"sort"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -51,16 +50,6 @@ func digCellMask(cells []int64) int64 {
 }
 
 // digCellsOfMask 位图 → 已置位格子列表（升序）
-func digCellsOfMask(mask int64) []int64 {
-	cells := make([]int64, 0, bits.OnesCount64(uint64(mask)))
-	for i := 0; i < 62; i++ {
-		if mask&(1<<i) != 0 {
-			cells = append(cells, int64(i))
-		}
-	}
-	return cells
-}
-
 // digJoinCells 格子列表 → 逗号分隔串（升序，记录落库用）
 func digJoinCells(cells []int64) string {
 	sorted := append([]int64(nil), cells...)
@@ -76,30 +65,6 @@ func digJoinCells(cells []int64) string {
 }
 
 // digParseCells 逗号分隔串 → 格子列表
-func digParseCells(s string) []int64 {
-	if s == "" {
-		return nil
-	}
-	var out []int64
-	var cur int64 = -1
-	for i := 0; i <= len(s); i++ {
-		if i == len(s) || s[i] == ',' {
-			if cur >= 0 {
-				out = append(out, cur)
-				cur = -1
-			}
-			continue
-		}
-		if s[i] >= '0' && s[i] <= '9' {
-			if cur < 0 {
-				cur = 0
-			}
-			cur = cur*10 + int64(s[i]-'0')
-		}
-	}
-	return out
-}
-
 // digCellsValid 校验格子列表：非空、无重复、索引 < cellCount
 func digCellsValid(cells []int64, cellCount int64) bool {
 	if len(cells) == 0 || cellCount <= 0 {
