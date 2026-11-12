@@ -1,105 +1,90 @@
 # 玩法框架（play-rpc + gateway 购买流）
 
-> 本文件记录 2026-11 重构后的玩法结构。目标：新增玩法只加「一个包 + 几张表 + 一个购买流」，
-> 不再复制粘贴 6~8 个 logic 文件。
+> 2026-11 接口化：36 个 typed SAGA 分支 RPC + 5 个 List 收敛为 **7 个通用 RPC**；
+> 读/玩法/管理接口保留 20 个，共 **27 个 RPC**。goctl 可安全重生成。
 
 ## 1. 分层
 
 ```
-app/play/internal/
-├── playkit/                 # 玩法公共能力（所有玩法共用）
-│   ├── barrier.go           #   BarrierTx：DTM 屏障 + raw DB + txutil
-│   ├── quote.go             #   LoadQuote / LockQuote（统一错误映射）
-│   └── prize.go             #   GrantAll / GrantOne / MarkGranted
-└── logic/
-    ├── gashaponService.go   # 扭蛋：Lock/Release/Settle/Revert/Grant/Get/List/Assign
-    ├── fullCarService.go    # 满车
-    ├── comboChainService.go # 连击链
-    ├── digService.go        # 挖宝
-    ├── groupBuyService.go   # 拼团
-    ├── memoryMatchService.go# 记忆翻牌
-    └── shared.go            # 公共常量 / CheckPrizesGranted
+pkg/proto/play.proto
+├── enum PlayMode                 # 6 种玩法
+├── PlayLock/Release/Settle/SettleRevert/Grant/GrantRevert
+├── PlayListRecords
+└── 20 个读/玩法/管理 RPC（Get*/List*/记忆翻牌玩法/Assign/CheckPrizesGranted）
+
+app/play/
+├── internal/logic/               # goctl 生成：27 个桩 + playDispatch.go
+│   ├── playLockLogic.go          #   通用分支桩 → doPlayLock
+│   ├── ...
+│   └── getGashaponLogic.go       #   读接口桩 → gameimpl.NewGetGashaponLogic
+├── internal/gameimpl/            # 手写实现（按 SAGA 阶段拆文件）
+│   ├── gashapon_{lock,release,settle,grant,query,ops}.go
+│   ├── fullcar_{lock,release,settle,grant,query,ops}.go
+│   ├── combochain_{...}.go
+│   ├── dig_{...}.go
+│   ├── groupbuy_{...}.go
+│   ├── memorymatch_{lock,settle,grant,session,round,champion,ops}.go
+│   └── shared.go
+└── internal/playkit/             # BarrierTx / LoadQuote / LockQuote / GrantAll
 ```
 
-每个 `*Service.go` 内仍然是原来的 `NewXxxLogic` 构造器与 RPC 方法，`playServer.go` 不用改。
+`logic` 只做转发，`gameimpl` 是唯一实现层。goctl 重生成只会覆盖 `logic` 桩和 pb/client/server，不会碰 `gameimpl`。
 
-## 2. playkit API
+## 2. 7 个通用 SAGA 分支
 
-| API | 用途 |
-|---|---|
-| `playkit.BarrierTx(ctx, svc, op, fn)` | 统一 `BarrierFromGrpc → rawDB → CallWithDB → txutil.WithTx`；返回 `ran` 对应原 `businessRan` |
-| `playkit.LoadQuote(ctx, svc, quoteToken)` | 读报价，返回 `UserID/GrossFen/BoxID`；业务错误统一映射 Aborted |
-| `playkit.LockQuote(ctx, svc, requestID, quoteToken)` | 锁报价；`newLocked=false` 表示已锁（幂等重放） |
-| `playkit.GrantAll(ctx, svc, requestID, prefix, []Prize)` | 逐奖幂等发放；`grant_no = prefix_requestID#idx` |
-| `playkit.MarkGranted(ctx, svc, requestID, userID)` | 写 `prize_grant_marks`（04 退款前置检查依据） |
+| RPC | payload 内容 | 补偿 |
+|---|---|---|
+| `PlayLock` | typed `LockXxxReq` | `PlayRelease`（**复用 PlayLockReq**，DTM 透传正向 payload） |
+| `PlaySettle` | typed `SettleXxxReq` | `PlaySettleRevert`（同一 `PlaySettleReq`） |
+| `PlayGrant` | typed `GrantXxxReq` | `PlayGrantRevert`（同一 `PlayGrantReq`） |
+| `PlayListRecords` | mode + requestId/userId/page | — |
 
-奖品统一形状：
-
-```go
-playkit.Prize{
-    UserID, Kind, CashFen, Points, CouponTemplateNo,
-}
-// Kind: 1 现金 / 2 积分 / 3 券
-```
+固定顺序：`lock → authorize → settle → grant → capture`。  
+补偿由 DTM 反向执行：`captureRevert → grantRevert → settleRevert → cancel → release`。
 
 ## 3. 网关购买流
 
 ```
 app/gateway/internal/saga/
-├── builder.go        # DTM 组装器（Add/Submit/Recheck）
-├── buyflow.go        # BuyFlow：userId→gid→幂等→单价→报价→预检→分支→Submit
-├── wallet.go         # 02 冻结 / 05 捕获（统一资金分支）
-└── branches.go       # PlayBranches：固定 5 分支顺序 + 单元测试
+├── mode.go        # PurchaseMode[Req] + RunBuy
+├── branches.go    # PlayBranches：固定 5 分支 + 通用 Play* 路径
+└── wallet.go      # 02 冻结 / 05 捕获
+
+app/gateway/internal/playapi/
+└── playapi.go     # PlayListRecords 封装（payload → typed 响应）
 ```
 
-`BuyFlow` 的玩法差异只剩 hook：
+每个玩法实现一个 `purchaseMode`：
 
 ```go
-flow := &saga.BuyFlow{
-    Ctx, Log, Svc, RequestID, Scene, ConfigID, FailMsg,
-    LoadUnitFen: func(ctx, userID) (int64, error) { ... },  // 服务端单价
-    Prepare:     func(ctx, userID) error { ... },           // 可选：挖宝格子
-    AmountFen:   func(unitFen int64) int64 { ... },         // 默认 unitFen
-    Idempotent:  func(ctx, gid, userID) (bool, error) { ... }, // 同 gid 已有记录
-    BuildBranches: func(...) ([]saga.Branch, error) { ... },
-    Recheck:     func(ctx, gid, userID) error { ... },      // Submit 失败回查
+type purchaseMode struct{ log logx.Logger }
+
+func (m purchaseMode) BuildBranches(...) ([]saga.Branch, error) {
+    lockBytes, _ := proto.Marshal(&playClient.LockGashaponReq{...})
+    return saga.PlayBranches(..., saga.PlayBranchSet{
+        LockPath:    c.PlayRpcDirect + saga.PathPlayLock,
+        ReleasePath: c.PlayRpcDirect + saga.PathPlayRelease,
+        LockPayload: &play.PlayLockReq{Mode: ..., Payload: lockBytes, ...},
+        ...
+    }), nil
 }
 ```
 
-`BuildBranches` 统一用：
+## 4. 新增玩法的标准步骤
 
-```go
-saga.PlayBranches(moneyDirect, gid, userID, boxID, quote, saga.PlayBranchSet{
-    LockPath, ReleasePath, LockPayload,
-    SettlePath, SettleRevertPath, SettlePayload,
-    GrantPath, GrantRevertPath, GrantPayload,
-})
-```
+1. `play.proto`：`PlayMode` 加枚举值；通用分支不需要加 RPC。
+2. `gameimpl`：新增 `<mode>_lock.go / _settle.go / _grant.go / _query.go / _ops.go`。
+3. `logic/playDispatch.go`：在 `doPlayLock/Release/Settle/Grant/ListRecords` 加 case，反序列化 payload → 调 `gameimpl`。
+4. 网关：新增 `<mode>/purchaseMode.go`，实现 `saga.PurchaseMode`。
+5. 读/玩法接口：按需在 `play.proto` 加 typed RPC（读接口仍保留类型安全）。
+6. 测试：core 单测 + `saga.PlayBranches` 顺序测试 + 场景冒烟。
 
-固定顺序：`lock → authorize → settle → grant → capture`。  
-补偿由 DTM 反向执行：`captureRevert → grantRevert → settleRevert → cancel → release`。
+## 5. goctl 约束
 
-## 4. 新增一个玩法的标准步骤
-
-1. **SQL**：`xxx_configs / xxx_entries / xxx_state / xxx_records`（每玩法独立表）。
-2. **model**：`pkg/model/gacha_play` + `pkg/model_nocache/gacha_play`。
-3. **纯函数**：`app/play/internal/core/xxx.go`（可单测、可回放，不放 DB/RPC）。
-4. **服务逻辑**：`app/play/internal/logic/xxxService.go`，提供：
-   - `NewLockXxxLogic / NewReleaseXxxLogic / NewSettleXxxLogic / NewSettleXxxRevertLogic / NewGrantXxxPrizesLogic / NewGrantXxxPrizesRevertLogic`
-   - `NewGetXxxLogic / NewListXxxRecordsLogic`
-   - 内部统一用 `playkit.BarrierTx / LoadQuote / LockQuote / GrantAll / MarkGranted`
-5. **RPC**：`pkg/proto/play.proto` 加消息 + `rpc`；生成后 `playServer.go` 加转发（构造器名保持一致）。
-6. **网关购买**：`app/gateway/internal/logic/<mode>/xxxBuyLogic.go`，套 `saga.BuyFlow` + `PlayBranches`。
-7. **后台配置**：admin-gateway 加配置 CRUD；复用赏池发布管线。
-8. **测试**：core 单测 + `saga.PlayBranches` 顺序测试 + 场景脚本冒烟。
-
-## 5. proto 策略
-
-- **现在不改**：本次重构只动实现，RPC 契约不变。
-- 新增玩法时二选一：
-  - 继续 per-mode RPC（8~19 个）；
-  - 增量加通用 RPC：`PlayMode` 枚举 + `PlayLock/PlayRelease/PlaySettle/...` + `payload`，旧 RPC 保留。
-- 不建议直接删除旧 per-mode RPC（网关/客户端会断）。
+- `bash script/goctl.sh play` 会重新生成 `logic` 27 个桩 + pb/client/server；
+- **不要再把实现写回 `logic`**，否则重生成会冲突；
+- 实现只写 `gameimpl`，桩只做转发；
+- 通用分支桩改的是 `playDispatch.go`（手写文件，goctl 不会覆盖）。
 
 ## 6. 验证
 
@@ -109,5 +94,5 @@ go test ./...
 go vet ./app/play/... ./app/gateway/...
 ```
 
-部署后冒烟：扭蛋 / 满车 / 连击链 / 挖宝 / 拼团各买一次，确认
-「扣款 → 开奖 → 发奖 → 记录 → 补偿」链路正常。
+部署冒烟：扭蛋 / 满车 / 连击链 / 挖宝 / 拼团 / 记忆翻牌各买一次；
+并验证一次失败补偿（`PlaySettleRevert` + `PlayRelease`）。
