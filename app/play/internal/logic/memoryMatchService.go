@@ -547,7 +547,9 @@ func (l *GetMemoryMatchSessionByRequestLogic) GetMemoryMatchSessionByRequest(in 
 	if err := l.svcCtx.DB.Where("request_id = ? AND user_id = ?", in.RequestId, in.UserId).
 		First(&sess).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errorx.NewCodeError(errorx.CodeNotFound, "会话不存在")
+			// requestId 未命中是正常情况（幂等快路径/轮询尚未建会话）：
+			// 返回空会话而非 404，避免每笔新购买打 error 日志。
+			return &play.GetMemoryMatchSessionByRequestResp{}, nil
 		}
 		l.Errorf("GetMemoryMatchSessionByRequest failed, requestId: %s, err: %v", in.RequestId, err)
 		return nil, errorx.NewCodeError(errorx.CodeDBError, "数据库错误")

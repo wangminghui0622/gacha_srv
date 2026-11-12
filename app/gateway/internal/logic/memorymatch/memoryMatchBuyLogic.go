@@ -9,11 +9,9 @@ import (
 	"gacha_srv/app/gateway/internal/saga"
 	"gacha_srv/app/gateway/internal/svc"
 	"gacha_srv/app/gateway/internal/types"
-	marketingClient "gacha_srv/app/marketing/marketingClient"
 	playClient "gacha_srv/app/play/playClient"
 	"gacha_srv/app/task/task"
 	"gacha_srv/app/task/taskClient"
-	"gacha_srv/pkg/utils"
 	"gacha_srv/pkg/utils/errorx"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -43,7 +41,7 @@ func (l *MemoryMatchBuyLogic) pollSession(ctx context.Context, gid string, userI
 			RequestId: gid,
 			UserId:    userId,
 		})
-		if err == nil && sess != nil {
+		if err == nil && sess != nil && sess.SessionId > 0 {
 			switch int64(sess.State) {
 			case 1: // PENDING：SAGA 仍在途，继续等
 			case 7: // EXPIRED：事务已补偿，购买失败
@@ -72,17 +70,8 @@ func (l *MemoryMatchBuyLogic) successResp(sess *playClient.GetMemoryMatchSession
 	}
 }
 
-// MemoryMatchBuy 记忆翻牌购买：网关发起 DTM SAGA 事务（同步预检资格+风控后 5 分支）。
-//
-//	[01 play.LockMemoryMatch 锁报价+会话插入 PENDING+配置/外观/权益/价格校验
-//	 → 02 money.AuthorizeWalletPayment 建单冻结
-//	 → 03 play.SettleMemoryMatch PENDING→AWAITING_DESTINY（engine_seed+擂主分成）
-//	 → 04 play.GrantMemoryMatchPrizes 空操作（购买时无奖）→ 05 money.CaptureWalletPayment 捕获核销]
-//	补偿：[LockMemoryMatchRevert 会话 EXPIRED+释放报价 → CancelPayment →
-//	      SettleMemoryMatchRevert 回 PENDING+清种子+回扣分成 → 空 → 空]
-//
-// 与其它玩法不同：提交后按 requestId 轮询会话建立（≤10s），同步返回完整 session，
-// 而不是 pending 状态；因此保留 pollSession 特殊逻辑。
+// MemoryMatchBuy 记忆翻牌购买：5 分支 SAGA，玩法差异见 purchaseMode。
+// 与其它玩法不同：提交后按 requestId 轮询会话建立（≤10s），同步返回完整 session。
 func (l *MemoryMatchBuyLogic) MemoryMatchBuy(req *types.MemoryMatchPurchaseReq) (*types.MemoryMatchPurchaseResp, error) {
 	userId, ok := middleware.UserIdFromCtx(l.ctx)
 	if !ok || userId <= 0 {
@@ -95,12 +84,11 @@ func (l *MemoryMatchBuyLogic) MemoryMatchBuy(req *types.MemoryMatchPurchaseReq) 
 	}
 	gid := l.requestId
 
-	// ② 幂等重放快路径：同 key 已有会话 → 直接返回（先于业务解析，M11b 教训；
-	// 单次查询不烧请求预算；PENDING=并发在途，交由 Submit 同 gid 冲突回查兜底）
+	// ② 幂等重放快路径：同 key 已有会话 → 直接返回（先于业务解析，M11b 教训）
 	if sess, err := l.svcCtx.PlayRpc.GetMemoryMatchSessionByRequest(l.ctx, &playClient.GetMemoryMatchSessionByRequestReq{
 		RequestId: gid,
 		UserId:    userId,
-	}); err == nil && sess != nil && int64(sess.State) != 1 {
+	}); err == nil && sess != nil && sess.SessionId > 0 && int64(sess.State) != 1 {
 		if int64(sess.State) == 7 { // EXPIRED：事务已补偿
 			l.Errorf("MemoryMatchBuy idempotent replay hit expired session, gid: %s", gid)
 			return nil, errorx.NewCodeError(errorx.CodeMemoryMatchConflict, "该幂等键对应购买已撤销，请更换幂等键重试")
@@ -120,94 +108,30 @@ func (l *MemoryMatchBuyLogic) MemoryMatchBuy(req *types.MemoryMatchPurchaseReq) 
 	}
 
 	// ④ 统一购买骨架：gid → 单价 → 报价 → 预检 → 5 分支
-	flow := &saga.BuyFlow{
-		Ctx:              l.ctx,
-		Log:              l.Logger,
-		Svc:              l.svcCtx,
-		RequestID:        l.requestId,
-		RequireRequestID: true,
-		Scene:            "MEMORY_MATCH",
-		ConfigID:         req.ConfigId,
-		FailMsg:          "记忆翻牌请求提交失败，请稍后重试",
-		UserCouponID:     req.UserCouponId,
-		LoadUnitFen: func(ctx context.Context, userID int64) (int64, error) {
-			detail, err := l.svcCtx.PlayRpc.GetMemoryMatchConfig(ctx, &playClient.GetMemoryMatchConfigReq{
-				ConfigId: req.ConfigId,
-				UserId:   userID,
-			})
-			if err != nil {
-				l.Errorf("MemoryMatchBuy GetMemoryMatchConfig failed, configId: %d, err: %v", req.ConfigId, err)
-				return 0, errorx.FromError(err)
-			}
-			unitFen, err := utils.YuanToFen(detail.Config.PurchasePrice)
-			if err != nil || unitFen <= 0 {
-				return 0, errorx.NewCodeError(errorx.CodeAmountInvalid, "记忆翻牌价格无效")
-			}
-			return unitFen, nil
-		},
-		BuildBranches: func(gid string, userID int64, quote *marketingClient.QuoteCheckoutResp, unitFen, grossFen int64) ([]saga.Branch, error) {
-			c := l.svcCtx.Config
-			return saga.PlayBranches(c.MoneyRpcDirect, gid, userID, req.ConfigId, quote, saga.PlayBranchSet{
-				// 01 锁报价+会话插入 PENDING；补偿 LockMemoryMatchRevert 会话 EXPIRED+释放报价
-				LockPath:    c.PlayRpcDirect + "/play.Play/LockMemoryMatch",
-				ReleasePath: c.PlayRpcDirect + "/play.Play/LockMemoryMatchRevert",
-				LockPayload: &playClient.LockMemoryMatchReq{
-					RequestId:     gid,
-					QuoteToken:    quote.QuoteToken,
-					ConfigId:      req.ConfigId,
-					UserId:        userID,
-					FacePresetId:  req.FacePresetId,
-					BackPresetId:  req.BackPresetId,
-					TotalPriceFen: unitFen,
-				},
-				// 03 PENDING→AWAITING_DESTINY；补偿 SettleMemoryMatchRevert
-				SettlePath:       c.PlayRpcDirect + "/play.Play/SettleMemoryMatch",
-				SettleRevertPath: c.PlayRpcDirect + "/play.Play/SettleMemoryMatchRevert",
-				SettlePayload: &playClient.SettleMemoryMatchReq{
-					RequestId: gid,
-					UserId:    userID,
-					ConfigId:  req.ConfigId,
-					SessionId: 0,
-					Price:     utils.FenToYuan(quote.PayableFen),
-				},
-				// 04 发奖空操作（购买时无奖，终局结算同步发奖；永不 Aborted、空补偿）
-				GrantPath:       c.PlayRpcDirect + "/play.Play/GrantMemoryMatchPrizes",
-				GrantRevertPath: c.PlayRpcDirect + "/play.Play/GrantMemoryMatchPrizesRevert",
-				GrantPayload: &playClient.GrantMemoryMatchPrizesReq{
-					RequestId: gid,
-					UserId:    userID,
-					SessionId: 0,
-					ConfigId:  req.ConfigId,
-				},
-			}), nil
-		},
-		// 不传 Recheck：Submit 失败由下面的会话轮询兜底（老实现同款）
-	}
-
-	gid, userID, _, err := flow.Run()
+	gid, userId, _, err := saga.RunBuy(l.ctx, l.Logger, l.svcCtx, l.requestId, req, purchaseMode{log: l.Logger})
 	if err != nil {
 		// Submit 失败很可能是「同 gid 事务已存在」：轮询会话兜底
 		fallbackCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
-		if sess, found, _ := l.pollSession(fallbackCtx, gid, userID); found {
+		if sess, found, _ := l.pollSession(fallbackCtx, gid, userId); found {
 			l.Infof("MemoryMatchBuy submit failed but session exists, gid: %s, sessionId: %d", gid, sess.SessionId)
-			l.applyTaskProgress(userID, gid, sess.PaidMinor)
+			l.applyTaskProgress(userId, gid, sess.PaidMinor)
 			return l.successResp(sess), nil
 		}
 		l.Errorf("dtm saga submit failed, gid: %s, err: %v", gid, err)
 		return nil, err
 	}
-	l.Infof("dtm saga submitted, gid: %s, configId: %d, userId: %d", gid, req.ConfigId, userID)
+	l.Infof("dtm saga submitted, gid: %s, configId: %d, userId: %d", gid, req.ConfigId, userId)
 
 	// ⑤ 轮询会话建立（≤10s）：同步返回 sessionId/state/appearance
 	pollCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	if sess, found, expired := l.pollSession(pollCtx, gid, userID); found {
+	if sess, found, expired := l.pollSession(pollCtx, gid, userId); found {
 		if expired {
 			l.Errorf("MemoryMatchBuy saga compensated, gid: %s", gid)
 			return nil, errorx.NewCodeError(errorx.CodeDTMError, "购买未完成（事务已回滚），请更换幂等键重试")
 		}
-		l.applyTaskProgress(userID, gid, sess.PaidMinor)
+		l.applyTaskProgress(userId, gid, sess.PaidMinor)
 		return l.successResp(sess), nil
 	}
 	l.Errorf("MemoryMatchBuy poll timeout, gid: %s", gid)
