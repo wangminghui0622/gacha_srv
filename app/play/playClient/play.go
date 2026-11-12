@@ -107,7 +107,6 @@ type (
 	PlayListRecordsResp                = play.PlayListRecordsResp
 	PlayLockReq                        = play.PlayLockReq
 	PlayLockResp                       = play.PlayLockResp
-	PlayReleaseReq                     = play.PlayReleaseReq
 	PlayReleaseResp                    = play.PlayReleaseResp
 	PlaySettleReq                      = play.PlaySettleReq
 	PlaySettleResp                     = play.PlaySettleResp
@@ -144,7 +143,7 @@ type (
 	SkipMemoryMatchResp                = play.SkipMemoryMatchResp
 
 	Play interface {
-		// 通用 SAGA 分支（payload 内是各玩法 typed 请求）
+		// ---- 通用 SAGA 分支（payload 内是各玩法 typed 请求）----
 		PlayLock(ctx context.Context, in *PlayLockReq, opts ...grpc.CallOption) (*PlayLockResp, error)
 		PlayRelease(ctx context.Context, in *PlayLockReq, opts ...grpc.CallOption) (*PlayReleaseResp, error)
 		PlaySettle(ctx context.Context, in *PlaySettleReq, opts ...grpc.CallOption) (*PlaySettleResp, error)
@@ -152,20 +151,20 @@ type (
 		PlayGrant(ctx context.Context, in *PlayGrantReq, opts ...grpc.CallOption) (*PlayGrantResp, error)
 		PlayGrantRevert(ctx context.Context, in *PlayGrantReq, opts ...grpc.CallOption) (*PlayGrantResp, error)
 		PlayListRecords(ctx context.Context, in *PlayListRecordsReq, opts ...grpc.CallOption) (*PlayListRecordsResp, error)
-		// 读 / 玩法 / 管理接口保留（下方 rpc 行原样保留）
+		// ---- 挖宝 ----
 		ListDigBoxes(ctx context.Context, in *ListDigBoxesReq, opts ...grpc.CallOption) (*ListDigBoxesResp, error)
 		GetDigBoxSession(ctx context.Context, in *GetDigBoxSessionReq, opts ...grpc.CallOption) (*GetDigBoxSessionResp, error)
-		// ---- M12 满车 full_car ----
+		// ---- 满车 ----
 		GetFullCar(ctx context.Context, in *GetFullCarReq, opts ...grpc.CallOption) (*GetFullCarResp, error)
-		// ---- M12 扭蛋 gashapon ----
+		// ---- 扭蛋 ----
 		GetGashapon(ctx context.Context, in *GetGashaponReq, opts ...grpc.CallOption) (*GetGashaponResp, error)
-		// LockGashapon SAGA 03 正向：报价锁 + state FOR UPDATE + participants/records 追加 + 余票-count
+		// 幸运指派（仅 LUCKY 奖；userId=0 删除），供 ops/admin 直调
 		AssignGashaponLuckyUser(ctx context.Context, in *AssignGashaponLuckyUserReq, opts ...grpc.CallOption) (*AssignGashaponLuckyUserResp, error)
-		// ---- M13 连击链 combo_chain ----
+		// ---- 连击链 ----
 		GetComboChain(ctx context.Context, in *GetComboChainReq, opts ...grpc.CallOption) (*GetComboChainResp, error)
-		// ---- M13 拼团抽 group_buy ----
+		// ---- 拼团抽 ----
 		GetGroupBuy(ctx context.Context, in *GetGroupBuyReq, opts ...grpc.CallOption) (*GetGroupBuyResp, error)
-		// ---- M15b 记忆翻牌 MemoryMatch（消息/语义照抄 server_v2 gacha memory_match）----
+		// ---- 记忆翻牌（玩法接口）----
 		GetMemoryMatchConfig(ctx context.Context, in *GetMemoryMatchConfigReq, opts ...grpc.CallOption) (*GetMemoryMatchConfigResp, error)
 		GetMemoryMatchAppearance(ctx context.Context, in *GetMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*GetMemoryMatchAppearanceResp, error)
 		SetMemoryMatchAppearance(ctx context.Context, in *SetMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*SetMemoryMatchAppearanceResp, error)
@@ -178,7 +177,7 @@ type (
 		ApplyMemoryMatchDestinyDraw(ctx context.Context, in *ApplyMemoryMatchDestinyDrawReq, opts ...grpc.CallOption) (*ApplyMemoryMatchDestinyDrawResp, error)
 		CompleteMemoryMatchRound(ctx context.Context, in *CompleteMemoryMatchRoundReq, opts ...grpc.CallOption) (*CompleteMemoryMatchRoundResp, error)
 		SkipMemoryMatch(ctx context.Context, in *SkipMemoryMatchReq, opts ...grpc.CallOption) (*SkipMemoryMatchResp, error)
-		// CheckPrizesGranted SAGA 04 补偿（CancelPayment）退款前置检查：
+		// ---- SAGA 04 补偿退款前置检查 ----
 		CheckPrizesGranted(ctx context.Context, in *CheckPrizesGrantedReq, opts ...grpc.CallOption) (*CheckPrizesGrantedResp, error)
 	}
 
@@ -193,7 +192,7 @@ func NewPlay(cli zrpc.Client) Play {
 	}
 }
 
-// 通用 SAGA 分支（payload 内是各玩法 typed 请求）
+// ---- 通用 SAGA 分支（payload 内是各玩法 typed 请求）----
 func (m *defaultPlay) PlayLock(ctx context.Context, in *PlayLockReq, opts ...grpc.CallOption) (*PlayLockResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.PlayLock(ctx, in, opts...)
@@ -229,7 +228,7 @@ func (m *defaultPlay) PlayListRecords(ctx context.Context, in *PlayListRecordsRe
 	return client.PlayListRecords(ctx, in, opts...)
 }
 
-// 读 / 玩法 / 管理接口保留（下方 rpc 行原样保留）
+// ---- 挖宝 ----
 func (m *defaultPlay) ListDigBoxes(ctx context.Context, in *ListDigBoxesReq, opts ...grpc.CallOption) (*ListDigBoxesResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.ListDigBoxes(ctx, in, opts...)
@@ -240,37 +239,37 @@ func (m *defaultPlay) GetDigBoxSession(ctx context.Context, in *GetDigBoxSession
 	return client.GetDigBoxSession(ctx, in, opts...)
 }
 
-// ---- M12 满车 full_car ----
+// ---- 满车 ----
 func (m *defaultPlay) GetFullCar(ctx context.Context, in *GetFullCarReq, opts ...grpc.CallOption) (*GetFullCarResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.GetFullCar(ctx, in, opts...)
 }
 
-// ---- M12 扭蛋 gashapon ----
+// ---- 扭蛋 ----
 func (m *defaultPlay) GetGashapon(ctx context.Context, in *GetGashaponReq, opts ...grpc.CallOption) (*GetGashaponResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.GetGashapon(ctx, in, opts...)
 }
 
-// LockGashapon SAGA 03 正向：报价锁 + state FOR UPDATE + participants/records 追加 + 余票-count
+// 幸运指派（仅 LUCKY 奖；userId=0 删除），供 ops/admin 直调
 func (m *defaultPlay) AssignGashaponLuckyUser(ctx context.Context, in *AssignGashaponLuckyUserReq, opts ...grpc.CallOption) (*AssignGashaponLuckyUserResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.AssignGashaponLuckyUser(ctx, in, opts...)
 }
 
-// ---- M13 连击链 combo_chain ----
+// ---- 连击链 ----
 func (m *defaultPlay) GetComboChain(ctx context.Context, in *GetComboChainReq, opts ...grpc.CallOption) (*GetComboChainResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.GetComboChain(ctx, in, opts...)
 }
 
-// ---- M13 拼团抽 group_buy ----
+// ---- 拼团抽 ----
 func (m *defaultPlay) GetGroupBuy(ctx context.Context, in *GetGroupBuyReq, opts ...grpc.CallOption) (*GetGroupBuyResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.GetGroupBuy(ctx, in, opts...)
 }
 
-// ---- M15b 记忆翻牌 MemoryMatch（消息/语义照抄 server_v2 gacha memory_match）----
+// ---- 记忆翻牌（玩法接口）----
 func (m *defaultPlay) GetMemoryMatchConfig(ctx context.Context, in *GetMemoryMatchConfigReq, opts ...grpc.CallOption) (*GetMemoryMatchConfigResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.GetMemoryMatchConfig(ctx, in, opts...)
@@ -331,7 +330,7 @@ func (m *defaultPlay) SkipMemoryMatch(ctx context.Context, in *SkipMemoryMatchRe
 	return client.SkipMemoryMatch(ctx, in, opts...)
 }
 
-// CheckPrizesGranted SAGA 04 补偿（CancelPayment）退款前置检查：
+// ---- SAGA 04 补偿退款前置检查 ----
 func (m *defaultPlay) CheckPrizesGranted(ctx context.Context, in *CheckPrizesGrantedReq, opts ...grpc.CallOption) (*CheckPrizesGrantedResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.CheckPrizesGranted(ctx, in, opts...)

@@ -23,7 +23,7 @@ func NewPlayServer(svcCtx *svc.ServiceContext) *PlayServer {
 	}
 }
 
-// 通用 SAGA 分支（payload 内是各玩法 typed 请求）
+// ---- 通用 SAGA 分支（payload 内是各玩法 typed 请求）----
 func (s *PlayServer) PlayLock(ctx context.Context, in *play.PlayLockReq) (*play.PlayLockResp, error) {
 	l := logic.NewPlayLockLogic(ctx, s.svcCtx)
 	return l.PlayLock(in)
@@ -59,7 +59,7 @@ func (s *PlayServer) PlayListRecords(ctx context.Context, in *play.PlayListRecor
 	return l.PlayListRecords(in)
 }
 
-// 读 / 玩法 / 管理接口保留（下方 rpc 行原样保留）
+// ---- 挖宝 ----
 func (s *PlayServer) ListDigBoxes(ctx context.Context, in *play.ListDigBoxesReq) (*play.ListDigBoxesResp, error) {
 	l := logic.NewListDigBoxesLogic(ctx, s.svcCtx)
 	return l.ListDigBoxes(in)
@@ -70,37 +70,37 @@ func (s *PlayServer) GetDigBoxSession(ctx context.Context, in *play.GetDigBoxSes
 	return l.GetDigBoxSession(in)
 }
 
-// ---- M12 满车 full_car ----
+// ---- 满车 ----
 func (s *PlayServer) GetFullCar(ctx context.Context, in *play.GetFullCarReq) (*play.GetFullCarResp, error) {
 	l := logic.NewGetFullCarLogic(ctx, s.svcCtx)
 	return l.GetFullCar(in)
 }
 
-// ---- M12 扭蛋 gashapon ----
+// ---- 扭蛋 ----
 func (s *PlayServer) GetGashapon(ctx context.Context, in *play.GetGashaponReq) (*play.GetGashaponResp, error) {
 	l := logic.NewGetGashaponLogic(ctx, s.svcCtx)
 	return l.GetGashapon(in)
 }
 
-// LockGashapon SAGA 03 正向：报价锁 + state FOR UPDATE + participants/records 追加 + 余票-count
+// 幸运指派（仅 LUCKY 奖；userId=0 删除），供 ops/admin 直调
 func (s *PlayServer) AssignGashaponLuckyUser(ctx context.Context, in *play.AssignGashaponLuckyUserReq) (*play.AssignGashaponLuckyUserResp, error) {
 	l := logic.NewAssignGashaponLuckyUserLogic(ctx, s.svcCtx)
 	return l.AssignGashaponLuckyUser(in)
 }
 
-// ---- M13 连击链 combo_chain ----
+// ---- 连击链 ----
 func (s *PlayServer) GetComboChain(ctx context.Context, in *play.GetComboChainReq) (*play.GetComboChainResp, error) {
 	l := logic.NewGetComboChainLogic(ctx, s.svcCtx)
 	return l.GetComboChain(in)
 }
 
-// ---- M13 拼团抽 group_buy ----
+// ---- 拼团抽 ----
 func (s *PlayServer) GetGroupBuy(ctx context.Context, in *play.GetGroupBuyReq) (*play.GetGroupBuyResp, error) {
 	l := logic.NewGetGroupBuyLogic(ctx, s.svcCtx)
 	return l.GetGroupBuy(in)
 }
 
-// ---- M15b 记忆翻牌 MemoryMatch（消息/语义照抄 server_v2 gacha memory_match）----
+// ---- 记忆翻牌（玩法接口）----
 func (s *PlayServer) GetMemoryMatchConfig(ctx context.Context, in *play.GetMemoryMatchConfigReq) (*play.GetMemoryMatchConfigResp, error) {
 	l := logic.NewGetMemoryMatchConfigLogic(ctx, s.svcCtx)
 	return l.GetMemoryMatchConfig(in)
@@ -161,7 +161,7 @@ func (s *PlayServer) SkipMemoryMatch(ctx context.Context, in *play.SkipMemoryMat
 	return l.SkipMemoryMatch(in)
 }
 
-// CheckPrizesGranted SAGA 04 补偿（CancelPayment）退款前置检查：
+// ---- SAGA 04 补偿退款前置检查 ----
 func (s *PlayServer) CheckPrizesGranted(ctx context.Context, in *play.CheckPrizesGrantedReq) (*play.CheckPrizesGrantedResp, error) {
 	l := logic.NewCheckPrizesGrantedLogic(ctx, s.svcCtx)
 	return l.CheckPrizesGranted(in)

@@ -52,7 +52,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PlayClient interface {
-	// 通用 SAGA 分支（payload 内是各玩法 typed 请求）
+	// ---- 通用 SAGA 分支（payload 内是各玩法 typed 请求）----
 	PlayLock(ctx context.Context, in *PlayLockReq, opts ...grpc.CallOption) (*PlayLockResp, error)
 	PlayRelease(ctx context.Context, in *PlayLockReq, opts ...grpc.CallOption) (*PlayReleaseResp, error)
 	PlaySettle(ctx context.Context, in *PlaySettleReq, opts ...grpc.CallOption) (*PlaySettleResp, error)
@@ -60,32 +60,20 @@ type PlayClient interface {
 	PlayGrant(ctx context.Context, in *PlayGrantReq, opts ...grpc.CallOption) (*PlayGrantResp, error)
 	PlayGrantRevert(ctx context.Context, in *PlayGrantReq, opts ...grpc.CallOption) (*PlayGrantResp, error)
 	PlayListRecords(ctx context.Context, in *PlayListRecordsReq, opts ...grpc.CallOption) (*PlayListRecordsResp, error)
-	// 读 / 玩法 / 管理接口保留（下方 rpc 行原样保留）
-	// ---- M11 dig 挖宝箱 ----
+	// ---- 挖宝 ----
 	ListDigBoxes(ctx context.Context, in *ListDigBoxesReq, opts ...grpc.CallOption) (*ListDigBoxesResp, error)
 	GetDigBoxSession(ctx context.Context, in *GetDigBoxSessionReq, opts ...grpc.CallOption) (*GetDigBoxSessionResp, error)
-	// ---- M12 满车 full_car ----
-	// GetFullCar 满车视图（座位/整车奖/余票/价）
+	// ---- 满车 ----
 	GetFullCar(ctx context.Context, in *GetFullCarReq, opts ...grpc.CallOption) (*GetFullCarResp, error)
-	// ---- M12 扭蛋 gashapon ----
-	// GetGashapon 扭蛋视图（特别奖进度/余票/参与人数/价）
+	// ---- 扭蛋 ----
 	GetGashapon(ctx context.Context, in *GetGashaponReq, opts ...grpc.CallOption) (*GetGashaponResp, error)
-	// LockGashapon SAGA 03 正向：报价锁 + state FOR UPDATE + participants/records 追加 + 余票-count
-	// ReleaseGashapon SAGA 03 补偿：按 requestId 弹出记录 + participants-count + 余票+count + 报价释放
-	// SettleGashapon SAGA 05 正向：抽 count 个 regular 奖 + 分阶段 LUCKY 判定 + 清空时终局 LAST/MVP/LUCKY
-	// SettleGashaponRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删特别奖 + sent 回退 + SETTLED→OPEN + 库存回补
-	// GrantGashaponPrizes SAGA 06 正向：regular 奖 + 特别奖逐奖幂等发放；永不 Aborted，补偿为空
-	// GrantGashaponPrizesRevert SAGA 06 补偿：空操作（注册防御）
-	// ListGashaponRecords 扭蛋记录（requestId 精确查询或分页列表）
-	// AssignGashaponLuckyUser 幸运指派（仅 LUCKY 奖；userId=0 删除）。无 HTTP 路由（无管理员鉴权），供 ops/admin 直调
+	// 幸运指派（仅 LUCKY 奖；userId=0 删除），供 ops/admin 直调
 	AssignGashaponLuckyUser(ctx context.Context, in *AssignGashaponLuckyUserReq, opts ...grpc.CallOption) (*AssignGashaponLuckyUserResp, error)
-	// ---- M13 连击链 combo_chain ----
-	// GetComboChain 连击链视图（车次进度/当前车余票/全局奖槽/共享奖/我的连击）
+	// ---- 连击链 ----
 	GetComboChain(ctx context.Context, in *GetComboChainReq, opts ...grpc.CallOption) (*GetComboChainResp, error)
-	// ---- M13 拼团抽 group_buy ----
-	// GetGroupBuy 拼团视图（成团进度/我的下注/幸运奖进度/价）
+	// ---- 拼团抽 ----
 	GetGroupBuy(ctx context.Context, in *GetGroupBuyReq, opts ...grpc.CallOption) (*GetGroupBuyResp, error)
-	// ---- M15b 记忆翻牌 MemoryMatch（消息/语义照抄 server_v2 gacha memory_match）----
+	// ---- 记忆翻牌（玩法接口）----
 	GetMemoryMatchConfig(ctx context.Context, in *GetMemoryMatchConfigReq, opts ...grpc.CallOption) (*GetMemoryMatchConfigResp, error)
 	GetMemoryMatchAppearance(ctx context.Context, in *GetMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*GetMemoryMatchAppearanceResp, error)
 	SetMemoryMatchAppearance(ctx context.Context, in *SetMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*SetMemoryMatchAppearanceResp, error)
@@ -98,9 +86,7 @@ type PlayClient interface {
 	ApplyMemoryMatchDestinyDraw(ctx context.Context, in *ApplyMemoryMatchDestinyDrawReq, opts ...grpc.CallOption) (*ApplyMemoryMatchDestinyDrawResp, error)
 	CompleteMemoryMatchRound(ctx context.Context, in *CompleteMemoryMatchRoundReq, opts ...grpc.CallOption) (*CompleteMemoryMatchRoundResp, error)
 	SkipMemoryMatch(ctx context.Context, in *SkipMemoryMatchReq, opts ...grpc.CallOption) (*SkipMemoryMatchResp, error)
-	// CheckPrizesGranted SAGA 04 补偿（CancelPayment）退款前置检查：
-	// 该 gid 的 06 发奖是否已成功落库（prize_grant_marks uk request_id）。
-	// 已发放则 payment 不执行 VoidHold 退钱（资产已发放不追回，钱保持扣除，冻结保持可恢复）
+	// ---- SAGA 04 补偿退款前置检查 ----
 	CheckPrizesGranted(ctx context.Context, in *CheckPrizesGrantedReq, opts ...grpc.CallOption) (*CheckPrizesGrantedResp, error)
 }
 
@@ -359,7 +345,7 @@ func (c *playClient) CheckPrizesGranted(ctx context.Context, in *CheckPrizesGran
 // All implementations must embed UnimplementedPlayServer
 // for forward compatibility
 type PlayServer interface {
-	// 通用 SAGA 分支（payload 内是各玩法 typed 请求）
+	// ---- 通用 SAGA 分支（payload 内是各玩法 typed 请求）----
 	PlayLock(context.Context, *PlayLockReq) (*PlayLockResp, error)
 	PlayRelease(context.Context, *PlayLockReq) (*PlayReleaseResp, error)
 	PlaySettle(context.Context, *PlaySettleReq) (*PlaySettleResp, error)
@@ -367,32 +353,20 @@ type PlayServer interface {
 	PlayGrant(context.Context, *PlayGrantReq) (*PlayGrantResp, error)
 	PlayGrantRevert(context.Context, *PlayGrantReq) (*PlayGrantResp, error)
 	PlayListRecords(context.Context, *PlayListRecordsReq) (*PlayListRecordsResp, error)
-	// 读 / 玩法 / 管理接口保留（下方 rpc 行原样保留）
-	// ---- M11 dig 挖宝箱 ----
+	// ---- 挖宝 ----
 	ListDigBoxes(context.Context, *ListDigBoxesReq) (*ListDigBoxesResp, error)
 	GetDigBoxSession(context.Context, *GetDigBoxSessionReq) (*GetDigBoxSessionResp, error)
-	// ---- M12 满车 full_car ----
-	// GetFullCar 满车视图（座位/整车奖/余票/价）
+	// ---- 满车 ----
 	GetFullCar(context.Context, *GetFullCarReq) (*GetFullCarResp, error)
-	// ---- M12 扭蛋 gashapon ----
-	// GetGashapon 扭蛋视图（特别奖进度/余票/参与人数/价）
+	// ---- 扭蛋 ----
 	GetGashapon(context.Context, *GetGashaponReq) (*GetGashaponResp, error)
-	// LockGashapon SAGA 03 正向：报价锁 + state FOR UPDATE + participants/records 追加 + 余票-count
-	// ReleaseGashapon SAGA 03 补偿：按 requestId 弹出记录 + participants-count + 余票+count + 报价释放
-	// SettleGashapon SAGA 05 正向：抽 count 个 regular 奖 + 分阶段 LUCKY 判定 + 清空时终局 LAST/MVP/LUCKY
-	// SettleGashaponRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删特别奖 + sent 回退 + SETTLED→OPEN + 库存回补
-	// GrantGashaponPrizes SAGA 06 正向：regular 奖 + 特别奖逐奖幂等发放；永不 Aborted，补偿为空
-	// GrantGashaponPrizesRevert SAGA 06 补偿：空操作（注册防御）
-	// ListGashaponRecords 扭蛋记录（requestId 精确查询或分页列表）
-	// AssignGashaponLuckyUser 幸运指派（仅 LUCKY 奖；userId=0 删除）。无 HTTP 路由（无管理员鉴权），供 ops/admin 直调
+	// 幸运指派（仅 LUCKY 奖；userId=0 删除），供 ops/admin 直调
 	AssignGashaponLuckyUser(context.Context, *AssignGashaponLuckyUserReq) (*AssignGashaponLuckyUserResp, error)
-	// ---- M13 连击链 combo_chain ----
-	// GetComboChain 连击链视图（车次进度/当前车余票/全局奖槽/共享奖/我的连击）
+	// ---- 连击链 ----
 	GetComboChain(context.Context, *GetComboChainReq) (*GetComboChainResp, error)
-	// ---- M13 拼团抽 group_buy ----
-	// GetGroupBuy 拼团视图（成团进度/我的下注/幸运奖进度/价）
+	// ---- 拼团抽 ----
 	GetGroupBuy(context.Context, *GetGroupBuyReq) (*GetGroupBuyResp, error)
-	// ---- M15b 记忆翻牌 MemoryMatch（消息/语义照抄 server_v2 gacha memory_match）----
+	// ---- 记忆翻牌（玩法接口）----
 	GetMemoryMatchConfig(context.Context, *GetMemoryMatchConfigReq) (*GetMemoryMatchConfigResp, error)
 	GetMemoryMatchAppearance(context.Context, *GetMemoryMatchAppearanceReq) (*GetMemoryMatchAppearanceResp, error)
 	SetMemoryMatchAppearance(context.Context, *SetMemoryMatchAppearanceReq) (*SetMemoryMatchAppearanceResp, error)
@@ -405,9 +379,7 @@ type PlayServer interface {
 	ApplyMemoryMatchDestinyDraw(context.Context, *ApplyMemoryMatchDestinyDrawReq) (*ApplyMemoryMatchDestinyDrawResp, error)
 	CompleteMemoryMatchRound(context.Context, *CompleteMemoryMatchRoundReq) (*CompleteMemoryMatchRoundResp, error)
 	SkipMemoryMatch(context.Context, *SkipMemoryMatchReq) (*SkipMemoryMatchResp, error)
-	// CheckPrizesGranted SAGA 04 补偿（CancelPayment）退款前置检查：
-	// 该 gid 的 06 发奖是否已成功落库（prize_grant_marks uk request_id）。
-	// 已发放则 payment 不执行 VoidHold 退钱（资产已发放不追回，钱保持扣除，冻结保持可恢复）
+	// ---- SAGA 04 补偿退款前置检查 ----
 	CheckPrizesGranted(context.Context, *CheckPrizesGrantedReq) (*CheckPrizesGrantedResp, error)
 	mustEmbedUnimplementedPlayServer()
 }
