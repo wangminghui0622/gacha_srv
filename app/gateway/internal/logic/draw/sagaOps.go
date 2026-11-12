@@ -48,19 +48,7 @@ func SubmitDrawSaga(ctx context.Context, svcCtx *svc.ServiceContext, log logx.Lo
 			},
 		).
 		// 02 建单+冻结（资金域）：gross=报价实付，cash/loyalty 按报价拆腿
-		Add(
-			c.MoneyRpcDirect+"/money.Money/AuthorizeWalletPayment",
-			c.MoneyRpcDirect+"/money.Money/CancelPayment",
-			&moneyClient.AuthorizeWalletPaymentReq{
-				RequestId:          gid,
-				UserId:             userId,
-				BoxId:              boxId,
-				GrossAmount:        utils.FenToYuan(quote.PayableFen), // 实付总额
-				CashAmount:         utils.FenToYuan(quote.CashFen),
-				LoyaltyAmount:      utils.FenToYuan(quote.LoyaltyFen),
-				LoyaltyPointsDebit: quote.LoyaltyPointsDebit,
-			},
-		).
+		AddBranch(saga.WalletAuthorizeBranch(c.MoneyRpcDirect, gid, userId, boxId, quote)).
 		// 03 开奖（抽奖域）：price 传报价实付，SettleDraw 落记录
 		Add(
 			c.DrawRpcDirect+"/draw.Draw/SettleDraw",
@@ -84,14 +72,7 @@ func SubmitDrawSaga(ctx context.Context, svcCtx *svc.ServiceContext, log logx.Lo
 			},
 		).
 		// 05 捕获核销（资金域末步）：腿 POSTED、核销报价（CommitQuote）、订单 PAID
-		Add(
-			c.MoneyRpcDirect+"/money.Money/CaptureWalletPayment",
-			c.MoneyRpcDirect+"/money.Money/CaptureWalletPaymentRevert",
-			&moneyClient.CaptureWalletPaymentReq{
-				RequestId:  gid,
-				QuoteToken: quote.QuoteToken,
-			},
-		)
+		AddBranch(saga.WalletCaptureBranch(c.MoneyRpcDirect, gid, quote))
 
 	// Submit 立即返回：只代表事务被 DTM 接受，开奖异步执行。
 	// 幂等回查：同 gid 已存在（重试成功）→ alreadyDone=true；未命中才是真故障。

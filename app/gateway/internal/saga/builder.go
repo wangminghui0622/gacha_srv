@@ -46,6 +46,12 @@ func (b *Builder) Add(action, revert string, payload proto.Message) *Builder {
 	return b
 }
 
+// AddBranch 追加一个已组装好的分支（如 saga.WalletAuthorizeBranch）。
+func (b *Builder) AddBranch(br Branch) *Builder {
+	b.branches = append(b.branches, br)
+	return b
+}
+
 // WithRetryLimit 覆盖重试上限（默认 10，系统错误退避重试封顶）。
 func (b *Builder) WithRetryLimit(n int64) *Builder {
 	b.retryLimit = n
