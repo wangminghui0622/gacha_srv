@@ -289,6 +289,30 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Path:    "/gacha/pools/drafts",
 					Handler: pool.CreatePoolDraftHandler(serverCtx),
 				},
+				{
+					// 统一玩赏池列表（gacha.pool:read）
+					Method:  http.MethodGet,
+					Path:    "/gacha/play-pools",
+					Handler: pool.ListPlayPoolsHandler(serverCtx),
+				},
+				{
+					// 统一玩赏池版本详情（gacha.pool:read）
+					Method:  http.MethodGet,
+					Path:    "/gacha/play-pools/:poolId/versions/:version",
+					Handler: pool.GetPlayPoolVersionHandler(serverCtx),
+				},
+				{
+					// 发布统一玩赏池版本（gacha.pool:publish）
+					Method:  http.MethodPost,
+					Path:    "/gacha/play-pools/:poolId/versions/:version/publish",
+					Handler: pool.PublishPlayPoolHandler(serverCtx),
+				},
+				{
+					// 创建统一玩赏池草稿（gacha.pool:create；幂等键走 Idempotency-Key 头）
+					Method:  http.MethodPost,
+					Path:    "/gacha/play-pools/drafts",
+					Handler: pool.CreatePlayPoolDraftHandler(serverCtx),
+				},
 			}...,
 		),
 		rest.WithPrefix("/console/v2/api"),

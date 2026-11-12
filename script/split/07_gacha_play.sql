@@ -670,4 +670,74 @@ VALUES
     (1, '谢谢参与',      0, 1, 0, 0,    0, '', -1, -1, 0)
 ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
 
+-- ============================================================
+-- 统一 play 赏池/奖品模型（所有玩法共用；发布时投影到各玩法运行表）
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS `play_pool_heads` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '赏池ID（从 1000000 开始）',
+  `mode` varchar(32) NOT NULL COMMENT '玩法：gashapon/fullcar/combochain/dig/groupbuy/memorymatch',
+  `name` varchar(128) NOT NULL DEFAULT '' COMMENT '主题名称',
+  `next_version` bigint unsigned NOT NULL DEFAULT '1' COMMENT '下一版本号',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_mode_id` (`mode`,`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1000000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='统一玩赏池头表';
+
+CREATE TABLE IF NOT EXISTS `play_pool_versions` (
+  `pool_id` bigint unsigned NOT NULL COMMENT '赏池ID',
+  `version` bigint unsigned NOT NULL COMMENT '版本号（从 1 递增）',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '1=DRAFT 2=PUBLISHED 3=RETIRED',
+  `mode` varchar(32) NOT NULL COMMENT '玩法',
+  `name` varchar(128) NOT NULL DEFAULT '' COMMENT '主题名称（快照）',
+  `price_fen` bigint NOT NULL DEFAULT '0' COMMENT '单次价格（分）',
+  `config_json` json NOT NULL COMMENT '玩法规则 JSON（座位数/车数/连击规则等）',
+  `config_hash` char(64) NOT NULL DEFAULT '' COMMENT '配置哈希 SHA256',
+  `published_at` datetime DEFAULT NULL COMMENT '发布时间',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pool_id`,`version`),
+  KEY `idx_status_published` (`status`,`published_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='统一玩赏池版本表';
+
+CREATE TABLE IF NOT EXISTS `play_pool_prizes` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `pool_id` bigint unsigned NOT NULL COMMENT '赏池ID',
+  `version` bigint unsigned NOT NULL COMMENT '版本号',
+  `prize_index` int NOT NULL COMMENT '奖品位序（0 起）',
+  `prize_grade` varchar(32) NOT NULL DEFAULT '' COMMENT '赏别：SP5/A/B/LAST...',
+  `special_kind` varchar(16) NOT NULL DEFAULT '' COMMENT '特别赏类型：LAST/MVP/LUCKY（空=普通赏）',
+  `prize_type` tinyint NOT NULL DEFAULT '1' COMMENT '1=虚拟 2=实物SKU 3=箱子',
+  `name` varchar(128) NOT NULL COMMENT '奖品名（快照）',
+  `sku_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '实物 SKU ID',
+  `child_pool_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '箱中箱子赏池ID',
+  `weight` bigint NOT NULL DEFAULT '1' COMMENT '权重',
+  `quantity` int NOT NULL DEFAULT '0' COMMENT '总数量（-1=无限）',
+  `remaining` int NOT NULL DEFAULT '0' COMMENT '剩余数量',
+  `is_prize` tinyint NOT NULL DEFAULT '1' COMMENT '1=中奖 0=谢谢参与',
+  `target_value` int NOT NULL DEFAULT '-1' COMMENT '目标值（记忆翻牌=碰数）',
+  `cash_fen` bigint NOT NULL DEFAULT '0' COMMENT '现金（分）',
+  `points_amount` bigint NOT NULL DEFAULT '0' COMMENT '积分',
+  `coupon_template_no` varchar(64) NOT NULL DEFAULT '' COMMENT '券模板号',
+  `cost_fen` bigint NOT NULL DEFAULT '0' COMMENT '成本价（分）',
+  `image_url` varchar(255) NOT NULL DEFAULT '' COMMENT '缩略图',
+  `parent_index` int NOT NULL DEFAULT '-1' COMMENT '父奖品位序（-1=无；拼团子奖等）',
+  `extra_json` json NOT NULL DEFAULT (JSON_OBJECT()) COMMENT '玩法特有参数 JSON（连击阈值等）',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_pool_version_index` (`pool_id`,`version`,`prize_index`),
+  KEY `idx_pool_version` (`pool_id`,`version`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='统一玩赏品表';
+
+CREATE TABLE IF NOT EXISTS `play_pool_drafts` (
+  `idempotency_key` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `pool_id` bigint unsigned NOT NULL,
+  `version` bigint unsigned NOT NULL,
+  `request_hash` char(64) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`idempotency_key`),
+  KEY `idx_pool_version` (`pool_id`,`version`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='统一玩赏池草稿幂等表';
+
 SET FOREIGN_KEY_CHECKS = 1;

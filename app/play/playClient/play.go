@@ -26,6 +26,8 @@ type (
 	ComboChainSharedPrizeItem          = play.ComboChainSharedPrizeItem
 	CompleteMemoryMatchRoundReq        = play.CompleteMemoryMatchRoundReq
 	CompleteMemoryMatchRoundResp       = play.CompleteMemoryMatchRoundResp
+	CreatePlayPoolDraftReq             = play.CreatePlayPoolDraftReq
+	CreatePlayPoolDraftResp            = play.CreatePlayPoolDraftResp
 	DigBoxItem                         = play.DigBoxItem
 	DigRecordItem                      = play.DigRecordItem
 	FullCarAwardItem                   = play.FullCarAwardItem
@@ -54,6 +56,8 @@ type (
 	GetMemoryMatchSessionByRequestResp = play.GetMemoryMatchSessionByRequestResp
 	GetMemoryMatchSessionReq           = play.GetMemoryMatchSessionReq
 	GetMemoryMatchSessionResp          = play.GetMemoryMatchSessionResp
+	GetPlayPoolVersionReq              = play.GetPlayPoolVersionReq
+	GetPlayPoolVersionResp             = play.GetPlayPoolVersionResp
 	GrantComboChainPrizesReq           = play.GrantComboChainPrizesReq
 	GrantComboChainPrizesResp          = play.GrantComboChainPrizesResp
 	GrantDigPrizesReq                  = play.GrantDigPrizesReq
@@ -80,6 +84,8 @@ type (
 	ListGashaponRecordsResp            = play.ListGashaponRecordsResp
 	ListGroupBuyRecordsReq             = play.ListGroupBuyRecordsReq
 	ListGroupBuyRecordsResp            = play.ListGroupBuyRecordsResp
+	ListPlayPoolsReq                   = play.ListPlayPoolsReq
+	ListPlayPoolsResp                  = play.ListPlayPoolsResp
 	LockComboChainReq                  = play.LockComboChainReq
 	LockComboChainResp                 = play.LockComboChainResp
 	LockDigBoxReq                      = play.LockDigBoxReq
@@ -107,10 +113,14 @@ type (
 	PlayListRecordsResp                = play.PlayListRecordsResp
 	PlayLockReq                        = play.PlayLockReq
 	PlayLockResp                       = play.PlayLockResp
+	PlayPoolPrize                      = play.PlayPoolPrize
+	PlayPoolSummary                    = play.PlayPoolSummary
 	PlayReleaseResp                    = play.PlayReleaseResp
 	PlaySettleReq                      = play.PlaySettleReq
 	PlaySettleResp                     = play.PlaySettleResp
 	PrizeItem                          = play.PrizeItem
+	PublishPlayPoolReq                 = play.PublishPlayPoolReq
+	PublishPlayPoolResp                = play.PublishPlayPoolResp
 	ReleaseComboChainReq               = play.ReleaseComboChainReq
 	ReleaseComboChainResp              = play.ReleaseComboChainResp
 	ReleaseDigBoxReq                   = play.ReleaseDigBoxReq
@@ -151,6 +161,11 @@ type (
 		PlayGrant(ctx context.Context, in *PlayGrantReq, opts ...grpc.CallOption) (*PlayGrantResp, error)
 		PlayGrantRevert(ctx context.Context, in *PlayGrantReq, opts ...grpc.CallOption) (*PlayGrantResp, error)
 		PlayListRecords(ctx context.Context, in *PlayListRecordsReq, opts ...grpc.CallOption) (*PlayListRecordsResp, error)
+		// ---- 统一赏池/奖品（所有玩法共用）----
+		CreatePlayPoolDraft(ctx context.Context, in *CreatePlayPoolDraftReq, opts ...grpc.CallOption) (*CreatePlayPoolDraftResp, error)
+		PublishPlayPool(ctx context.Context, in *PublishPlayPoolReq, opts ...grpc.CallOption) (*PublishPlayPoolResp, error)
+		GetPlayPoolVersion(ctx context.Context, in *GetPlayPoolVersionReq, opts ...grpc.CallOption) (*GetPlayPoolVersionResp, error)
+		ListPlayPools(ctx context.Context, in *ListPlayPoolsReq, opts ...grpc.CallOption) (*ListPlayPoolsResp, error)
 		// ---- 挖宝 ----
 		ListDigBoxes(ctx context.Context, in *ListDigBoxesReq, opts ...grpc.CallOption) (*ListDigBoxesResp, error)
 		GetDigBoxSession(ctx context.Context, in *GetDigBoxSessionReq, opts ...grpc.CallOption) (*GetDigBoxSessionResp, error)
@@ -226,6 +241,27 @@ func (m *defaultPlay) PlayGrantRevert(ctx context.Context, in *PlayGrantReq, opt
 func (m *defaultPlay) PlayListRecords(ctx context.Context, in *PlayListRecordsReq, opts ...grpc.CallOption) (*PlayListRecordsResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.PlayListRecords(ctx, in, opts...)
+}
+
+// ---- 统一赏池/奖品（所有玩法共用）----
+func (m *defaultPlay) CreatePlayPoolDraft(ctx context.Context, in *CreatePlayPoolDraftReq, opts ...grpc.CallOption) (*CreatePlayPoolDraftResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.CreatePlayPoolDraft(ctx, in, opts...)
+}
+
+func (m *defaultPlay) PublishPlayPool(ctx context.Context, in *PublishPlayPoolReq, opts ...grpc.CallOption) (*PublishPlayPoolResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.PublishPlayPool(ctx, in, opts...)
+}
+
+func (m *defaultPlay) GetPlayPoolVersion(ctx context.Context, in *GetPlayPoolVersionReq, opts ...grpc.CallOption) (*GetPlayPoolVersionResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.GetPlayPoolVersion(ctx, in, opts...)
+}
+
+func (m *defaultPlay) ListPlayPools(ctx context.Context, in *ListPlayPoolsReq, opts ...grpc.CallOption) (*ListPlayPoolsResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.ListPlayPools(ctx, in, opts...)
 }
 
 // ---- 挖宝 ----

@@ -96,3 +96,59 @@ go vet ./app/play/... ./app/gateway/...
 
 部署冒烟：扭蛋 / 满车 / 连击链 / 挖宝 / 拼团 / 记忆翻牌各买一次；
 并验证一次失败补偿（`PlaySettleRevert` + `PlayRelease`）。
+
+## 7. 统一赏池/奖品模型
+
+所有玩法共用 `gacha_play.play_pool_*` 四张表，发布时投影到各玩法现有运行表，
+玩法运行态代码不改：
+
+| 表 | 用途 |
+| --- | --- |
+| `play_pool_heads` | 赏池头（mode/name/next_version，ID 从 1000000 起） |
+| `play_pool_versions` | 版本（status 1 DRAFT / 2 PUBLISHED / 3 RETIRED，price/config_json/config_hash） |
+| `play_pool_prizes` | 奖品（prize_type、sku_id、special_kind、target_value、资产字段、parent_index、extra_json） |
+| `play_pool_drafts` | 创建草稿幂等（idempotency_key + request_hash） |
+
+RPC（`play.proto`）：`CreatePlayPoolDraft / PublishPlayPool / GetPlayPoolVersion / ListPlayPools`。
+后台路由：`/gacha/play-pools*`，权限 `gacha.pool:{read,create,publish}`，
+对应 `pkg/adminop/operations.go` 的 `console.playpool.*`。
+
+### 7.1 config_json 约定（camelCase）
+
+| mode | config_json |
+| --- | --- |
+| gashapon | `{}`（特别赏在 prizes 里） |
+| fullcar | `{"seatCount":4}` |
+| combochain | `{"ticketsPerCar":2,"totalCars":10,"tierTriggerProbabilityBps":300}` |
+| dig | `{"cellCount":9}` |
+| groupbuy | `{"targetBetCount":3,"perBetAwardLimit":0}` |
+| memorymatch | `{"roundsPerPurchase":3,"maxPairCount":3,...,"facePresets":[...],"backPresets":[...]}` |
+
+### 7.2 special_kind / target_value
+
+| mode | special_kind | target_value |
+| --- | --- | --- |
+| gashapon | 空=普通赏；LAST / MVP / LUCKY | LUCKY 的档位 |
+| fullcar | 空=普通条目；SETTLEMENT=整车结算奖 | 结算 tier（1 幸运 / 2 普通） |
+| combochain | GLOBAL / COMBO_TIER / EMPTY_STREAK / WIN_STREAK | GLOBAL 的槽位 |
+| dig | 空 | 格子编号 0..cellCount-1 |
+| groupbuy | 空=普通条目；LUCKY；LUCKY_CHILD | LUCKY_CHILD 指向的幸运奖 prizeIndex |
+| memorymatch | 空 | 碰数（0=谢谢参与） |
+
+拼团普通子奖用 `has_parent=true + parent_index=父奖 prizeIndex`；
+连击链共享奖的 `tierWeight/concentrateThreshold/streakThreshold` 放 `extra_json`。
+
+### 7.3 投影
+
+`PublishPlayPool` 在同一事务内按 mode 写运行表：
+gashapon→`gashapon_configs/entries/state`、fullcar→`full_car_*`、
+combochain→`combo_chain_configs`、dig→`dig_box_configs/cells`、
+groupbuy→`group_buy_configs/entries`、memorymatch→`memory_match_configs/entries`。
+已发布版本重复发布幂等；发布新版本会重置对应玩法的运行态（`*_state` /
+`gashapon_lucky_assignments`），历史 `*_records` 保留，管理端应在无进行中购买时发布。
+
+实物 SKU：表/协议已预留 `prize_type=2 + sku_id`，当前发布投影会拒绝实物/箱子奖，
+待发奖通道接入 catalog SKU 与 money 资产后再放开。
+
+> 旧库升级：`play_pool_prizes` 需补两列
+> `parent_index INT NOT NULL DEFAULT -1`、`extra_json JSON NULL`（新装库由 split SQL 直接创建）。

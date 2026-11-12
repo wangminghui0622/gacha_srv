@@ -52,6 +52,11 @@ func All() []Operation {
 		{ID: "console.pool.requestpublication", Resource: "gacha.pool", Action: "request_publication", Method: "POST", Path: "/gacha/pools/:poolId/versions/:version/publication-request", Title: "提请发布赏池"},
 		{ID: "console.pool.approvepublication", Resource: "gacha.pool", Action: "approve_publication", Method: "POST", Path: "/gacha/pools/:poolId/versions/:version/approval", Title: "审批赏池发布"},
 		{ID: "console.pool.get", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/pools/:poolId/versions/:version", Title: "读取赏池版本"},
+		// ── 统一玩赏池（所有玩法共用；resource 同 gacha.pool）──
+		{ID: "console.playpool.list", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/play-pools", Title: "统一玩赏池列表"},
+		{ID: "console.playpool.get", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/play-pools/:poolId/versions/:version", Title: "读取统一玩赏池版本"},
+		{ID: "console.playpool.create", Resource: "gacha.pool", Action: "create", Method: "POST", Path: "/gacha/play-pools/drafts", Title: "创建统一玩赏池草稿"},
+		{ID: "console.playpool.publish", Resource: "gacha.pool", Action: "publish", Method: "POST", Path: "/gacha/play-pools/:poolId/versions/:version/publish", Title: "发布统一玩赏池"},
 		// assign_lucky 路径适配：server_v2 是 /gacha/boxes/:boxId/lucky-assignment，
 		// 本仓幸运指派实体是扭蛋配置（gashapon_configs），不是箱子
 		{ID: "console.pool.assignluckyuser", Resource: "gacha.pool", Action: "assign_lucky", Method: "POST", Path: "/gacha/gashapons/:configId/lucky-assignment", Title: "指定幸运用户"},

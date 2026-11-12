@@ -59,6 +59,27 @@ func (s *PlayServer) PlayListRecords(ctx context.Context, in *play.PlayListRecor
 	return l.PlayListRecords(in)
 }
 
+// ---- 统一赏池/奖品（所有玩法共用）----
+func (s *PlayServer) CreatePlayPoolDraft(ctx context.Context, in *play.CreatePlayPoolDraftReq) (*play.CreatePlayPoolDraftResp, error) {
+	l := logic.NewCreatePlayPoolDraftLogic(ctx, s.svcCtx)
+	return l.CreatePlayPoolDraft(in)
+}
+
+func (s *PlayServer) PublishPlayPool(ctx context.Context, in *play.PublishPlayPoolReq) (*play.PublishPlayPoolResp, error) {
+	l := logic.NewPublishPlayPoolLogic(ctx, s.svcCtx)
+	return l.PublishPlayPool(in)
+}
+
+func (s *PlayServer) GetPlayPoolVersion(ctx context.Context, in *play.GetPlayPoolVersionReq) (*play.GetPlayPoolVersionResp, error) {
+	l := logic.NewGetPlayPoolVersionLogic(ctx, s.svcCtx)
+	return l.GetPlayPoolVersion(in)
+}
+
+func (s *PlayServer) ListPlayPools(ctx context.Context, in *play.ListPlayPoolsReq) (*play.ListPlayPoolsResp, error) {
+	l := logic.NewListPlayPoolsLogic(ctx, s.svcCtx)
+	return l.ListPlayPools(in)
+}
+
 // ---- 挖宝 ----
 func (s *PlayServer) ListDigBoxes(ctx context.Context, in *play.ListDigBoxesReq) (*play.ListDigBoxesResp, error) {
 	l := logic.NewListDigBoxesLogic(ctx, s.svcCtx)

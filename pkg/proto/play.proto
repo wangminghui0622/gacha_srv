@@ -63,6 +63,90 @@ message PlayListRecordsReq {
 }
 message PlayListRecordsResp { bytes payload = 1; }
 
+enum PlayPoolStatus {
+  PLAY_POOL_STATUS_UNSPECIFIED = 0;
+  PLAY_POOL_STATUS_DRAFT       = 1;
+  PLAY_POOL_STATUS_PUBLISHED   = 2;
+  PLAY_POOL_STATUS_RETIRED     = 3;
+}
+
+// PlayPoolPrize 统一玩赏品（所有玩法共用；发布时投影到各玩法运行表）
+message PlayPoolPrize {
+  int64  prizeIndex       = 1;
+  string prizeGrade       = 2;  // 赏别：SP5/A/B/LAST...
+  string specialKind      = 3;  // 玩法特有类别：LAST/MVP/LUCKY/SETTLEMENT/GLOBAL/...（空=普通赏）
+  int64  prizeType        = 4;  // 1=虚拟 2=实物SKU 3=箱子
+  string name             = 5;
+  int64  skuId            = 6;
+  int64  childPoolId      = 7;
+  int64  weight           = 8;
+  int64  quantity         = 9;
+  int64  remaining        = 10;
+  bool   isPrize          = 11;
+  int64  targetValue      = 12; // 记忆翻牌=碰数
+  int64  cashFen          = 13;
+  int64  pointsAmount     = 14;
+  string couponTemplateNo = 15;
+  int64  costFen          = 16;
+  string imageUrl         = 17;
+  int64  parentIndex      = 18; // 父奖品位序（仅当 hasParent=true 有效）
+  string extraJson        = 19; // 玩法特有参数 JSON（连击阈值等）
+  bool   hasParent        = 20; // 是否引用父奖（拼团子奖等）
+}
+
+message CreatePlayPoolDraftReq {
+  string idempotencyKey = 1;
+  int64  poolId         = 2; // 0=新建
+  string mode           = 3;
+  string name           = 4;
+  int64  priceFen       = 5;
+  string configJson     = 6;
+  repeated PlayPoolPrize prizes = 7;
+}
+message CreatePlayPoolDraftResp {
+  int64  poolId  = 1;
+  int64  version = 2;
+  string status  = 3;
+}
+
+message PublishPlayPoolReq {
+  int64 poolId  = 1;
+  int64 version = 2;
+}
+message PublishPlayPoolResp { string status = 1; }
+
+message GetPlayPoolVersionReq {
+  int64 poolId  = 1;
+  int64 version = 2;
+}
+message GetPlayPoolVersionResp {
+  int64  poolId      = 1;
+  int64  version     = 2;
+  string mode        = 3;
+  string name        = 4;
+  int64  priceFen    = 5;
+  string configJson  = 6;
+  string configHash  = 7;
+  int64  status      = 8;
+  int64  publishedAt = 9;
+  repeated PlayPoolPrize prizes = 10;
+}
+
+message PlayPoolSummary {
+  int64  poolId        = 1;
+  int64  latestVersion = 2;
+  string mode          = 3;
+  string name          = 4;
+  int64  status        = 5;
+  int64  publishedAt   = 6;
+}
+message ListPlayPoolsReq {
+  int64  afterPoolId = 1;
+  int64  pageSize    = 2;
+  string mode        = 3;
+}
+message ListPlayPoolsResp { repeated PlayPoolSummary items = 1; }
+
 service Play {
   // ---- 通用 SAGA 分支（payload 内是各玩法 typed 请求）----
   rpc PlayLock(PlayLockReq) returns (PlayLockResp);
@@ -72,6 +156,12 @@ service Play {
   rpc PlayGrant(PlayGrantReq) returns (PlayGrantResp);
   rpc PlayGrantRevert(PlayGrantReq) returns (PlayGrantResp);
   rpc PlayListRecords(PlayListRecordsReq) returns (PlayListRecordsResp);
+
+  // ---- 统一赏池/奖品（所有玩法共用）----
+  rpc CreatePlayPoolDraft(CreatePlayPoolDraftReq) returns (CreatePlayPoolDraftResp);
+  rpc PublishPlayPool(PublishPlayPoolReq) returns (PublishPlayPoolResp);
+  rpc GetPlayPoolVersion(GetPlayPoolVersionReq) returns (GetPlayPoolVersionResp);
+  rpc ListPlayPools(ListPlayPoolsReq) returns (ListPlayPoolsResp);
 
   // ---- 挖宝 ----
   rpc ListDigBoxes(ListDigBoxesReq) returns (ListDigBoxesResp);

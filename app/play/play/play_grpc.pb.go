@@ -26,6 +26,10 @@ const (
 	Play_PlayGrant_FullMethodName                      = "/play.Play/PlayGrant"
 	Play_PlayGrantRevert_FullMethodName                = "/play.Play/PlayGrantRevert"
 	Play_PlayListRecords_FullMethodName                = "/play.Play/PlayListRecords"
+	Play_CreatePlayPoolDraft_FullMethodName            = "/play.Play/CreatePlayPoolDraft"
+	Play_PublishPlayPool_FullMethodName                = "/play.Play/PublishPlayPool"
+	Play_GetPlayPoolVersion_FullMethodName             = "/play.Play/GetPlayPoolVersion"
+	Play_ListPlayPools_FullMethodName                  = "/play.Play/ListPlayPools"
 	Play_ListDigBoxes_FullMethodName                   = "/play.Play/ListDigBoxes"
 	Play_GetDigBoxSession_FullMethodName               = "/play.Play/GetDigBoxSession"
 	Play_GetFullCar_FullMethodName                     = "/play.Play/GetFullCar"
@@ -60,6 +64,11 @@ type PlayClient interface {
 	PlayGrant(ctx context.Context, in *PlayGrantReq, opts ...grpc.CallOption) (*PlayGrantResp, error)
 	PlayGrantRevert(ctx context.Context, in *PlayGrantReq, opts ...grpc.CallOption) (*PlayGrantResp, error)
 	PlayListRecords(ctx context.Context, in *PlayListRecordsReq, opts ...grpc.CallOption) (*PlayListRecordsResp, error)
+	// ---- 统一赏池/奖品（所有玩法共用）----
+	CreatePlayPoolDraft(ctx context.Context, in *CreatePlayPoolDraftReq, opts ...grpc.CallOption) (*CreatePlayPoolDraftResp, error)
+	PublishPlayPool(ctx context.Context, in *PublishPlayPoolReq, opts ...grpc.CallOption) (*PublishPlayPoolResp, error)
+	GetPlayPoolVersion(ctx context.Context, in *GetPlayPoolVersionReq, opts ...grpc.CallOption) (*GetPlayPoolVersionResp, error)
+	ListPlayPools(ctx context.Context, in *ListPlayPoolsReq, opts ...grpc.CallOption) (*ListPlayPoolsResp, error)
 	// ---- 挖宝 ----
 	ListDigBoxes(ctx context.Context, in *ListDigBoxesReq, opts ...grpc.CallOption) (*ListDigBoxesResp, error)
 	GetDigBoxSession(ctx context.Context, in *GetDigBoxSessionReq, opts ...grpc.CallOption) (*GetDigBoxSessionResp, error)
@@ -155,6 +164,42 @@ func (c *playClient) PlayGrantRevert(ctx context.Context, in *PlayGrantReq, opts
 func (c *playClient) PlayListRecords(ctx context.Context, in *PlayListRecordsReq, opts ...grpc.CallOption) (*PlayListRecordsResp, error) {
 	out := new(PlayListRecordsResp)
 	err := c.cc.Invoke(ctx, Play_PlayListRecords_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) CreatePlayPoolDraft(ctx context.Context, in *CreatePlayPoolDraftReq, opts ...grpc.CallOption) (*CreatePlayPoolDraftResp, error) {
+	out := new(CreatePlayPoolDraftResp)
+	err := c.cc.Invoke(ctx, Play_CreatePlayPoolDraft_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) PublishPlayPool(ctx context.Context, in *PublishPlayPoolReq, opts ...grpc.CallOption) (*PublishPlayPoolResp, error) {
+	out := new(PublishPlayPoolResp)
+	err := c.cc.Invoke(ctx, Play_PublishPlayPool_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) GetPlayPoolVersion(ctx context.Context, in *GetPlayPoolVersionReq, opts ...grpc.CallOption) (*GetPlayPoolVersionResp, error) {
+	out := new(GetPlayPoolVersionResp)
+	err := c.cc.Invoke(ctx, Play_GetPlayPoolVersion_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) ListPlayPools(ctx context.Context, in *ListPlayPoolsReq, opts ...grpc.CallOption) (*ListPlayPoolsResp, error) {
+	out := new(ListPlayPoolsResp)
+	err := c.cc.Invoke(ctx, Play_ListPlayPools_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -353,6 +398,11 @@ type PlayServer interface {
 	PlayGrant(context.Context, *PlayGrantReq) (*PlayGrantResp, error)
 	PlayGrantRevert(context.Context, *PlayGrantReq) (*PlayGrantResp, error)
 	PlayListRecords(context.Context, *PlayListRecordsReq) (*PlayListRecordsResp, error)
+	// ---- 统一赏池/奖品（所有玩法共用）----
+	CreatePlayPoolDraft(context.Context, *CreatePlayPoolDraftReq) (*CreatePlayPoolDraftResp, error)
+	PublishPlayPool(context.Context, *PublishPlayPoolReq) (*PublishPlayPoolResp, error)
+	GetPlayPoolVersion(context.Context, *GetPlayPoolVersionReq) (*GetPlayPoolVersionResp, error)
+	ListPlayPools(context.Context, *ListPlayPoolsReq) (*ListPlayPoolsResp, error)
 	// ---- 挖宝 ----
 	ListDigBoxes(context.Context, *ListDigBoxesReq) (*ListDigBoxesResp, error)
 	GetDigBoxSession(context.Context, *GetDigBoxSessionReq) (*GetDigBoxSessionResp, error)
@@ -408,6 +458,18 @@ func (UnimplementedPlayServer) PlayGrantRevert(context.Context, *PlayGrantReq) (
 }
 func (UnimplementedPlayServer) PlayListRecords(context.Context, *PlayListRecordsReq) (*PlayListRecordsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PlayListRecords not implemented")
+}
+func (UnimplementedPlayServer) CreatePlayPoolDraft(context.Context, *CreatePlayPoolDraftReq) (*CreatePlayPoolDraftResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePlayPoolDraft not implemented")
+}
+func (UnimplementedPlayServer) PublishPlayPool(context.Context, *PublishPlayPoolReq) (*PublishPlayPoolResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PublishPlayPool not implemented")
+}
+func (UnimplementedPlayServer) GetPlayPoolVersion(context.Context, *GetPlayPoolVersionReq) (*GetPlayPoolVersionResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPlayPoolVersion not implemented")
+}
+func (UnimplementedPlayServer) ListPlayPools(context.Context, *ListPlayPoolsReq) (*ListPlayPoolsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPlayPools not implemented")
 }
 func (UnimplementedPlayServer) ListDigBoxes(context.Context, *ListDigBoxesReq) (*ListDigBoxesResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListDigBoxes not implemented")
@@ -604,6 +666,78 @@ func _Play_PlayListRecords_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PlayServer).PlayListRecords(ctx, req.(*PlayListRecordsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_CreatePlayPoolDraft_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePlayPoolDraftReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).CreatePlayPoolDraft(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_CreatePlayPoolDraft_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).CreatePlayPoolDraft(ctx, req.(*CreatePlayPoolDraftReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_PublishPlayPool_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PublishPlayPoolReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).PublishPlayPool(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_PublishPlayPool_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).PublishPlayPool(ctx, req.(*PublishPlayPoolReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_GetPlayPoolVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPlayPoolVersionReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).GetPlayPoolVersion(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_GetPlayPoolVersion_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).GetPlayPoolVersion(ctx, req.(*GetPlayPoolVersionReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_ListPlayPools_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPlayPoolsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).ListPlayPools(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_ListPlayPools_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).ListPlayPools(ctx, req.(*ListPlayPoolsReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1002,6 +1136,22 @@ var Play_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PlayListRecords",
 			Handler:    _Play_PlayListRecords_Handler,
+		},
+		{
+			MethodName: "CreatePlayPoolDraft",
+			Handler:    _Play_CreatePlayPoolDraft_Handler,
+		},
+		{
+			MethodName: "PublishPlayPool",
+			Handler:    _Play_PublishPlayPool_Handler,
+		},
+		{
+			MethodName: "GetPlayPoolVersion",
+			Handler:    _Play_GetPlayPoolVersion_Handler,
+		},
+		{
+			MethodName: "ListPlayPools",
+			Handler:    _Play_ListPlayPools_Handler,
 		},
 		{
 			MethodName: "ListDigBoxes",
