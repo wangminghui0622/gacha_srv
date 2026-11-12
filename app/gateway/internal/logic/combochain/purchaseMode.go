@@ -4,14 +4,17 @@ import (
 	"context"
 
 	"gacha_srv/app/gateway/internal/saga"
+	"gacha_srv/app/gateway/internal/playapi"
 	"gacha_srv/app/gateway/internal/svc"
 	"gacha_srv/app/gateway/internal/types"
 	marketingClient "gacha_srv/app/marketing/marketingClient"
 	playClient "gacha_srv/app/play/playClient"
+	"gacha_srv/app/play/play"
 	"gacha_srv/pkg/utils"
 	"gacha_srv/pkg/utils/errorx"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"google.golang.org/protobuf/proto"
 )
 
 // purchaseMode 连击链购买策略：实现 saga.PurchaseMode[*types.ComboChainBuyReq]。
@@ -51,10 +54,7 @@ func (m purchaseMode) Prepare(ctx context.Context, svcCtx *svc.ServiceContext, r
 }
 
 func (m purchaseMode) Idempotent(ctx context.Context, svcCtx *svc.ServiceContext, req *types.ComboChainBuyReq, gid string, userID int64) (bool, error) {
-	rec, err := svcCtx.PlayRpc.ListComboChainRecords(ctx, &playClient.ListComboChainRecordsReq{
-		RequestId: gid,
-		UserId:    userID,
-	})
+	rec, err := playapi.ListComboChainRecords(ctx, svcCtx, gid, userID, 0, 0)
 	if err != nil {
 		return false, err
 	}
@@ -64,42 +64,60 @@ func (m purchaseMode) Idempotent(ctx context.Context, svcCtx *svc.ServiceContext
 func (m purchaseMode) BuildBranches(ctx context.Context, svcCtx *svc.ServiceContext, req *types.ComboChainBuyReq,
 	gid string, userID int64, quote *marketingClient.QuoteCheckoutResp, unitFen, grossFen int64) ([]saga.Branch, error) {
 	c := svcCtx.Config
+	lockBytes, _ := proto.Marshal(&playClient.LockComboChainReq{
+		RequestId:     gid,
+		QuoteToken:    quote.QuoteToken,
+		ConfigId:      req.ConfigId,
+		UserId:        userID,
+		TotalPriceFen: unitFen,
+	})
+	settleBytes, _ := proto.Marshal(&playClient.SettleComboChainReq{
+		RequestId: gid,
+		UserId:    userID,
+		ConfigId:  req.ConfigId,
+		Price:     utils.FenToYuan(quote.PayableFen),
+	})
+	grantBytes, _ := proto.Marshal(&playClient.GrantComboChainPrizesReq{
+		RequestId: gid,
+		UserId:    userID,
+		ConfigId:  req.ConfigId,
+	})
 	return saga.PlayBranches(c.MoneyRpcDirect, gid, userID, req.ConfigId, quote, saga.PlayBranchSet{
-		// 01 锁报价+参与追加+余票-1；补偿 ReleaseComboChain 弹参与+余票+1+释放报价
-		LockPath:    c.PlayRpcDirect + "/play.Play/LockComboChain",
-		ReleasePath: c.PlayRpcDirect + "/play.Play/ReleaseComboChain",
-		LockPayload: &playClient.LockComboChainReq{
+		LockPath:    c.PlayRpcDirect + saga.PathPlayLock,
+		ReleasePath: c.PlayRpcDirect + saga.PathPlayRelease,
+		LockPayload: &play.PlayLockReq{
 			RequestId:     gid,
-			QuoteToken:    quote.QuoteToken,
+			Mode:          play.PlayMode_PLAY_MODE_COMBO_CHAIN,
 			ConfigId:      req.ConfigId,
 			UserId:        userID,
+			QuoteToken:    quote.QuoteToken,
 			TotalPriceFen: unitFen,
+			Payload:       lockBytes,
 		},
-		// 03 落记录+末票整车结算；补偿 SettleComboChainRevert
-		SettlePath:       c.PlayRpcDirect + "/play.Play/SettleComboChain",
-		SettleRevertPath: c.PlayRpcDirect + "/play.Play/SettleComboChainRevert",
-		SettlePayload: &playClient.SettleComboChainReq{
+		SettlePath:       c.PlayRpcDirect + saga.PathPlaySettle,
+		SettleRevertPath: c.PlayRpcDirect + saga.PathPlaySettleRevert,
+		SettlePayload: &play.PlaySettleReq{
 			RequestId: gid,
-			UserId:    userID,
+			Mode:      play.PlayMode_PLAY_MODE_COMBO_CHAIN,
 			ConfigId:  req.ConfigId,
+			UserId:    userID,
 			Price:     utils.FenToYuan(quote.PayableFen),
+			Payload:   settleBytes,
 		},
-		// 04 发结算奖：永不 Aborted、空补偿（奖品先于捕获且不追回）
-		GrantPath:       c.PlayRpcDirect + "/play.Play/GrantComboChainPrizes",
-		GrantRevertPath: c.PlayRpcDirect + "/play.Play/GrantComboChainPrizesRevert",
-		GrantPayload: &playClient.GrantComboChainPrizesReq{
+		GrantPath:       c.PlayRpcDirect + saga.PathPlayGrant,
+		GrantRevertPath: c.PlayRpcDirect + saga.PathPlayGrantRevert,
+		GrantPayload: &play.PlayGrantReq{
 			RequestId: gid,
-			UserId:    userID,
+			Mode:      play.PlayMode_PLAY_MODE_COMBO_CHAIN,
 			ConfigId:  req.ConfigId,
+			UserId:    userID,
+			Payload:   grantBytes,
 		},
 	}), nil
 }
 
 func (m purchaseMode) Recheck(ctx context.Context, svcCtx *svc.ServiceContext, req *types.ComboChainBuyReq, gid string, userID int64) error {
-	resp, err := svcCtx.PlayRpc.ListComboChainRecords(ctx, &playClient.ListComboChainRecordsReq{
-		RequestId: gid,
-		UserId:    userID,
-	})
+	resp, err := playapi.ListComboChainRecords(ctx, svcCtx, gid, userID, 0, 0)
 	if err != nil {
 		return err
 	}

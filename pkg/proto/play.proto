@@ -9,61 +9,112 @@ option go_package = "./play";
 // 各玩法 SAGA 分支：03 Lock（正向）/ Release（补偿，barrier 内 FOR UPDATE）、
 // 05 Settle/Revert、06 Grant/空补偿（现金/积分走 asset 服务，券走 promotion 服务本地插入）。
 // 玩法安全不变式：价格一律服务端算，客户端只传选择；Lock/Release 请求字段号对齐（DTM 补偿透传正向载荷字节）。
+enum PlayMode {
+  PLAY_MODE_UNSPECIFIED  = 0;
+  PLAY_MODE_GASHAPON     = 1;
+  PLAY_MODE_FULL_CAR     = 2;
+  PLAY_MODE_COMBO_CHAIN  = 3;
+  PLAY_MODE_DIG_BOX      = 4;
+  PLAY_MODE_GROUP_BUY    = 5;
+  PLAY_MODE_MEMORY_MATCH = 6;
+}
+
+// 通用 SAGA 分支请求：payload = 对应 PlayMode 的 typed 分支请求（proto 序列化）
+message PlayLockReq {
+  string   request_id      = 1;
+  PlayMode mode            = 2;
+  int64    config_id       = 3;
+  int64    user_id         = 4;
+  string   quote_token     = 5;
+  int64    count           = 6;
+  int64    total_price_fen = 7;
+  bytes    payload         = 8;
+}
+message PlayLockResp { bytes payload = 1; }
+
+message PlayReleaseReq {
+  string   request_id  = 1;
+  PlayMode mode        = 2;
+  int64    config_id   = 3;
+  int64    user_id     = 4;
+  string   quote_token = 5;
+  bytes    payload     = 6;
+}
+message PlayReleaseResp { bytes payload = 1; }
+
+message PlaySettleReq {
+  string   request_id = 1;
+  PlayMode mode       = 2;
+  int64    config_id  = 3;
+  int64    user_id    = 4;
+  int64    count      = 5;
+  string   price      = 6;
+  bytes    payload    = 7;
+}
+message PlaySettleResp { bytes payload = 1; }
+
+message PlayGrantReq {
+  string   request_id = 1;
+  PlayMode mode       = 2;
+  int64    config_id  = 3;
+  int64    user_id    = 4;
+  bytes    payload    = 5;
+}
+message PlayGrantResp { bytes payload = 1; }
+
+message PlayListRecordsReq {
+  PlayMode mode       = 1;
+  string   request_id = 2;
+  int64    user_id    = 3;
+  int32    page       = 4;
+  int32    page_size  = 5;
+}
+message PlayListRecordsResp { bytes payload = 1; }
+
 service Play {
+  // 通用 SAGA 分支（payload 内是各玩法 typed 请求）
+  rpc PlayLock(PlayLockReq) returns (PlayLockResp);
+  rpc PlayRelease(PlayLockReq) returns (PlayReleaseResp);
+  rpc PlaySettle(PlaySettleReq) returns (PlaySettleResp);
+  rpc PlaySettleRevert(PlaySettleReq) returns (PlaySettleResp);
+  rpc PlayGrant(PlayGrantReq) returns (PlayGrantResp);
+  rpc PlayGrantRevert(PlayGrantReq) returns (PlayGrantResp);
+  rpc PlayListRecords(PlayListRecordsReq) returns (PlayListRecordsResp);
+
+  // 读 / 玩法 / 管理接口保留（下方 rpc 行原样保留）
     // ---- M11 dig 挖宝箱 ----
     rpc ListDigBoxes(ListDigBoxesReq) returns (ListDigBoxesResp);
     rpc GetDigBoxSession(GetDigBoxSessionReq) returns (GetDigBoxSessionResp);
     // LockDigBox SAGA 03 正向：报价+券锁（与 LockQuote 同源 helper）+ 会话位图置位
-    rpc LockDigBox(LockDigBoxReq) returns (LockDigBoxResp);
     // ReleaseDigBox SAGA 03 补偿：位图清位 + 计数回滚 + 报价/券释放
-    rpc ReleaseDigBox(ReleaseDigBoxReq) returns (ReleaseDigBoxResp);
     // SettleDigBox SAGA 05 正向：揭晓格子奖品 + 落记录 + 满格置 COMPLETED
-    rpc SettleDigBox(SettleDigBoxReq) returns (SettleDigBoxResp);
     // SettleDigBoxRevert SAGA 05 补偿：记录置撤销 + 清位（与 03 补偿幂等）
-    rpc SettleDigBoxRevert(SettleDigBoxReq) returns (SettleDigBoxResp);
     // GrantDigPrizes SAGA 06 正向：逐奖幂等发放（现金/积分走 asset.CreditWallet，券本地插入）；
     // 永不 Aborted（只 Internal 重试），补偿为空——捕获在授权成功后 Aborted 属纯防御路径
-    rpc GrantDigPrizes(GrantDigPrizesReq) returns (GrantDigPrizesResp);
     // GrantDigPrizesRevert SAGA 06 补偿：空操作（注册防御）
-    rpc GrantDigPrizesRevert(GrantDigPrizesReq) returns (GrantDigPrizesResp);
     // ListDigRecords 挖宝记录（requestId 精确查询或分页列表）
-    rpc ListDigRecords(ListDigRecordsReq) returns (ListDigRecordsResp);
 
     // ---- M12 满车 full_car ----
     // GetFullCar 满车视图（座位/整车奖/余票/价）
     rpc GetFullCar(GetFullCarReq) returns (GetFullCarResp);
     // LockFullCar SAGA 03 正向：报价锁 + state FOR UPDATE + 分配座位 + 余票-1
-    rpc LockFullCar(LockFullCarReq) returns (LockFullCarResp);
     // ReleaseFullCar SAGA 03 补偿：释放座位（seats[i]==userId 才清）+ 余票+1 + 报价释放
-    rpc ReleaseFullCar(ReleaseFullCarReq) returns (ReleaseFullCarResp);
     // SettleFullCar SAGA 05 正向：regular 奖 + 落记录 + 最后一票触发整车结算（确定性 seed=gid）
-    rpc SettleFullCar(SettleFullCarReq) returns (SettleFullCarResp);
     // SettleFullCarRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删整车奖 + DEPARTED→OPEN + 余票+1 + 库存回补
-    rpc SettleFullCarRevert(SettleFullCarReq) returns (SettleFullCarResp);
     // GrantFullCarPrizes SAGA 06 正向：regular 奖 + 整车结算奖逐奖幂等发放；永不 Aborted，补偿为空
-    rpc GrantFullCarPrizes(GrantFullCarPrizesReq) returns (GrantFullCarPrizesResp);
     // GrantFullCarPrizesRevert SAGA 06 补偿：空操作（注册防御）
-    rpc GrantFullCarPrizesRevert(GrantFullCarPrizesReq) returns (GrantFullCarPrizesResp);
     // ListFullCarRecords 满车记录（requestId 精确查询或分页列表）
-    rpc ListFullCarRecords(ListFullCarRecordsReq) returns (ListFullCarRecordsResp);
 
     // ---- M12 扭蛋 gashapon ----
     // GetGashapon 扭蛋视图（特别奖进度/余票/参与人数/价）
     rpc GetGashapon(GetGashaponReq) returns (GetGashaponResp);
     // LockGashapon SAGA 03 正向：报价锁 + state FOR UPDATE + participants/records 追加 + 余票-count
-    rpc LockGashapon(LockGashaponReq) returns (LockGashaponResp);
     // ReleaseGashapon SAGA 03 补偿：按 requestId 弹出记录 + participants-count + 余票+count + 报价释放
-    rpc ReleaseGashapon(ReleaseGashaponReq) returns (ReleaseGashaponResp);
     // SettleGashapon SAGA 05 正向：抽 count 个 regular 奖 + 分阶段 LUCKY 判定 + 清空时终局 LAST/MVP/LUCKY
-    rpc SettleGashapon(SettleGashaponReq) returns (SettleGashaponResp);
     // SettleGashaponRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删特别奖 + sent 回退 + SETTLED→OPEN + 库存回补
-    rpc SettleGashaponRevert(SettleGashaponReq) returns (SettleGashaponResp);
     // GrantGashaponPrizes SAGA 06 正向：regular 奖 + 特别奖逐奖幂等发放；永不 Aborted，补偿为空
-    rpc GrantGashaponPrizes(GrantGashaponPrizesReq) returns (GrantGashaponPrizesResp);
     // GrantGashaponPrizesRevert SAGA 06 补偿：空操作（注册防御）
-    rpc GrantGashaponPrizesRevert(GrantGashaponPrizesReq) returns (GrantGashaponPrizesResp);
     // ListGashaponRecords 扭蛋记录（requestId 精确查询或分页列表）
-    rpc ListGashaponRecords(ListGashaponRecordsReq) returns (ListGashaponRecordsResp);
     // AssignGashaponLuckyUser 幸运指派（仅 LUCKY 奖；userId=0 删除）。无 HTTP 路由（无管理员鉴权），供 ops/admin 直调
     rpc AssignGashaponLuckyUser(AssignGashaponLuckyUserReq) returns (AssignGashaponLuckyUserResp);
 
@@ -71,37 +122,23 @@ service Play {
     // GetComboChain 连击链视图（车次进度/当前车余票/全局奖槽/共享奖/我的连击）
     rpc GetComboChain(GetComboChainReq) returns (GetComboChainResp);
     // LockComboChain SAGA 03 正向：报价锁 + state FOR UPDATE + participants 追加（每用户每车 1 票）+ 余票-1
-    rpc LockComboChain(LockComboChainReq) returns (LockComboChainResp);
     // ReleaseComboChain SAGA 03 补偿：按 userId 弹出参与 + 余票+1 + 报价释放
-    rpc ReleaseComboChain(ReleaseComboChainReq) returns (ReleaseComboChainResp);
     // SettleComboChain SAGA 05 正向：落记录；最后一票触发整车结算（COMBO_TIER 触发/全局奖分布/连击判定/车次推进）
-    rpc SettleComboChain(SettleComboChainReq) returns (SettleComboChainResp);
     // SettleComboChainRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删结算奖 + 连击快照回滚 + 车次回退
-    rpc SettleComboChainRevert(SettleComboChainReq) returns (SettleComboChainResp);
     // GrantComboChainPrizes SAGA 06 正向：本 gid 触发的结算奖逐奖幂等发放；永不 Aborted，补偿为空
-    rpc GrantComboChainPrizes(GrantComboChainPrizesReq) returns (GrantComboChainPrizesResp);
     // GrantComboChainPrizesRevert SAGA 06 补偿：空操作（注册防御）
-    rpc GrantComboChainPrizesRevert(GrantComboChainPrizesReq) returns (GrantComboChainPrizesResp);
     // ListComboChainRecords 连击链记录（requestId 精确查询或分页列表）
-    rpc ListComboChainRecords(ListComboChainRecordsReq) returns (ListComboChainRecordsResp);
 
     // ---- M13 拼团抽 group_buy ----
     // GetGroupBuy 拼团视图（成团进度/我的下注/幸运奖进度/价）
     rpc GetGroupBuy(GetGroupBuyReq) returns (GetGroupBuyResp);
     // LockGroupBuy SAGA 03 正向：报价锁 + state FOR UPDATE + bets 追加 + 余位-count
-    rpc LockGroupBuy(LockGroupBuyReq) returns (LockGroupBuyResp);
     // ReleaseGroupBuy SAGA 03 补偿：按 draw_id 弹出下注 + 余位+count + 报价释放
-    rpc ReleaseGroupBuy(ReleaseGroupBuyReq) returns (ReleaseGroupBuyResp);
     // SettleGroupBuy SAGA 05 正向：落记录；最后一注触发整批结算（普通槽洗牌分配/子奖/幸运奖加权池）
-    rpc SettleGroupBuy(SettleGroupBuyReq) returns (SettleGroupBuyResp);
     // SettleGroupBuyRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删结算奖 + 库存/幸运回补 + SETTLED→OPEN
-    rpc SettleGroupBuyRevert(SettleGroupBuyReq) returns (SettleGroupBuyResp);
     // GrantGroupBuyPrizes SAGA 06 正向：本 gid 触发的结算奖逐奖幂等发放；永不 Aborted，补偿为空
-    rpc GrantGroupBuyPrizes(GrantGroupBuyPrizesReq) returns (GrantGroupBuyPrizesResp);
     // GrantGroupBuyPrizesRevert SAGA 06 补偿：空操作（注册防御）
-    rpc GrantGroupBuyPrizesRevert(GrantGroupBuyPrizesReq) returns (GrantGroupBuyPrizesResp);
     // ListGroupBuyRecords 拼团记录（requestId 精确查询或分页列表）
-    rpc ListGroupBuyRecords(ListGroupBuyRecordsReq) returns (ListGroupBuyRecordsResp);
 
     // ---- M15b 记忆翻牌 MemoryMatch（消息/语义照抄 server_v2 gacha memory_match）----
     rpc GetMemoryMatchConfig(GetMemoryMatchConfigReq) returns (GetMemoryMatchConfigResp);
@@ -118,12 +155,6 @@ service Play {
     rpc SkipMemoryMatch(SkipMemoryMatchReq) returns (SkipMemoryMatchResp);
     // SAGA 分支：03 Lock/LockMemoryMatchRevert（release=补偿）、05 Settle/SettleMemoryMatchRevert、
     // 06 GrantMemoryMatchPrizes/空补偿（购买时无奖，发奖在终局结算同步完成）
-    rpc LockMemoryMatch(LockMemoryMatchReq) returns (LockMemoryMatchResp);
-    rpc LockMemoryMatchRevert(LockMemoryMatchReq) returns (LockMemoryMatchResp);
-    rpc SettleMemoryMatch(SettleMemoryMatchReq) returns (SettleMemoryMatchResp);
-    rpc SettleMemoryMatchRevert(SettleMemoryMatchReq) returns (SettleMemoryMatchResp);
-    rpc GrantMemoryMatchPrizes(GrantMemoryMatchPrizesReq) returns (GrantMemoryMatchPrizesResp);
-    rpc GrantMemoryMatchPrizesRevert(GrantMemoryMatchPrizesReq) returns (GrantMemoryMatchPrizesResp);
 
     // CheckPrizesGranted SAGA 04 补偿（CancelPayment）退款前置检查：
     // 该 gid 的 06 发奖是否已成功落库（prize_grant_marks uk request_id）。

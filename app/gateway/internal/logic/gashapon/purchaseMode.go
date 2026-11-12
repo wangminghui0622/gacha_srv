@@ -4,14 +4,17 @@ import (
 	"context"
 
 	"gacha_srv/app/gateway/internal/saga"
+	"gacha_srv/app/gateway/internal/playapi"
 	"gacha_srv/app/gateway/internal/svc"
 	"gacha_srv/app/gateway/internal/types"
 	marketingClient "gacha_srv/app/marketing/marketingClient"
 	playClient "gacha_srv/app/play/playClient"
+	"gacha_srv/app/play/play"
 	"gacha_srv/pkg/utils"
 	"gacha_srv/pkg/utils/errorx"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"google.golang.org/protobuf/proto"
 )
 
 // purchaseMode 扭蛋购买策略：实现 saga.PurchaseMode[*types.GashaponBuyReq]。
@@ -51,10 +54,7 @@ func (m purchaseMode) Prepare(ctx context.Context, svcCtx *svc.ServiceContext, r
 }
 
 func (m purchaseMode) Idempotent(ctx context.Context, svcCtx *svc.ServiceContext, req *types.GashaponBuyReq, gid string, userID int64) (bool, error) {
-	rec, err := svcCtx.PlayRpc.ListGashaponRecords(ctx, &playClient.ListGashaponRecordsReq{
-		RequestId: gid,
-		UserId:    userID,
-	})
+	rec, err := playapi.ListGashaponRecords(ctx, svcCtx, gid, userID, 0, 0)
 	if err != nil {
 		return false, err
 	}
@@ -64,44 +64,64 @@ func (m purchaseMode) Idempotent(ctx context.Context, svcCtx *svc.ServiceContext
 func (m purchaseMode) BuildBranches(ctx context.Context, svcCtx *svc.ServiceContext, req *types.GashaponBuyReq,
 	gid string, userID int64, quote *marketingClient.QuoteCheckoutResp, unitFen, grossFen int64) ([]saga.Branch, error) {
 	c := svcCtx.Config
+	lockBytes, _ := proto.Marshal(&playClient.LockGashaponReq{
+		RequestId:     gid,
+		QuoteToken:    quote.QuoteToken,
+		ConfigId:      req.ConfigId,
+		UserId:        userID,
+		Count:         req.Count,
+		TotalPriceFen: grossFen,
+	})
+	settleBytes, _ := proto.Marshal(&playClient.SettleGashaponReq{
+		RequestId: gid,
+		UserId:    userID,
+		ConfigId:  req.ConfigId,
+		Count:     req.Count,
+		Price:     utils.FenToYuan(quote.PayableFen),
+	})
+	grantBytes, _ := proto.Marshal(&playClient.GrantGashaponPrizesReq{
+		RequestId: gid,
+		UserId:    userID,
+		ConfigId:  req.ConfigId,
+	})
 	return saga.PlayBranches(c.MoneyRpcDirect, gid, userID, req.ConfigId, quote, saga.PlayBranchSet{
-		// 01 锁报价+参与记录+余票-count；补偿 ReleaseGashapon 弹记录+余票+count+释放报价
-		LockPath:    c.PlayRpcDirect + "/play.Play/LockGashapon",
-		ReleasePath: c.PlayRpcDirect + "/play.Play/ReleaseGashapon",
-		LockPayload: &playClient.LockGashaponReq{
+		LockPath:    c.PlayRpcDirect + saga.PathPlayLock,
+		ReleasePath: c.PlayRpcDirect + saga.PathPlayRelease,
+		LockPayload: &play.PlayLockReq{
 			RequestId:     gid,
-			QuoteToken:    quote.QuoteToken,
+			Mode:          play.PlayMode_PLAY_MODE_GASHAPON,
 			ConfigId:      req.ConfigId,
 			UserId:        userID,
+			QuoteToken:    quote.QuoteToken,
 			Count:         req.Count,
 			TotalPriceFen: grossFen,
+			Payload:       lockBytes,
 		},
-		// 03 抽 count 个 regular 奖+特别奖判定+落记录；补偿 SettleGashaponRevert
-		SettlePath:       c.PlayRpcDirect + "/play.Play/SettleGashapon",
-		SettleRevertPath: c.PlayRpcDirect + "/play.Play/SettleGashaponRevert",
-		SettlePayload: &playClient.SettleGashaponReq{
+		SettlePath:       c.PlayRpcDirect + saga.PathPlaySettle,
+		SettleRevertPath: c.PlayRpcDirect + saga.PathPlaySettleRevert,
+		SettlePayload: &play.PlaySettleReq{
 			RequestId: gid,
-			UserId:    userID,
+			Mode:      play.PlayMode_PLAY_MODE_GASHAPON,
 			ConfigId:  req.ConfigId,
+			UserId:    userID,
 			Count:     req.Count,
 			Price:     utils.FenToYuan(quote.PayableFen),
+			Payload:   settleBytes,
 		},
-		// 04 发特别奖：永不 Aborted、空补偿（奖品先于捕获且不追回）
-		GrantPath:       c.PlayRpcDirect + "/play.Play/GrantGashaponPrizes",
-		GrantRevertPath: c.PlayRpcDirect + "/play.Play/GrantGashaponPrizesRevert",
-		GrantPayload: &playClient.GrantGashaponPrizesReq{
+		GrantPath:       c.PlayRpcDirect + saga.PathPlayGrant,
+		GrantRevertPath: c.PlayRpcDirect + saga.PathPlayGrantRevert,
+		GrantPayload: &play.PlayGrantReq{
 			RequestId: gid,
-			UserId:    userID,
+			Mode:      play.PlayMode_PLAY_MODE_GASHAPON,
 			ConfigId:  req.ConfigId,
+			UserId:    userID,
+			Payload:   grantBytes,
 		},
 	}), nil
 }
 
 func (m purchaseMode) Recheck(ctx context.Context, svcCtx *svc.ServiceContext, req *types.GashaponBuyReq, gid string, userID int64) error {
-	resp, err := svcCtx.PlayRpc.ListGashaponRecords(ctx, &playClient.ListGashaponRecordsReq{
-		RequestId: gid,
-		UserId:    userID,
-	})
+	resp, err := playapi.ListGashaponRecords(ctx, svcCtx, gid, userID, 0, 0)
 	if err != nil {
 		return err
 	}

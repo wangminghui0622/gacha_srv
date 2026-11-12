@@ -6,6 +6,16 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// 通用 play SAGA 分支路径（2026-11 接口化：7 个 Play* RPC 替代 36 个 typed 分支 RPC）。
+const (
+	PathPlayLock         = "/play.Play/PlayLock"
+	PathPlayRelease      = "/play.Play/PlayRelease"
+	PathPlaySettle       = "/play.Play/PlaySettle"
+	PathPlaySettleRevert = "/play.Play/PlaySettleRevert"
+	PathPlayGrant        = "/play.Play/PlayGrant"
+	PathPlayGrantRevert  = "/play.Play/PlayGrantRevert"
+)
+
 // PlayBranchSet 一个玩法的 3 个业务分支（lock / settle / grant）。
 // 02 冻结、05 捕获由 PlayBranches 统一插入，玩法不再各写一遍。
 type PlayBranchSet struct {

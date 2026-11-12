@@ -8,10 +8,12 @@ import (
 	"gacha_srv/app/gateway/internal/types"
 	marketingClient "gacha_srv/app/marketing/marketingClient"
 	playClient "gacha_srv/app/play/playClient"
+	"gacha_srv/app/play/play"
 	"gacha_srv/pkg/utils"
 	"gacha_srv/pkg/utils/errorx"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"google.golang.org/protobuf/proto"
 )
 
 // purchaseMode 记忆翻牌购买策略：实现 saga.PurchaseMode[*types.MemoryMatchPurchaseReq]。
@@ -59,37 +61,58 @@ func (m purchaseMode) Idempotent(ctx context.Context, svcCtx *svc.ServiceContext
 func (m purchaseMode) BuildBranches(ctx context.Context, svcCtx *svc.ServiceContext, req *types.MemoryMatchPurchaseReq,
 	gid string, userID int64, quote *marketingClient.QuoteCheckoutResp, unitFen, grossFen int64) ([]saga.Branch, error) {
 	c := svcCtx.Config
+	lockBytes, _ := proto.Marshal(&playClient.LockMemoryMatchReq{
+		RequestId:     gid,
+		QuoteToken:    quote.QuoteToken,
+		ConfigId:      req.ConfigId,
+		UserId:        userID,
+		FacePresetId:  req.FacePresetId,
+		BackPresetId:  req.BackPresetId,
+		TotalPriceFen: unitFen,
+	})
+	settleBytes, _ := proto.Marshal(&playClient.SettleMemoryMatchReq{
+		RequestId: gid,
+		UserId:    userID,
+		ConfigId:  req.ConfigId,
+		SessionId: 0,
+		Price:     utils.FenToYuan(quote.PayableFen),
+	})
+	grantBytes, _ := proto.Marshal(&playClient.GrantMemoryMatchPrizesReq{
+		RequestId: gid,
+		UserId:    userID,
+		SessionId: 0,
+		ConfigId:  req.ConfigId,
+	})
 	return saga.PlayBranches(c.MoneyRpcDirect, gid, userID, req.ConfigId, quote, saga.PlayBranchSet{
-		// 01 锁报价+会话插入 PENDING；补偿 LockMemoryMatchRevert 会话 EXPIRED+释放报价
-		LockPath:    c.PlayRpcDirect + "/play.Play/LockMemoryMatch",
-		ReleasePath: c.PlayRpcDirect + "/play.Play/LockMemoryMatchRevert",
-		LockPayload: &playClient.LockMemoryMatchReq{
+		LockPath:    c.PlayRpcDirect + saga.PathPlayLock,
+		ReleasePath: c.PlayRpcDirect + saga.PathPlayRelease,
+		LockPayload: &play.PlayLockReq{
 			RequestId:     gid,
-			QuoteToken:    quote.QuoteToken,
+			Mode:          play.PlayMode_PLAY_MODE_MEMORY_MATCH,
 			ConfigId:      req.ConfigId,
 			UserId:        userID,
-			FacePresetId:  req.FacePresetId,
-			BackPresetId:  req.BackPresetId,
+			QuoteToken:    quote.QuoteToken,
 			TotalPriceFen: unitFen,
+			Payload:       lockBytes,
 		},
-		// 03 PENDING→AWAITING_DESTINY；补偿 SettleMemoryMatchRevert
-		SettlePath:       c.PlayRpcDirect + "/play.Play/SettleMemoryMatch",
-		SettleRevertPath: c.PlayRpcDirect + "/play.Play/SettleMemoryMatchRevert",
-		SettlePayload: &playClient.SettleMemoryMatchReq{
+		SettlePath:       c.PlayRpcDirect + saga.PathPlaySettle,
+		SettleRevertPath: c.PlayRpcDirect + saga.PathPlaySettleRevert,
+		SettlePayload: &play.PlaySettleReq{
 			RequestId: gid,
-			UserId:    userID,
+			Mode:      play.PlayMode_PLAY_MODE_MEMORY_MATCH,
 			ConfigId:  req.ConfigId,
-			SessionId: 0,
+			UserId:    userID,
 			Price:     utils.FenToYuan(quote.PayableFen),
+			Payload:   settleBytes,
 		},
-		// 04 发奖空操作（购买时无奖，终局结算同步发奖；永不 Aborted、空补偿）
-		GrantPath:       c.PlayRpcDirect + "/play.Play/GrantMemoryMatchPrizes",
-		GrantRevertPath: c.PlayRpcDirect + "/play.Play/GrantMemoryMatchPrizesRevert",
-		GrantPayload: &playClient.GrantMemoryMatchPrizesReq{
+		GrantPath:       c.PlayRpcDirect + saga.PathPlayGrant,
+		GrantRevertPath: c.PlayRpcDirect + saga.PathPlayGrantRevert,
+		GrantPayload: &play.PlayGrantReq{
 			RequestId: gid,
-			UserId:    userID,
-			SessionId: 0,
+			Mode:      play.PlayMode_PLAY_MODE_MEMORY_MATCH,
 			ConfigId:  req.ConfigId,
+			UserId:    userID,
+			Payload:   grantBytes,
 		},
 	}), nil
 }

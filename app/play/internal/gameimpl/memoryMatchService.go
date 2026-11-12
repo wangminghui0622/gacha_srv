@@ -1,4 +1,4 @@
-package logic
+package gameimpl
 
 import (
 	"context"

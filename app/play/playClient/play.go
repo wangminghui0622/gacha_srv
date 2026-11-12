@@ -101,6 +101,16 @@ type (
 	MemoryMatchFacePreset              = play.MemoryMatchFacePreset
 	MemoryMatchRoundBrief              = play.MemoryMatchRoundBrief
 	MemoryMatchSettlementView          = play.MemoryMatchSettlementView
+	PlayGrantReq                       = play.PlayGrantReq
+	PlayGrantResp                      = play.PlayGrantResp
+	PlayListRecordsReq                 = play.PlayListRecordsReq
+	PlayListRecordsResp                = play.PlayListRecordsResp
+	PlayLockReq                        = play.PlayLockReq
+	PlayLockResp                       = play.PlayLockResp
+	PlayReleaseReq                     = play.PlayReleaseReq
+	PlayReleaseResp                    = play.PlayReleaseResp
+	PlaySettleReq                      = play.PlaySettleReq
+	PlaySettleResp                     = play.PlaySettleResp
 	PrizeItem                          = play.PrizeItem
 	ReleaseComboChainReq               = play.ReleaseComboChainReq
 	ReleaseComboChainResp              = play.ReleaseComboChainResp
@@ -134,89 +144,27 @@ type (
 	SkipMemoryMatchResp                = play.SkipMemoryMatchResp
 
 	Play interface {
-		// ---- M11 dig 挖宝箱 ----
+		// 通用 SAGA 分支（payload 内是各玩法 typed 请求）
+		PlayLock(ctx context.Context, in *PlayLockReq, opts ...grpc.CallOption) (*PlayLockResp, error)
+		PlayRelease(ctx context.Context, in *PlayLockReq, opts ...grpc.CallOption) (*PlayReleaseResp, error)
+		PlaySettle(ctx context.Context, in *PlaySettleReq, opts ...grpc.CallOption) (*PlaySettleResp, error)
+		PlaySettleRevert(ctx context.Context, in *PlaySettleReq, opts ...grpc.CallOption) (*PlaySettleResp, error)
+		PlayGrant(ctx context.Context, in *PlayGrantReq, opts ...grpc.CallOption) (*PlayGrantResp, error)
+		PlayGrantRevert(ctx context.Context, in *PlayGrantReq, opts ...grpc.CallOption) (*PlayGrantResp, error)
+		PlayListRecords(ctx context.Context, in *PlayListRecordsReq, opts ...grpc.CallOption) (*PlayListRecordsResp, error)
+		// 读 / 玩法 / 管理接口保留（下方 rpc 行原样保留）
 		ListDigBoxes(ctx context.Context, in *ListDigBoxesReq, opts ...grpc.CallOption) (*ListDigBoxesResp, error)
 		GetDigBoxSession(ctx context.Context, in *GetDigBoxSessionReq, opts ...grpc.CallOption) (*GetDigBoxSessionResp, error)
-		// LockDigBox SAGA 03 正向：报价+券锁（与 LockQuote 同源 helper）+ 会话位图置位
-		LockDigBox(ctx context.Context, in *LockDigBoxReq, opts ...grpc.CallOption) (*LockDigBoxResp, error)
-		// ReleaseDigBox SAGA 03 补偿：位图清位 + 计数回滚 + 报价/券释放
-		ReleaseDigBox(ctx context.Context, in *ReleaseDigBoxReq, opts ...grpc.CallOption) (*ReleaseDigBoxResp, error)
-		// SettleDigBox SAGA 05 正向：揭晓格子奖品 + 落记录 + 满格置 COMPLETED
-		SettleDigBox(ctx context.Context, in *SettleDigBoxReq, opts ...grpc.CallOption) (*SettleDigBoxResp, error)
-		// SettleDigBoxRevert SAGA 05 补偿：记录置撤销 + 清位（与 03 补偿幂等）
-		SettleDigBoxRevert(ctx context.Context, in *SettleDigBoxReq, opts ...grpc.CallOption) (*SettleDigBoxResp, error)
-		// GrantDigPrizes SAGA 06 正向：逐奖幂等发放（现金/积分走 asset.CreditWallet，券本地插入）；
-		GrantDigPrizes(ctx context.Context, in *GrantDigPrizesReq, opts ...grpc.CallOption) (*GrantDigPrizesResp, error)
-		// GrantDigPrizesRevert SAGA 06 补偿：空操作（注册防御）
-		GrantDigPrizesRevert(ctx context.Context, in *GrantDigPrizesReq, opts ...grpc.CallOption) (*GrantDigPrizesResp, error)
-		// ListDigRecords 挖宝记录（requestId 精确查询或分页列表）
-		ListDigRecords(ctx context.Context, in *ListDigRecordsReq, opts ...grpc.CallOption) (*ListDigRecordsResp, error)
 		// ---- M12 满车 full_car ----
 		GetFullCar(ctx context.Context, in *GetFullCarReq, opts ...grpc.CallOption) (*GetFullCarResp, error)
-		// LockFullCar SAGA 03 正向：报价锁 + state FOR UPDATE + 分配座位 + 余票-1
-		LockFullCar(ctx context.Context, in *LockFullCarReq, opts ...grpc.CallOption) (*LockFullCarResp, error)
-		// ReleaseFullCar SAGA 03 补偿：释放座位（seats[i]==userId 才清）+ 余票+1 + 报价释放
-		ReleaseFullCar(ctx context.Context, in *ReleaseFullCarReq, opts ...grpc.CallOption) (*ReleaseFullCarResp, error)
-		// SettleFullCar SAGA 05 正向：regular 奖 + 落记录 + 最后一票触发整车结算（确定性 seed=gid）
-		SettleFullCar(ctx context.Context, in *SettleFullCarReq, opts ...grpc.CallOption) (*SettleFullCarResp, error)
-		// SettleFullCarRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删整车奖 + DEPARTED→OPEN + 余票+1 + 库存回补
-		SettleFullCarRevert(ctx context.Context, in *SettleFullCarReq, opts ...grpc.CallOption) (*SettleFullCarResp, error)
-		// GrantFullCarPrizes SAGA 06 正向：regular 奖 + 整车结算奖逐奖幂等发放；永不 Aborted，补偿为空
-		GrantFullCarPrizes(ctx context.Context, in *GrantFullCarPrizesReq, opts ...grpc.CallOption) (*GrantFullCarPrizesResp, error)
-		// GrantFullCarPrizesRevert SAGA 06 补偿：空操作（注册防御）
-		GrantFullCarPrizesRevert(ctx context.Context, in *GrantFullCarPrizesReq, opts ...grpc.CallOption) (*GrantFullCarPrizesResp, error)
-		// ListFullCarRecords 满车记录（requestId 精确查询或分页列表）
-		ListFullCarRecords(ctx context.Context, in *ListFullCarRecordsReq, opts ...grpc.CallOption) (*ListFullCarRecordsResp, error)
 		// ---- M12 扭蛋 gashapon ----
 		GetGashapon(ctx context.Context, in *GetGashaponReq, opts ...grpc.CallOption) (*GetGashaponResp, error)
 		// LockGashapon SAGA 03 正向：报价锁 + state FOR UPDATE + participants/records 追加 + 余票-count
-		LockGashapon(ctx context.Context, in *LockGashaponReq, opts ...grpc.CallOption) (*LockGashaponResp, error)
-		// ReleaseGashapon SAGA 03 补偿：按 requestId 弹出记录 + participants-count + 余票+count + 报价释放
-		ReleaseGashapon(ctx context.Context, in *ReleaseGashaponReq, opts ...grpc.CallOption) (*ReleaseGashaponResp, error)
-		// SettleGashapon SAGA 05 正向：抽 count 个 regular 奖 + 分阶段 LUCKY 判定 + 清空时终局 LAST/MVP/LUCKY
-		SettleGashapon(ctx context.Context, in *SettleGashaponReq, opts ...grpc.CallOption) (*SettleGashaponResp, error)
-		// SettleGashaponRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删特别奖 + sent 回退 + SETTLED→OPEN + 库存回补
-		SettleGashaponRevert(ctx context.Context, in *SettleGashaponReq, opts ...grpc.CallOption) (*SettleGashaponResp, error)
-		// GrantGashaponPrizes SAGA 06 正向：regular 奖 + 特别奖逐奖幂等发放；永不 Aborted，补偿为空
-		GrantGashaponPrizes(ctx context.Context, in *GrantGashaponPrizesReq, opts ...grpc.CallOption) (*GrantGashaponPrizesResp, error)
-		// GrantGashaponPrizesRevert SAGA 06 补偿：空操作（注册防御）
-		GrantGashaponPrizesRevert(ctx context.Context, in *GrantGashaponPrizesReq, opts ...grpc.CallOption) (*GrantGashaponPrizesResp, error)
-		// ListGashaponRecords 扭蛋记录（requestId 精确查询或分页列表）
-		ListGashaponRecords(ctx context.Context, in *ListGashaponRecordsReq, opts ...grpc.CallOption) (*ListGashaponRecordsResp, error)
-		// AssignGashaponLuckyUser 幸运指派（仅 LUCKY 奖；userId=0 删除）。无 HTTP 路由（无管理员鉴权），供 ops/admin 直调
 		AssignGashaponLuckyUser(ctx context.Context, in *AssignGashaponLuckyUserReq, opts ...grpc.CallOption) (*AssignGashaponLuckyUserResp, error)
 		// ---- M13 连击链 combo_chain ----
 		GetComboChain(ctx context.Context, in *GetComboChainReq, opts ...grpc.CallOption) (*GetComboChainResp, error)
-		// LockComboChain SAGA 03 正向：报价锁 + state FOR UPDATE + participants 追加（每用户每车 1 票）+ 余票-1
-		LockComboChain(ctx context.Context, in *LockComboChainReq, opts ...grpc.CallOption) (*LockComboChainResp, error)
-		// ReleaseComboChain SAGA 03 补偿：按 userId 弹出参与 + 余票+1 + 报价释放
-		ReleaseComboChain(ctx context.Context, in *ReleaseComboChainReq, opts ...grpc.CallOption) (*ReleaseComboChainResp, error)
-		// SettleComboChain SAGA 05 正向：落记录；最后一票触发整车结算（COMBO_TIER 触发/全局奖分布/连击判定/车次推进）
-		SettleComboChain(ctx context.Context, in *SettleComboChainReq, opts ...grpc.CallOption) (*SettleComboChainResp, error)
-		// SettleComboChainRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删结算奖 + 连击快照回滚 + 车次回退
-		SettleComboChainRevert(ctx context.Context, in *SettleComboChainReq, opts ...grpc.CallOption) (*SettleComboChainResp, error)
-		// GrantComboChainPrizes SAGA 06 正向：本 gid 触发的结算奖逐奖幂等发放；永不 Aborted，补偿为空
-		GrantComboChainPrizes(ctx context.Context, in *GrantComboChainPrizesReq, opts ...grpc.CallOption) (*GrantComboChainPrizesResp, error)
-		// GrantComboChainPrizesRevert SAGA 06 补偿：空操作（注册防御）
-		GrantComboChainPrizesRevert(ctx context.Context, in *GrantComboChainPrizesReq, opts ...grpc.CallOption) (*GrantComboChainPrizesResp, error)
-		// ListComboChainRecords 连击链记录（requestId 精确查询或分页列表）
-		ListComboChainRecords(ctx context.Context, in *ListComboChainRecordsReq, opts ...grpc.CallOption) (*ListComboChainRecordsResp, error)
 		// ---- M13 拼团抽 group_buy ----
 		GetGroupBuy(ctx context.Context, in *GetGroupBuyReq, opts ...grpc.CallOption) (*GetGroupBuyResp, error)
-		// LockGroupBuy SAGA 03 正向：报价锁 + state FOR UPDATE + bets 追加 + 余位-count
-		LockGroupBuy(ctx context.Context, in *LockGroupBuyReq, opts ...grpc.CallOption) (*LockGroupBuyResp, error)
-		// ReleaseGroupBuy SAGA 03 补偿：按 draw_id 弹出下注 + 余位+count + 报价释放
-		ReleaseGroupBuy(ctx context.Context, in *ReleaseGroupBuyReq, opts ...grpc.CallOption) (*ReleaseGroupBuyResp, error)
-		// SettleGroupBuy SAGA 05 正向：落记录；最后一注触发整批结算（普通槽洗牌分配/子奖/幸运奖加权池）
-		SettleGroupBuy(ctx context.Context, in *SettleGroupBuyReq, opts ...grpc.CallOption) (*SettleGroupBuyResp, error)
-		// SettleGroupBuyRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删结算奖 + 库存/幸运回补 + SETTLED→OPEN
-		SettleGroupBuyRevert(ctx context.Context, in *SettleGroupBuyReq, opts ...grpc.CallOption) (*SettleGroupBuyResp, error)
-		// GrantGroupBuyPrizes SAGA 06 正向：本 gid 触发的结算奖逐奖幂等发放；永不 Aborted，补偿为空
-		GrantGroupBuyPrizes(ctx context.Context, in *GrantGroupBuyPrizesReq, opts ...grpc.CallOption) (*GrantGroupBuyPrizesResp, error)
-		// GrantGroupBuyPrizesRevert SAGA 06 补偿：空操作（注册防御）
-		GrantGroupBuyPrizesRevert(ctx context.Context, in *GrantGroupBuyPrizesReq, opts ...grpc.CallOption) (*GrantGroupBuyPrizesResp, error)
-		// ListGroupBuyRecords 拼团记录（requestId 精确查询或分页列表）
-		ListGroupBuyRecords(ctx context.Context, in *ListGroupBuyRecordsReq, opts ...grpc.CallOption) (*ListGroupBuyRecordsResp, error)
 		// ---- M15b 记忆翻牌 MemoryMatch（消息/语义照抄 server_v2 gacha memory_match）----
 		GetMemoryMatchConfig(ctx context.Context, in *GetMemoryMatchConfigReq, opts ...grpc.CallOption) (*GetMemoryMatchConfigResp, error)
 		GetMemoryMatchAppearance(ctx context.Context, in *GetMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*GetMemoryMatchAppearanceResp, error)
@@ -230,13 +178,6 @@ type (
 		ApplyMemoryMatchDestinyDraw(ctx context.Context, in *ApplyMemoryMatchDestinyDrawReq, opts ...grpc.CallOption) (*ApplyMemoryMatchDestinyDrawResp, error)
 		CompleteMemoryMatchRound(ctx context.Context, in *CompleteMemoryMatchRoundReq, opts ...grpc.CallOption) (*CompleteMemoryMatchRoundResp, error)
 		SkipMemoryMatch(ctx context.Context, in *SkipMemoryMatchReq, opts ...grpc.CallOption) (*SkipMemoryMatchResp, error)
-		// SAGA 分支：03 Lock/LockMemoryMatchRevert（release=补偿）、05 Settle/SettleMemoryMatchRevert、
-		LockMemoryMatch(ctx context.Context, in *LockMemoryMatchReq, opts ...grpc.CallOption) (*LockMemoryMatchResp, error)
-		LockMemoryMatchRevert(ctx context.Context, in *LockMemoryMatchReq, opts ...grpc.CallOption) (*LockMemoryMatchResp, error)
-		SettleMemoryMatch(ctx context.Context, in *SettleMemoryMatchReq, opts ...grpc.CallOption) (*SettleMemoryMatchResp, error)
-		SettleMemoryMatchRevert(ctx context.Context, in *SettleMemoryMatchReq, opts ...grpc.CallOption) (*SettleMemoryMatchResp, error)
-		GrantMemoryMatchPrizes(ctx context.Context, in *GrantMemoryMatchPrizesReq, opts ...grpc.CallOption) (*GrantMemoryMatchPrizesResp, error)
-		GrantMemoryMatchPrizesRevert(ctx context.Context, in *GrantMemoryMatchPrizesReq, opts ...grpc.CallOption) (*GrantMemoryMatchPrizesResp, error)
 		// CheckPrizesGranted SAGA 04 补偿（CancelPayment）退款前置检查：
 		CheckPrizesGranted(ctx context.Context, in *CheckPrizesGrantedReq, opts ...grpc.CallOption) (*CheckPrizesGrantedResp, error)
 	}
@@ -252,7 +193,43 @@ func NewPlay(cli zrpc.Client) Play {
 	}
 }
 
-// ---- M11 dig 挖宝箱 ----
+// 通用 SAGA 分支（payload 内是各玩法 typed 请求）
+func (m *defaultPlay) PlayLock(ctx context.Context, in *PlayLockReq, opts ...grpc.CallOption) (*PlayLockResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.PlayLock(ctx, in, opts...)
+}
+
+func (m *defaultPlay) PlayRelease(ctx context.Context, in *PlayLockReq, opts ...grpc.CallOption) (*PlayReleaseResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.PlayRelease(ctx, in, opts...)
+}
+
+func (m *defaultPlay) PlaySettle(ctx context.Context, in *PlaySettleReq, opts ...grpc.CallOption) (*PlaySettleResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.PlaySettle(ctx, in, opts...)
+}
+
+func (m *defaultPlay) PlaySettleRevert(ctx context.Context, in *PlaySettleReq, opts ...grpc.CallOption) (*PlaySettleResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.PlaySettleRevert(ctx, in, opts...)
+}
+
+func (m *defaultPlay) PlayGrant(ctx context.Context, in *PlayGrantReq, opts ...grpc.CallOption) (*PlayGrantResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.PlayGrant(ctx, in, opts...)
+}
+
+func (m *defaultPlay) PlayGrantRevert(ctx context.Context, in *PlayGrantReq, opts ...grpc.CallOption) (*PlayGrantResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.PlayGrantRevert(ctx, in, opts...)
+}
+
+func (m *defaultPlay) PlayListRecords(ctx context.Context, in *PlayListRecordsReq, opts ...grpc.CallOption) (*PlayListRecordsResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.PlayListRecords(ctx, in, opts...)
+}
+
+// 读 / 玩法 / 管理接口保留（下方 rpc 行原样保留）
 func (m *defaultPlay) ListDigBoxes(ctx context.Context, in *ListDigBoxesReq, opts ...grpc.CallOption) (*ListDigBoxesResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.ListDigBoxes(ctx, in, opts...)
@@ -263,94 +240,10 @@ func (m *defaultPlay) GetDigBoxSession(ctx context.Context, in *GetDigBoxSession
 	return client.GetDigBoxSession(ctx, in, opts...)
 }
 
-// LockDigBox SAGA 03 正向：报价+券锁（与 LockQuote 同源 helper）+ 会话位图置位
-func (m *defaultPlay) LockDigBox(ctx context.Context, in *LockDigBoxReq, opts ...grpc.CallOption) (*LockDigBoxResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.LockDigBox(ctx, in, opts...)
-}
-
-// ReleaseDigBox SAGA 03 补偿：位图清位 + 计数回滚 + 报价/券释放
-func (m *defaultPlay) ReleaseDigBox(ctx context.Context, in *ReleaseDigBoxReq, opts ...grpc.CallOption) (*ReleaseDigBoxResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.ReleaseDigBox(ctx, in, opts...)
-}
-
-// SettleDigBox SAGA 05 正向：揭晓格子奖品 + 落记录 + 满格置 COMPLETED
-func (m *defaultPlay) SettleDigBox(ctx context.Context, in *SettleDigBoxReq, opts ...grpc.CallOption) (*SettleDigBoxResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.SettleDigBox(ctx, in, opts...)
-}
-
-// SettleDigBoxRevert SAGA 05 补偿：记录置撤销 + 清位（与 03 补偿幂等）
-func (m *defaultPlay) SettleDigBoxRevert(ctx context.Context, in *SettleDigBoxReq, opts ...grpc.CallOption) (*SettleDigBoxResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.SettleDigBoxRevert(ctx, in, opts...)
-}
-
-// GrantDigPrizes SAGA 06 正向：逐奖幂等发放（现金/积分走 asset.CreditWallet，券本地插入）；
-func (m *defaultPlay) GrantDigPrizes(ctx context.Context, in *GrantDigPrizesReq, opts ...grpc.CallOption) (*GrantDigPrizesResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.GrantDigPrizes(ctx, in, opts...)
-}
-
-// GrantDigPrizesRevert SAGA 06 补偿：空操作（注册防御）
-func (m *defaultPlay) GrantDigPrizesRevert(ctx context.Context, in *GrantDigPrizesReq, opts ...grpc.CallOption) (*GrantDigPrizesResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.GrantDigPrizesRevert(ctx, in, opts...)
-}
-
-// ListDigRecords 挖宝记录（requestId 精确查询或分页列表）
-func (m *defaultPlay) ListDigRecords(ctx context.Context, in *ListDigRecordsReq, opts ...grpc.CallOption) (*ListDigRecordsResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.ListDigRecords(ctx, in, opts...)
-}
-
 // ---- M12 满车 full_car ----
 func (m *defaultPlay) GetFullCar(ctx context.Context, in *GetFullCarReq, opts ...grpc.CallOption) (*GetFullCarResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.GetFullCar(ctx, in, opts...)
-}
-
-// LockFullCar SAGA 03 正向：报价锁 + state FOR UPDATE + 分配座位 + 余票-1
-func (m *defaultPlay) LockFullCar(ctx context.Context, in *LockFullCarReq, opts ...grpc.CallOption) (*LockFullCarResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.LockFullCar(ctx, in, opts...)
-}
-
-// ReleaseFullCar SAGA 03 补偿：释放座位（seats[i]==userId 才清）+ 余票+1 + 报价释放
-func (m *defaultPlay) ReleaseFullCar(ctx context.Context, in *ReleaseFullCarReq, opts ...grpc.CallOption) (*ReleaseFullCarResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.ReleaseFullCar(ctx, in, opts...)
-}
-
-// SettleFullCar SAGA 05 正向：regular 奖 + 落记录 + 最后一票触发整车结算（确定性 seed=gid）
-func (m *defaultPlay) SettleFullCar(ctx context.Context, in *SettleFullCarReq, opts ...grpc.CallOption) (*SettleFullCarResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.SettleFullCar(ctx, in, opts...)
-}
-
-// SettleFullCarRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删整车奖 + DEPARTED→OPEN + 余票+1 + 库存回补
-func (m *defaultPlay) SettleFullCarRevert(ctx context.Context, in *SettleFullCarReq, opts ...grpc.CallOption) (*SettleFullCarResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.SettleFullCarRevert(ctx, in, opts...)
-}
-
-// GrantFullCarPrizes SAGA 06 正向：regular 奖 + 整车结算奖逐奖幂等发放；永不 Aborted，补偿为空
-func (m *defaultPlay) GrantFullCarPrizes(ctx context.Context, in *GrantFullCarPrizesReq, opts ...grpc.CallOption) (*GrantFullCarPrizesResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.GrantFullCarPrizes(ctx, in, opts...)
-}
-
-// GrantFullCarPrizesRevert SAGA 06 补偿：空操作（注册防御）
-func (m *defaultPlay) GrantFullCarPrizesRevert(ctx context.Context, in *GrantFullCarPrizesReq, opts ...grpc.CallOption) (*GrantFullCarPrizesResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.GrantFullCarPrizesRevert(ctx, in, opts...)
-}
-
-// ListFullCarRecords 满车记录（requestId 精确查询或分页列表）
-func (m *defaultPlay) ListFullCarRecords(ctx context.Context, in *ListFullCarRecordsReq, opts ...grpc.CallOption) (*ListFullCarRecordsResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.ListFullCarRecords(ctx, in, opts...)
 }
 
 // ---- M12 扭蛋 gashapon ----
@@ -360,48 +253,6 @@ func (m *defaultPlay) GetGashapon(ctx context.Context, in *GetGashaponReq, opts 
 }
 
 // LockGashapon SAGA 03 正向：报价锁 + state FOR UPDATE + participants/records 追加 + 余票-count
-func (m *defaultPlay) LockGashapon(ctx context.Context, in *LockGashaponReq, opts ...grpc.CallOption) (*LockGashaponResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.LockGashapon(ctx, in, opts...)
-}
-
-// ReleaseGashapon SAGA 03 补偿：按 requestId 弹出记录 + participants-count + 余票+count + 报价释放
-func (m *defaultPlay) ReleaseGashapon(ctx context.Context, in *ReleaseGashaponReq, opts ...grpc.CallOption) (*ReleaseGashaponResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.ReleaseGashapon(ctx, in, opts...)
-}
-
-// SettleGashapon SAGA 05 正向：抽 count 个 regular 奖 + 分阶段 LUCKY 判定 + 清空时终局 LAST/MVP/LUCKY
-func (m *defaultPlay) SettleGashapon(ctx context.Context, in *SettleGashaponReq, opts ...grpc.CallOption) (*SettleGashaponResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.SettleGashapon(ctx, in, opts...)
-}
-
-// SettleGashaponRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删特别奖 + sent 回退 + SETTLED→OPEN + 库存回补
-func (m *defaultPlay) SettleGashaponRevert(ctx context.Context, in *SettleGashaponReq, opts ...grpc.CallOption) (*SettleGashaponResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.SettleGashaponRevert(ctx, in, opts...)
-}
-
-// GrantGashaponPrizes SAGA 06 正向：regular 奖 + 特别奖逐奖幂等发放；永不 Aborted，补偿为空
-func (m *defaultPlay) GrantGashaponPrizes(ctx context.Context, in *GrantGashaponPrizesReq, opts ...grpc.CallOption) (*GrantGashaponPrizesResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.GrantGashaponPrizes(ctx, in, opts...)
-}
-
-// GrantGashaponPrizesRevert SAGA 06 补偿：空操作（注册防御）
-func (m *defaultPlay) GrantGashaponPrizesRevert(ctx context.Context, in *GrantGashaponPrizesReq, opts ...grpc.CallOption) (*GrantGashaponPrizesResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.GrantGashaponPrizesRevert(ctx, in, opts...)
-}
-
-// ListGashaponRecords 扭蛋记录（requestId 精确查询或分页列表）
-func (m *defaultPlay) ListGashaponRecords(ctx context.Context, in *ListGashaponRecordsReq, opts ...grpc.CallOption) (*ListGashaponRecordsResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.ListGashaponRecords(ctx, in, opts...)
-}
-
-// AssignGashaponLuckyUser 幸运指派（仅 LUCKY 奖；userId=0 删除）。无 HTTP 路由（无管理员鉴权），供 ops/admin 直调
 func (m *defaultPlay) AssignGashaponLuckyUser(ctx context.Context, in *AssignGashaponLuckyUserReq, opts ...grpc.CallOption) (*AssignGashaponLuckyUserResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.AssignGashaponLuckyUser(ctx, in, opts...)
@@ -413,94 +264,10 @@ func (m *defaultPlay) GetComboChain(ctx context.Context, in *GetComboChainReq, o
 	return client.GetComboChain(ctx, in, opts...)
 }
 
-// LockComboChain SAGA 03 正向：报价锁 + state FOR UPDATE + participants 追加（每用户每车 1 票）+ 余票-1
-func (m *defaultPlay) LockComboChain(ctx context.Context, in *LockComboChainReq, opts ...grpc.CallOption) (*LockComboChainResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.LockComboChain(ctx, in, opts...)
-}
-
-// ReleaseComboChain SAGA 03 补偿：按 userId 弹出参与 + 余票+1 + 报价释放
-func (m *defaultPlay) ReleaseComboChain(ctx context.Context, in *ReleaseComboChainReq, opts ...grpc.CallOption) (*ReleaseComboChainResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.ReleaseComboChain(ctx, in, opts...)
-}
-
-// SettleComboChain SAGA 05 正向：落记录；最后一票触发整车结算（COMBO_TIER 触发/全局奖分布/连击判定/车次推进）
-func (m *defaultPlay) SettleComboChain(ctx context.Context, in *SettleComboChainReq, opts ...grpc.CallOption) (*SettleComboChainResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.SettleComboChain(ctx, in, opts...)
-}
-
-// SettleComboChainRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删结算奖 + 连击快照回滚 + 车次回退
-func (m *defaultPlay) SettleComboChainRevert(ctx context.Context, in *SettleComboChainReq, opts ...grpc.CallOption) (*SettleComboChainResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.SettleComboChainRevert(ctx, in, opts...)
-}
-
-// GrantComboChainPrizes SAGA 06 正向：本 gid 触发的结算奖逐奖幂等发放；永不 Aborted，补偿为空
-func (m *defaultPlay) GrantComboChainPrizes(ctx context.Context, in *GrantComboChainPrizesReq, opts ...grpc.CallOption) (*GrantComboChainPrizesResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.GrantComboChainPrizes(ctx, in, opts...)
-}
-
-// GrantComboChainPrizesRevert SAGA 06 补偿：空操作（注册防御）
-func (m *defaultPlay) GrantComboChainPrizesRevert(ctx context.Context, in *GrantComboChainPrizesReq, opts ...grpc.CallOption) (*GrantComboChainPrizesResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.GrantComboChainPrizesRevert(ctx, in, opts...)
-}
-
-// ListComboChainRecords 连击链记录（requestId 精确查询或分页列表）
-func (m *defaultPlay) ListComboChainRecords(ctx context.Context, in *ListComboChainRecordsReq, opts ...grpc.CallOption) (*ListComboChainRecordsResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.ListComboChainRecords(ctx, in, opts...)
-}
-
 // ---- M13 拼团抽 group_buy ----
 func (m *defaultPlay) GetGroupBuy(ctx context.Context, in *GetGroupBuyReq, opts ...grpc.CallOption) (*GetGroupBuyResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.GetGroupBuy(ctx, in, opts...)
-}
-
-// LockGroupBuy SAGA 03 正向：报价锁 + state FOR UPDATE + bets 追加 + 余位-count
-func (m *defaultPlay) LockGroupBuy(ctx context.Context, in *LockGroupBuyReq, opts ...grpc.CallOption) (*LockGroupBuyResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.LockGroupBuy(ctx, in, opts...)
-}
-
-// ReleaseGroupBuy SAGA 03 补偿：按 draw_id 弹出下注 + 余位+count + 报价释放
-func (m *defaultPlay) ReleaseGroupBuy(ctx context.Context, in *ReleaseGroupBuyReq, opts ...grpc.CallOption) (*ReleaseGroupBuyResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.ReleaseGroupBuy(ctx, in, opts...)
-}
-
-// SettleGroupBuy SAGA 05 正向：落记录；最后一注触发整批结算（普通槽洗牌分配/子奖/幸运奖加权池）
-func (m *defaultPlay) SettleGroupBuy(ctx context.Context, in *SettleGroupBuyReq, opts ...grpc.CallOption) (*SettleGroupBuyResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.SettleGroupBuy(ctx, in, opts...)
-}
-
-// SettleGroupBuyRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删结算奖 + 库存/幸运回补 + SETTLED→OPEN
-func (m *defaultPlay) SettleGroupBuyRevert(ctx context.Context, in *SettleGroupBuyReq, opts ...grpc.CallOption) (*SettleGroupBuyResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.SettleGroupBuyRevert(ctx, in, opts...)
-}
-
-// GrantGroupBuyPrizes SAGA 06 正向：本 gid 触发的结算奖逐奖幂等发放；永不 Aborted，补偿为空
-func (m *defaultPlay) GrantGroupBuyPrizes(ctx context.Context, in *GrantGroupBuyPrizesReq, opts ...grpc.CallOption) (*GrantGroupBuyPrizesResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.GrantGroupBuyPrizes(ctx, in, opts...)
-}
-
-// GrantGroupBuyPrizesRevert SAGA 06 补偿：空操作（注册防御）
-func (m *defaultPlay) GrantGroupBuyPrizesRevert(ctx context.Context, in *GrantGroupBuyPrizesReq, opts ...grpc.CallOption) (*GrantGroupBuyPrizesResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.GrantGroupBuyPrizesRevert(ctx, in, opts...)
-}
-
-// ListGroupBuyRecords 拼团记录（requestId 精确查询或分页列表）
-func (m *defaultPlay) ListGroupBuyRecords(ctx context.Context, in *ListGroupBuyRecordsReq, opts ...grpc.CallOption) (*ListGroupBuyRecordsResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.ListGroupBuyRecords(ctx, in, opts...)
 }
 
 // ---- M15b 记忆翻牌 MemoryMatch（消息/语义照抄 server_v2 gacha memory_match）----
@@ -562,37 +329,6 @@ func (m *defaultPlay) CompleteMemoryMatchRound(ctx context.Context, in *Complete
 func (m *defaultPlay) SkipMemoryMatch(ctx context.Context, in *SkipMemoryMatchReq, opts ...grpc.CallOption) (*SkipMemoryMatchResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.SkipMemoryMatch(ctx, in, opts...)
-}
-
-// SAGA 分支：03 Lock/LockMemoryMatchRevert（release=补偿）、05 Settle/SettleMemoryMatchRevert、
-func (m *defaultPlay) LockMemoryMatch(ctx context.Context, in *LockMemoryMatchReq, opts ...grpc.CallOption) (*LockMemoryMatchResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.LockMemoryMatch(ctx, in, opts...)
-}
-
-func (m *defaultPlay) LockMemoryMatchRevert(ctx context.Context, in *LockMemoryMatchReq, opts ...grpc.CallOption) (*LockMemoryMatchResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.LockMemoryMatchRevert(ctx, in, opts...)
-}
-
-func (m *defaultPlay) SettleMemoryMatch(ctx context.Context, in *SettleMemoryMatchReq, opts ...grpc.CallOption) (*SettleMemoryMatchResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.SettleMemoryMatch(ctx, in, opts...)
-}
-
-func (m *defaultPlay) SettleMemoryMatchRevert(ctx context.Context, in *SettleMemoryMatchReq, opts ...grpc.CallOption) (*SettleMemoryMatchResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.SettleMemoryMatchRevert(ctx, in, opts...)
-}
-
-func (m *defaultPlay) GrantMemoryMatchPrizes(ctx context.Context, in *GrantMemoryMatchPrizesReq, opts ...grpc.CallOption) (*GrantMemoryMatchPrizesResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.GrantMemoryMatchPrizes(ctx, in, opts...)
-}
-
-func (m *defaultPlay) GrantMemoryMatchPrizesRevert(ctx context.Context, in *GrantMemoryMatchPrizesReq, opts ...grpc.CallOption) (*GrantMemoryMatchPrizesResp, error) {
-	client := play.NewPlayClient(m.cli.Conn())
-	return client.GrantMemoryMatchPrizesRevert(ctx, in, opts...)
 }
 
 // CheckPrizesGranted SAGA 04 补偿（CancelPayment）退款前置检查：

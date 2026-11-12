@@ -3,8 +3,8 @@ package gashapon
 import (
 	"context"
 
-	playClient "gacha_srv/app/play/playClient"
 	"gacha_srv/app/gateway/internal/middleware"
+	"gacha_srv/app/gateway/internal/playapi"
 	"gacha_srv/app/gateway/internal/svc"
 	"gacha_srv/app/gateway/internal/types"
 	"gacha_srv/pkg/utils/errorx"
@@ -32,12 +32,7 @@ func (l *ListGashaponRecordsLogic) ListGashaponRecords(req *types.GashaponRecord
 	if !ok || userId <= 0 {
 		return nil, errorx.NewCodeError(errorx.CodeUnauthorized, "未登录")
 	}
-	r, err := l.svcCtx.PlayRpc.ListGashaponRecords(l.ctx, &playClient.ListGashaponRecordsReq{
-		UserId:    userId,
-		RequestId: req.RequestId,
-		Page:      req.Page,
-		PageSize:  req.PageSize,
-	})
+	r, err := playapi.ListGashaponRecords(l.ctx, l.svcCtx, req.RequestId, userId, req.Page, req.PageSize)
 	if err != nil {
 		l.Errorf("ListGashaponRecords failed, err: %v", err)
 		return nil, errorx.FromError(err)

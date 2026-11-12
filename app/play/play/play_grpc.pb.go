@@ -19,48 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
+	Play_PlayLock_FullMethodName                       = "/play.Play/PlayLock"
+	Play_PlayRelease_FullMethodName                    = "/play.Play/PlayRelease"
+	Play_PlaySettle_FullMethodName                     = "/play.Play/PlaySettle"
+	Play_PlaySettleRevert_FullMethodName               = "/play.Play/PlaySettleRevert"
+	Play_PlayGrant_FullMethodName                      = "/play.Play/PlayGrant"
+	Play_PlayGrantRevert_FullMethodName                = "/play.Play/PlayGrantRevert"
+	Play_PlayListRecords_FullMethodName                = "/play.Play/PlayListRecords"
 	Play_ListDigBoxes_FullMethodName                   = "/play.Play/ListDigBoxes"
 	Play_GetDigBoxSession_FullMethodName               = "/play.Play/GetDigBoxSession"
-	Play_LockDigBox_FullMethodName                     = "/play.Play/LockDigBox"
-	Play_ReleaseDigBox_FullMethodName                  = "/play.Play/ReleaseDigBox"
-	Play_SettleDigBox_FullMethodName                   = "/play.Play/SettleDigBox"
-	Play_SettleDigBoxRevert_FullMethodName             = "/play.Play/SettleDigBoxRevert"
-	Play_GrantDigPrizes_FullMethodName                 = "/play.Play/GrantDigPrizes"
-	Play_GrantDigPrizesRevert_FullMethodName           = "/play.Play/GrantDigPrizesRevert"
-	Play_ListDigRecords_FullMethodName                 = "/play.Play/ListDigRecords"
 	Play_GetFullCar_FullMethodName                     = "/play.Play/GetFullCar"
-	Play_LockFullCar_FullMethodName                    = "/play.Play/LockFullCar"
-	Play_ReleaseFullCar_FullMethodName                 = "/play.Play/ReleaseFullCar"
-	Play_SettleFullCar_FullMethodName                  = "/play.Play/SettleFullCar"
-	Play_SettleFullCarRevert_FullMethodName            = "/play.Play/SettleFullCarRevert"
-	Play_GrantFullCarPrizes_FullMethodName             = "/play.Play/GrantFullCarPrizes"
-	Play_GrantFullCarPrizesRevert_FullMethodName       = "/play.Play/GrantFullCarPrizesRevert"
-	Play_ListFullCarRecords_FullMethodName             = "/play.Play/ListFullCarRecords"
 	Play_GetGashapon_FullMethodName                    = "/play.Play/GetGashapon"
-	Play_LockGashapon_FullMethodName                   = "/play.Play/LockGashapon"
-	Play_ReleaseGashapon_FullMethodName                = "/play.Play/ReleaseGashapon"
-	Play_SettleGashapon_FullMethodName                 = "/play.Play/SettleGashapon"
-	Play_SettleGashaponRevert_FullMethodName           = "/play.Play/SettleGashaponRevert"
-	Play_GrantGashaponPrizes_FullMethodName            = "/play.Play/GrantGashaponPrizes"
-	Play_GrantGashaponPrizesRevert_FullMethodName      = "/play.Play/GrantGashaponPrizesRevert"
-	Play_ListGashaponRecords_FullMethodName            = "/play.Play/ListGashaponRecords"
 	Play_AssignGashaponLuckyUser_FullMethodName        = "/play.Play/AssignGashaponLuckyUser"
 	Play_GetComboChain_FullMethodName                  = "/play.Play/GetComboChain"
-	Play_LockComboChain_FullMethodName                 = "/play.Play/LockComboChain"
-	Play_ReleaseComboChain_FullMethodName              = "/play.Play/ReleaseComboChain"
-	Play_SettleComboChain_FullMethodName               = "/play.Play/SettleComboChain"
-	Play_SettleComboChainRevert_FullMethodName         = "/play.Play/SettleComboChainRevert"
-	Play_GrantComboChainPrizes_FullMethodName          = "/play.Play/GrantComboChainPrizes"
-	Play_GrantComboChainPrizesRevert_FullMethodName    = "/play.Play/GrantComboChainPrizesRevert"
-	Play_ListComboChainRecords_FullMethodName          = "/play.Play/ListComboChainRecords"
 	Play_GetGroupBuy_FullMethodName                    = "/play.Play/GetGroupBuy"
-	Play_LockGroupBuy_FullMethodName                   = "/play.Play/LockGroupBuy"
-	Play_ReleaseGroupBuy_FullMethodName                = "/play.Play/ReleaseGroupBuy"
-	Play_SettleGroupBuy_FullMethodName                 = "/play.Play/SettleGroupBuy"
-	Play_SettleGroupBuyRevert_FullMethodName           = "/play.Play/SettleGroupBuyRevert"
-	Play_GrantGroupBuyPrizes_FullMethodName            = "/play.Play/GrantGroupBuyPrizes"
-	Play_GrantGroupBuyPrizesRevert_FullMethodName      = "/play.Play/GrantGroupBuyPrizesRevert"
-	Play_ListGroupBuyRecords_FullMethodName            = "/play.Play/ListGroupBuyRecords"
 	Play_GetMemoryMatchConfig_FullMethodName           = "/play.Play/GetMemoryMatchConfig"
 	Play_GetMemoryMatchAppearance_FullMethodName       = "/play.Play/GetMemoryMatchAppearance"
 	Play_SetMemoryMatchAppearance_FullMethodName       = "/play.Play/SetMemoryMatchAppearance"
@@ -73,12 +45,6 @@ const (
 	Play_ApplyMemoryMatchDestinyDraw_FullMethodName    = "/play.Play/ApplyMemoryMatchDestinyDraw"
 	Play_CompleteMemoryMatchRound_FullMethodName       = "/play.Play/CompleteMemoryMatchRound"
 	Play_SkipMemoryMatch_FullMethodName                = "/play.Play/SkipMemoryMatch"
-	Play_LockMemoryMatch_FullMethodName                = "/play.Play/LockMemoryMatch"
-	Play_LockMemoryMatchRevert_FullMethodName          = "/play.Play/LockMemoryMatchRevert"
-	Play_SettleMemoryMatch_FullMethodName              = "/play.Play/SettleMemoryMatch"
-	Play_SettleMemoryMatchRevert_FullMethodName        = "/play.Play/SettleMemoryMatchRevert"
-	Play_GrantMemoryMatchPrizes_FullMethodName         = "/play.Play/GrantMemoryMatchPrizes"
-	Play_GrantMemoryMatchPrizesRevert_FullMethodName   = "/play.Play/GrantMemoryMatchPrizesRevert"
 	Play_CheckPrizesGranted_FullMethodName             = "/play.Play/CheckPrizesGranted"
 )
 
@@ -86,94 +52,39 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PlayClient interface {
+	// 通用 SAGA 分支（payload 内是各玩法 typed 请求）
+	PlayLock(ctx context.Context, in *PlayLockReq, opts ...grpc.CallOption) (*PlayLockResp, error)
+	PlayRelease(ctx context.Context, in *PlayLockReq, opts ...grpc.CallOption) (*PlayReleaseResp, error)
+	PlaySettle(ctx context.Context, in *PlaySettleReq, opts ...grpc.CallOption) (*PlaySettleResp, error)
+	PlaySettleRevert(ctx context.Context, in *PlaySettleReq, opts ...grpc.CallOption) (*PlaySettleResp, error)
+	PlayGrant(ctx context.Context, in *PlayGrantReq, opts ...grpc.CallOption) (*PlayGrantResp, error)
+	PlayGrantRevert(ctx context.Context, in *PlayGrantReq, opts ...grpc.CallOption) (*PlayGrantResp, error)
+	PlayListRecords(ctx context.Context, in *PlayListRecordsReq, opts ...grpc.CallOption) (*PlayListRecordsResp, error)
+	// 读 / 玩法 / 管理接口保留（下方 rpc 行原样保留）
 	// ---- M11 dig 挖宝箱 ----
 	ListDigBoxes(ctx context.Context, in *ListDigBoxesReq, opts ...grpc.CallOption) (*ListDigBoxesResp, error)
 	GetDigBoxSession(ctx context.Context, in *GetDigBoxSessionReq, opts ...grpc.CallOption) (*GetDigBoxSessionResp, error)
-	// LockDigBox SAGA 03 正向：报价+券锁（与 LockQuote 同源 helper）+ 会话位图置位
-	LockDigBox(ctx context.Context, in *LockDigBoxReq, opts ...grpc.CallOption) (*LockDigBoxResp, error)
-	// ReleaseDigBox SAGA 03 补偿：位图清位 + 计数回滚 + 报价/券释放
-	ReleaseDigBox(ctx context.Context, in *ReleaseDigBoxReq, opts ...grpc.CallOption) (*ReleaseDigBoxResp, error)
-	// SettleDigBox SAGA 05 正向：揭晓格子奖品 + 落记录 + 满格置 COMPLETED
-	SettleDigBox(ctx context.Context, in *SettleDigBoxReq, opts ...grpc.CallOption) (*SettleDigBoxResp, error)
-	// SettleDigBoxRevert SAGA 05 补偿：记录置撤销 + 清位（与 03 补偿幂等）
-	SettleDigBoxRevert(ctx context.Context, in *SettleDigBoxReq, opts ...grpc.CallOption) (*SettleDigBoxResp, error)
-	// GrantDigPrizes SAGA 06 正向：逐奖幂等发放（现金/积分走 asset.CreditWallet，券本地插入）；
-	// 永不 Aborted（只 Internal 重试），补偿为空——捕获在授权成功后 Aborted 属纯防御路径
-	GrantDigPrizes(ctx context.Context, in *GrantDigPrizesReq, opts ...grpc.CallOption) (*GrantDigPrizesResp, error)
-	// GrantDigPrizesRevert SAGA 06 补偿：空操作（注册防御）
-	GrantDigPrizesRevert(ctx context.Context, in *GrantDigPrizesReq, opts ...grpc.CallOption) (*GrantDigPrizesResp, error)
-	// ListDigRecords 挖宝记录（requestId 精确查询或分页列表）
-	ListDigRecords(ctx context.Context, in *ListDigRecordsReq, opts ...grpc.CallOption) (*ListDigRecordsResp, error)
 	// ---- M12 满车 full_car ----
 	// GetFullCar 满车视图（座位/整车奖/余票/价）
 	GetFullCar(ctx context.Context, in *GetFullCarReq, opts ...grpc.CallOption) (*GetFullCarResp, error)
-	// LockFullCar SAGA 03 正向：报价锁 + state FOR UPDATE + 分配座位 + 余票-1
-	LockFullCar(ctx context.Context, in *LockFullCarReq, opts ...grpc.CallOption) (*LockFullCarResp, error)
-	// ReleaseFullCar SAGA 03 补偿：释放座位（seats[i]==userId 才清）+ 余票+1 + 报价释放
-	ReleaseFullCar(ctx context.Context, in *ReleaseFullCarReq, opts ...grpc.CallOption) (*ReleaseFullCarResp, error)
-	// SettleFullCar SAGA 05 正向：regular 奖 + 落记录 + 最后一票触发整车结算（确定性 seed=gid）
-	SettleFullCar(ctx context.Context, in *SettleFullCarReq, opts ...grpc.CallOption) (*SettleFullCarResp, error)
-	// SettleFullCarRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删整车奖 + DEPARTED→OPEN + 余票+1 + 库存回补
-	SettleFullCarRevert(ctx context.Context, in *SettleFullCarReq, opts ...grpc.CallOption) (*SettleFullCarResp, error)
-	// GrantFullCarPrizes SAGA 06 正向：regular 奖 + 整车结算奖逐奖幂等发放；永不 Aborted，补偿为空
-	GrantFullCarPrizes(ctx context.Context, in *GrantFullCarPrizesReq, opts ...grpc.CallOption) (*GrantFullCarPrizesResp, error)
-	// GrantFullCarPrizesRevert SAGA 06 补偿：空操作（注册防御）
-	GrantFullCarPrizesRevert(ctx context.Context, in *GrantFullCarPrizesReq, opts ...grpc.CallOption) (*GrantFullCarPrizesResp, error)
-	// ListFullCarRecords 满车记录（requestId 精确查询或分页列表）
-	ListFullCarRecords(ctx context.Context, in *ListFullCarRecordsReq, opts ...grpc.CallOption) (*ListFullCarRecordsResp, error)
 	// ---- M12 扭蛋 gashapon ----
 	// GetGashapon 扭蛋视图（特别奖进度/余票/参与人数/价）
 	GetGashapon(ctx context.Context, in *GetGashaponReq, opts ...grpc.CallOption) (*GetGashaponResp, error)
 	// LockGashapon SAGA 03 正向：报价锁 + state FOR UPDATE + participants/records 追加 + 余票-count
-	LockGashapon(ctx context.Context, in *LockGashaponReq, opts ...grpc.CallOption) (*LockGashaponResp, error)
 	// ReleaseGashapon SAGA 03 补偿：按 requestId 弹出记录 + participants-count + 余票+count + 报价释放
-	ReleaseGashapon(ctx context.Context, in *ReleaseGashaponReq, opts ...grpc.CallOption) (*ReleaseGashaponResp, error)
 	// SettleGashapon SAGA 05 正向：抽 count 个 regular 奖 + 分阶段 LUCKY 判定 + 清空时终局 LAST/MVP/LUCKY
-	SettleGashapon(ctx context.Context, in *SettleGashaponReq, opts ...grpc.CallOption) (*SettleGashaponResp, error)
 	// SettleGashaponRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删特别奖 + sent 回退 + SETTLED→OPEN + 库存回补
-	SettleGashaponRevert(ctx context.Context, in *SettleGashaponReq, opts ...grpc.CallOption) (*SettleGashaponResp, error)
 	// GrantGashaponPrizes SAGA 06 正向：regular 奖 + 特别奖逐奖幂等发放；永不 Aborted，补偿为空
-	GrantGashaponPrizes(ctx context.Context, in *GrantGashaponPrizesReq, opts ...grpc.CallOption) (*GrantGashaponPrizesResp, error)
 	// GrantGashaponPrizesRevert SAGA 06 补偿：空操作（注册防御）
-	GrantGashaponPrizesRevert(ctx context.Context, in *GrantGashaponPrizesReq, opts ...grpc.CallOption) (*GrantGashaponPrizesResp, error)
 	// ListGashaponRecords 扭蛋记录（requestId 精确查询或分页列表）
-	ListGashaponRecords(ctx context.Context, in *ListGashaponRecordsReq, opts ...grpc.CallOption) (*ListGashaponRecordsResp, error)
 	// AssignGashaponLuckyUser 幸运指派（仅 LUCKY 奖；userId=0 删除）。无 HTTP 路由（无管理员鉴权），供 ops/admin 直调
 	AssignGashaponLuckyUser(ctx context.Context, in *AssignGashaponLuckyUserReq, opts ...grpc.CallOption) (*AssignGashaponLuckyUserResp, error)
 	// ---- M13 连击链 combo_chain ----
 	// GetComboChain 连击链视图（车次进度/当前车余票/全局奖槽/共享奖/我的连击）
 	GetComboChain(ctx context.Context, in *GetComboChainReq, opts ...grpc.CallOption) (*GetComboChainResp, error)
-	// LockComboChain SAGA 03 正向：报价锁 + state FOR UPDATE + participants 追加（每用户每车 1 票）+ 余票-1
-	LockComboChain(ctx context.Context, in *LockComboChainReq, opts ...grpc.CallOption) (*LockComboChainResp, error)
-	// ReleaseComboChain SAGA 03 补偿：按 userId 弹出参与 + 余票+1 + 报价释放
-	ReleaseComboChain(ctx context.Context, in *ReleaseComboChainReq, opts ...grpc.CallOption) (*ReleaseComboChainResp, error)
-	// SettleComboChain SAGA 05 正向：落记录；最后一票触发整车结算（COMBO_TIER 触发/全局奖分布/连击判定/车次推进）
-	SettleComboChain(ctx context.Context, in *SettleComboChainReq, opts ...grpc.CallOption) (*SettleComboChainResp, error)
-	// SettleComboChainRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删结算奖 + 连击快照回滚 + 车次回退
-	SettleComboChainRevert(ctx context.Context, in *SettleComboChainReq, opts ...grpc.CallOption) (*SettleComboChainResp, error)
-	// GrantComboChainPrizes SAGA 06 正向：本 gid 触发的结算奖逐奖幂等发放；永不 Aborted，补偿为空
-	GrantComboChainPrizes(ctx context.Context, in *GrantComboChainPrizesReq, opts ...grpc.CallOption) (*GrantComboChainPrizesResp, error)
-	// GrantComboChainPrizesRevert SAGA 06 补偿：空操作（注册防御）
-	GrantComboChainPrizesRevert(ctx context.Context, in *GrantComboChainPrizesReq, opts ...grpc.CallOption) (*GrantComboChainPrizesResp, error)
-	// ListComboChainRecords 连击链记录（requestId 精确查询或分页列表）
-	ListComboChainRecords(ctx context.Context, in *ListComboChainRecordsReq, opts ...grpc.CallOption) (*ListComboChainRecordsResp, error)
 	// ---- M13 拼团抽 group_buy ----
 	// GetGroupBuy 拼团视图（成团进度/我的下注/幸运奖进度/价）
 	GetGroupBuy(ctx context.Context, in *GetGroupBuyReq, opts ...grpc.CallOption) (*GetGroupBuyResp, error)
-	// LockGroupBuy SAGA 03 正向：报价锁 + state FOR UPDATE + bets 追加 + 余位-count
-	LockGroupBuy(ctx context.Context, in *LockGroupBuyReq, opts ...grpc.CallOption) (*LockGroupBuyResp, error)
-	// ReleaseGroupBuy SAGA 03 补偿：按 draw_id 弹出下注 + 余位+count + 报价释放
-	ReleaseGroupBuy(ctx context.Context, in *ReleaseGroupBuyReq, opts ...grpc.CallOption) (*ReleaseGroupBuyResp, error)
-	// SettleGroupBuy SAGA 05 正向：落记录；最后一注触发整批结算（普通槽洗牌分配/子奖/幸运奖加权池）
-	SettleGroupBuy(ctx context.Context, in *SettleGroupBuyReq, opts ...grpc.CallOption) (*SettleGroupBuyResp, error)
-	// SettleGroupBuyRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删结算奖 + 库存/幸运回补 + SETTLED→OPEN
-	SettleGroupBuyRevert(ctx context.Context, in *SettleGroupBuyReq, opts ...grpc.CallOption) (*SettleGroupBuyResp, error)
-	// GrantGroupBuyPrizes SAGA 06 正向：本 gid 触发的结算奖逐奖幂等发放；永不 Aborted，补偿为空
-	GrantGroupBuyPrizes(ctx context.Context, in *GrantGroupBuyPrizesReq, opts ...grpc.CallOption) (*GrantGroupBuyPrizesResp, error)
-	// GrantGroupBuyPrizesRevert SAGA 06 补偿：空操作（注册防御）
-	GrantGroupBuyPrizesRevert(ctx context.Context, in *GrantGroupBuyPrizesReq, opts ...grpc.CallOption) (*GrantGroupBuyPrizesResp, error)
-	// ListGroupBuyRecords 拼团记录（requestId 精确查询或分页列表）
-	ListGroupBuyRecords(ctx context.Context, in *ListGroupBuyRecordsReq, opts ...grpc.CallOption) (*ListGroupBuyRecordsResp, error)
 	// ---- M15b 记忆翻牌 MemoryMatch（消息/语义照抄 server_v2 gacha memory_match）----
 	GetMemoryMatchConfig(ctx context.Context, in *GetMemoryMatchConfigReq, opts ...grpc.CallOption) (*GetMemoryMatchConfigResp, error)
 	GetMemoryMatchAppearance(ctx context.Context, in *GetMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*GetMemoryMatchAppearanceResp, error)
@@ -187,14 +98,6 @@ type PlayClient interface {
 	ApplyMemoryMatchDestinyDraw(ctx context.Context, in *ApplyMemoryMatchDestinyDrawReq, opts ...grpc.CallOption) (*ApplyMemoryMatchDestinyDrawResp, error)
 	CompleteMemoryMatchRound(ctx context.Context, in *CompleteMemoryMatchRoundReq, opts ...grpc.CallOption) (*CompleteMemoryMatchRoundResp, error)
 	SkipMemoryMatch(ctx context.Context, in *SkipMemoryMatchReq, opts ...grpc.CallOption) (*SkipMemoryMatchResp, error)
-	// SAGA 分支：03 Lock/LockMemoryMatchRevert（release=补偿）、05 Settle/SettleMemoryMatchRevert、
-	// 06 GrantMemoryMatchPrizes/空补偿（购买时无奖，发奖在终局结算同步完成）
-	LockMemoryMatch(ctx context.Context, in *LockMemoryMatchReq, opts ...grpc.CallOption) (*LockMemoryMatchResp, error)
-	LockMemoryMatchRevert(ctx context.Context, in *LockMemoryMatchReq, opts ...grpc.CallOption) (*LockMemoryMatchResp, error)
-	SettleMemoryMatch(ctx context.Context, in *SettleMemoryMatchReq, opts ...grpc.CallOption) (*SettleMemoryMatchResp, error)
-	SettleMemoryMatchRevert(ctx context.Context, in *SettleMemoryMatchReq, opts ...grpc.CallOption) (*SettleMemoryMatchResp, error)
-	GrantMemoryMatchPrizes(ctx context.Context, in *GrantMemoryMatchPrizesReq, opts ...grpc.CallOption) (*GrantMemoryMatchPrizesResp, error)
-	GrantMemoryMatchPrizesRevert(ctx context.Context, in *GrantMemoryMatchPrizesReq, opts ...grpc.CallOption) (*GrantMemoryMatchPrizesResp, error)
 	// CheckPrizesGranted SAGA 04 补偿（CancelPayment）退款前置检查：
 	// 该 gid 的 06 发奖是否已成功落库（prize_grant_marks uk request_id）。
 	// 已发放则 payment 不执行 VoidHold 退钱（资产已发放不追回，钱保持扣除，冻结保持可恢复）
@@ -207,6 +110,69 @@ type playClient struct {
 
 func NewPlayClient(cc grpc.ClientConnInterface) PlayClient {
 	return &playClient{cc}
+}
+
+func (c *playClient) PlayLock(ctx context.Context, in *PlayLockReq, opts ...grpc.CallOption) (*PlayLockResp, error) {
+	out := new(PlayLockResp)
+	err := c.cc.Invoke(ctx, Play_PlayLock_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) PlayRelease(ctx context.Context, in *PlayLockReq, opts ...grpc.CallOption) (*PlayReleaseResp, error) {
+	out := new(PlayReleaseResp)
+	err := c.cc.Invoke(ctx, Play_PlayRelease_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) PlaySettle(ctx context.Context, in *PlaySettleReq, opts ...grpc.CallOption) (*PlaySettleResp, error) {
+	out := new(PlaySettleResp)
+	err := c.cc.Invoke(ctx, Play_PlaySettle_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) PlaySettleRevert(ctx context.Context, in *PlaySettleReq, opts ...grpc.CallOption) (*PlaySettleResp, error) {
+	out := new(PlaySettleResp)
+	err := c.cc.Invoke(ctx, Play_PlaySettleRevert_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) PlayGrant(ctx context.Context, in *PlayGrantReq, opts ...grpc.CallOption) (*PlayGrantResp, error) {
+	out := new(PlayGrantResp)
+	err := c.cc.Invoke(ctx, Play_PlayGrant_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) PlayGrantRevert(ctx context.Context, in *PlayGrantReq, opts ...grpc.CallOption) (*PlayGrantResp, error) {
+	out := new(PlayGrantResp)
+	err := c.cc.Invoke(ctx, Play_PlayGrantRevert_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) PlayListRecords(ctx context.Context, in *PlayListRecordsReq, opts ...grpc.CallOption) (*PlayListRecordsResp, error) {
+	out := new(PlayListRecordsResp)
+	err := c.cc.Invoke(ctx, Play_PlayListRecords_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *playClient) ListDigBoxes(ctx context.Context, in *ListDigBoxesReq, opts ...grpc.CallOption) (*ListDigBoxesResp, error) {
@@ -227,69 +193,6 @@ func (c *playClient) GetDigBoxSession(ctx context.Context, in *GetDigBoxSessionR
 	return out, nil
 }
 
-func (c *playClient) LockDigBox(ctx context.Context, in *LockDigBoxReq, opts ...grpc.CallOption) (*LockDigBoxResp, error) {
-	out := new(LockDigBoxResp)
-	err := c.cc.Invoke(ctx, Play_LockDigBox_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) ReleaseDigBox(ctx context.Context, in *ReleaseDigBoxReq, opts ...grpc.CallOption) (*ReleaseDigBoxResp, error) {
-	out := new(ReleaseDigBoxResp)
-	err := c.cc.Invoke(ctx, Play_ReleaseDigBox_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) SettleDigBox(ctx context.Context, in *SettleDigBoxReq, opts ...grpc.CallOption) (*SettleDigBoxResp, error) {
-	out := new(SettleDigBoxResp)
-	err := c.cc.Invoke(ctx, Play_SettleDigBox_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) SettleDigBoxRevert(ctx context.Context, in *SettleDigBoxReq, opts ...grpc.CallOption) (*SettleDigBoxResp, error) {
-	out := new(SettleDigBoxResp)
-	err := c.cc.Invoke(ctx, Play_SettleDigBoxRevert_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) GrantDigPrizes(ctx context.Context, in *GrantDigPrizesReq, opts ...grpc.CallOption) (*GrantDigPrizesResp, error) {
-	out := new(GrantDigPrizesResp)
-	err := c.cc.Invoke(ctx, Play_GrantDigPrizes_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) GrantDigPrizesRevert(ctx context.Context, in *GrantDigPrizesReq, opts ...grpc.CallOption) (*GrantDigPrizesResp, error) {
-	out := new(GrantDigPrizesResp)
-	err := c.cc.Invoke(ctx, Play_GrantDigPrizesRevert_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) ListDigRecords(ctx context.Context, in *ListDigRecordsReq, opts ...grpc.CallOption) (*ListDigRecordsResp, error) {
-	out := new(ListDigRecordsResp)
-	err := c.cc.Invoke(ctx, Play_ListDigRecords_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *playClient) GetFullCar(ctx context.Context, in *GetFullCarReq, opts ...grpc.CallOption) (*GetFullCarResp, error) {
 	out := new(GetFullCarResp)
 	err := c.cc.Invoke(ctx, Play_GetFullCar_FullMethodName, in, out, opts...)
@@ -299,135 +202,9 @@ func (c *playClient) GetFullCar(ctx context.Context, in *GetFullCarReq, opts ...
 	return out, nil
 }
 
-func (c *playClient) LockFullCar(ctx context.Context, in *LockFullCarReq, opts ...grpc.CallOption) (*LockFullCarResp, error) {
-	out := new(LockFullCarResp)
-	err := c.cc.Invoke(ctx, Play_LockFullCar_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) ReleaseFullCar(ctx context.Context, in *ReleaseFullCarReq, opts ...grpc.CallOption) (*ReleaseFullCarResp, error) {
-	out := new(ReleaseFullCarResp)
-	err := c.cc.Invoke(ctx, Play_ReleaseFullCar_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) SettleFullCar(ctx context.Context, in *SettleFullCarReq, opts ...grpc.CallOption) (*SettleFullCarResp, error) {
-	out := new(SettleFullCarResp)
-	err := c.cc.Invoke(ctx, Play_SettleFullCar_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) SettleFullCarRevert(ctx context.Context, in *SettleFullCarReq, opts ...grpc.CallOption) (*SettleFullCarResp, error) {
-	out := new(SettleFullCarResp)
-	err := c.cc.Invoke(ctx, Play_SettleFullCarRevert_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) GrantFullCarPrizes(ctx context.Context, in *GrantFullCarPrizesReq, opts ...grpc.CallOption) (*GrantFullCarPrizesResp, error) {
-	out := new(GrantFullCarPrizesResp)
-	err := c.cc.Invoke(ctx, Play_GrantFullCarPrizes_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) GrantFullCarPrizesRevert(ctx context.Context, in *GrantFullCarPrizesReq, opts ...grpc.CallOption) (*GrantFullCarPrizesResp, error) {
-	out := new(GrantFullCarPrizesResp)
-	err := c.cc.Invoke(ctx, Play_GrantFullCarPrizesRevert_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) ListFullCarRecords(ctx context.Context, in *ListFullCarRecordsReq, opts ...grpc.CallOption) (*ListFullCarRecordsResp, error) {
-	out := new(ListFullCarRecordsResp)
-	err := c.cc.Invoke(ctx, Play_ListFullCarRecords_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *playClient) GetGashapon(ctx context.Context, in *GetGashaponReq, opts ...grpc.CallOption) (*GetGashaponResp, error) {
 	out := new(GetGashaponResp)
 	err := c.cc.Invoke(ctx, Play_GetGashapon_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) LockGashapon(ctx context.Context, in *LockGashaponReq, opts ...grpc.CallOption) (*LockGashaponResp, error) {
-	out := new(LockGashaponResp)
-	err := c.cc.Invoke(ctx, Play_LockGashapon_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) ReleaseGashapon(ctx context.Context, in *ReleaseGashaponReq, opts ...grpc.CallOption) (*ReleaseGashaponResp, error) {
-	out := new(ReleaseGashaponResp)
-	err := c.cc.Invoke(ctx, Play_ReleaseGashapon_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) SettleGashapon(ctx context.Context, in *SettleGashaponReq, opts ...grpc.CallOption) (*SettleGashaponResp, error) {
-	out := new(SettleGashaponResp)
-	err := c.cc.Invoke(ctx, Play_SettleGashapon_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) SettleGashaponRevert(ctx context.Context, in *SettleGashaponReq, opts ...grpc.CallOption) (*SettleGashaponResp, error) {
-	out := new(SettleGashaponResp)
-	err := c.cc.Invoke(ctx, Play_SettleGashaponRevert_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) GrantGashaponPrizes(ctx context.Context, in *GrantGashaponPrizesReq, opts ...grpc.CallOption) (*GrantGashaponPrizesResp, error) {
-	out := new(GrantGashaponPrizesResp)
-	err := c.cc.Invoke(ctx, Play_GrantGashaponPrizes_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) GrantGashaponPrizesRevert(ctx context.Context, in *GrantGashaponPrizesReq, opts ...grpc.CallOption) (*GrantGashaponPrizesResp, error) {
-	out := new(GrantGashaponPrizesResp)
-	err := c.cc.Invoke(ctx, Play_GrantGashaponPrizesRevert_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) ListGashaponRecords(ctx context.Context, in *ListGashaponRecordsReq, opts ...grpc.CallOption) (*ListGashaponRecordsResp, error) {
-	out := new(ListGashaponRecordsResp)
-	err := c.cc.Invoke(ctx, Play_ListGashaponRecords_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -452,135 +229,9 @@ func (c *playClient) GetComboChain(ctx context.Context, in *GetComboChainReq, op
 	return out, nil
 }
 
-func (c *playClient) LockComboChain(ctx context.Context, in *LockComboChainReq, opts ...grpc.CallOption) (*LockComboChainResp, error) {
-	out := new(LockComboChainResp)
-	err := c.cc.Invoke(ctx, Play_LockComboChain_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) ReleaseComboChain(ctx context.Context, in *ReleaseComboChainReq, opts ...grpc.CallOption) (*ReleaseComboChainResp, error) {
-	out := new(ReleaseComboChainResp)
-	err := c.cc.Invoke(ctx, Play_ReleaseComboChain_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) SettleComboChain(ctx context.Context, in *SettleComboChainReq, opts ...grpc.CallOption) (*SettleComboChainResp, error) {
-	out := new(SettleComboChainResp)
-	err := c.cc.Invoke(ctx, Play_SettleComboChain_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) SettleComboChainRevert(ctx context.Context, in *SettleComboChainReq, opts ...grpc.CallOption) (*SettleComboChainResp, error) {
-	out := new(SettleComboChainResp)
-	err := c.cc.Invoke(ctx, Play_SettleComboChainRevert_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) GrantComboChainPrizes(ctx context.Context, in *GrantComboChainPrizesReq, opts ...grpc.CallOption) (*GrantComboChainPrizesResp, error) {
-	out := new(GrantComboChainPrizesResp)
-	err := c.cc.Invoke(ctx, Play_GrantComboChainPrizes_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) GrantComboChainPrizesRevert(ctx context.Context, in *GrantComboChainPrizesReq, opts ...grpc.CallOption) (*GrantComboChainPrizesResp, error) {
-	out := new(GrantComboChainPrizesResp)
-	err := c.cc.Invoke(ctx, Play_GrantComboChainPrizesRevert_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) ListComboChainRecords(ctx context.Context, in *ListComboChainRecordsReq, opts ...grpc.CallOption) (*ListComboChainRecordsResp, error) {
-	out := new(ListComboChainRecordsResp)
-	err := c.cc.Invoke(ctx, Play_ListComboChainRecords_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *playClient) GetGroupBuy(ctx context.Context, in *GetGroupBuyReq, opts ...grpc.CallOption) (*GetGroupBuyResp, error) {
 	out := new(GetGroupBuyResp)
 	err := c.cc.Invoke(ctx, Play_GetGroupBuy_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) LockGroupBuy(ctx context.Context, in *LockGroupBuyReq, opts ...grpc.CallOption) (*LockGroupBuyResp, error) {
-	out := new(LockGroupBuyResp)
-	err := c.cc.Invoke(ctx, Play_LockGroupBuy_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) ReleaseGroupBuy(ctx context.Context, in *ReleaseGroupBuyReq, opts ...grpc.CallOption) (*ReleaseGroupBuyResp, error) {
-	out := new(ReleaseGroupBuyResp)
-	err := c.cc.Invoke(ctx, Play_ReleaseGroupBuy_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) SettleGroupBuy(ctx context.Context, in *SettleGroupBuyReq, opts ...grpc.CallOption) (*SettleGroupBuyResp, error) {
-	out := new(SettleGroupBuyResp)
-	err := c.cc.Invoke(ctx, Play_SettleGroupBuy_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) SettleGroupBuyRevert(ctx context.Context, in *SettleGroupBuyReq, opts ...grpc.CallOption) (*SettleGroupBuyResp, error) {
-	out := new(SettleGroupBuyResp)
-	err := c.cc.Invoke(ctx, Play_SettleGroupBuyRevert_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) GrantGroupBuyPrizes(ctx context.Context, in *GrantGroupBuyPrizesReq, opts ...grpc.CallOption) (*GrantGroupBuyPrizesResp, error) {
-	out := new(GrantGroupBuyPrizesResp)
-	err := c.cc.Invoke(ctx, Play_GrantGroupBuyPrizes_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) GrantGroupBuyPrizesRevert(ctx context.Context, in *GrantGroupBuyPrizesReq, opts ...grpc.CallOption) (*GrantGroupBuyPrizesResp, error) {
-	out := new(GrantGroupBuyPrizesResp)
-	err := c.cc.Invoke(ctx, Play_GrantGroupBuyPrizesRevert_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) ListGroupBuyRecords(ctx context.Context, in *ListGroupBuyRecordsReq, opts ...grpc.CallOption) (*ListGroupBuyRecordsResp, error) {
-	out := new(ListGroupBuyRecordsResp)
-	err := c.cc.Invoke(ctx, Play_ListGroupBuyRecords_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -695,60 +346,6 @@ func (c *playClient) SkipMemoryMatch(ctx context.Context, in *SkipMemoryMatchReq
 	return out, nil
 }
 
-func (c *playClient) LockMemoryMatch(ctx context.Context, in *LockMemoryMatchReq, opts ...grpc.CallOption) (*LockMemoryMatchResp, error) {
-	out := new(LockMemoryMatchResp)
-	err := c.cc.Invoke(ctx, Play_LockMemoryMatch_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) LockMemoryMatchRevert(ctx context.Context, in *LockMemoryMatchReq, opts ...grpc.CallOption) (*LockMemoryMatchResp, error) {
-	out := new(LockMemoryMatchResp)
-	err := c.cc.Invoke(ctx, Play_LockMemoryMatchRevert_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) SettleMemoryMatch(ctx context.Context, in *SettleMemoryMatchReq, opts ...grpc.CallOption) (*SettleMemoryMatchResp, error) {
-	out := new(SettleMemoryMatchResp)
-	err := c.cc.Invoke(ctx, Play_SettleMemoryMatch_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) SettleMemoryMatchRevert(ctx context.Context, in *SettleMemoryMatchReq, opts ...grpc.CallOption) (*SettleMemoryMatchResp, error) {
-	out := new(SettleMemoryMatchResp)
-	err := c.cc.Invoke(ctx, Play_SettleMemoryMatchRevert_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) GrantMemoryMatchPrizes(ctx context.Context, in *GrantMemoryMatchPrizesReq, opts ...grpc.CallOption) (*GrantMemoryMatchPrizesResp, error) {
-	out := new(GrantMemoryMatchPrizesResp)
-	err := c.cc.Invoke(ctx, Play_GrantMemoryMatchPrizes_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *playClient) GrantMemoryMatchPrizesRevert(ctx context.Context, in *GrantMemoryMatchPrizesReq, opts ...grpc.CallOption) (*GrantMemoryMatchPrizesResp, error) {
-	out := new(GrantMemoryMatchPrizesResp)
-	err := c.cc.Invoke(ctx, Play_GrantMemoryMatchPrizesRevert_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *playClient) CheckPrizesGranted(ctx context.Context, in *CheckPrizesGrantedReq, opts ...grpc.CallOption) (*CheckPrizesGrantedResp, error) {
 	out := new(CheckPrizesGrantedResp)
 	err := c.cc.Invoke(ctx, Play_CheckPrizesGranted_FullMethodName, in, out, opts...)
@@ -762,94 +359,39 @@ func (c *playClient) CheckPrizesGranted(ctx context.Context, in *CheckPrizesGran
 // All implementations must embed UnimplementedPlayServer
 // for forward compatibility
 type PlayServer interface {
+	// 通用 SAGA 分支（payload 内是各玩法 typed 请求）
+	PlayLock(context.Context, *PlayLockReq) (*PlayLockResp, error)
+	PlayRelease(context.Context, *PlayLockReq) (*PlayReleaseResp, error)
+	PlaySettle(context.Context, *PlaySettleReq) (*PlaySettleResp, error)
+	PlaySettleRevert(context.Context, *PlaySettleReq) (*PlaySettleResp, error)
+	PlayGrant(context.Context, *PlayGrantReq) (*PlayGrantResp, error)
+	PlayGrantRevert(context.Context, *PlayGrantReq) (*PlayGrantResp, error)
+	PlayListRecords(context.Context, *PlayListRecordsReq) (*PlayListRecordsResp, error)
+	// 读 / 玩法 / 管理接口保留（下方 rpc 行原样保留）
 	// ---- M11 dig 挖宝箱 ----
 	ListDigBoxes(context.Context, *ListDigBoxesReq) (*ListDigBoxesResp, error)
 	GetDigBoxSession(context.Context, *GetDigBoxSessionReq) (*GetDigBoxSessionResp, error)
-	// LockDigBox SAGA 03 正向：报价+券锁（与 LockQuote 同源 helper）+ 会话位图置位
-	LockDigBox(context.Context, *LockDigBoxReq) (*LockDigBoxResp, error)
-	// ReleaseDigBox SAGA 03 补偿：位图清位 + 计数回滚 + 报价/券释放
-	ReleaseDigBox(context.Context, *ReleaseDigBoxReq) (*ReleaseDigBoxResp, error)
-	// SettleDigBox SAGA 05 正向：揭晓格子奖品 + 落记录 + 满格置 COMPLETED
-	SettleDigBox(context.Context, *SettleDigBoxReq) (*SettleDigBoxResp, error)
-	// SettleDigBoxRevert SAGA 05 补偿：记录置撤销 + 清位（与 03 补偿幂等）
-	SettleDigBoxRevert(context.Context, *SettleDigBoxReq) (*SettleDigBoxResp, error)
-	// GrantDigPrizes SAGA 06 正向：逐奖幂等发放（现金/积分走 asset.CreditWallet，券本地插入）；
-	// 永不 Aborted（只 Internal 重试），补偿为空——捕获在授权成功后 Aborted 属纯防御路径
-	GrantDigPrizes(context.Context, *GrantDigPrizesReq) (*GrantDigPrizesResp, error)
-	// GrantDigPrizesRevert SAGA 06 补偿：空操作（注册防御）
-	GrantDigPrizesRevert(context.Context, *GrantDigPrizesReq) (*GrantDigPrizesResp, error)
-	// ListDigRecords 挖宝记录（requestId 精确查询或分页列表）
-	ListDigRecords(context.Context, *ListDigRecordsReq) (*ListDigRecordsResp, error)
 	// ---- M12 满车 full_car ----
 	// GetFullCar 满车视图（座位/整车奖/余票/价）
 	GetFullCar(context.Context, *GetFullCarReq) (*GetFullCarResp, error)
-	// LockFullCar SAGA 03 正向：报价锁 + state FOR UPDATE + 分配座位 + 余票-1
-	LockFullCar(context.Context, *LockFullCarReq) (*LockFullCarResp, error)
-	// ReleaseFullCar SAGA 03 补偿：释放座位（seats[i]==userId 才清）+ 余票+1 + 报价释放
-	ReleaseFullCar(context.Context, *ReleaseFullCarReq) (*ReleaseFullCarResp, error)
-	// SettleFullCar SAGA 05 正向：regular 奖 + 落记录 + 最后一票触发整车结算（确定性 seed=gid）
-	SettleFullCar(context.Context, *SettleFullCarReq) (*SettleFullCarResp, error)
-	// SettleFullCarRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删整车奖 + DEPARTED→OPEN + 余票+1 + 库存回补
-	SettleFullCarRevert(context.Context, *SettleFullCarReq) (*SettleFullCarResp, error)
-	// GrantFullCarPrizes SAGA 06 正向：regular 奖 + 整车结算奖逐奖幂等发放；永不 Aborted，补偿为空
-	GrantFullCarPrizes(context.Context, *GrantFullCarPrizesReq) (*GrantFullCarPrizesResp, error)
-	// GrantFullCarPrizesRevert SAGA 06 补偿：空操作（注册防御）
-	GrantFullCarPrizesRevert(context.Context, *GrantFullCarPrizesReq) (*GrantFullCarPrizesResp, error)
-	// ListFullCarRecords 满车记录（requestId 精确查询或分页列表）
-	ListFullCarRecords(context.Context, *ListFullCarRecordsReq) (*ListFullCarRecordsResp, error)
 	// ---- M12 扭蛋 gashapon ----
 	// GetGashapon 扭蛋视图（特别奖进度/余票/参与人数/价）
 	GetGashapon(context.Context, *GetGashaponReq) (*GetGashaponResp, error)
 	// LockGashapon SAGA 03 正向：报价锁 + state FOR UPDATE + participants/records 追加 + 余票-count
-	LockGashapon(context.Context, *LockGashaponReq) (*LockGashaponResp, error)
 	// ReleaseGashapon SAGA 03 补偿：按 requestId 弹出记录 + participants-count + 余票+count + 报价释放
-	ReleaseGashapon(context.Context, *ReleaseGashaponReq) (*ReleaseGashaponResp, error)
 	// SettleGashapon SAGA 05 正向：抽 count 个 regular 奖 + 分阶段 LUCKY 判定 + 清空时终局 LAST/MVP/LUCKY
-	SettleGashapon(context.Context, *SettleGashaponReq) (*SettleGashaponResp, error)
 	// SettleGashaponRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删特别奖 + sent 回退 + SETTLED→OPEN + 库存回补
-	SettleGashaponRevert(context.Context, *SettleGashaponReq) (*SettleGashaponResp, error)
 	// GrantGashaponPrizes SAGA 06 正向：regular 奖 + 特别奖逐奖幂等发放；永不 Aborted，补偿为空
-	GrantGashaponPrizes(context.Context, *GrantGashaponPrizesReq) (*GrantGashaponPrizesResp, error)
 	// GrantGashaponPrizesRevert SAGA 06 补偿：空操作（注册防御）
-	GrantGashaponPrizesRevert(context.Context, *GrantGashaponPrizesReq) (*GrantGashaponPrizesResp, error)
 	// ListGashaponRecords 扭蛋记录（requestId 精确查询或分页列表）
-	ListGashaponRecords(context.Context, *ListGashaponRecordsReq) (*ListGashaponRecordsResp, error)
 	// AssignGashaponLuckyUser 幸运指派（仅 LUCKY 奖；userId=0 删除）。无 HTTP 路由（无管理员鉴权），供 ops/admin 直调
 	AssignGashaponLuckyUser(context.Context, *AssignGashaponLuckyUserReq) (*AssignGashaponLuckyUserResp, error)
 	// ---- M13 连击链 combo_chain ----
 	// GetComboChain 连击链视图（车次进度/当前车余票/全局奖槽/共享奖/我的连击）
 	GetComboChain(context.Context, *GetComboChainReq) (*GetComboChainResp, error)
-	// LockComboChain SAGA 03 正向：报价锁 + state FOR UPDATE + participants 追加（每用户每车 1 票）+ 余票-1
-	LockComboChain(context.Context, *LockComboChainReq) (*LockComboChainResp, error)
-	// ReleaseComboChain SAGA 03 补偿：按 userId 弹出参与 + 余票+1 + 报价释放
-	ReleaseComboChain(context.Context, *ReleaseComboChainReq) (*ReleaseComboChainResp, error)
-	// SettleComboChain SAGA 05 正向：落记录；最后一票触发整车结算（COMBO_TIER 触发/全局奖分布/连击判定/车次推进）
-	SettleComboChain(context.Context, *SettleComboChainReq) (*SettleComboChainResp, error)
-	// SettleComboChainRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删结算奖 + 连击快照回滚 + 车次回退
-	SettleComboChainRevert(context.Context, *SettleComboChainReq) (*SettleComboChainResp, error)
-	// GrantComboChainPrizes SAGA 06 正向：本 gid 触发的结算奖逐奖幂等发放；永不 Aborted，补偿为空
-	GrantComboChainPrizes(context.Context, *GrantComboChainPrizesReq) (*GrantComboChainPrizesResp, error)
-	// GrantComboChainPrizesRevert SAGA 06 补偿：空操作（注册防御）
-	GrantComboChainPrizesRevert(context.Context, *GrantComboChainPrizesReq) (*GrantComboChainPrizesResp, error)
-	// ListComboChainRecords 连击链记录（requestId 精确查询或分页列表）
-	ListComboChainRecords(context.Context, *ListComboChainRecordsReq) (*ListComboChainRecordsResp, error)
 	// ---- M13 拼团抽 group_buy ----
 	// GetGroupBuy 拼团视图（成团进度/我的下注/幸运奖进度/价）
 	GetGroupBuy(context.Context, *GetGroupBuyReq) (*GetGroupBuyResp, error)
-	// LockGroupBuy SAGA 03 正向：报价锁 + state FOR UPDATE + bets 追加 + 余位-count
-	LockGroupBuy(context.Context, *LockGroupBuyReq) (*LockGroupBuyResp, error)
-	// ReleaseGroupBuy SAGA 03 补偿：按 draw_id 弹出下注 + 余位+count + 报价释放
-	ReleaseGroupBuy(context.Context, *ReleaseGroupBuyReq) (*ReleaseGroupBuyResp, error)
-	// SettleGroupBuy SAGA 05 正向：落记录；最后一注触发整批结算（普通槽洗牌分配/子奖/幸运奖加权池）
-	SettleGroupBuy(context.Context, *SettleGroupBuyReq) (*SettleGroupBuyResp, error)
-	// SettleGroupBuyRevert SAGA 05 补偿：记录置撤销 + 按 requestId 删结算奖 + 库存/幸运回补 + SETTLED→OPEN
-	SettleGroupBuyRevert(context.Context, *SettleGroupBuyReq) (*SettleGroupBuyResp, error)
-	// GrantGroupBuyPrizes SAGA 06 正向：本 gid 触发的结算奖逐奖幂等发放；永不 Aborted，补偿为空
-	GrantGroupBuyPrizes(context.Context, *GrantGroupBuyPrizesReq) (*GrantGroupBuyPrizesResp, error)
-	// GrantGroupBuyPrizesRevert SAGA 06 补偿：空操作（注册防御）
-	GrantGroupBuyPrizesRevert(context.Context, *GrantGroupBuyPrizesReq) (*GrantGroupBuyPrizesResp, error)
-	// ListGroupBuyRecords 拼团记录（requestId 精确查询或分页列表）
-	ListGroupBuyRecords(context.Context, *ListGroupBuyRecordsReq) (*ListGroupBuyRecordsResp, error)
 	// ---- M15b 记忆翻牌 MemoryMatch（消息/语义照抄 server_v2 gacha memory_match）----
 	GetMemoryMatchConfig(context.Context, *GetMemoryMatchConfigReq) (*GetMemoryMatchConfigResp, error)
 	GetMemoryMatchAppearance(context.Context, *GetMemoryMatchAppearanceReq) (*GetMemoryMatchAppearanceResp, error)
@@ -863,14 +405,6 @@ type PlayServer interface {
 	ApplyMemoryMatchDestinyDraw(context.Context, *ApplyMemoryMatchDestinyDrawReq) (*ApplyMemoryMatchDestinyDrawResp, error)
 	CompleteMemoryMatchRound(context.Context, *CompleteMemoryMatchRoundReq) (*CompleteMemoryMatchRoundResp, error)
 	SkipMemoryMatch(context.Context, *SkipMemoryMatchReq) (*SkipMemoryMatchResp, error)
-	// SAGA 分支：03 Lock/LockMemoryMatchRevert（release=补偿）、05 Settle/SettleMemoryMatchRevert、
-	// 06 GrantMemoryMatchPrizes/空补偿（购买时无奖，发奖在终局结算同步完成）
-	LockMemoryMatch(context.Context, *LockMemoryMatchReq) (*LockMemoryMatchResp, error)
-	LockMemoryMatchRevert(context.Context, *LockMemoryMatchReq) (*LockMemoryMatchResp, error)
-	SettleMemoryMatch(context.Context, *SettleMemoryMatchReq) (*SettleMemoryMatchResp, error)
-	SettleMemoryMatchRevert(context.Context, *SettleMemoryMatchReq) (*SettleMemoryMatchResp, error)
-	GrantMemoryMatchPrizes(context.Context, *GrantMemoryMatchPrizesReq) (*GrantMemoryMatchPrizesResp, error)
-	GrantMemoryMatchPrizesRevert(context.Context, *GrantMemoryMatchPrizesReq) (*GrantMemoryMatchPrizesResp, error)
 	// CheckPrizesGranted SAGA 04 补偿（CancelPayment）退款前置检查：
 	// 该 gid 的 06 发奖是否已成功落库（prize_grant_marks uk request_id）。
 	// 已发放则 payment 不执行 VoidHold 退钱（资产已发放不追回，钱保持扣除，冻结保持可恢复）
@@ -882,80 +416,38 @@ type PlayServer interface {
 type UnimplementedPlayServer struct {
 }
 
+func (UnimplementedPlayServer) PlayLock(context.Context, *PlayLockReq) (*PlayLockResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PlayLock not implemented")
+}
+func (UnimplementedPlayServer) PlayRelease(context.Context, *PlayLockReq) (*PlayReleaseResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PlayRelease not implemented")
+}
+func (UnimplementedPlayServer) PlaySettle(context.Context, *PlaySettleReq) (*PlaySettleResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PlaySettle not implemented")
+}
+func (UnimplementedPlayServer) PlaySettleRevert(context.Context, *PlaySettleReq) (*PlaySettleResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PlaySettleRevert not implemented")
+}
+func (UnimplementedPlayServer) PlayGrant(context.Context, *PlayGrantReq) (*PlayGrantResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PlayGrant not implemented")
+}
+func (UnimplementedPlayServer) PlayGrantRevert(context.Context, *PlayGrantReq) (*PlayGrantResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PlayGrantRevert not implemented")
+}
+func (UnimplementedPlayServer) PlayListRecords(context.Context, *PlayListRecordsReq) (*PlayListRecordsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PlayListRecords not implemented")
+}
 func (UnimplementedPlayServer) ListDigBoxes(context.Context, *ListDigBoxesReq) (*ListDigBoxesResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListDigBoxes not implemented")
 }
 func (UnimplementedPlayServer) GetDigBoxSession(context.Context, *GetDigBoxSessionReq) (*GetDigBoxSessionResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDigBoxSession not implemented")
 }
-func (UnimplementedPlayServer) LockDigBox(context.Context, *LockDigBoxReq) (*LockDigBoxResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LockDigBox not implemented")
-}
-func (UnimplementedPlayServer) ReleaseDigBox(context.Context, *ReleaseDigBoxReq) (*ReleaseDigBoxResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ReleaseDigBox not implemented")
-}
-func (UnimplementedPlayServer) SettleDigBox(context.Context, *SettleDigBoxReq) (*SettleDigBoxResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SettleDigBox not implemented")
-}
-func (UnimplementedPlayServer) SettleDigBoxRevert(context.Context, *SettleDigBoxReq) (*SettleDigBoxResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SettleDigBoxRevert not implemented")
-}
-func (UnimplementedPlayServer) GrantDigPrizes(context.Context, *GrantDigPrizesReq) (*GrantDigPrizesResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GrantDigPrizes not implemented")
-}
-func (UnimplementedPlayServer) GrantDigPrizesRevert(context.Context, *GrantDigPrizesReq) (*GrantDigPrizesResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GrantDigPrizesRevert not implemented")
-}
-func (UnimplementedPlayServer) ListDigRecords(context.Context, *ListDigRecordsReq) (*ListDigRecordsResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListDigRecords not implemented")
-}
 func (UnimplementedPlayServer) GetFullCar(context.Context, *GetFullCarReq) (*GetFullCarResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFullCar not implemented")
 }
-func (UnimplementedPlayServer) LockFullCar(context.Context, *LockFullCarReq) (*LockFullCarResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LockFullCar not implemented")
-}
-func (UnimplementedPlayServer) ReleaseFullCar(context.Context, *ReleaseFullCarReq) (*ReleaseFullCarResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ReleaseFullCar not implemented")
-}
-func (UnimplementedPlayServer) SettleFullCar(context.Context, *SettleFullCarReq) (*SettleFullCarResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SettleFullCar not implemented")
-}
-func (UnimplementedPlayServer) SettleFullCarRevert(context.Context, *SettleFullCarReq) (*SettleFullCarResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SettleFullCarRevert not implemented")
-}
-func (UnimplementedPlayServer) GrantFullCarPrizes(context.Context, *GrantFullCarPrizesReq) (*GrantFullCarPrizesResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GrantFullCarPrizes not implemented")
-}
-func (UnimplementedPlayServer) GrantFullCarPrizesRevert(context.Context, *GrantFullCarPrizesReq) (*GrantFullCarPrizesResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GrantFullCarPrizesRevert not implemented")
-}
-func (UnimplementedPlayServer) ListFullCarRecords(context.Context, *ListFullCarRecordsReq) (*ListFullCarRecordsResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListFullCarRecords not implemented")
-}
 func (UnimplementedPlayServer) GetGashapon(context.Context, *GetGashaponReq) (*GetGashaponResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGashapon not implemented")
-}
-func (UnimplementedPlayServer) LockGashapon(context.Context, *LockGashaponReq) (*LockGashaponResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LockGashapon not implemented")
-}
-func (UnimplementedPlayServer) ReleaseGashapon(context.Context, *ReleaseGashaponReq) (*ReleaseGashaponResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ReleaseGashapon not implemented")
-}
-func (UnimplementedPlayServer) SettleGashapon(context.Context, *SettleGashaponReq) (*SettleGashaponResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SettleGashapon not implemented")
-}
-func (UnimplementedPlayServer) SettleGashaponRevert(context.Context, *SettleGashaponReq) (*SettleGashaponResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SettleGashaponRevert not implemented")
-}
-func (UnimplementedPlayServer) GrantGashaponPrizes(context.Context, *GrantGashaponPrizesReq) (*GrantGashaponPrizesResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GrantGashaponPrizes not implemented")
-}
-func (UnimplementedPlayServer) GrantGashaponPrizesRevert(context.Context, *GrantGashaponPrizesReq) (*GrantGashaponPrizesResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GrantGashaponPrizesRevert not implemented")
-}
-func (UnimplementedPlayServer) ListGashaponRecords(context.Context, *ListGashaponRecordsReq) (*ListGashaponRecordsResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListGashaponRecords not implemented")
 }
 func (UnimplementedPlayServer) AssignGashaponLuckyUser(context.Context, *AssignGashaponLuckyUserReq) (*AssignGashaponLuckyUserResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AssignGashaponLuckyUser not implemented")
@@ -963,50 +455,8 @@ func (UnimplementedPlayServer) AssignGashaponLuckyUser(context.Context, *AssignG
 func (UnimplementedPlayServer) GetComboChain(context.Context, *GetComboChainReq) (*GetComboChainResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetComboChain not implemented")
 }
-func (UnimplementedPlayServer) LockComboChain(context.Context, *LockComboChainReq) (*LockComboChainResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LockComboChain not implemented")
-}
-func (UnimplementedPlayServer) ReleaseComboChain(context.Context, *ReleaseComboChainReq) (*ReleaseComboChainResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ReleaseComboChain not implemented")
-}
-func (UnimplementedPlayServer) SettleComboChain(context.Context, *SettleComboChainReq) (*SettleComboChainResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SettleComboChain not implemented")
-}
-func (UnimplementedPlayServer) SettleComboChainRevert(context.Context, *SettleComboChainReq) (*SettleComboChainResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SettleComboChainRevert not implemented")
-}
-func (UnimplementedPlayServer) GrantComboChainPrizes(context.Context, *GrantComboChainPrizesReq) (*GrantComboChainPrizesResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GrantComboChainPrizes not implemented")
-}
-func (UnimplementedPlayServer) GrantComboChainPrizesRevert(context.Context, *GrantComboChainPrizesReq) (*GrantComboChainPrizesResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GrantComboChainPrizesRevert not implemented")
-}
-func (UnimplementedPlayServer) ListComboChainRecords(context.Context, *ListComboChainRecordsReq) (*ListComboChainRecordsResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListComboChainRecords not implemented")
-}
 func (UnimplementedPlayServer) GetGroupBuy(context.Context, *GetGroupBuyReq) (*GetGroupBuyResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGroupBuy not implemented")
-}
-func (UnimplementedPlayServer) LockGroupBuy(context.Context, *LockGroupBuyReq) (*LockGroupBuyResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LockGroupBuy not implemented")
-}
-func (UnimplementedPlayServer) ReleaseGroupBuy(context.Context, *ReleaseGroupBuyReq) (*ReleaseGroupBuyResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ReleaseGroupBuy not implemented")
-}
-func (UnimplementedPlayServer) SettleGroupBuy(context.Context, *SettleGroupBuyReq) (*SettleGroupBuyResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SettleGroupBuy not implemented")
-}
-func (UnimplementedPlayServer) SettleGroupBuyRevert(context.Context, *SettleGroupBuyReq) (*SettleGroupBuyResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SettleGroupBuyRevert not implemented")
-}
-func (UnimplementedPlayServer) GrantGroupBuyPrizes(context.Context, *GrantGroupBuyPrizesReq) (*GrantGroupBuyPrizesResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GrantGroupBuyPrizes not implemented")
-}
-func (UnimplementedPlayServer) GrantGroupBuyPrizesRevert(context.Context, *GrantGroupBuyPrizesReq) (*GrantGroupBuyPrizesResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GrantGroupBuyPrizesRevert not implemented")
-}
-func (UnimplementedPlayServer) ListGroupBuyRecords(context.Context, *ListGroupBuyRecordsReq) (*ListGroupBuyRecordsResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListGroupBuyRecords not implemented")
 }
 func (UnimplementedPlayServer) GetMemoryMatchConfig(context.Context, *GetMemoryMatchConfigReq) (*GetMemoryMatchConfigResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMemoryMatchConfig not implemented")
@@ -1044,24 +494,6 @@ func (UnimplementedPlayServer) CompleteMemoryMatchRound(context.Context, *Comple
 func (UnimplementedPlayServer) SkipMemoryMatch(context.Context, *SkipMemoryMatchReq) (*SkipMemoryMatchResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SkipMemoryMatch not implemented")
 }
-func (UnimplementedPlayServer) LockMemoryMatch(context.Context, *LockMemoryMatchReq) (*LockMemoryMatchResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LockMemoryMatch not implemented")
-}
-func (UnimplementedPlayServer) LockMemoryMatchRevert(context.Context, *LockMemoryMatchReq) (*LockMemoryMatchResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LockMemoryMatchRevert not implemented")
-}
-func (UnimplementedPlayServer) SettleMemoryMatch(context.Context, *SettleMemoryMatchReq) (*SettleMemoryMatchResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SettleMemoryMatch not implemented")
-}
-func (UnimplementedPlayServer) SettleMemoryMatchRevert(context.Context, *SettleMemoryMatchReq) (*SettleMemoryMatchResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SettleMemoryMatchRevert not implemented")
-}
-func (UnimplementedPlayServer) GrantMemoryMatchPrizes(context.Context, *GrantMemoryMatchPrizesReq) (*GrantMemoryMatchPrizesResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GrantMemoryMatchPrizes not implemented")
-}
-func (UnimplementedPlayServer) GrantMemoryMatchPrizesRevert(context.Context, *GrantMemoryMatchPrizesReq) (*GrantMemoryMatchPrizesResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GrantMemoryMatchPrizesRevert not implemented")
-}
 func (UnimplementedPlayServer) CheckPrizesGranted(context.Context, *CheckPrizesGrantedReq) (*CheckPrizesGrantedResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckPrizesGranted not implemented")
 }
@@ -1076,6 +508,132 @@ type UnsafePlayServer interface {
 
 func RegisterPlayServer(s grpc.ServiceRegistrar, srv PlayServer) {
 	s.RegisterService(&Play_ServiceDesc, srv)
+}
+
+func _Play_PlayLock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PlayLockReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).PlayLock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_PlayLock_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).PlayLock(ctx, req.(*PlayLockReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_PlayRelease_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PlayLockReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).PlayRelease(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_PlayRelease_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).PlayRelease(ctx, req.(*PlayLockReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_PlaySettle_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PlaySettleReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).PlaySettle(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_PlaySettle_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).PlaySettle(ctx, req.(*PlaySettleReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_PlaySettleRevert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PlaySettleReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).PlaySettleRevert(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_PlaySettleRevert_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).PlaySettleRevert(ctx, req.(*PlaySettleReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_PlayGrant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PlayGrantReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).PlayGrant(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_PlayGrant_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).PlayGrant(ctx, req.(*PlayGrantReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_PlayGrantRevert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PlayGrantReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).PlayGrantRevert(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_PlayGrantRevert_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).PlayGrantRevert(ctx, req.(*PlayGrantReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_PlayListRecords_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PlayListRecordsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).PlayListRecords(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_PlayListRecords_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).PlayListRecords(ctx, req.(*PlayListRecordsReq))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Play_ListDigBoxes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1114,132 +672,6 @@ func _Play_GetDigBoxSession_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Play_LockDigBox_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LockDigBoxReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).LockDigBox(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_LockDigBox_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).LockDigBox(ctx, req.(*LockDigBoxReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_ReleaseDigBox_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReleaseDigBoxReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).ReleaseDigBox(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_ReleaseDigBox_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).ReleaseDigBox(ctx, req.(*ReleaseDigBoxReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_SettleDigBox_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SettleDigBoxReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).SettleDigBox(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_SettleDigBox_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).SettleDigBox(ctx, req.(*SettleDigBoxReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_SettleDigBoxRevert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SettleDigBoxReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).SettleDigBoxRevert(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_SettleDigBoxRevert_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).SettleDigBoxRevert(ctx, req.(*SettleDigBoxReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_GrantDigPrizes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GrantDigPrizesReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).GrantDigPrizes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_GrantDigPrizes_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).GrantDigPrizes(ctx, req.(*GrantDigPrizesReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_GrantDigPrizesRevert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GrantDigPrizesReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).GrantDigPrizesRevert(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_GrantDigPrizesRevert_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).GrantDigPrizesRevert(ctx, req.(*GrantDigPrizesReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_ListDigRecords_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListDigRecordsReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).ListDigRecords(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_ListDigRecords_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).ListDigRecords(ctx, req.(*ListDigRecordsReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Play_GetFullCar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetFullCarReq)
 	if err := dec(in); err != nil {
@@ -1258,132 +690,6 @@ func _Play_GetFullCar_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Play_LockFullCar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LockFullCarReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).LockFullCar(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_LockFullCar_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).LockFullCar(ctx, req.(*LockFullCarReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_ReleaseFullCar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReleaseFullCarReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).ReleaseFullCar(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_ReleaseFullCar_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).ReleaseFullCar(ctx, req.(*ReleaseFullCarReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_SettleFullCar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SettleFullCarReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).SettleFullCar(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_SettleFullCar_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).SettleFullCar(ctx, req.(*SettleFullCarReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_SettleFullCarRevert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SettleFullCarReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).SettleFullCarRevert(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_SettleFullCarRevert_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).SettleFullCarRevert(ctx, req.(*SettleFullCarReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_GrantFullCarPrizes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GrantFullCarPrizesReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).GrantFullCarPrizes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_GrantFullCarPrizes_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).GrantFullCarPrizes(ctx, req.(*GrantFullCarPrizesReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_GrantFullCarPrizesRevert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GrantFullCarPrizesReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).GrantFullCarPrizesRevert(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_GrantFullCarPrizesRevert_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).GrantFullCarPrizesRevert(ctx, req.(*GrantFullCarPrizesReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_ListFullCarRecords_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListFullCarRecordsReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).ListFullCarRecords(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_ListFullCarRecords_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).ListFullCarRecords(ctx, req.(*ListFullCarRecordsReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Play_GetGashapon_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetGashaponReq)
 	if err := dec(in); err != nil {
@@ -1398,132 +704,6 @@ func _Play_GetGashapon_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PlayServer).GetGashapon(ctx, req.(*GetGashaponReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_LockGashapon_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LockGashaponReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).LockGashapon(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_LockGashapon_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).LockGashapon(ctx, req.(*LockGashaponReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_ReleaseGashapon_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReleaseGashaponReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).ReleaseGashapon(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_ReleaseGashapon_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).ReleaseGashapon(ctx, req.(*ReleaseGashaponReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_SettleGashapon_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SettleGashaponReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).SettleGashapon(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_SettleGashapon_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).SettleGashapon(ctx, req.(*SettleGashaponReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_SettleGashaponRevert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SettleGashaponReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).SettleGashaponRevert(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_SettleGashaponRevert_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).SettleGashaponRevert(ctx, req.(*SettleGashaponReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_GrantGashaponPrizes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GrantGashaponPrizesReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).GrantGashaponPrizes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_GrantGashaponPrizes_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).GrantGashaponPrizes(ctx, req.(*GrantGashaponPrizesReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_GrantGashaponPrizesRevert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GrantGashaponPrizesReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).GrantGashaponPrizesRevert(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_GrantGashaponPrizesRevert_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).GrantGashaponPrizesRevert(ctx, req.(*GrantGashaponPrizesReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_ListGashaponRecords_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListGashaponRecordsReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).ListGashaponRecords(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_ListGashaponRecords_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).ListGashaponRecords(ctx, req.(*ListGashaponRecordsReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1564,132 +744,6 @@ func _Play_GetComboChain_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Play_LockComboChain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LockComboChainReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).LockComboChain(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_LockComboChain_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).LockComboChain(ctx, req.(*LockComboChainReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_ReleaseComboChain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReleaseComboChainReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).ReleaseComboChain(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_ReleaseComboChain_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).ReleaseComboChain(ctx, req.(*ReleaseComboChainReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_SettleComboChain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SettleComboChainReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).SettleComboChain(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_SettleComboChain_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).SettleComboChain(ctx, req.(*SettleComboChainReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_SettleComboChainRevert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SettleComboChainReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).SettleComboChainRevert(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_SettleComboChainRevert_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).SettleComboChainRevert(ctx, req.(*SettleComboChainReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_GrantComboChainPrizes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GrantComboChainPrizesReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).GrantComboChainPrizes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_GrantComboChainPrizes_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).GrantComboChainPrizes(ctx, req.(*GrantComboChainPrizesReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_GrantComboChainPrizesRevert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GrantComboChainPrizesReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).GrantComboChainPrizesRevert(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_GrantComboChainPrizesRevert_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).GrantComboChainPrizesRevert(ctx, req.(*GrantComboChainPrizesReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_ListComboChainRecords_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListComboChainRecordsReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).ListComboChainRecords(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_ListComboChainRecords_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).ListComboChainRecords(ctx, req.(*ListComboChainRecordsReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Play_GetGroupBuy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetGroupBuyReq)
 	if err := dec(in); err != nil {
@@ -1704,132 +758,6 @@ func _Play_GetGroupBuy_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PlayServer).GetGroupBuy(ctx, req.(*GetGroupBuyReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_LockGroupBuy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LockGroupBuyReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).LockGroupBuy(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_LockGroupBuy_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).LockGroupBuy(ctx, req.(*LockGroupBuyReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_ReleaseGroupBuy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReleaseGroupBuyReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).ReleaseGroupBuy(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_ReleaseGroupBuy_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).ReleaseGroupBuy(ctx, req.(*ReleaseGroupBuyReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_SettleGroupBuy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SettleGroupBuyReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).SettleGroupBuy(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_SettleGroupBuy_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).SettleGroupBuy(ctx, req.(*SettleGroupBuyReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_SettleGroupBuyRevert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SettleGroupBuyReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).SettleGroupBuyRevert(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_SettleGroupBuyRevert_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).SettleGroupBuyRevert(ctx, req.(*SettleGroupBuyReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_GrantGroupBuyPrizes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GrantGroupBuyPrizesReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).GrantGroupBuyPrizes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_GrantGroupBuyPrizes_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).GrantGroupBuyPrizes(ctx, req.(*GrantGroupBuyPrizesReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_GrantGroupBuyPrizesRevert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GrantGroupBuyPrizesReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).GrantGroupBuyPrizesRevert(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_GrantGroupBuyPrizesRevert_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).GrantGroupBuyPrizesRevert(ctx, req.(*GrantGroupBuyPrizesReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_ListGroupBuyRecords_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListGroupBuyRecordsReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).ListGroupBuyRecords(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_ListGroupBuyRecords_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).ListGroupBuyRecords(ctx, req.(*ListGroupBuyRecordsReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2050,114 +978,6 @@ func _Play_SkipMemoryMatch_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Play_LockMemoryMatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LockMemoryMatchReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).LockMemoryMatch(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_LockMemoryMatch_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).LockMemoryMatch(ctx, req.(*LockMemoryMatchReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_LockMemoryMatchRevert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LockMemoryMatchReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).LockMemoryMatchRevert(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_LockMemoryMatchRevert_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).LockMemoryMatchRevert(ctx, req.(*LockMemoryMatchReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_SettleMemoryMatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SettleMemoryMatchReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).SettleMemoryMatch(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_SettleMemoryMatch_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).SettleMemoryMatch(ctx, req.(*SettleMemoryMatchReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_SettleMemoryMatchRevert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SettleMemoryMatchReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).SettleMemoryMatchRevert(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_SettleMemoryMatchRevert_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).SettleMemoryMatchRevert(ctx, req.(*SettleMemoryMatchReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_GrantMemoryMatchPrizes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GrantMemoryMatchPrizesReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).GrantMemoryMatchPrizes(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_GrantMemoryMatchPrizes_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).GrantMemoryMatchPrizes(ctx, req.(*GrantMemoryMatchPrizesReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Play_GrantMemoryMatchPrizesRevert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GrantMemoryMatchPrizesReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PlayServer).GrantMemoryMatchPrizesRevert(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Play_GrantMemoryMatchPrizesRevert_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlayServer).GrantMemoryMatchPrizesRevert(ctx, req.(*GrantMemoryMatchPrizesReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Play_CheckPrizesGranted_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CheckPrizesGrantedReq)
 	if err := dec(in); err != nil {
@@ -2184,6 +1004,34 @@ var Play_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*PlayServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "PlayLock",
+			Handler:    _Play_PlayLock_Handler,
+		},
+		{
+			MethodName: "PlayRelease",
+			Handler:    _Play_PlayRelease_Handler,
+		},
+		{
+			MethodName: "PlaySettle",
+			Handler:    _Play_PlaySettle_Handler,
+		},
+		{
+			MethodName: "PlaySettleRevert",
+			Handler:    _Play_PlaySettleRevert_Handler,
+		},
+		{
+			MethodName: "PlayGrant",
+			Handler:    _Play_PlayGrant_Handler,
+		},
+		{
+			MethodName: "PlayGrantRevert",
+			Handler:    _Play_PlayGrantRevert_Handler,
+		},
+		{
+			MethodName: "PlayListRecords",
+			Handler:    _Play_PlayListRecords_Handler,
+		},
+		{
 			MethodName: "ListDigBoxes",
 			Handler:    _Play_ListDigBoxes_Handler,
 		},
@@ -2192,96 +1040,12 @@ var Play_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Play_GetDigBoxSession_Handler,
 		},
 		{
-			MethodName: "LockDigBox",
-			Handler:    _Play_LockDigBox_Handler,
-		},
-		{
-			MethodName: "ReleaseDigBox",
-			Handler:    _Play_ReleaseDigBox_Handler,
-		},
-		{
-			MethodName: "SettleDigBox",
-			Handler:    _Play_SettleDigBox_Handler,
-		},
-		{
-			MethodName: "SettleDigBoxRevert",
-			Handler:    _Play_SettleDigBoxRevert_Handler,
-		},
-		{
-			MethodName: "GrantDigPrizes",
-			Handler:    _Play_GrantDigPrizes_Handler,
-		},
-		{
-			MethodName: "GrantDigPrizesRevert",
-			Handler:    _Play_GrantDigPrizesRevert_Handler,
-		},
-		{
-			MethodName: "ListDigRecords",
-			Handler:    _Play_ListDigRecords_Handler,
-		},
-		{
 			MethodName: "GetFullCar",
 			Handler:    _Play_GetFullCar_Handler,
 		},
 		{
-			MethodName: "LockFullCar",
-			Handler:    _Play_LockFullCar_Handler,
-		},
-		{
-			MethodName: "ReleaseFullCar",
-			Handler:    _Play_ReleaseFullCar_Handler,
-		},
-		{
-			MethodName: "SettleFullCar",
-			Handler:    _Play_SettleFullCar_Handler,
-		},
-		{
-			MethodName: "SettleFullCarRevert",
-			Handler:    _Play_SettleFullCarRevert_Handler,
-		},
-		{
-			MethodName: "GrantFullCarPrizes",
-			Handler:    _Play_GrantFullCarPrizes_Handler,
-		},
-		{
-			MethodName: "GrantFullCarPrizesRevert",
-			Handler:    _Play_GrantFullCarPrizesRevert_Handler,
-		},
-		{
-			MethodName: "ListFullCarRecords",
-			Handler:    _Play_ListFullCarRecords_Handler,
-		},
-		{
 			MethodName: "GetGashapon",
 			Handler:    _Play_GetGashapon_Handler,
-		},
-		{
-			MethodName: "LockGashapon",
-			Handler:    _Play_LockGashapon_Handler,
-		},
-		{
-			MethodName: "ReleaseGashapon",
-			Handler:    _Play_ReleaseGashapon_Handler,
-		},
-		{
-			MethodName: "SettleGashapon",
-			Handler:    _Play_SettleGashapon_Handler,
-		},
-		{
-			MethodName: "SettleGashaponRevert",
-			Handler:    _Play_SettleGashaponRevert_Handler,
-		},
-		{
-			MethodName: "GrantGashaponPrizes",
-			Handler:    _Play_GrantGashaponPrizes_Handler,
-		},
-		{
-			MethodName: "GrantGashaponPrizesRevert",
-			Handler:    _Play_GrantGashaponPrizesRevert_Handler,
-		},
-		{
-			MethodName: "ListGashaponRecords",
-			Handler:    _Play_ListGashaponRecords_Handler,
 		},
 		{
 			MethodName: "AssignGashaponLuckyUser",
@@ -2292,64 +1056,8 @@ var Play_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Play_GetComboChain_Handler,
 		},
 		{
-			MethodName: "LockComboChain",
-			Handler:    _Play_LockComboChain_Handler,
-		},
-		{
-			MethodName: "ReleaseComboChain",
-			Handler:    _Play_ReleaseComboChain_Handler,
-		},
-		{
-			MethodName: "SettleComboChain",
-			Handler:    _Play_SettleComboChain_Handler,
-		},
-		{
-			MethodName: "SettleComboChainRevert",
-			Handler:    _Play_SettleComboChainRevert_Handler,
-		},
-		{
-			MethodName: "GrantComboChainPrizes",
-			Handler:    _Play_GrantComboChainPrizes_Handler,
-		},
-		{
-			MethodName: "GrantComboChainPrizesRevert",
-			Handler:    _Play_GrantComboChainPrizesRevert_Handler,
-		},
-		{
-			MethodName: "ListComboChainRecords",
-			Handler:    _Play_ListComboChainRecords_Handler,
-		},
-		{
 			MethodName: "GetGroupBuy",
 			Handler:    _Play_GetGroupBuy_Handler,
-		},
-		{
-			MethodName: "LockGroupBuy",
-			Handler:    _Play_LockGroupBuy_Handler,
-		},
-		{
-			MethodName: "ReleaseGroupBuy",
-			Handler:    _Play_ReleaseGroupBuy_Handler,
-		},
-		{
-			MethodName: "SettleGroupBuy",
-			Handler:    _Play_SettleGroupBuy_Handler,
-		},
-		{
-			MethodName: "SettleGroupBuyRevert",
-			Handler:    _Play_SettleGroupBuyRevert_Handler,
-		},
-		{
-			MethodName: "GrantGroupBuyPrizes",
-			Handler:    _Play_GrantGroupBuyPrizes_Handler,
-		},
-		{
-			MethodName: "GrantGroupBuyPrizesRevert",
-			Handler:    _Play_GrantGroupBuyPrizesRevert_Handler,
-		},
-		{
-			MethodName: "ListGroupBuyRecords",
-			Handler:    _Play_ListGroupBuyRecords_Handler,
 		},
 		{
 			MethodName: "GetMemoryMatchConfig",
@@ -2398,30 +1106,6 @@ var Play_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SkipMemoryMatch",
 			Handler:    _Play_SkipMemoryMatch_Handler,
-		},
-		{
-			MethodName: "LockMemoryMatch",
-			Handler:    _Play_LockMemoryMatch_Handler,
-		},
-		{
-			MethodName: "LockMemoryMatchRevert",
-			Handler:    _Play_LockMemoryMatchRevert_Handler,
-		},
-		{
-			MethodName: "SettleMemoryMatch",
-			Handler:    _Play_SettleMemoryMatch_Handler,
-		},
-		{
-			MethodName: "SettleMemoryMatchRevert",
-			Handler:    _Play_SettleMemoryMatchRevert_Handler,
-		},
-		{
-			MethodName: "GrantMemoryMatchPrizes",
-			Handler:    _Play_GrantMemoryMatchPrizes_Handler,
-		},
-		{
-			MethodName: "GrantMemoryMatchPrizesRevert",
-			Handler:    _Play_GrantMemoryMatchPrizesRevert_Handler,
 		},
 		{
 			MethodName: "CheckPrizesGranted",

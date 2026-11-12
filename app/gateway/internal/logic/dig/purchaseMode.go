@@ -5,14 +5,17 @@ import (
 	"fmt"
 
 	"gacha_srv/app/gateway/internal/saga"
+	"gacha_srv/app/gateway/internal/playapi"
 	"gacha_srv/app/gateway/internal/svc"
 	"gacha_srv/app/gateway/internal/types"
 	marketingClient "gacha_srv/app/marketing/marketingClient"
 	playClient "gacha_srv/app/play/playClient"
+	"gacha_srv/app/play/play"
 	"gacha_srv/pkg/utils"
 	"gacha_srv/pkg/utils/errorx"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"google.golang.org/protobuf/proto"
 )
 
 // purchaseMode 挖宝购买策略：实现 saga.PurchaseMode[*types.DigBuyReq]。
@@ -70,10 +73,7 @@ func (m *purchaseMode) Prepare(ctx context.Context, svcCtx *svc.ServiceContext, 
 }
 
 func (m *purchaseMode) Idempotent(ctx context.Context, svcCtx *svc.ServiceContext, req *types.DigBuyReq, gid string, userID int64) (bool, error) {
-	rec, err := svcCtx.PlayRpc.ListDigRecords(ctx, &playClient.ListDigRecordsReq{
-		RequestId: gid,
-		UserId:    userID,
-	})
+	rec, err := playapi.ListDigRecords(ctx, svcCtx, gid, userID, 0, 0)
 	if err != nil {
 		return false, err
 	}
@@ -83,46 +83,64 @@ func (m *purchaseMode) Idempotent(ctx context.Context, svcCtx *svc.ServiceContex
 func (m *purchaseMode) BuildBranches(ctx context.Context, svcCtx *svc.ServiceContext, req *types.DigBuyReq,
 	gid string, userID int64, quote *marketingClient.QuoteCheckoutResp, unitFen, grossFen int64) ([]saga.Branch, error) {
 	c := svcCtx.Config
+	lockBytes, _ := proto.Marshal(&playClient.LockDigBoxReq{
+		RequestId:     gid,
+		QuoteToken:    quote.QuoteToken,
+		ConfigId:      req.BoxId,
+		SessionNo:     m.sessionNo,
+		CellIndexes:   m.cells,
+		TakeAll:       false,
+		TotalPriceFen: grossFen,
+	})
+	settleBytes, _ := proto.Marshal(&playClient.SettleDigBoxReq{
+		RequestId:   gid,
+		UserId:      userID,
+		ConfigId:    req.BoxId,
+		SessionNo:   m.sessionNo,
+		CellIndexes: m.cells,
+		TakeAll:     false,
+		Price:       utils.FenToYuan(quote.PayableFen),
+	})
+	grantBytes, _ := proto.Marshal(&playClient.GrantDigPrizesReq{
+		RequestId: gid,
+		UserId:    userID,
+	})
 	return saga.PlayBranches(c.MoneyRpcDirect, gid, userID, req.BoxId, quote, saga.PlayBranchSet{
-		// 01 锁报价+会话位图；补偿 ReleaseDigBox 清位回滚+释放报价
-		LockPath:    c.PlayRpcDirect + "/play.Play/LockDigBox",
-		ReleasePath: c.PlayRpcDirect + "/play.Play/ReleaseDigBox",
-		LockPayload: &playClient.LockDigBoxReq{
+		LockPath:    c.PlayRpcDirect + saga.PathPlayLock,
+		ReleasePath: c.PlayRpcDirect + saga.PathPlayRelease,
+		LockPayload: &play.PlayLockReq{
 			RequestId:     gid,
-			QuoteToken:    quote.QuoteToken,
+			Mode:          play.PlayMode_PLAY_MODE_DIG_BOX,
 			ConfigId:      req.BoxId,
-			SessionNo:     m.sessionNo,
-			CellIndexes:   m.cells,
-			TakeAll:       false, // 网关已把 takeAll 解析为显式格子（补偿精确回滚依据）
+			UserId:        userID,
+			QuoteToken:    quote.QuoteToken,
 			TotalPriceFen: grossFen,
+			Payload:       lockBytes,
 		},
-		// 03 揭晓+落记录；补偿 SettleDigBoxRevert 撤销记录
-		SettlePath:       c.PlayRpcDirect + "/play.Play/SettleDigBox",
-		SettleRevertPath: c.PlayRpcDirect + "/play.Play/SettleDigBoxRevert",
-		SettlePayload: &playClient.SettleDigBoxReq{
-			RequestId:   gid,
-			UserId:      userID,
-			ConfigId:    req.BoxId,
-			SessionNo:   m.sessionNo,
-			CellIndexes: m.cells,
-			TakeAll:     false,
-			Price:       utils.FenToYuan(quote.PayableFen),
-		},
-		// 04 发奖：永不 Aborted、空补偿（奖品先于捕获且不追回）
-		GrantPath:       c.PlayRpcDirect + "/play.Play/GrantDigPrizes",
-		GrantRevertPath: c.PlayRpcDirect + "/play.Play/GrantDigPrizesRevert",
-		GrantPayload: &playClient.GrantDigPrizesReq{
+		SettlePath:       c.PlayRpcDirect + saga.PathPlaySettle,
+		SettleRevertPath: c.PlayRpcDirect + saga.PathPlaySettleRevert,
+		SettlePayload: &play.PlaySettleReq{
 			RequestId: gid,
+			Mode:      play.PlayMode_PLAY_MODE_DIG_BOX,
+			ConfigId:  req.BoxId,
 			UserId:    userID,
+			Price:     utils.FenToYuan(quote.PayableFen),
+			Payload:   settleBytes,
+		},
+		GrantPath:       c.PlayRpcDirect + saga.PathPlayGrant,
+		GrantRevertPath: c.PlayRpcDirect + saga.PathPlayGrantRevert,
+		GrantPayload: &play.PlayGrantReq{
+			RequestId: gid,
+			Mode:      play.PlayMode_PLAY_MODE_DIG_BOX,
+			ConfigId:  req.BoxId,
+			UserId:    userID,
+			Payload:   grantBytes,
 		},
 	}), nil
 }
 
 func (m *purchaseMode) Recheck(ctx context.Context, svcCtx *svc.ServiceContext, req *types.DigBuyReq, gid string, userID int64) error {
-	resp, err := svcCtx.PlayRpc.ListDigRecords(ctx, &playClient.ListDigRecordsReq{
-		RequestId: gid,
-		UserId:    userID,
-	})
+	resp, err := playapi.ListDigRecords(ctx, svcCtx, gid, userID, 0, 0)
 	if err != nil {
 		return err
 	}

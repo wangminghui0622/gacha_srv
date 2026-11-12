@@ -3,8 +3,8 @@ package groupbuy
 import (
 	"context"
 
-	playClient "gacha_srv/app/play/playClient"
 	"gacha_srv/app/gateway/internal/middleware"
+	"gacha_srv/app/gateway/internal/playapi"
 	"gacha_srv/app/gateway/internal/svc"
 	"gacha_srv/app/gateway/internal/types"
 	"gacha_srv/pkg/utils/errorx"
@@ -32,12 +32,7 @@ func (l *ListGroupBuyRecordsLogic) ListGroupBuyRecords(req *types.GroupBuyRecord
 	if !ok || userId <= 0 {
 		return nil, errorx.NewCodeError(errorx.CodeUnauthorized, "未登录")
 	}
-	r, err := l.svcCtx.PlayRpc.ListGroupBuyRecords(l.ctx, &playClient.ListGroupBuyRecordsReq{
-		UserId:    userId,
-		RequestId: req.RequestId,
-		Page:      req.Page,
-		PageSize:  req.PageSize,
-	})
+	r, err := playapi.ListGroupBuyRecords(l.ctx, l.svcCtx, req.RequestId, userId, req.Page, req.PageSize)
 	if err != nil {
 		l.Errorf("ListGroupBuyRecords failed, err: %v", err)
 		return nil, errorx.FromError(err)
