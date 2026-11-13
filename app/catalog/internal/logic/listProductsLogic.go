@@ -5,6 +5,7 @@ import (
 
 	"gacha_srv/app/catalog/catalog"
 	"gacha_srv/app/catalog/internal/svc"
+	"gacha_srv/pkg/utils/pagination"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -25,13 +26,7 @@ func NewListProductsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *List
 
 // 商品列表（id 游标分页，摘要；size 默认 20 封顶 100，照抄 server_v2 biz.List）
 func (l *ListProductsLogic) ListProducts(in *catalog.ListProductsRequest) (*catalog.ListProductsReply, error) {
-	size := in.PageSize
-	if size == 0 {
-		size = 20
-	}
-	if size > 100 {
-		size = 100
-	}
+	size := pagination.NormalizeSize(in.PageSize, 20)
 	rows, err := l.svcCtx.Repo.List(l.ctx, in.AfterProductId, size+1)
 	if err != nil {
 		return nil, mapRepoErr(err)

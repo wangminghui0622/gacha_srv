@@ -6,6 +6,7 @@ import (
 
 	"gacha_srv/app/catalog/catalog"
 	"gacha_srv/app/catalog/internal/svc"
+	"gacha_srv/pkg/utils/pagination"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -26,17 +27,7 @@ func NewListIPsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ListIPsLo
 
 // ListIPs IP 列表（分页 + 名称搜索，默认每页 15 条，最大 100）。
 func (l *ListIPsLogic) ListIPs(in *catalog.ListIPsRequest) (*catalog.ListIPsReply, error) {
-	page := in.Page
-	if page == 0 {
-		page = 1
-	}
-	pageSize := in.PageSize
-	if pageSize == 0 {
-		pageSize = 15
-	}
-	if pageSize > 100 {
-		pageSize = 100
-	}
+	page, pageSize := pagination.Normalize(in.Page, in.PageSize, 15)
 	rows, total, err := l.svcCtx.Repo.ListIPs(l.ctx, strings.TrimSpace(in.Keyword), page, pageSize)
 	if err != nil {
 		return nil, mapIPRepoErr(err)
