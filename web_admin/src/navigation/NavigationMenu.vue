@@ -3,48 +3,50 @@
     <a-menu
       theme="light"
       mode="vertical"
-      :selected-keys="[selectedKey]"
-      :open-keys="openKeys"
-      :trigger-sub-menu-action="'click'"
-      @openChange="onOpenChange"
+      :selected-keys="selectedKeys"
       @click="onClick"
     >
-      <template v-for="item in tree" :key="item.key">
-        <a-sub-menu v-if="item.children" :key="item.key" popup-class-name="side-menu-popup">
-          <template #icon><component :is="item.icon" /></template>
-          <template #title>{{ $t(item.title) }}</template>
-          <a-menu-item v-for="child in item.children" :key="child.path!">
-            {{ $t(child.title) }}
-          </a-menu-item>
-        </a-sub-menu>
-        <a-menu-item v-else :key="item.path!">
-          <template #icon><component :is="item.icon" /></template>
-          {{ $t(item.title) }}
-        </a-menu-item>
-      </template>
+      <a-menu-item
+        v-for="item in tree"
+        :key="item.key"
+        :class="{ 'group-active': isGroupActive(item) }"
+      >
+        <template #icon><component :is="item.icon" /></template>
+        <span class="item-title">{{ $t(item.title) }}</span>
+        <RightOutlined v-if="item.children" class="group-arrow" />
+      </a-menu-item>
     </a-menu>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
+import { RightOutlined } from '@ant-design/icons-vue'
 import type { PermissionNode } from '@/access/grants'
-import { menuPath, menuRoutes, menuTree } from './routeCatalog'
+import { menuTree, type MenuNode } from './routeCatalog'
 
-const props = defineProps<{ nodes: PermissionNode[]; selectedKey: string }>()
-const emit = defineEmits<{ navigate: [path: string] }>()
+const props = defineProps<{ nodes: PermissionNode[]; selectedKey: string; activeGroupKey?: string | null }>()
+const emit = defineEmits<{ navigate: [path: string]; 'toggle-group': [key: string] }>()
 const tree = computed(() => menuTree(props.nodes))
-const paths = computed(() => menuRoutes(props.nodes).map(menuPath))
-const openKeys = ref<string[]>([])
+const selectedKeys = computed(() =>
+  tree.value.filter((item) => !item.children && item.path === props.selectedKey).map((item) => item.key),
+)
 
-function onOpenChange(keys: string[]) {
-  // 只保留最后打开的一个父菜单，避免旧弹层残留
-  openKeys.value = keys.slice(-1)
+function isGroupActive(item: MenuNode): boolean {
+  if (!item.children) return false
+  if (props.activeGroupKey === item.key) return true
+  return item.children.some((child) => props.selectedKey === child.path || props.selectedKey.startsWith(`${child.path}/`))
 }
 
 function onClick(info: { key: string | number }) {
-  const path = String(info.key)
-  if (paths.value.includes(path)) emit('navigate', path)
+  const key = String(info.key)
+  const item = tree.value.find((node) => node.key === key)
+  if (!item) return
+  if (item.children) {
+    emit('toggle-group', key)
+  } else if (item.path) {
+    emit('navigate', item.path)
+  }
 }
 </script>
 
@@ -58,22 +60,35 @@ nav {
   background: transparent;
 }
 
-:deep(.ant-menu-item),
-:deep(.ant-menu-submenu-title) {
+:deep(.ant-menu-item) {
+  position: relative;
   height: 44px;
   line-height: 44px;
   margin: 4px 0 4px 8px;
   width: calc(100% - 8px);
   padding-left: 16px !important;
-  padding-right: 7px !important;
+  padding-right: 26px !important;
   color: rgba(0, 0, 0, 0.75);
   font-size: 14px;
 }
 
-:deep(.ant-menu-item .anticon),
-:deep(.ant-menu-submenu-title .anticon) {
+:deep(.ant-menu-item .anticon) {
   font-size: 17px;
   color: rgba(0, 0, 0, 0.55);
+}
+
+.item-title {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.group-arrow {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.45);
 }
 
 :deep(.ant-menu-item-selected) {
@@ -83,67 +98,13 @@ nav {
 }
 
 :deep(.ant-menu-item-selected .anticon),
-:deep(.ant-menu-submenu-selected > .ant-menu-submenu-title),
-:deep(.ant-menu-submenu-selected > .ant-menu-submenu-title .anticon) {
+:deep(.ant-menu-item.group-active),
+:deep(.ant-menu-item.group-active .anticon),
+:deep(.ant-menu-item.group-active .group-arrow) {
   color: #1677ff;
 }
 
-:deep(.ant-menu-item:hover),
-:deep(.ant-menu-submenu-title:hover) {
+:deep(.ant-menu-item:hover) {
   color: #1677ff;
-}
-
-:deep(.ant-menu-submenu-arrow) {
-  inset-inline-end: 8px !important;
-  right: 8px !important;
-}
-</style>
-
-<style lang="scss">
-.side-menu-popup {
-  width: 144px !important;
-}
-
-.side-menu-popup .ant-menu {
-  width: 144px !important;
-  min-width: 144px !important;
-  max-width: 144px !important;
-  padding: 4px 0;
-  border-radius: 4px;
-}
-
-.side-menu-popup .ant-menu-vertical {
-  padding: 6px 0 !important;
-}
-
-.side-menu-popup .ant-menu-item {
-  height: auto !important;
-  min-height: 38px;
-  line-height: 20px !important;
-  margin: 0 !important;
-  padding: 9px 16px !important;
-  width: 100% !important;
-  border-radius: 0;
-  color: rgba(0, 0, 0, 0.75);
-  white-space: normal !important;
-  word-break: break-word;
-  display: flex;
-  align-items: center;
-}
-
-.side-menu-popup .ant-menu-title-content {
-  display: block;
-  width: 100%;
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: clip !important;
-  line-height: 20px;
-  text-align: center;
-}
-
-.side-menu-popup .ant-menu-item-selected {
-  background: #e6f4ff;
-  color: #1677ff;
-  font-weight: 500;
 }
 </style>

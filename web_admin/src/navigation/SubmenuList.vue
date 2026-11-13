@@ -1,0 +1,60 @@
+<template>
+  <div class="submenu-list" :style="{ paddingTop: `${topOffset}px` }">
+    <router-link
+      v-for="child in group.children ?? []"
+      :key="child.path"
+      :to="child.path!"
+      class="submenu-item"
+      :class="{ active: isActive(child.path!) }"
+      @click="$emit('navigate')"
+    >
+      {{ $t(child.title) }}
+    </router-link>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useRoute } from 'vue-router'
+import type { MenuNode } from './routeCatalog'
+
+withDefaults(defineProps<{ group: MenuNode; topOffset?: number }>(), { topOffset: 0 })
+defineEmits<{ navigate: [] }>()
+
+const route = useRoute()
+
+function isActive(path: string): boolean {
+  return route.path === path || route.path.startsWith(`${path}/`)
+}
+</script>
+
+<style scoped lang="scss">
+.submenu-list {
+  width: 144px;
+  padding-bottom: 8px;
+}
+
+.submenu-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 9px 16px;
+  line-height: 20px;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.75);
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.submenu-item:hover {
+  background: #f5f5f5;
+  color: #1677ff;
+}
+
+.submenu-item.active {
+  background: #e6f4ff;
+  color: #1677ff;
+  font-weight: 500;
+}
+</style>

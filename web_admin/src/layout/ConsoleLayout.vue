@@ -2,10 +2,26 @@
   <a-layout class="console-layout">
     <SecurityWatermark v-if="session.accessToken" />
     <a-layout-sider class="desktop-sider" theme="light" width="144">
-      <NavigationMenu :nodes="session.permissionNodes" :selected-key="selectedKey" @navigate="navigate" />
+      <NavigationMenu
+        :nodes="session.permissionNodes"
+        :selected-key="selectedKey"
+        :active-group-key="activeGroupKey"
+        @toggle-group="toggleGroup"
+        @navigate="navigate"
+      />
     </a-layout-sider>
+    <aside class="secondary-sider" :class="{ open: !!activeGroup }">
+      <SubmenuList v-if="activeGroup" :group="activeGroup" :top-offset="submenuTop" @navigate="mobileOpen = false" />
+    </aside>
     <a-drawer v-model:open="mobileOpen" placement="left" :width="144" :closable="false" root-class-name="console-mobile-drawer">
-      <NavigationMenu :nodes="session.permissionNodes" :selected-key="selectedKey" @navigate="navigate" />
+      <NavigationMenu
+        :nodes="session.permissionNodes"
+        :selected-key="selectedKey"
+        :active-group-key="activeGroupKey"
+        @toggle-group="toggleGroup"
+        @navigate="navigate"
+      />
+      <SubmenuList v-if="activeGroup" :group="activeGroup" @navigate="mobileOpen = false" />
     </a-drawer>
     <a-layout>
       <a-layout-header class="header">
@@ -25,14 +41,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { MenuOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import SecurityWatermark from '@/components/SecurityWatermark.vue'
 import NavigationMenu from '@/navigation/NavigationMenu.vue'
-import { menuPath, menuRoutes } from '@/navigation/routeCatalog'
+import SubmenuList from '@/navigation/SubmenuList.vue'
+import { menuPath, menuRoutes, menuTree } from '@/navigation/routeCatalog'
 import { useSessionStore } from '@/stores/session'
 
 const route = useRoute()
@@ -41,6 +58,9 @@ const session = useSessionStore()
 const { t } = useI18n()
 const mobileOpen = ref(false)
 const menus = computed(() => menuRoutes(session.permissionNodes))
+const tree = computed(() => menuTree(session.permissionNodes))
+const activeGroupKey = ref<string | null>(null)
+const activeGroup = computed(() => tree.value.find((node) => node.key === activeGroupKey.value && node.children) ?? null)
 const headerTitle = computed(() => t((route.meta.title as string) ?? 'nav.dashboard'))
 const selectedKey = computed(() => {
   const hit = menus.value
@@ -48,6 +68,25 @@ const selectedKey = computed(() => {
     .sort((a, b) => b.path.length - a.path.length)[0]
   return hit ? menuPath(hit) : route.path
 })
+const submenuTop = computed(() => {
+  const index = tree.value.findIndex((node) => node.key === activeGroupKey.value)
+  return index >= 0 ? 12 + index * 52 : 0
+})
+
+watch(
+  () => [route.path, tree.value] as const,
+  ([path]) => {
+    const group = tree.value.find((node) =>
+      node.children?.some((child) => path === child.path || path.startsWith(`${child.path}/`)),
+    )
+    activeGroupKey.value = group?.key ?? null
+  },
+  { immediate: true },
+)
+
+function toggleGroup(key: string) {
+  activeGroupKey.value = activeGroupKey.value === key ? null : key
+}
 
 function navigate(path: string) {
   mobileOpen.value = false
@@ -75,6 +114,20 @@ async function onLogout() {
   border-right: 1px solid #f0f0f0;
   background: #fff;
 }
+.secondary-sider {
+  flex: 0 0 auto;
+  align-self: stretch;
+  width: 0;
+  overflow: hidden;
+  background: #fff;
+  transition: width 0.18s ease;
+}
+.secondary-sider.open {
+  width: 144px;
+  border-right: 1px solid #f0f0f0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
 .header { background: #fff; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-inline: 24px; border-bottom: 1px solid #f0f0f0; }
 .header-heading { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .header-title { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -83,6 +136,7 @@ async function onLogout() {
 .mobile-trigger { display: none; }
 @media (max-width: 767px) {
   .desktop-sider { display: none; }
+  .secondary-sider { display: none; }
   .mobile-trigger { display: inline-flex; }
   .header { padding-inline: 8px; }
   .user-label { display: none; }
