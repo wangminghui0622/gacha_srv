@@ -109,6 +109,11 @@ nav {
 :deep(.ant-menu-submenu-title:hover) {
   color: #1677ff;
 }
+
+:deep(.ant-menu-submenu-arrow) {
+  inset-inline-end: 4px !important;
+  right: 4px !important;
+}
 </style>
 
 <style lang="scss">
