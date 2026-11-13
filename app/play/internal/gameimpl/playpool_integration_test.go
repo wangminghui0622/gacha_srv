@@ -143,8 +143,9 @@ func TestPlayPoolMaterializeAllModes(t *testing.T) {
 			prizes: []*play.PlayPoolPrize{
 				{PrizeIndex: 0, Name: "9对大奖", TargetValue: 3, Weight: 1, CashFen: 500, Quantity: 10, IsPrize: true},
 				{PrizeIndex: 1, Name: "谢谢参与", TargetValue: 0, Weight: 1, Quantity: -1, IsPrize: false},
+				{PrizeIndex: 2, Name: "实物徽章", PrizeType: 2, SkuId: 9002, TargetValue: 2, Weight: 1, Quantity: 5, IsPrize: true},
 			},
-			table: "memory_match_entries", wantRows: 2,
+			table: "memory_match_entries", wantRows: 3,
 		},
 	}
 
@@ -182,6 +183,21 @@ func TestPlayPoolMaterializeAllModes(t *testing.T) {
 				}
 				if cell.PrizeKind != 5 || cell.SkuId != 9001 || cell.ItemName != "实物手办" {
 					t.Fatalf("sku cell not projected: %+v", cell)
+				}
+			}
+			if tc.mode == "memorymatch" {
+				var entry struct {
+					PrizeKind int64
+					SkuId     int64
+					Name      string
+				}
+				if err := db.Table("memory_match_entries").
+					Select("prize_kind, sku_id, name").
+					Where("config_id = ? AND total_pair_count = ?", draft.PoolId, 2).Scan(&entry).Error; err != nil {
+					t.Fatalf("query sku entry: %v", err)
+				}
+				if entry.PrizeKind != 5 || entry.SkuId != 9002 || entry.Name != "实物徽章" {
+					t.Fatalf("sku entry not projected: %+v", entry)
 				}
 			}
 		})

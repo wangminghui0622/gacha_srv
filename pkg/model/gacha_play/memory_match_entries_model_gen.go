@@ -50,6 +50,7 @@ type (
 		CashFen          int64     `gorm:"column:cash_fen"`           // 现金奖励（分，prize_kind=1）
 		PointsAmount     int64     `gorm:"column:points_amount"`      // 积分奖励（prize_kind=2）
 		CouponTemplateNo string    `gorm:"column:coupon_template_no"` // 券模板号（prize_kind=3）
+		SkuId            int64     `gorm:"column:sku_id"`
 		Quantity         int64     `gorm:"column:quantity"`           // 总库存：-1=不限量
 		Remaining        int64     `gorm:"column:remaining"`          // 剩余库存：-1=不限量；0=售罄不发放
 		IsPrize          int64     `gorm:"column:is_prize"`           // 是否奖品：1=中奖 0=谢谢参与

@@ -21,7 +21,7 @@ func mmRetryChampionPayouts(ctx context.Context, svcCtx *svc.ServiceContext, con
 		return err
 	}
 	for _, p := range rows {
-		if err := mmGrantOne(ctx, svcCtx, p.UserId, p.GrantNo, prizeCash, p.AmountMinor, 0, ""); err != nil {
+		if err := mmGrantOne(ctx, svcCtx, p.UserId, p.GrantNo, prizeCash, p.AmountMinor, 0, "", 0, "", 0); err != nil {
 			return err
 		}
 		if err := svcCtx.DB.Model(&gamemodelnc.MemoryMatchChampionPayouts{}).

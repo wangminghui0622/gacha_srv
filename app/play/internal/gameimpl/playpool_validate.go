@@ -496,6 +496,9 @@ func validateMemoryMatchPool(in *play.CreatePlayPoolDraftReq) error {
 		if p.Weight <= 0 {
 			return abortf("记忆翻牌奖 %s 权重必须大于 0", p.Name)
 		}
+		if p.PrizeType == 2 && (p.CashFen > 0 || p.PointsAmount > 0 || p.CouponTemplateNo != "") {
+			return abortf("记忆翻牌实物奖 %s 不能同时配置现金/积分/券", p.Name)
+		}
 	}
 	return nil
 }

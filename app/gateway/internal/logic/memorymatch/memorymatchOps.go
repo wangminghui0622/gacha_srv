@@ -1,8 +1,8 @@
 package memorymatch
 
 import (
-	playClient "gacha_srv/app/play/playClient"
 	"gacha_srv/app/gateway/internal/types"
+	playClient "gacha_srv/app/play/playClient"
 )
 
 // prizeToView 奖品 pb → 网关视图
@@ -16,6 +16,8 @@ func prizeToView(p *playClient.PrizeItem) types.DigPrizeItem {
 		Points:           p.Points,
 		CouponTemplateNo: p.CouponTemplateNo,
 		CouponName:       p.CouponName,
+		SkuId:            p.SkuId,
+		ItemName:         p.ItemName,
 	}
 }
 

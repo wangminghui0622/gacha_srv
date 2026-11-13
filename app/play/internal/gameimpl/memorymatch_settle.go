@@ -45,7 +45,7 @@ func mmRetryPendingSettlementGrant(ctx context.Context, svcCtx *svc.ServiceConte
 			Updates(map[string]interface{}{"status": mmSettlementGranted, "updated_at": time.Now()}).Error
 	}
 	grantNo := fmt.Sprintf("mmr:%d", sess.Id)
-	if err := mmGrantOne(ctx, svcCtx, sess.UserId, grantNo, reward.PrizeKind, reward.CashFen, reward.PointsAmount, reward.CouponTemplate); err != nil {
+	if err := mmGrantOne(ctx, svcCtx, sess.UserId, grantNo, reward.PrizeKind, reward.CashFen, reward.PointsAmount, reward.CouponTemplate, reward.SkuId, reward.EntryName, sess.ConfigId); err != nil {
 		return err
 	}
 	return svcCtx.DB.Model(&gamemodelnc.MemoryMatchSettlements{}).
@@ -65,7 +65,7 @@ func mmSettlementView(stl *gamemodelnc.MemoryMatchSettlements) (*play.MemoryMatc
 		Status:         stl.Status,
 	}
 	if reward.HasPrize {
-		view.Prize = mmPrizeItem(reward.PrizeKind, reward.CashFen, reward.PointsAmount, reward.CouponTemplate, reward.EntryName)
+		view.Prize = mmPrizeItem(reward.PrizeKind, reward.CashFen, reward.PointsAmount, reward.CouponTemplate, reward.EntryName, reward.SkuId)
 	} else {
 		view.Prize = &play.PrizeItem{Kind: 0}
 	}
@@ -140,6 +140,7 @@ func mmFinalSettlement(db *gorm.DB, sess *gamemodelnc.MemoryMatchSessions, rules
 		reward.CashFen = entry.CashFen
 		reward.PointsAmount = entry.PointsAmount
 		reward.CouponTemplate = entry.CouponTemplateNo
+		reward.SkuId = entry.SkuId
 		reward.EntryName = entry.Name
 		reward.EntryID = entry.Id
 		reward.Remaining = entry.Remaining

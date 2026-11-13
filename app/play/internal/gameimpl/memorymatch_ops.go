@@ -144,6 +144,7 @@ type mmReward struct {
 	CashFen        int64         `json:"cash_fen"`
 	PointsAmount   int64         `json:"points_amount"`
 	CouponTemplate string        `json:"coupon_template_no"`
+	SkuId          int64         `json:"sku_id"`
 	EntryName      string        `json:"entry_name"`
 	EntryID        int64         `json:"entry_id"`
 	Remaining      int64         `json:"remaining"`
@@ -233,7 +234,7 @@ func int32SliceToInt64(in []int32) []int64 {
 }
 
 // mmPrizeItem 奖档 → PrizeItem（谢谢参与 kind=0）
-func mmPrizeItem(kind, cashFen, points int64, couponTemplateNo, name string) *play.PrizeItem {
+func mmPrizeItem(kind, cashFen, points int64, couponTemplateNo, name string, skuId int64) *play.PrizeItem {
 	switch kind {
 	case prizeCash:
 		return &play.PrizeItem{Kind: 1, Amount: utils.FenToYuan(cashFen)}
@@ -241,6 +242,8 @@ func mmPrizeItem(kind, cashFen, points int64, couponTemplateNo, name string) *pl
 		return &play.PrizeItem{Kind: 2, Points: points}
 	case prizeCoupon:
 		return &play.PrizeItem{Kind: 3, CouponTemplateNo: couponTemplateNo, CouponName: name}
+	case prizeGoods:
+		return &play.PrizeItem{Kind: prizeGoods, SkuId: skuId, ItemName: name}
 	default:
 		return &play.PrizeItem{Kind: 0}
 	}

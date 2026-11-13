@@ -35,8 +35,8 @@ func materializePlayPool(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 		if p.PrizeType == 3 {
 			return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=奖品 %s 使用箱子类型，玩法投影暂不支持", p.Name))
 		}
-		if p.PrizeType == 2 && v.Mode != "dig" {
-			return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=奖品 %s 为实物 SKU，目前仅挖宝箱支持", p.Name))
+		if p.PrizeType == 2 && v.Mode != "dig" && v.Mode != "memorymatch" {
+			return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=奖品 %s 为实物 SKU，目前仅挖宝箱/记忆翻牌支持", p.Name))
 		}
 	}
 	// 新版本发布重置运行态（entries 库存已替换；旧 state 会与之不一致）。
@@ -511,15 +511,20 @@ func materializeMemoryMatch(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes 
 	}
 	entries := make([]gamemodel.MemoryMatchEntries, 0, len(prizes))
 	for _, p := range prizes {
+		kind := playPoolAssetKind(&p)
+		if p.PrizeType == 2 {
+			kind = prizeGoods
+		}
 		entries = append(entries, gamemodel.MemoryMatchEntries{
 			ConfigId:         v.PoolId,
 			Name:             p.Name,
 			TotalPairCount:   int64(p.TargetValue),
 			Weight:           p.Weight,
-			PrizeKind:        playPoolAssetKind(&p),
+			PrizeKind:        kind,
 			CashFen:          p.CashFen,
 			PointsAmount:     p.PointsAmount,
 			CouponTemplateNo: p.CouponTemplateNo,
+			SkuId:            p.SkuId,
 			Quantity:         int64(p.Quantity),
 			Remaining:        int64(p.Remaining),
 			IsPrize:          int64(p.IsPrize),

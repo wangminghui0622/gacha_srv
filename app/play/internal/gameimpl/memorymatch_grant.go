@@ -48,11 +48,14 @@ func (l *GrantMemoryMatchPrizesRevertLogic) GrantMemoryMatchPrizesRevert(in *pla
 }
 
 // mmGrantOne 单奖幂等发放（grant_no 全 uk 幂等；统一走 playkit.GrantOne）
-func mmGrantOne(ctx context.Context, svcCtx *svc.ServiceContext, userID int64, grantNo string, prizeKind, cashFen, points int64, couponTemplateNo string) error {
+func mmGrantOne(ctx context.Context, svcCtx *svc.ServiceContext, userID int64, grantNo string, prizeKind, cashFen, points int64, couponTemplateNo string, skuId int64, itemName string, poolId int64) error {
 	return playkit.GrantOne(ctx, svcCtx, userID, grantNo, playkit.Prize{
 		Kind:             prizeKind,
 		CashFen:          cashFen,
 		Points:           points,
 		CouponTemplateNo: couponTemplateNo,
+		SkuId:            skuId,
+		ItemName:         itemName,
+		PoolId:           poolId,
 	})
 }

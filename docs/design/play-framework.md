@@ -148,7 +148,7 @@ groupbuy→`group_buy_configs/entries`、memorymatch→`memory_match_configs/ent
 `gashapon_lucky_assignments`），历史 `*_records` 保留，管理端应在无进行中购买时发布。
 
 实物 SKU：`play_pool_prizes` / `PrizeItem` 已预留 `prize_type=2 + sku_id`。
-当前 **挖宝箱** 已打通试点：发布投影到 `dig_box_cells.prize_kind=5 + sku_id + item_name`，
+当前 **挖宝箱 / 记忆翻牌** 已打通：发布投影到运行表 `prize_kind=5 + sku_id`，
 发奖时 `playkit.KindGoods` 调 `money.GrantPlayAsset`，按 `asset_no="pa_"+grantNo`
 幂等写入 `gacha_money.assets`（`source=play`、`pool_id`、`sku_id`、`state=1 AVAILABLE`）。
 其余玩法发布时仍会拒绝实物/箱子奖，待逐步接入。

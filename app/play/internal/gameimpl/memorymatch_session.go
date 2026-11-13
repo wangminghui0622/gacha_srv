@@ -334,7 +334,7 @@ func mmConfigItem(cfg *gamemodel.MemoryMatchConfigs, rules *mmRules, entries []g
 			EntryId:        e.Id,
 			Name:           e.Name,
 			TotalPairCount: e.TotalPairCount,
-			Prize:          mmPrizeItem(e.PrizeKind, e.CashFen, e.PointsAmount, e.CouponTemplateNo, e.Name),
+			Prize:          mmPrizeItem(e.PrizeKind, e.CashFen, e.PointsAmount, e.CouponTemplateNo, e.Name, e.SkuId),
 			Remaining:      e.Remaining,
 		})
 	}
