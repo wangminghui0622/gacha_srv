@@ -17,7 +17,6 @@ import {
   SearchOutlined,
   SettingOutlined,
   ShoppingOutlined,
-  TagsOutlined,
   TeamOutlined,
   UnorderedListOutlined,
   UserOutlined,
@@ -654,28 +653,12 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     component: () => import('@/views/common/ModulePlaceholderView.vue'),
   },
   {
-    name: 'activity-exchange',
-    path: 'activities/exchange',
-    title: 'nav.activityExchange',
-    showInMenu: false,
-    backFallback: '/dashboard',
-    component: () => import('@/views/common/ModulePlaceholderView.vue'),
-  },
-  {
-    name: 'activity-points-exchange',
-    path: 'activities/points-exchange',
+    name: 'campaign-points-exchange',
+    path: 'campaigns/points-exchange',
     title: 'nav.activityPointsExchange',
     showInMenu: false,
     backFallback: '/dashboard',
     component: () => import('@/views/common/ModulePlaceholderView.vue'),
-  },
-  {
-    name: 'activity-redeem',
-    path: 'activities/redeem',
-    title: 'nav.activityRedeem',
-    showInMenu: false,
-    backFallback: '/dashboard',
-    component: () => import('@/views/campaign/CampaignManagementView.vue'),
   },
   {
     name: 'eligibility',
@@ -767,6 +750,7 @@ const CAMPAIGN_CHILDREN = [
   'campaign-fortune-multiplier',
   'campaign-spend-coupon',
   'campaign-exchange',
+  'campaign-points-exchange',
   'campaign-coupon-batch',
   'campaign-item-batch',
   'campaign-random-discount',
@@ -807,7 +791,6 @@ const QUERY_CHILDREN = [
   'query-invite',
   'query-task-flow',
 ] as const
-const ACTIVITY_CHILDREN = ['activity-exchange', 'activity-points-exchange', 'activity-redeem'] as const
 const PRIMARY_LEAVES: readonly string[] = []
 
 export function accessibleRoutes(nodes: PermissionNode[]): ConsoleRouteDef[] {
@@ -859,10 +842,6 @@ export function menuTree(nodes: PermissionNode[]): MenuNode[] {
   const queryChildren = childNodes(QUERY_CHILDREN, nodes, byName)
   if (queryChildren.length > 0) {
     tree.push({ key: 'query-group', title: 'nav.query', icon: SearchOutlined, children: queryChildren })
-  }
-  const activityChildren = childNodes(ACTIVITY_CHILDREN, nodes, byName)
-  if (activityChildren.length > 0) {
-    tree.push({ key: 'activity-group', title: 'nav.activity', icon: TagsOutlined, children: activityChildren })
   }
   for (const name of PRIMARY_LEAVES) {
     const item = byName.get(name)
