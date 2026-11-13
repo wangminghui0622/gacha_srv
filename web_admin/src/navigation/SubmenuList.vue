@@ -1,5 +1,5 @@
 <template>
-  <div class="submenu-list" :style="{ paddingTop: `${topOffset}px` }">
+  <div class="submenu-list">
     <router-link
       v-for="child in group.children ?? []"
       :key="child.path"
@@ -17,7 +17,7 @@
 import { useRoute } from 'vue-router'
 import type { MenuNode } from './routeCatalog'
 
-withDefaults(defineProps<{ group: MenuNode; topOffset?: number }>(), { topOffset: 0 })
+defineProps<{ group: MenuNode }>()
 defineEmits<{ navigate: [] }>()
 
 const route = useRoute()
@@ -30,7 +30,7 @@ function isActive(path: string): boolean {
 <style scoped lang="scss">
 .submenu-list {
   width: 144px;
-  padding-bottom: 8px;
+  padding: 8px 0;
 }
 
 .submenu-item {

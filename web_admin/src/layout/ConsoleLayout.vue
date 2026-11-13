@@ -10,8 +10,11 @@
         @navigate="navigate"
       />
     </a-layout-sider>
-    <aside class="secondary-sider" :class="{ open: !!activeGroup }">
-      <SubmenuList v-if="activeGroup" :group="activeGroup" :top-offset="submenuTop" @navigate="mobileOpen = false" />
+    <aside class="secondary-sider" :class="{ open: !!activeGroup }" :style="{ width: secondaryWidth }">
+      <div v-if="activeGroup" class="secondary-inner">
+        <div class="secondary-title">{{ $t(activeGroup.title) }}</div>
+        <SubmenuList :group="activeGroup" @navigate="mobileOpen = false" />
+      </div>
     </aside>
     <a-drawer v-model:open="mobileOpen" placement="left" :width="144" :closable="false" root-class-name="console-mobile-drawer">
       <NavigationMenu
@@ -21,6 +24,7 @@
         @toggle-group="toggleGroup"
         @navigate="navigate"
       />
+      <div v-if="activeGroup" class="secondary-title mobile">{{ $t(activeGroup.title) }}</div>
       <SubmenuList v-if="activeGroup" :group="activeGroup" @navigate="mobileOpen = false" />
     </a-drawer>
     <a-layout>
@@ -83,16 +87,13 @@ const menus = computed(() => menuRoutes(session.permissionNodes))
 const tree = computed(() => menuTree(session.permissionNodes))
 const activeGroupKey = ref<string | null>(null)
 const activeGroup = computed(() => tree.value.find((node) => node.key === activeGroupKey.value && node.children) ?? null)
+const secondaryWidth = computed(() => (activeGroup.value ? '144px' : '0px'))
 const headerTitle = computed(() => t((route.meta.title as string) ?? 'nav.dashboard'))
 const selectedKey = computed(() => {
   const hit = menus.value
     .filter((item) => route.path === menuPath(item) || route.path.startsWith(`${menuPath(item)}/`))
     .sort((a, b) => b.path.length - a.path.length)[0]
   return hit ? menuPath(hit) : route.path
-})
-const submenuTop = computed(() => {
-  const index = tree.value.findIndex((node) => node.key === activeGroupKey.value)
-  return index >= 0 ? 12 + index * 52 : 0
 })
 
 watch(
@@ -168,13 +169,26 @@ async function onLogout() {
   width: 0;
   overflow: hidden;
   background: #263445;
-  transition: width 0.18s ease;
 }
 .secondary-sider.open {
   width: 144px;
   overflow-y: auto;
   overflow-x: hidden;
 }
+.secondary-inner { min-height: 100%; }
+.secondary-title {
+  height: 48px;
+  line-height: 48px;
+  padding: 0 16px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.secondary-title.mobile { background: #263445; }
 .header {
   height: 48px;
   line-height: normal;
