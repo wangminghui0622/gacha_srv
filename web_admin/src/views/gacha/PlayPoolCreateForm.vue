@@ -413,11 +413,12 @@ onMounted(loadOptions)
 }
 
 .section-title {
-  margin: 8px 0 20px;
-  padding-left: 4px;
+  margin: 8px 0 18px;
+  padding: 0 4px 10px;
   font-size: 15px;
   font-weight: 600;
   color: #303133;
+  border-bottom: 1px solid #ebeef5;
 }
 
 .prize-section {
