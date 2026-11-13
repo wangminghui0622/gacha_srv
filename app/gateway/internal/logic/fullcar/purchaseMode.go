@@ -3,13 +3,13 @@ package fullcar
 import (
 	"context"
 
-	"gacha_srv/app/gateway/internal/saga"
 	"gacha_srv/app/gateway/internal/playapi"
+	"gacha_srv/app/gateway/internal/saga"
 	"gacha_srv/app/gateway/internal/svc"
 	"gacha_srv/app/gateway/internal/types"
 	marketingClient "gacha_srv/app/marketing/marketingClient"
-	playClient "gacha_srv/app/play/playClient"
 	"gacha_srv/app/play/play"
+	playClient "gacha_srv/app/play/playClient"
 	"gacha_srv/pkg/utils"
 	"gacha_srv/pkg/utils/errorx"
 
@@ -24,12 +24,12 @@ type purchaseMode struct {
 
 var _ saga.PurchaseMode[*types.FullCarBuyReq] = purchaseMode{}
 
-func (m purchaseMode) Name() string                               { return "fullcar" }
-func (m purchaseMode) Scene() string                              { return "FULL_CAR" }
-func (m purchaseMode) ConfigID(req *types.FullCarBuyReq) int64    { return req.ConfigId }
-func (m purchaseMode) RequireRequestID() bool                     { return false }
+func (m purchaseMode) Name() string                                { return "fullcar" }
+func (m purchaseMode) Scene() string                               { return "FULL_CAR" }
+func (m purchaseMode) ConfigID(req *types.FullCarBuyReq) int64     { return req.ConfigId }
+func (m purchaseMode) RequireRequestID() bool                      { return false }
 func (m purchaseMode) UserCouponID(req *types.FullCarBuyReq) int64 { return 0 }
-func (m purchaseMode) FailMsg() string                            { return "满车请求提交失败，请稍后重试" }
+func (m purchaseMode) FailMsg() string                             { return "满车请求提交失败，请稍后重试" }
 
 func (m purchaseMode) LoadUnitFen(ctx context.Context, svcCtx *svc.ServiceContext, req *types.FullCarBuyReq, userID int64) (int64, error) {
 	detail, err := svcCtx.PlayRpc.GetFullCar(ctx, &playClient.GetFullCarReq{ConfigId: req.ConfigId})

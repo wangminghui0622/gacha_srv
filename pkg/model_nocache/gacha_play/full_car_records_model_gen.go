@@ -39,6 +39,7 @@ type (
 		ConfigId  int64     `gorm:"column:config_id"`      // 满车配置ID
 		SeatIndex int64     `gorm:"column:seat_index"`     // 分配座位（0 起）
 		EntryName string    `gorm:"column:entry_name"`     // regular 奖条目名称
+		SkuId     int64     `gorm:"column:sku_id"`
 		IsPrize   int64     `gorm:"column:is_prize"`       // 是否中奖：1=是 0=谢谢参与
 		PriceFen  int64     `gorm:"column:price_fen"`      // 本次实付（分）
 		Status    int64     `gorm:"column:status"`         // 状态：1 正常 2 已撤销

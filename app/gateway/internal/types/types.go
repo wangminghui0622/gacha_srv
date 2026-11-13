@@ -476,6 +476,7 @@ type FullCarRecordItem struct {
 	SeatIndex int64  `json:"seatIndex"`
 	EntryName string `json:"entryName"`
 	IsPrize   bool   `json:"isPrize"`
+	SkuId     int64  `json:"skuId"`
 	Price     string `json:"price"`
 	Status    int64  `json:"status"` // 1 正常 2 已撤销
 	CreatedAt int64  `json:"createdAt"`
@@ -509,6 +510,7 @@ type GashaponSpecialPrizeItem struct {
 type GashaponEntryOutcome struct {
 	Name    string `json:"name"`
 	IsPrize bool   `json:"isPrize"`
+	SkuId   int64  `json:"skuId"`
 }
 
 // GashaponPathReq 扭蛋路径参数（GET /gashapon/:configId）

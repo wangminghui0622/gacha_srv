@@ -46,6 +46,7 @@ func (l *ListFullCarRecordsLogic) ListFullCarRecords(req *types.FullCarRecordsRe
 			SeatIndex: it.SeatIndex,
 			EntryName: it.EntryName,
 			IsPrize:   it.IsPrize,
+			SkuId:     it.SkuId,
 			Price:     it.Price,
 			Status:    it.Status,
 			CreatedAt: it.CreatedAt,

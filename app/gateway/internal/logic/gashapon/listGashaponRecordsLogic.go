@@ -41,7 +41,7 @@ func (l *ListGashaponRecordsLogic) ListGashaponRecords(req *types.GashaponRecord
 	for _, it := range r.Items {
 		entries := make([]types.GashaponEntryOutcome, 0, len(it.Entries))
 		for _, e := range it.Entries {
-			entries = append(entries, types.GashaponEntryOutcome{Name: e.Name, IsPrize: e.IsPrize})
+			entries = append(entries, types.GashaponEntryOutcome{Name: e.Name, IsPrize: e.IsPrize, SkuId: e.SkuId})
 		}
 		items = append(items, types.GashaponRecordItem{
 			RecordId:  it.RecordId,

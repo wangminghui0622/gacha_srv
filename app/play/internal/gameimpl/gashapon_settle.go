@@ -150,6 +150,7 @@ func (l *SettleGashaponLogic) SettleGashapon(in *play.SettleGashaponReq) (*play.
 				EntryId: picked.Id,
 				Name:    picked.Name,
 				IsPrize: entryByName[picked.Id].IsPrize == 1,
+				SkuId:   entryByName[picked.Id].SkuId,
 			})
 
 			pool = filterGashaponPool(pool, picked.Id, remainingByName)

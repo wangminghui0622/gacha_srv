@@ -68,6 +68,26 @@ func (l *GrantGashaponPrizesLogic) GrantGashaponPrizes(in *play.GrantGashaponPri
 		})
 	}
 
+	// 普通实物奖：regular 抽取结果落 records.entries_json，只发 sku_id>0 的条目
+	var rec gamemodelnc.GashaponRecords
+	if err := l.svcCtx.DB.Where("request_id = ? AND user_id = ?", in.RequestId, in.UserId).First(&rec).Error; err != nil {
+		l.Errorf("GrantGashaponPrizes record not found, requestId: %s, err: %v", in.RequestId, err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	if rec.Status == gashaponRecordNormal {
+		for _, o := range gashaponParseOutcomes(rec.EntriesJson) {
+			if o.SkuId > 0 {
+				prizes = append(prizes, playkit.Prize{
+					UserID:   in.UserId,
+					Kind:     prizeGoods,
+					SkuId:    o.SkuId,
+					ItemName: o.Name,
+					PoolId:   in.ConfigId,
+				})
+			}
+		}
+	}
+
 	if err := playkit.GrantAll(l.ctx, l.svcCtx, in.RequestId, "gcp", prizes); err != nil {
 
 		l.Errorf("GrantGashaponPrizes grant failed, requestId: %s, err: %v", in.RequestId, err)

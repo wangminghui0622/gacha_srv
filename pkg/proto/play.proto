@@ -426,6 +426,7 @@ message FullCarRecordItem {
     string price = 7;
     int64  status = 8;    // 1 正常 2 已撤销
     int64  createdAt = 9; // unix 秒
+    int64  skuId = 10;    // 实物奖 SKU（0=虚拟/无）
 }
 
 message ListFullCarRecordsResp {
@@ -451,6 +452,7 @@ message GashaponSpecialPrizeItem {
 message GashaponEntryOutcome {
     string name = 1;
     bool   isPrize = 2;
+    int64  skuId = 3; // 实物奖 SKU（kind=5 时展示）
 }
 
 message GetGashaponReq {

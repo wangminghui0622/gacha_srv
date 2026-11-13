@@ -35,9 +35,6 @@ func materializePlayPool(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 		if p.PrizeType == 3 {
 			return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=奖品 %s 使用箱子类型，玩法投影暂不支持", p.Name))
 		}
-		if p.PrizeType == 2 && v.Mode != "dig" && v.Mode != "memorymatch" && v.Mode != "groupbuy" && v.Mode != "combochain" {
-			return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=奖品 %s 为实物 SKU，当前玩法暂不支持", p.Name))
-		}
 	}
 	// 新版本发布重置运行态（entries 库存已替换；旧 state 会与之不一致）。
 	// 历史 records 保留；管理端应在无进行中购买时发布新版本。
@@ -101,6 +98,9 @@ func materializeGashapon(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 	entries := make([]gamemodel.GashaponEntries, 0)
 	for _, p := range prizes {
 		if p.SpecialKind != "" {
+			if p.PrizeType == 2 {
+				return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=扭蛋特别赏 %s 暂不支持实物 SKU", p.Name))
+			}
 			kind := playPoolAssetKind(&p)
 			if kind == 0 {
 				return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=特别赏 %s 缺少奖金配置", p.Name))
@@ -128,6 +128,7 @@ func materializeGashapon(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 			Quantity:  int64(p.Quantity),
 			Remaining: int64(p.Remaining),
 			IsPrize:   int64(p.IsPrize),
+			SkuId:     p.SkuId,
 		})
 	}
 	specialJSON, err := json.Marshal(specials)
@@ -196,6 +197,9 @@ func materializeFullCar(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []ga
 	entries := make([]gamemodel.FullCarEntries, 0)
 	for _, p := range prizes {
 		if p.SpecialKind == "SETTLEMENT" {
+			if p.PrizeType == 2 {
+				return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=整车结算奖 %s 暂不支持实物 SKU", p.Name))
+			}
 			settlements = append(settlements, core.FullCarSettlementPrize{
 				Tier:             p.TargetValue,
 				Weight:           uint64(p.Weight),
@@ -213,6 +217,7 @@ func materializeFullCar(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []ga
 			Quantity:  int64(p.Quantity),
 			Remaining: int64(p.Remaining),
 			IsPrize:   int64(p.IsPrize),
+			SkuId:     p.SkuId,
 		})
 	}
 	settlementJSON, err := json.Marshal(settlements)
@@ -238,7 +243,18 @@ func materializeFullCar(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []ga
 	if len(entries) == 0 {
 		return status.Error(codes.Aborted, "code=400 msg=整车没有普通条目")
 	}
-	return db.Create(&entries).Error
+	if err := db.Create(&entries).Error; err != nil {
+		return err
+	}
+	return db.Create(&gamemodelnc.FullCarState{
+		ConfigId:         v.PoolId,
+		SeatsJson:        fullCarMarshalSeats(make([]int64, cfg.SeatCount)),
+		AwardsJson:       "[]",
+		RemainingTickets: cfg.SeatCount,
+		Status:           1,
+		CreatedAt:        now,
+		UpdatedAt:        now,
+	}).Error
 }
 
 // ── 连击链（配置 JSON 型，无 entries 表）──

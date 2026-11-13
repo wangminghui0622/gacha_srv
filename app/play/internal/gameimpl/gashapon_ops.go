@@ -41,6 +41,7 @@ type gashaponOutcome struct {
 	EntryId int64  `json:"entry_id"`
 	Name    string `json:"name"`
 	IsPrize bool   `json:"is_prize"`
+	SkuId   int64  `json:"sku_id,omitempty"`
 }
 
 // gashaponParseState state 行四段 JSON → 内存状态（空串取零值；坏 JSON → 错误）
@@ -233,7 +234,7 @@ func filterGashaponPool(pool []core.PrizeEntry, pickedId int64, remainingByName 
 func gashaponOutcomesToGame(outcomes []gashaponOutcome) []*play.GashaponEntryOutcome {
 	items := make([]*play.GashaponEntryOutcome, 0, len(outcomes))
 	for _, o := range outcomes {
-		items = append(items, &play.GashaponEntryOutcome{Name: o.Name, IsPrize: o.IsPrize})
+		items = append(items, &play.GashaponEntryOutcome{Name: o.Name, IsPrize: o.IsPrize, SkuId: o.SkuId})
 	}
 	return items
 }

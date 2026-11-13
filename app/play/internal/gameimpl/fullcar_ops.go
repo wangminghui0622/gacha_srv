@@ -160,6 +160,7 @@ func (l *ListFullCarRecordsLogic) buildItem(rec *gamemodelnc.FullCarRecords) *pl
 		SeatIndex: rec.SeatIndex,
 		EntryName: rec.EntryName,
 		IsPrize:   rec.IsPrize == 1,
+		SkuId:     rec.SkuId,
 		Price:     utils.FenToYuan(rec.PriceFen),
 		Status:    rec.Status,
 		CreatedAt: rec.CreatedAt.Unix(),

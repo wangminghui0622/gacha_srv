@@ -25,6 +25,7 @@ func TestPlayPoolIntegration(t *testing.T) {
 	prizes := []*play.PlayPoolPrize{
 		{PrizeIndex: 0, PrizeType: 1, Name: "普通赏", Weight: 10, Quantity: 10, IsPrize: true},
 		{PrizeIndex: 1, PrizeType: 1, Name: "LAST赏", SpecialKind: "LAST", CashFen: 500, Quantity: 1, IsPrize: true},
+		{PrizeIndex: 2, PrizeType: 2, Name: "实物扭蛋", SkuId: 9007, Weight: 5, Quantity: 3, IsPrize: true},
 	}
 	in := &play.CreatePlayPoolDraftReq{
 		IdempotencyKey: key,
@@ -58,7 +59,7 @@ func TestPlayPoolIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}
-	if got.Status != 2 || len(got.Prizes) != 2 || got.Prizes[1].SpecialKind != "LAST" {
+	if got.Status != 2 || len(got.Prizes) != 3 || got.Prizes[1].SpecialKind != "LAST" {
 		t.Fatalf("unexpected version: %+v", got)
 	}
 
@@ -73,8 +74,19 @@ func TestPlayPoolIntegration(t *testing.T) {
 	if cfg.Id != poolId || cfg.SpecialPrizesJson == "" {
 		t.Fatalf("gashapon config not materialized: %+v", cfg)
 	}
-	if n := tableCount(t, db, "gashapon_entries", poolId); n != 1 {
-		t.Fatalf("gashapon entries = %d, want 1", n)
+	if n := tableCount(t, db, "gashapon_entries", poolId); n != 2 {
+		t.Fatalf("gashapon entries = %d, want 2", n)
+	}
+	var skuEntry struct {
+		SkuId int64
+		Name  string
+	}
+	if err := db.Table("gashapon_entries").Select("sku_id, name").
+		Where("config_id = ? AND name = ?", poolId, "实物扭蛋").Scan(&skuEntry).Error; err != nil {
+		t.Fatalf("query gashapon sku entry: %v", err)
+	}
+	if skuEntry.SkuId != 9007 {
+		t.Fatalf("gashapon sku entry not projected: %+v", skuEntry)
 	}
 
 	list, err := ListPlayPools(ctx, svcCtx, &play.ListPlayPoolsReq{AfterPoolId: poolId - 1, PageSize: 10, Mode: "gashapon"})
@@ -110,10 +122,11 @@ func TestPlayPoolMaterializeAllModes(t *testing.T) {
 			prizes: []*play.PlayPoolPrize{
 				{PrizeIndex: 0, Name: "谢谢参与", Weight: 30, Quantity: -1, IsPrize: false},
 				{PrizeIndex: 1, Name: "金券", Weight: 20, Quantity: 100, IsPrize: true},
-				{PrizeIndex: 2, Name: "幸运结算", SpecialKind: "SETTLEMENT", TargetValue: 1, Weight: 1, CashFen: 1000, Quantity: 0},
-				{PrizeIndex: 3, Name: "普通结算", SpecialKind: "SETTLEMENT", TargetValue: 2, Weight: 2, PointsAmount: 100, Quantity: 0},
+				{PrizeIndex: 2, Name: "实物手办", PrizeType: 2, SkuId: 9008, Weight: 10, Quantity: 5, IsPrize: true},
+				{PrizeIndex: 3, Name: "幸运结算", SpecialKind: "SETTLEMENT", TargetValue: 1, Weight: 1, CashFen: 1000, Quantity: 0},
+				{PrizeIndex: 4, Name: "普通结算", SpecialKind: "SETTLEMENT", TargetValue: 2, Weight: 2, PointsAmount: 100, Quantity: 0},
 			},
-			table: "full_car_entries", wantRows: 2,
+			table: "full_car_entries", wantRows: 3,
 		},
 		{
 			mode:       "dig",
@@ -231,6 +244,18 @@ func TestPlayPoolMaterializeAllModes(t *testing.T) {
 					t.Fatalf("lucky sku not projected: %s / %s", cfg.LuckyPrizesJson, cfg.LuckyChildrenJson)
 				}
 			}
+			if tc.mode == "fullcar" {
+				var entry struct {
+					SkuId int64
+				}
+				if err := db.Table("full_car_entries").Select("sku_id").
+					Where("config_id = ? AND name = ?", draft.PoolId, "实物手办").Scan(&entry).Error; err != nil {
+					t.Fatalf("query fullcar sku entry: %v", err)
+				}
+				if entry.SkuId != 9008 {
+					t.Fatalf("fullcar sku entry not projected: %+v", entry)
+				}
+			}
 		})
 	}
 
@@ -309,4 +334,7 @@ func cleanupPlayPoolTest(t *testing.T, db *gorm.DB, poolId int64) {
 	db.Exec("DELETE FROM play_pool_drafts WHERE pool_id = ?", poolId)
 	db.Exec("DELETE FROM play_pool_heads WHERE id = ?", poolId)
 	db.Exec("DELETE FROM gashapon_state WHERE config_id = ?", poolId)
+	db.Exec("DELETE FROM full_car_state WHERE config_id = ?", poolId)
+	db.Exec("DELETE FROM group_buy_state WHERE config_id = ?", poolId)
+	db.Exec("DELETE FROM combo_chain_state WHERE config_id = ?", poolId)
 }

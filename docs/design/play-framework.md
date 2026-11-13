@@ -148,10 +148,11 @@ groupbuy→`group_buy_configs/entries`、memorymatch→`memory_match_configs/ent
 `gashapon_lucky_assignments`），历史 `*_records` 保留，管理端应在无进行中购买时发布。
 
 实物 SKU：`play_pool_prizes` / `PrizeItem` 已预留 `prize_type=2 + sku_id`。
-当前 **挖宝箱 / 记忆翻牌 / 拼团 / 连击链** 已打通：发布投影到运行表 `prize_kind=5 + sku_id`，
-发奖时 `playkit.KindGoods` 调 `money.GrantPlayAsset`，按 `asset_no="pa_"+grantNo`
-幂等写入 `gacha_money.assets`（`source=play`、`pool_id`、`sku_id`、`state=1 AVAILABLE`）。
-其余玩法发布时仍会拒绝实物/箱子奖，待逐步接入。
+当前 **6 个玩法** 均已支持实物 SKU（普通条目/奖档/格子/全局槽/拼团幸运奖与子奖）：
+发布投影到运行表 `prize_kind=5 + sku_id`，发奖时 `playkit.KindGoods` 调
+`money.GrantPlayAsset`，按 `asset_no="pa_"+grantNo` 幂等写入 `gacha_money.assets`
+（`source=play`、`pool_id`、`sku_id`、`state=1 AVAILABLE`）。
+扭蛋特别赏（LAST/MVP/LUCKY）与整车结算奖仍只支持现金/积分/券。
 SKU 存在性/履约方式校验（catalog `GetSKU`）尚未接入，当前按管理员填写的 skuId 落库。
 
 > 旧库升级：`play_pool_prizes` 需补两列

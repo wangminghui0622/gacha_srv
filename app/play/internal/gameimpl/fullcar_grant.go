@@ -63,6 +63,26 @@ func (l *GrantFullCarPrizesLogic) GrantFullCarPrizes(in *play.GrantFullCarPrizes
 		})
 	}
 
+	// 普通实物奖：本单 regular 抽取结果在 full_car_records（sku_id>0 才发）
+	var recs []gamemodelnc.FullCarRecords
+	if err := l.svcCtx.DB.Where("request_id = ? AND user_id = ?", in.RequestId, in.UserId).
+		Order("seat_index ASC").Find(&recs).Error; err != nil {
+		l.Errorf("GrantFullCarPrizes query records failed, requestId: %s, err: %v", in.RequestId, err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	for _, rec := range recs {
+		if rec.Status != fullCarRecordNormal || rec.SkuId <= 0 {
+			continue
+		}
+		prizes = append(prizes, playkit.Prize{
+			UserID:   in.UserId,
+			Kind:     prizeGoods,
+			SkuId:    rec.SkuId,
+			ItemName: rec.EntryName,
+			PoolId:   in.ConfigId,
+		})
+	}
+
 	if err := playkit.GrantAll(l.ctx, l.svcCtx, in.RequestId, "fcp", prizes); err != nil {
 
 		l.Errorf("GrantFullCarPrizes grant failed, requestId: %s, err: %v", in.RequestId, err)

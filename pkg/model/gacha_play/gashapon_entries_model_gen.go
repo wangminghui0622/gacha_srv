@@ -46,6 +46,7 @@ type (
 		Quantity  int64     `gorm:"column:quantity"`       // 总库存（必须有限量）
 		Remaining int64     `gorm:"column:remaining"`      // 剩余库存：0=售罄不参与抽取
 		IsPrize   int64     `gorm:"column:is_prize"`       // 是否奖品：1=中奖 0=谢谢参与
+		SkuId     int64     `gorm:"column:sku_id"`
 		CreatedAt time.Time `gorm:"column:created_at"`     // 创建时间
 		UpdatedAt time.Time `gorm:"column:updated_at"`     // 更新时间
 	}

@@ -131,12 +131,20 @@ func (l *SettleFullCarLogic) SettleFullCar(in *play.SettleFullCarReq) (*play.Set
 			}
 			priceFen = f
 		}
+		var pickedSku int64
+		for _, e := range entries {
+			if e.Id == picked.Id {
+				pickedSku = e.SkuId
+				break
+			}
+		}
 		rec := &gamemodelnc.FullCarRecords{
 			RequestId: in.RequestId,
 			UserId:    in.UserId,
 			ConfigId:  in.ConfigId,
 			SeatIndex: seat,
 			EntryName: picked.Name,
+			SkuId:     pickedSku,
 			IsPrize:   isPrizeEntryName(entries, picked.Id),
 			PriceFen:  priceFen,
 			Status:    fullCarRecordNormal,

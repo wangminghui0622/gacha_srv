@@ -310,7 +310,13 @@ func validateGashaponPool(in *play.CreatePlayPoolDraftReq) error {
 			if p.Quantity < 0 {
 				return abortf("扭蛋普通赏 %s 必须限量", p.Name)
 			}
+			if p.PrizeType == 2 && (p.CashFen > 0 || p.PointsAmount > 0 || p.CouponTemplateNo != "") {
+				return abortf("扭蛋实物赏 %s 不能同时配置现金/积分/券", p.Name)
+			}
 			continue
+		}
+		if p.PrizeType == 2 {
+			return abortf("扭蛋特别赏 %s 暂不支持实物 SKU", p.Name)
 		}
 		switch p.SpecialKind {
 		case "LAST", "MVP", "LUCKY":
@@ -337,7 +343,13 @@ func validateFullCarPool(in *play.CreatePlayPoolDraftReq) error {
 		switch p.SpecialKind {
 		case "":
 			entries++
+			if p.PrizeType == 2 && (p.CashFen > 0 || p.PointsAmount > 0 || p.CouponTemplateNo != "") {
+				return abortf("整车实物条目 %s 不能同时配置现金/积分/券", p.Name)
+			}
 		case "SETTLEMENT":
+			if p.PrizeType == 2 {
+				return abortf("整车结算奖 %s 暂不支持实物 SKU", p.Name)
+			}
 			if p.TargetValue != 1 && p.TargetValue != 2 {
 				return abortf("整车结算奖 %s 的 targetValue 必须是 1(幸运) 或 2(普通)", p.Name)
 			}
