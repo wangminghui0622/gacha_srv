@@ -35,7 +35,6 @@
         <a-form-item label="优惠券">
           <div class="coupon-config">
             <a-space>
-              <span>优惠券id：</span>
               <a-input-number v-model:value="couponId" :min="0" :precision="0" style="width: 160px" />
               <a-button @click="addCoupon">添加</a-button>
             </a-space>
