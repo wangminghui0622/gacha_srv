@@ -84,7 +84,6 @@
 
     <a-modal
       v-model:open="createModalOpen"
-      :title="$t('poolAdmin.createTitle')"
       centered
       width="96vw"
       :style="{ maxWidth: '1360px' }"
@@ -92,6 +91,9 @@
       :destroy-on-close="true"
       :body-style="{ maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }"
     >
+      <template #title>
+        <div class="create-pool-title">{{ $t('poolAdmin.createTitle') }}</div>
+      </template>
       <PlayPoolCreateForm @success="onCreateSuccess" />
     </a-modal>
 
@@ -602,6 +604,10 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
+.create-pool-title {
+  text-align: center;
+}
+
 .pool-page {
   min-height: calc(100vh - 132px);
   padding: 14px 16px 18px;
