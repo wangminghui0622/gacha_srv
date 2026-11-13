@@ -1,6 +1,7 @@
 import axios, { type AxiosError } from 'axios'
 import { message } from 'ant-design-vue'
 import router from '@/router'
+import { cleanErrorMessage } from '@/utils/errorMessage'
 import { clearSessionCookies, getAccessToken } from '@/utils/cache'
 import { newRequestId } from '@/utils/requestId'
 
@@ -33,7 +34,7 @@ http.interceptors.response.use(
   (response) => response.data,
   async (error: AxiosError<{ message?: string; reason?: string }>) => {
     const status = error.response?.status
-    const msg = error.response?.data?.message ?? error.message
+    const msg = cleanErrorMessage(error.response?.data?.message ?? error.message)
     if (status === 401) {
       clearSessionCookies()
       message.error(msg || '会话已失效，请重新登录')
