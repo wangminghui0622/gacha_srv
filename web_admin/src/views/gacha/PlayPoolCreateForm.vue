@@ -75,6 +75,16 @@
           </div>
         </a-form-item>
       </a-form>
+
+      <div class="switch-panel">
+        <div class="switch-panel-title">其他设置</div>
+        <div class="switch-grid">
+          <label v-for="item in switchItems" :key="item.key" class="switch-item">
+            <a-switch v-model:checked="form[item.key]" />
+            <span>{{ item.label }}</span>
+          </label>
+        </div>
+      </div>
       </div>
 
       <div class="form-right">
@@ -127,16 +137,6 @@
         </div>
       </div>
     </div>
-
-      <div class="switch-panel">
-        <div class="switch-panel-title">其他设置</div>
-        <div class="switch-grid">
-          <label v-for="item in switchItems" :key="item.key" class="switch-item">
-            <a-switch v-model:checked="form[item.key]" />
-            <span>{{ item.label }}</span>
-          </label>
-        </div>
-      </div>
 
       <div class="create-actions">
         <a-button class="btn-create" type="primary" :loading="saving" @click="submit">创建</a-button>
@@ -544,15 +544,15 @@ onMounted(loadOptions)
 }
 
 .switch-panel {
-  margin: 8px 0 0 20.8%;
-  padding: 16px 20px;
+  margin: 4px 0 0;
+  padding: 14px 16px;
   background: #fafafa;
-  border-top: 1px solid #f0f0f0;
+  border: 1px solid #f0f0f0;
   border-radius: 4px;
 }
 
 .switch-panel-title {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   font-size: 14px;
   font-weight: 600;
   color: #303133;
@@ -560,8 +560,8 @@ onMounted(loadOptions)
 
 .switch-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(160px, 1fr));
-  gap: 12px 28px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
 }
 
 .switch-item {
@@ -569,6 +569,8 @@ onMounted(loadOptions)
   align-items: center;
   gap: 8px;
   color: #606266;
+  font-size: 13px;
+  white-space: nowrap;
   cursor: pointer;
 }
 
