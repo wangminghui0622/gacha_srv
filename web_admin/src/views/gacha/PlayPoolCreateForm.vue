@@ -1,7 +1,6 @@
 <template>
   <div class="create-form">
       <a-form :label-col="{ span: 5 }" :wrapper-col="{ span: 18 }" label-align="right">
-        <div class="section-title">主题基本配置</div>
         <a-form-item label="主题名称" required>
           <a-input v-model:value="form.name" placeholder="主题名称" />
         </a-form-item>
@@ -12,7 +11,6 @@
           <a-select v-model:value="form.mode" :options="modeOptions" />
         </a-form-item>
 
-        <div class="section-title">赏池基本配置</div>
         <a-form-item label="活动开始时间">
           <a-date-picker v-model:value="form.startAt" show-time style="width: 100%" placeholder="活动开始时间" />
         </a-form-item>
@@ -410,15 +408,6 @@ onMounted(loadOptions)
 <style scoped lang="scss">
 .create-form {
   width: 100%;
-}
-
-.section-title {
-  margin: 8px 0 18px;
-  padding: 0 4px 10px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #303133;
-  border-bottom: 1px solid #ebeef5;
 }
 
 .prize-section {
