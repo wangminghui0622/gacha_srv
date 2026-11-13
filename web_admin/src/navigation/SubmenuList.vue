@@ -23,7 +23,7 @@ defineEmits<{ navigate: [] }>()
 const route = useRoute()
 
 function isActive(path: string): boolean {
-  return route.path === path || route.path.startsWith(`${path}/`)
+  return route.path === path
 }
 </script>
 
