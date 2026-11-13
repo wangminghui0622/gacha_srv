@@ -500,6 +500,7 @@ onMounted(loadOptions)
 
 .coupon-table {
   margin-top: 10px;
+  border: 1px solid #f0f0f0;
 }
 
 .cover-row {
