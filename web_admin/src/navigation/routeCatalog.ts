@@ -498,12 +498,29 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
   {
     name: 'accounts',
     path: 'accounts',
-    title: 'nav.accounts',
+    title: 'nav.accountRoles',
+    menuTitle: 'nav.accountRoles',
     permission: { resource: 'authorization.role', action: 'read' },
     showInMenu: true,
     icon: TeamOutlined,
-    backFallback: '/catalog',
+    backFallback: '/accounts',
     component: () => import('@/views/authorization/RoleManagementView.vue'),
+  },
+  {
+    name: 'account-list',
+    path: 'accounts/list',
+    title: 'nav.accountList',
+    showInMenu: false,
+    backFallback: '/accounts',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'account-audit',
+    path: 'accounts/audit',
+    title: 'nav.accountAudit',
+    showInMenu: false,
+    backFallback: '/accounts',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
   },
   {
     name: 'eligibility',
@@ -614,7 +631,8 @@ const SYSTEM_CHILDREN = [
   'system',
   'system-tasks',
 ] as const
-const PRIMARY_LEAVES = ['accounts'] as const
+const ACCOUNT_CHILDREN = ['account-list', 'accounts', 'account-audit'] as const
+const PRIMARY_LEAVES: readonly string[] = []
 
 export function accessibleRoutes(nodes: PermissionNode[]): ConsoleRouteDef[] {
   return consoleRouteCatalog.filter((item) => !item.placeholder && granted(item, nodes))
@@ -649,6 +667,10 @@ export function menuTree(nodes: PermissionNode[]): MenuNode[] {
   const systemChildren = childNodes(SYSTEM_CHILDREN, nodes, byName)
   if (systemChildren.length > 0) {
     tree.push({ key: 'system-group', title: 'nav.system', icon: SettingOutlined, children: systemChildren })
+  }
+  const accountChildren = childNodes(ACCOUNT_CHILDREN, nodes, byName)
+  if (accountChildren.length > 0) {
+    tree.push({ key: 'account-group', title: 'nav.accounts', icon: TeamOutlined, children: accountChildren })
   }
   for (const name of PRIMARY_LEAVES) {
     const item = byName.get(name)

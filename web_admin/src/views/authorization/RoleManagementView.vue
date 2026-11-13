@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader :title="$t('accounts.title')" />
+    <PageHeader :title="$t('nav.accountRoles')" />
     <a-row :gutter="16">
       <a-col :span="8">
         <a-card :title="$t('authorization.roles')" :loading="loading">
