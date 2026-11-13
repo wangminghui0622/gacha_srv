@@ -5,6 +5,7 @@
       <NavigationMenu
         :nodes="session.permissionNodes"
         :selected-key="selectedKey"
+        :active-group-key="activeGroupKey"
         @toggle-group="toggleGroup"
         @navigate="navigate"
       />
@@ -20,6 +21,7 @@
       <NavigationMenu
         :nodes="session.permissionNodes"
         :selected-key="selectedKey"
+        :active-group-key="activeGroupKey"
         @toggle-group="toggleGroup"
         @navigate="navigate"
       />
@@ -226,12 +228,25 @@ async function onLogout() {
 }
 .secondary-body { min-height: 100%; }
 .submenu-card {
+  position: relative;
   width: 144px;
   background: #fff;
   border: 1px solid #e4e7ed;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   overflow: hidden;
+}
+.submenu-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 6px;
+  height: 2px;
+  background: #409eff;
+  border-radius: 1px;
+  transform: translateY(-50%);
+  z-index: 2;
 }
 .mobile-submenu-panel {
   margin: 8px;

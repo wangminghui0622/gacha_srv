@@ -9,7 +9,7 @@
       <a-menu-item
         v-for="item in tree"
         :key="item.key"
-        :class="{ 'group-active': isGroupActive(item) }"
+        :class="{ 'group-active': isGroupActive(item), 'group-open': item.children && item.key === activeGroupKey }"
       >
         <template #icon><component :is="item.icon" /></template>
         <span class="item-title">{{ $t(item.title) }}</span>
@@ -25,7 +25,7 @@ import { RightOutlined } from '@ant-design/icons-vue'
 import type { PermissionNode } from '@/access/grants'
 import { menuTree, type MenuNode } from './routeCatalog'
 
-const props = defineProps<{ nodes: PermissionNode[]; selectedKey: string }>()
+const props = defineProps<{ nodes: PermissionNode[]; selectedKey: string; activeGroupKey?: string | null }>()
 const emit = defineEmits<{ navigate: [path: string]; 'toggle-group': [key: string] }>()
 const tree = computed(() => menuTree(props.nodes))
 const selectedKeys = computed(() =>
@@ -101,6 +101,19 @@ nav {
 :deep(.ant-menu-item.group-active .anticon),
 :deep(.ant-menu-item.group-active .group-arrow) {
   color: #409eff;
+}
+
+:deep(.ant-menu-item.group-open::after) {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 8px;
+  height: 2px;
+  background: #409eff;
+  border-radius: 1px;
+  transform: translateY(-50%);
+  z-index: 2;
 }
 
 :deep(.ant-menu-item:hover) {
