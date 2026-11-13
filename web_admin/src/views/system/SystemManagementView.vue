@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader :title="$t('nav.system')" :show-back="false" />
+    <PageHeader :title="$t('nav.systemConfig')" :show-back="false" />
     <p class="intro">{{ $t('system.intro') }}</p>
     <a-row :gutter="[16, 16]">
       <a-col v-for="card in cards" :key="card.path" :xs="24" :sm="12" :xl="8">

@@ -414,10 +414,86 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     name: 'system',
     path: 'system',
     title: 'nav.system',
+    menuTitle: 'nav.systemConfig',
     showInMenu: true,
     icon: SettingOutlined,
-    backFallback: '/catalog',
+    backFallback: '/system',
     component: () => import('@/views/system/SystemManagementView.vue'),
+  },
+  {
+    name: 'system-campaigns',
+    path: 'system/campaigns',
+    title: 'nav.systemCampaigns',
+    permission: { resource: 'campaign.definition', action: 'read' },
+    showInMenu: false,
+    backFallback: '/system',
+    component: () => import('@/views/campaign/CampaignManagementView.vue'),
+  },
+  {
+    name: 'system-coupons',
+    path: 'system/coupons',
+    title: 'nav.systemCoupons',
+    permission: { resource: 'promotion.coupon_template', action: 'read' },
+    showInMenu: false,
+    backFallback: '/system',
+    component: () => import('@/views/promotion/CouponManagementView.vue'),
+  },
+  {
+    name: 'system-announcements',
+    path: 'system/announcements',
+    title: 'nav.systemAnnouncements',
+    showInMenu: false,
+    backFallback: '/system',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'system-banners',
+    path: 'system/banners',
+    title: 'nav.systemBanners',
+    showInMenu: false,
+    backFallback: '/system',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'system-popups',
+    path: 'system/popups',
+    title: 'nav.systemPopups',
+    showInMenu: false,
+    backFallback: '/system',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'system-agreements',
+    path: 'system/agreements',
+    title: 'nav.systemAgreements',
+    showInMenu: false,
+    backFallback: '/system',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'system-version',
+    path: 'system/version',
+    title: 'nav.systemVersion',
+    showInMenu: false,
+    backFallback: '/system',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'system-stored-value',
+    path: 'system/stored-value',
+    title: 'nav.systemStoredValue',
+    showInMenu: false,
+    backFallback: '/system',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'system-tasks',
+    path: 'system/tasks',
+    title: 'nav.systemTasks',
+    permission: { resource: 'task.plan', action: 'read' },
+    showInMenu: false,
+    backFallback: '/system',
+    component: () => import('@/views/operations/TaskPlanView.vue'),
   },
   {
     name: 'accounts',
@@ -526,7 +602,19 @@ const CAMPAIGN_CHILDREN = [
   'campaign-chaodan',
   'campaign-redeem',
 ] as const
-const PRIMARY_LEAVES = ['system', 'accounts'] as const
+const SYSTEM_CHILDREN = [
+  'system-campaigns',
+  'system-coupons',
+  'system-announcements',
+  'system-banners',
+  'system-popups',
+  'system-agreements',
+  'system-version',
+  'system-stored-value',
+  'system',
+  'system-tasks',
+] as const
+const PRIMARY_LEAVES = ['accounts'] as const
 
 export function accessibleRoutes(nodes: PermissionNode[]): ConsoleRouteDef[] {
   return consoleRouteCatalog.filter((item) => !item.placeholder && granted(item, nodes))
@@ -557,6 +645,10 @@ export function menuTree(nodes: PermissionNode[]): MenuNode[] {
   const campaignChildren = childNodes(CAMPAIGN_CHILDREN, nodes, byName)
   if (campaignChildren.length > 0) {
     tree.push({ key: 'campaign-group', title: 'nav.campaign', icon: FireOutlined, children: campaignChildren })
+  }
+  const systemChildren = childNodes(SYSTEM_CHILDREN, nodes, byName)
+  if (systemChildren.length > 0) {
+    tree.push({ key: 'system-group', title: 'nav.system', icon: SettingOutlined, children: systemChildren })
   }
   for (const name of PRIMARY_LEAVES) {
     const item = byName.get(name)
