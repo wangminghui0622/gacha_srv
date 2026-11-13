@@ -25,10 +25,12 @@ import (
 
 // 业务哨兵错误（logic 层映射 errorx 4001/4002）
 var (
-	ErrNotFound    = errors.New("product not found")
-	ErrConflict    = errors.New("product version or status conflict")
-	ErrIPExists    = errors.New("ip name already exists")
-	ErrBrandExists = errors.New("brand name already exists")
+	ErrNotFound      = errors.New("product not found")
+	ErrConflict      = errors.New("product version or status conflict")
+	ErrIPExists      = errors.New("ip name already exists")
+	ErrBrandExists   = errors.New("brand name already exists")
+	ErrSeriesExists  = errors.New("series name already exists in brand")
+	ErrBrandNotFound = errors.New("brand not found")
 )
 
 // 状态取值（与 proto ProductStatus 同值）
@@ -71,6 +73,17 @@ type brandRow struct {
 }
 
 func (brandRow) TableName() string { return "catalog_brands" }
+
+type seriesRow struct {
+	ID         uint64    `gorm:"column:id;primaryKey;autoIncrement"`
+	Name       string    `gorm:"column:name"`
+	BrandID    uint64    `gorm:"column:brand_id"`
+	SortWeight int32     `gorm:"column:sort_weight"`
+	CreatedAt  time.Time `gorm:"column:created_at"`
+	UpdatedAt  time.Time `gorm:"column:updated_at"`
+}
+
+func (seriesRow) TableName() string { return "catalog_series" }
 
 type optionRow struct {
 	ID        uint64 `gorm:"column:id;primaryKey;autoIncrement"`
@@ -837,4 +850,116 @@ func (r *Repo) UpdateBrand(ctx context.Context, id uint64, name, logo string) (*
 
 func brandToProto(row brandRow) *catalogpb.Brand {
 	return &catalogpb.Brand{BrandId: row.ID, Name: row.Name, Logo: row.Logo}
+}
+
+// ── 系列列表 ──
+
+type seriesListRow struct {
+	ID         uint64 `gorm:"column:id"`
+	Name       string `gorm:"column:name"`
+	BrandID    uint64 `gorm:"column:brand_id"`
+	BrandName  string `gorm:"column:brand_name"`
+	SortWeight int32  `gorm:"column:sort_weight"`
+}
+
+// ListSeries 按系列名称模糊搜索 + 品牌筛选 + 排序权重倒序分页。
+func (r *Repo) ListSeries(ctx context.Context, keyword string, brandID uint64, page, pageSize uint32) ([]*catalogpb.Series, uint64, error) {
+	query := func() *gorm.DB {
+		q := r.db.WithContext(ctx).Table("`catalog_series` AS s")
+		if keyword != "" {
+			q = q.Where("s.name LIKE ?", "%"+keyword+"%")
+		}
+		if brandID != 0 {
+			q = q.Where("s.brand_id = ?", brandID)
+		}
+		return q
+	}
+
+	var total int64
+	if err := query().Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	var rows []seriesListRow
+	offset := int64(page-1) * int64(pageSize)
+	if err := query().
+		Select("s.id, s.name, s.brand_id, b.name AS brand_name, s.sort_weight").
+		Joins("JOIN `catalog_brands` AS b ON b.id = s.brand_id").
+		Order("s.sort_weight DESC, s.id DESC").
+		Offset(int(offset)).Limit(int(pageSize)).
+		Find(&rows).Error; err != nil {
+		return nil, 0, err
+	}
+	out := make([]*catalogpb.Series, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, &catalogpb.Series{
+			SeriesId: row.ID, Name: row.Name, BrandId: row.BrandID,
+			BrandName: row.BrandName, SortWeight: row.SortWeight,
+		})
+	}
+	return out, uint64(total), nil
+}
+
+// CreateSeries 新建系列；名称冲突返回 ErrSeriesExists，品牌不存在返回 ErrBrandNotFound。
+func (r *Repo) CreateSeries(ctx context.Context, name string, brandID uint64, sortWeight int32) (*catalogpb.Series, error) {
+	brand, err := r.findBrand(ctx, brandID)
+	if err != nil {
+		return nil, err
+	}
+	row := seriesRow{Name: name, BrandID: brandID, SortWeight: sortWeight}
+	if err = r.db.WithContext(ctx).Create(&row).Error; err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, ErrSeriesExists
+		}
+		if errors.Is(err, gorm.ErrForeignKeyViolated) {
+			return nil, ErrBrandNotFound
+		}
+		return nil, err
+	}
+	return seriesToProto(row, brand.Name), nil
+}
+
+// UpdateSeries 编辑系列；不存在返回 ErrNotFound，名称冲突返回 ErrSeriesExists。
+func (r *Repo) UpdateSeries(ctx context.Context, id uint64, name string, brandID uint64, sortWeight int32) (*catalogpb.Series, error) {
+	var row seriesRow
+	if err := r.db.WithContext(ctx).First(&row, "id = ?", id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	brand, err := r.findBrand(ctx, brandID)
+	if err != nil {
+		return nil, err
+	}
+	row.Name = name
+	row.BrandID = brandID
+	row.SortWeight = sortWeight
+	if err = r.db.WithContext(ctx).Save(&row).Error; err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, ErrSeriesExists
+		}
+		if errors.Is(err, gorm.ErrForeignKeyViolated) {
+			return nil, ErrBrandNotFound
+		}
+		return nil, err
+	}
+	return seriesToProto(row, brand.Name), nil
+}
+
+func (r *Repo) findBrand(ctx context.Context, id uint64) (*brandRow, error) {
+	var row brandRow
+	if err := r.db.WithContext(ctx).First(&row, "id = ?", id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrBrandNotFound
+		}
+		return nil, err
+	}
+	return &row, nil
+}
+
+func seriesToProto(row seriesRow, brandName string) *catalogpb.Series {
+	return &catalogpb.Series{
+		SeriesId: row.ID, Name: row.Name, BrandId: row.BrandID,
+		BrandName: brandName, SortWeight: row.SortWeight,
+	}
 }

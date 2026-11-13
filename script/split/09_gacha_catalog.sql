@@ -89,6 +89,20 @@ CREATE TABLE IF NOT EXISTS `catalog_brands` (
   UNIQUE KEY `uk_catalog_brand_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='品牌列表';
 
+CREATE TABLE IF NOT EXISTS `catalog_series` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '系列 ID',
+  `name` varchar(128) NOT NULL COMMENT '系列名称',
+  `brand_id` bigint unsigned NOT NULL COMMENT '所属品牌 ID',
+  `sort_weight` int NOT NULL DEFAULT '0' COMMENT '排序权重（越大越靠前）',
+  `created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  `updated_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_catalog_series_brand_name` (`brand_id`,`name`),
+  KEY `idx_catalog_series_sort` (`sort_weight`,`id`),
+  KEY `fk_catalog_series_brand` (`brand_id`),
+  CONSTRAINT `fk_catalog_series_brand` FOREIGN KEY (`brand_id`) REFERENCES `catalog_brands` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系列列表';
+
 CREATE TABLE IF NOT EXISTS `sku_selections` (
   `sku_id` bigint unsigned NOT NULL COMMENT 'SKU ID',
   `option_id` bigint unsigned NOT NULL COMMENT '选项ID',
@@ -166,6 +180,42 @@ FROM (
   UNION ALL SELECT '盖世小鸡', ''
 ) AS seed
 WHERE NOT EXISTS (SELECT 1 FROM `catalog_brands`);
+
+-- 系列页涉及的品牌（增量补齐，可重复执行）
+INSERT IGNORE INTO `catalog_brands` (`name`, `logo`) VALUES
+('LV', ''),
+('JND Studios', ''),
+('HotToys', ''),
+('Prime 1 Studio', ''),
+('Funism玩乐主义', ''),
+('海澜之家', ''),
+('TES', ''),
+('LELABO BERGAMOTE', ''),
+('ASCENDIA', ''),
+('寿屋', '');
+
+-- 系列列表演示数据：仅在表为空时插入（保留截图中的 ID 与排序）
+INSERT INTO `catalog_series` (`id`, `name`, `brand_id`, `sort_weight`)
+SELECT seed.id, seed.name, b.id, seed.sort_weight
+FROM (
+  SELECT 72 AS id, 'LV' AS name, 'LV' AS brand_name, 13 AS sort_weight
+  UNION ALL SELECT 12, 'KOJUN WORKS', 'JND Studios', 10
+  UNION ALL SELECT 11, 'HMS001', 'JND Studios', 9
+  UNION ALL SELECT 10, 'CAS0001', 'JND Studios', 8
+  UNION ALL SELECT 9, 'MMS484', 'HotToys', 7
+  UNION ALL SELECT 8, '珍藏品摆件', 'HotToys', 6
+  UNION ALL SELECT 7, 'TMS158', 'HotToys', 5
+  UNION ALL SELECT 6, '胶发版', 'HotToys', 4
+  UNION ALL SELECT 74, 'HDMMDS-02', 'Prime 1 Studio', 3
+  UNION ALL SELECT 4, '宝可梦', 'Funism玩乐主义', 3
+  UNION ALL SELECT 313, '男士腰带', '海澜之家', 2
+  UNION ALL SELECT 280, '手办系列1', 'TES', 2
+  UNION ALL SELECT 209, '香香系列', 'LELABO BERGAMOTE', 2
+  UNION ALL SELECT 77, '原画手办', 'ASCENDIA', 2
+  UNION ALL SELECT 76, '人之龙', '寿屋', 2
+) AS seed
+JOIN `catalog_brands` AS b ON b.name = seed.brand_name
+WHERE NOT EXISTS (SELECT 1 FROM `catalog_series`);
 
 SET FOREIGN_KEY_CHECKS = 1;
 

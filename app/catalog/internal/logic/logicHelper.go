@@ -55,3 +55,19 @@ func mapBrandRepoErr(err error) error {
 		return errorx.FromError(err)
 	}
 }
+
+// mapSeriesRepoErr 系列数据访问错误 → 业务码。
+func mapSeriesRepoErr(err error) error {
+	switch {
+	case err == nil:
+		return nil
+	case errors.Is(err, repo.ErrNotFound):
+		return errorx.NewCodeError(errorx.CodeCatalogNotFound, "系列不存在")
+	case errors.Is(err, repo.ErrBrandNotFound):
+		return errorx.NewCodeError(errorx.CodeCatalogInvalid, "所属品牌不存在")
+	case errors.Is(err, repo.ErrSeriesExists):
+		return errorx.NewCodeError(errorx.CodeCatalogInvalid, "该品牌下系列名称已存在")
+	default:
+		return errorx.FromError(err)
+	}
+}

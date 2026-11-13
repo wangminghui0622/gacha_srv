@@ -162,6 +162,28 @@
     "updated": "Brand updated",
     "itemsPerPage": "/ page"
   },
+  "catalogSeries": {
+    "searchPlaceholder": "Series",
+    "brandFilterPlaceholder": "Brand",
+    "query": "Query",
+    "create": "Create",
+    "name": "Series name",
+    "brand": "Brand",
+    "sortWeight": "Sort weight",
+    "edit": "Edit",
+    "createTitle": "Create series",
+    "editTitle": "Edit series",
+    "nameLabel": "Series name",
+    "namePlaceholder": "Enter series name",
+    "brandLabel": "Brand",
+    "brandPlaceholder": "Select brand",
+    "nameRequired": "Enter series name",
+    "brandRequired": "Select brand",
+    "sortWeightInvalid": "Sort weight must be an integer greater than or equal to 0",
+    "created": "Series created",
+    "updated": "Series updated",
+    "itemsPerPage": "/ page"
+  },
   "login": {
     "title": "Lucky Box Admin Console",
     "username": "Username",

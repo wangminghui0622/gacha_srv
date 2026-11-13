@@ -155,6 +155,24 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: catalog.UpdateBrandHandler(serverCtx),
 				},
 				{
+					// 系列列表（catalog.product:read；分页 + 名称搜索 + 品牌筛选）
+					Method:  http.MethodGet,
+					Path:    "/catalog/series",
+					Handler: catalog.ListSeriesHandler(serverCtx),
+				},
+				{
+					// 创建系列（catalog.product:create）
+					Method:  http.MethodPost,
+					Path:    "/catalog/series",
+					Handler: catalog.CreateSeriesHandler(serverCtx),
+				},
+				{
+					// 编辑系列（catalog.product:write）
+					Method:  http.MethodPut,
+					Path:    "/catalog/series/:seriesId",
+					Handler: catalog.UpdateSeriesHandler(serverCtx),
+				},
+				{
 					// 商品列表（catalog.product:read；游标分页）
 					Method:  http.MethodGet,
 					Path:    "/catalog/products",

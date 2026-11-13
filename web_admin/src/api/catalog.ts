@@ -142,6 +142,33 @@ export const catalogBrandClient = {
   },
 }
 
+export interface SeriesItem {
+  seriesId?: string
+  name?: string
+  brandId?: string
+  brandName?: string
+  sortWeight?: number
+}
+
+export interface ListSeriesReply {
+  series?: SeriesItem[]
+  total?: string
+  page?: number
+  pageSize?: number
+}
+
+export const catalogSeriesClient = {
+  List({ keyword, brandId, page, pageSize }: { keyword: string; brandId: string; page: number; pageSize: number }): Promise<ListSeriesReply> {
+    return http.get('/console/v2/api/catalog/series', { params: { keyword, brandId, page, pageSize } })
+  },
+  Create(payload: { name: string; brandId: string; sortWeight: number }): Promise<SeriesItem> {
+    return http.post('/console/v2/api/catalog/series', payload)
+  },
+  Update(seriesId: string, payload: { name: string; brandId: string; sortWeight: number }): Promise<SeriesItem> {
+    return http.put(`/console/v2/api/catalog/series/${encodeURIComponent(seriesId)}`, payload)
+  },
+}
+
 export const catalogClient = {
   Get({ productId }: { productId: string }): Promise<Product> {
     return http.get(`/console/v2/api/catalog/products/${encodeURIComponent(productId)}`)

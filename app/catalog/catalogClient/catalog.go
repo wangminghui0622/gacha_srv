@@ -22,6 +22,7 @@ type (
 	CreateProductRequest              = catalog.CreateProductRequest
 	CreateSKUInput                    = catalog.CreateSKUInput
 	CreateSKUSelectionInput           = catalog.CreateSKUSelectionInput
+	CreateSeriesRequest               = catalog.CreateSeriesRequest
 	GetProductRequest                 = catalog.GetProductRequest
 	GetProductRevisionRequest         = catalog.GetProductRevisionRequest
 	GetPublishedProductRequest        = catalog.GetPublishedProductRequest
@@ -33,6 +34,8 @@ type (
 	ListIPsRequest                    = catalog.ListIPsRequest
 	ListProductsReply                 = catalog.ListProductsReply
 	ListProductsRequest               = catalog.ListProductsRequest
+	ListSeriesReply                   = catalog.ListSeriesReply
+	ListSeriesRequest                 = catalog.ListSeriesRequest
 	Money                             = catalog.Money
 	OptionValue                       = catalog.OptionValue
 	Product                           = catalog.Product
@@ -45,8 +48,10 @@ type (
 	SKUSelection                      = catalog.SKUSelection
 	SaveProductRevisionRequest        = catalog.SaveProductRevisionRequest
 	SaveProductVariantRevisionRequest = catalog.SaveProductVariantRevisionRequest
+	Series                            = catalog.Series
 	UpdateBrandRequest                = catalog.UpdateBrandRequest
 	UpdateIPRequest                   = catalog.UpdateIPRequest
+	UpdateSeriesRequest               = catalog.UpdateSeriesRequest
 
 	Catalog interface {
 		// 创建商品（DRAFT + version 1；选项/SKU 全量校验）
@@ -68,6 +73,12 @@ type (
 		CreateBrand(ctx context.Context, in *CreateBrandRequest, opts ...grpc.CallOption) (*Brand, error)
 		// 编辑品牌名称/Logo
 		UpdateBrand(ctx context.Context, in *UpdateBrandRequest, opts ...grpc.CallOption) (*Brand, error)
+		// 系列列表（分页 + 名称搜索 + 品牌筛选）
+		ListSeries(ctx context.Context, in *ListSeriesRequest, opts ...grpc.CallOption) (*ListSeriesReply, error)
+		// 创建系列
+		CreateSeries(ctx context.Context, in *CreateSeriesRequest, opts ...grpc.CallOption) (*Series, error)
+		// 编辑系列名称/品牌/排序权重
+		UpdateSeries(ctx context.Context, in *UpdateSeriesRequest, opts ...grpc.CallOption) (*Series, error)
 		// 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
 		PublishProduct(ctx context.Context, in *PublishProductRequest, opts ...grpc.CallOption) (*Product, error)
 		// 读取已发布快照（任意历史版本）
@@ -150,6 +161,24 @@ func (m *defaultCatalog) CreateBrand(ctx context.Context, in *CreateBrandRequest
 func (m *defaultCatalog) UpdateBrand(ctx context.Context, in *UpdateBrandRequest, opts ...grpc.CallOption) (*Brand, error) {
 	client := catalog.NewCatalogClient(m.cli.Conn())
 	return client.UpdateBrand(ctx, in, opts...)
+}
+
+// 系列列表（分页 + 名称搜索 + 品牌筛选）
+func (m *defaultCatalog) ListSeries(ctx context.Context, in *ListSeriesRequest, opts ...grpc.CallOption) (*ListSeriesReply, error) {
+	client := catalog.NewCatalogClient(m.cli.Conn())
+	return client.ListSeries(ctx, in, opts...)
+}
+
+// 创建系列
+func (m *defaultCatalog) CreateSeries(ctx context.Context, in *CreateSeriesRequest, opts ...grpc.CallOption) (*Series, error) {
+	client := catalog.NewCatalogClient(m.cli.Conn())
+	return client.CreateSeries(ctx, in, opts...)
+}
+
+// 编辑系列名称/品牌/排序权重
+func (m *defaultCatalog) UpdateSeries(ctx context.Context, in *UpdateSeriesRequest, opts ...grpc.CallOption) (*Series, error) {
+	client := catalog.NewCatalogClient(m.cli.Conn())
+	return client.UpdateSeries(ctx, in, opts...)
 }
 
 // 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）

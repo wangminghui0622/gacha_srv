@@ -29,6 +29,9 @@ const (
 	Catalog_ListBrands_FullMethodName                 = "/catalog.Catalog/ListBrands"
 	Catalog_CreateBrand_FullMethodName                = "/catalog.Catalog/CreateBrand"
 	Catalog_UpdateBrand_FullMethodName                = "/catalog.Catalog/UpdateBrand"
+	Catalog_ListSeries_FullMethodName                 = "/catalog.Catalog/ListSeries"
+	Catalog_CreateSeries_FullMethodName               = "/catalog.Catalog/CreateSeries"
+	Catalog_UpdateSeries_FullMethodName               = "/catalog.Catalog/UpdateSeries"
 	Catalog_PublishProduct_FullMethodName             = "/catalog.Catalog/PublishProduct"
 	Catalog_GetPublishedProduct_FullMethodName        = "/catalog.Catalog/GetPublishedProduct"
 	Catalog_SaveProductRevision_FullMethodName        = "/catalog.Catalog/SaveProductRevision"
@@ -60,6 +63,12 @@ type CatalogClient interface {
 	CreateBrand(ctx context.Context, in *CreateBrandRequest, opts ...grpc.CallOption) (*Brand, error)
 	// 编辑品牌名称/Logo
 	UpdateBrand(ctx context.Context, in *UpdateBrandRequest, opts ...grpc.CallOption) (*Brand, error)
+	// 系列列表（分页 + 名称搜索 + 品牌筛选）
+	ListSeries(ctx context.Context, in *ListSeriesRequest, opts ...grpc.CallOption) (*ListSeriesReply, error)
+	// 创建系列
+	CreateSeries(ctx context.Context, in *CreateSeriesRequest, opts ...grpc.CallOption) (*Series, error)
+	// 编辑系列名称/品牌/排序权重
+	UpdateSeries(ctx context.Context, in *UpdateSeriesRequest, opts ...grpc.CallOption) (*Series, error)
 	// 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
 	PublishProduct(ctx context.Context, in *PublishProductRequest, opts ...grpc.CallOption) (*Product, error)
 	// 读取已发布快照（任意历史版本）
@@ -172,6 +181,33 @@ func (c *catalogClient) UpdateBrand(ctx context.Context, in *UpdateBrandRequest,
 	return out, nil
 }
 
+func (c *catalogClient) ListSeries(ctx context.Context, in *ListSeriesRequest, opts ...grpc.CallOption) (*ListSeriesReply, error) {
+	out := new(ListSeriesReply)
+	err := c.cc.Invoke(ctx, Catalog_ListSeries_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogClient) CreateSeries(ctx context.Context, in *CreateSeriesRequest, opts ...grpc.CallOption) (*Series, error) {
+	out := new(Series)
+	err := c.cc.Invoke(ctx, Catalog_CreateSeries_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogClient) UpdateSeries(ctx context.Context, in *UpdateSeriesRequest, opts ...grpc.CallOption) (*Series, error) {
+	out := new(Series)
+	err := c.cc.Invoke(ctx, Catalog_UpdateSeries_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *catalogClient) PublishProduct(ctx context.Context, in *PublishProductRequest, opts ...grpc.CallOption) (*Product, error) {
 	out := new(Product)
 	err := c.cc.Invoke(ctx, Catalog_PublishProduct_FullMethodName, in, out, opts...)
@@ -249,6 +285,12 @@ type CatalogServer interface {
 	CreateBrand(context.Context, *CreateBrandRequest) (*Brand, error)
 	// 编辑品牌名称/Logo
 	UpdateBrand(context.Context, *UpdateBrandRequest) (*Brand, error)
+	// 系列列表（分页 + 名称搜索 + 品牌筛选）
+	ListSeries(context.Context, *ListSeriesRequest) (*ListSeriesReply, error)
+	// 创建系列
+	CreateSeries(context.Context, *CreateSeriesRequest) (*Series, error)
+	// 编辑系列名称/品牌/排序权重
+	UpdateSeries(context.Context, *UpdateSeriesRequest) (*Series, error)
 	// 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
 	PublishProduct(context.Context, *PublishProductRequest) (*Product, error)
 	// 读取已发布快照（任意历史版本）
@@ -297,6 +339,15 @@ func (UnimplementedCatalogServer) CreateBrand(context.Context, *CreateBrandReque
 }
 func (UnimplementedCatalogServer) UpdateBrand(context.Context, *UpdateBrandRequest) (*Brand, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBrand not implemented")
+}
+func (UnimplementedCatalogServer) ListSeries(context.Context, *ListSeriesRequest) (*ListSeriesReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListSeries not implemented")
+}
+func (UnimplementedCatalogServer) CreateSeries(context.Context, *CreateSeriesRequest) (*Series, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateSeries not implemented")
+}
+func (UnimplementedCatalogServer) UpdateSeries(context.Context, *UpdateSeriesRequest) (*Series, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSeries not implemented")
 }
 func (UnimplementedCatalogServer) PublishProduct(context.Context, *PublishProductRequest) (*Product, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PublishProduct not implemented")
@@ -509,6 +560,60 @@ func _Catalog_UpdateBrand_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Catalog_ListSeries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSeriesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServer).ListSeries(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Catalog_ListSeries_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServer).ListSeries(ctx, req.(*ListSeriesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Catalog_CreateSeries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateSeriesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServer).CreateSeries(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Catalog_CreateSeries_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServer).CreateSeries(ctx, req.(*CreateSeriesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Catalog_UpdateSeries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSeriesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServer).UpdateSeries(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Catalog_UpdateSeries_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServer).UpdateSeries(ctx, req.(*UpdateSeriesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Catalog_PublishProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PublishProductRequest)
 	if err := dec(in); err != nil {
@@ -663,6 +768,18 @@ var Catalog_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateBrand",
 			Handler:    _Catalog_UpdateBrand_Handler,
+		},
+		{
+			MethodName: "ListSeries",
+			Handler:    _Catalog_ListSeries_Handler,
+		},
+		{
+			MethodName: "CreateSeries",
+			Handler:    _Catalog_CreateSeries_Handler,
+		},
+		{
+			MethodName: "UpdateSeries",
+			Handler:    _Catalog_UpdateSeries_Handler,
 		},
 		{
 			MethodName: "PublishProduct",

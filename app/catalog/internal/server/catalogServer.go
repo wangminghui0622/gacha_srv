@@ -82,6 +82,24 @@ func (s *CatalogServer) UpdateBrand(ctx context.Context, in *catalog.UpdateBrand
 	return l.UpdateBrand(in)
 }
 
+// 系列列表（分页 + 名称搜索 + 品牌筛选）
+func (s *CatalogServer) ListSeries(ctx context.Context, in *catalog.ListSeriesRequest) (*catalog.ListSeriesReply, error) {
+	l := logic.NewListSeriesLogic(ctx, s.svcCtx)
+	return l.ListSeries(in)
+}
+
+// 创建系列
+func (s *CatalogServer) CreateSeries(ctx context.Context, in *catalog.CreateSeriesRequest) (*catalog.Series, error) {
+	l := logic.NewCreateSeriesLogic(ctx, s.svcCtx)
+	return l.CreateSeries(in)
+}
+
+// 编辑系列名称/品牌/排序权重
+func (s *CatalogServer) UpdateSeries(ctx context.Context, in *catalog.UpdateSeriesRequest) (*catalog.Series, error) {
+	l := logic.NewUpdateSeriesLogic(ctx, s.svcCtx)
+	return l.UpdateSeries(in)
+}
+
 // 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
 func (s *CatalogServer) PublishProduct(ctx context.Context, in *catalog.PublishProductRequest) (*catalog.Product, error) {
 	l := logic.NewPublishProductLogic(ctx, s.svcCtx)

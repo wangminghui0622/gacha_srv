@@ -31,6 +31,12 @@ rpc GetSKU(GetSKURequest) returns (SKU);
   rpc CreateBrand(CreateBrandRequest) returns (Brand);
   // 编辑品牌名称/Logo
   rpc UpdateBrand(UpdateBrandRequest) returns (Brand);
+  // 系列列表（分页 + 名称搜索 + 品牌筛选）
+  rpc ListSeries(ListSeriesRequest) returns (ListSeriesReply);
+  // 创建系列
+  rpc CreateSeries(CreateSeriesRequest) returns (Series);
+  // 编辑系列名称/品牌/排序权重
+  rpc UpdateSeries(UpdateSeriesRequest) returns (Series);
   // 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
   rpc PublishProduct(PublishProductRequest) returns (Product);
   // 读取已发布快照（任意历史版本）
@@ -228,6 +234,41 @@ message UpdateBrandRequest {
   uint64 brandId = 1; // 品牌 ID
   string name = 2;    // 品牌名称
   string logo = 3;    // Logo 图片地址
+}
+
+message Series {
+  uint64 seriesId = 1;  // 系列 ID
+  string name = 2;      // 系列名称
+  uint64 brandId = 3;   // 所属品牌 ID
+  string brandName = 4; // 所属品牌名称
+  int32 sortWeight = 5; // 排序权重（越大越靠前）
+}
+
+message ListSeriesRequest {
+  string keyword = 1;  // 系列名称模糊搜索（空=全部）
+  uint64 brandId = 2;  // 品牌筛选（0=全部）
+  uint32 page = 3;     // 页码（从 1 开始）
+  uint32 pageSize = 4; // 每页条数（默认 15，最大 100）
+}
+
+message ListSeriesReply {
+  repeated Series series = 1; // 系列列表
+  uint64 total = 2;           // 总条数
+  uint32 page = 3;            // 当前页码
+  uint32 pageSize = 4;        // 每页条数
+}
+
+message CreateSeriesRequest {
+  string name = 1;      // 系列名称
+  uint64 brandId = 2;   // 所属品牌 ID
+  int32 sortWeight = 3; // 排序权重
+}
+
+message UpdateSeriesRequest {
+  uint64 seriesId = 1;  // 系列 ID
+  string name = 2;      // 系列名称
+  uint64 brandId = 3;   // 所属品牌 ID
+  int32 sortWeight = 4; // 排序权重
 }
 
 message GetPublishedProductRequest {

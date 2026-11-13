@@ -162,6 +162,28 @@
     "updated": "品牌已更新",
     "itemsPerPage": "条/页"
   },
+  "catalogSeries": {
+    "searchPlaceholder": "系列",
+    "brandFilterPlaceholder": "厂商",
+    "query": "查询",
+    "create": "创建",
+    "name": "系列名称",
+    "brand": "品牌",
+    "sortWeight": "排序权重",
+    "edit": "编辑",
+    "createTitle": "创建系列",
+    "editTitle": "编辑系列",
+    "nameLabel": "系列名称",
+    "namePlaceholder": "请输入系列名称",
+    "brandLabel": "所属品牌",
+    "brandPlaceholder": "请选择品牌",
+    "nameRequired": "请输入系列名称",
+    "brandRequired": "请选择所属品牌",
+    "sortWeightInvalid": "排序权重必须是大于等于 0 的整数",
+    "created": "系列已创建",
+    "updated": "系列已更新",
+    "itemsPerPage": "条/页"
+  },
   "login": {
     "title": "Lucky Box 管理后台",
     "username": "用户名",
