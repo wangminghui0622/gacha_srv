@@ -111,8 +111,8 @@ nav {
 }
 
 :deep(.ant-menu-submenu-arrow) {
-  inset-inline-end: 4px !important;
-  right: 4px !important;
+  inset-inline-end: 6px !important;
+  right: 6px !important;
 }
 </style>
 
