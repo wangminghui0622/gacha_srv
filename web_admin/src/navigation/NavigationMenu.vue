@@ -100,9 +100,15 @@ nav {
 </style>
 
 <style lang="scss">
+.side-menu-popup {
+  width: 144px !important;
+}
+
 .side-menu-popup .ant-menu {
+  width: 144px !important;
+  min-width: 144px !important;
+  max-width: 144px !important;
   padding: 4px 0;
-  min-width: 150px;
   border-radius: 4px;
 }
 
@@ -111,12 +117,25 @@ nav {
 }
 
 .side-menu-popup .ant-menu-item {
-  height: 44px !important;
-  line-height: 44px !important;
+  height: auto !important;
+  min-height: 44px;
+  line-height: 20px !important;
   margin: 0 !important;
+  padding: 12px 16px !important;
   width: 100% !important;
   border-radius: 0;
   color: rgba(0, 0, 0, 0.75);
+  white-space: normal !important;
+  word-break: break-word;
+  display: flex;
+  align-items: center;
+}
+
+.side-menu-popup .ant-menu-title-content {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  line-height: 20px;
 }
 
 .side-menu-popup .ant-menu-item-selected {
