@@ -2,8 +2,6 @@ package logic
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"gacha_srv/app/catalog/catalog"
 	"gacha_srv/app/catalog/internal/core"
@@ -26,15 +24,12 @@ func NewCreateAdminProductLogic(ctx context.Context, svcCtx *svc.ServiceContext)
 
 // CreateAdminProduct 创建后台商品。
 func (l *CreateAdminProductLogic) CreateAdminProduct(in *catalog.CreateAdminProductRequest) (*catalog.AdminProduct, error) {
-	title, code, saleType, cover, err := core.BuildAdminProduct(in.Title, in.ProductCode, in.SaleType, in.CoverUrl, in.CostAmountMinor, in.SaleAmountMinor)
+	title, _, saleType, cover, err := core.BuildAdminProduct(in.Title, "", in.SaleType, in.CoverUrl, in.CostAmountMinor, in.SaleAmountMinor)
 	if err != nil {
 		return nil, errorx.NewCodeError(errorx.CodeCatalogInvalid, err.Error())
 	}
 	if in.IpId == 0 || in.BrandId == 0 || in.SeriesId == 0 {
 		return nil, errorx.NewCodeError(errorx.CodeCatalogInvalid, "IP、厂商、系列必填")
-	}
-	if code == "" {
-		code = fmt.Sprintf("PRD-%d", time.Now().UnixNano())
 	}
 	saleAmount := in.SaleAmountMinor
 	if saleAmount == 0 {
@@ -45,7 +40,7 @@ func (l *CreateAdminProductLogic) CreateAdminProduct(in *catalog.CreateAdminProd
 		return nil, errorx.NewCodeError(errorx.CodeCatalogInvalid, "商品扩展字段格式错误")
 	}
 	out, err := l.svcCtx.Repo.CreateAdminProduct(l.ctx, repo.AdminProductFields{
-		Title: title, ProductCode: code, SaleType: saleType, CoverURL: cover, AdminJSON: adminJSON,
+		Title: title, SaleType: saleType, CoverURL: cover, AdminJSON: adminJSON,
 		IPID: in.IpId, BrandID: in.BrandId, SeriesID: in.SeriesId,
 		CostAmountMinor: in.CostAmountMinor, SaleAmountMinor: saleAmount,
 	})

@@ -18,6 +18,7 @@ import (
 
 	catalogpb "gacha_srv/app/catalog/catalog"
 	"gacha_srv/app/catalog/internal/core"
+	"gacha_srv/pkg/utils/productcode"
 
 	"google.golang.org/protobuf/encoding/protojson"
 	"gorm.io/gorm"
@@ -67,7 +68,6 @@ func (productRow) TableName() string { return "products" }
 // AdminProductFields 后台商品创建/编辑字段（AdminJSON 存放库存、图片、详情等扩展字段）。
 type AdminProductFields struct {
 	Title           string
-	ProductCode     string
 	SaleType        string
 	CoverURL        string
 	AdminJSON       string
@@ -1110,8 +1110,10 @@ func applyAdminProductFilters(q *gorm.DB, in *catalogpb.ListAdminProductsRequest
 func (r *Repo) CreateAdminProduct(ctx context.Context, f AdminProductFields) (*catalogpb.AdminProduct, error) {
 	var out *catalogpb.AdminProduct
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// 先插入临时编码拿到自增商品 ID，再用 P+Encrypt(ID) 生成正式 product_code。
 		row := productRow{
-			ProductCode: f.ProductCode, Title: f.Title, Status: StatusDraft, Version: 1,
+			ProductCode: fmt.Sprintf("TMP-%d", time.Now().UnixNano()),
+			Title:       f.Title, Status: StatusDraft, Version: 1,
 			IPID: f.IPID, BrandID: f.BrandID, SeriesID: f.SeriesID, SaleType: f.SaleType,
 			CostAmountMinor: f.CostAmountMinor, CoverURL: f.CoverURL, AdminJSON: f.AdminJSON,
 		}
@@ -1121,12 +1123,19 @@ func (r *Repo) CreateAdminProduct(ctx context.Context, f AdminProductFields) (*c
 			}
 			return err
 		}
-		skuCode := f.ProductCode + "-SKU"
-		if len(skuCode) > 64 {
-			skuCode = truncateRunes(f.ProductCode, 59) + "-SKU"
+		code, err := productcode.Generate(row.ID)
+		if err != nil {
+			return err
 		}
+		if err = tx.Model(&productRow{}).Where("id = ?", row.ID).Update("product_code", code).Error; err != nil {
+			if errors.Is(err, gorm.ErrDuplicatedKey) {
+				return ErrProductCodeExists
+			}
+			return err
+		}
+		row.ProductCode = code
 		sku := skuRow{
-			ProductID: row.ID, SkuCode: skuCode, Title: f.Title, Status: StatusDraft,
+			ProductID: row.ID, SkuCode: code + "-SKU", Title: f.Title, Status: StatusDraft,
 			FulfillmentMode: 1, SaleAmountMinor: f.SaleAmountMinor, ReferenceAmountMinor: f.SaleAmountMinor,
 			Currency: "CNY", Version: 1,
 		}
@@ -1136,7 +1145,6 @@ func (r *Repo) CreateAdminProduct(ctx context.Context, f AdminProductFields) (*c
 			}
 			return err
 		}
-		var err error
 		out, err = findAdminProduct(ctx, tx, row.ID)
 		return err
 	})
@@ -1200,10 +1208,9 @@ func (r *Repo) CopyAdminProduct(ctx context.Context, id uint64) (*catalogpb.Admi
 
 	var out *catalogpb.AdminProduct
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		code := fmt.Sprintf("CP-%d", time.Now().UnixNano())
 		row := src
 		row.ID = 0
-		row.ProductCode = code
+		row.ProductCode = fmt.Sprintf("TMP-%d", time.Now().UnixNano())
 		row.Title = truncateRunes(src.Title+" 副本", 255)
 		row.Status = StatusDraft
 		row.Version = 1
@@ -1213,6 +1220,14 @@ func (r *Repo) CopyAdminProduct(ctx context.Context, id uint64) (*catalogpb.Admi
 		if err := tx.Create(&row).Error; err != nil {
 			return err
 		}
+		code, err := productcode.Generate(row.ID)
+		if err != nil {
+			return err
+		}
+		if err = tx.Model(&productRow{}).Where("id = ?", row.ID).Update("product_code", code).Error; err != nil {
+			return err
+		}
+		row.ProductCode = code
 		sku := skuRow{
 			ProductID: row.ID, SkuCode: code + "-SKU", Title: row.Title, Status: StatusDraft,
 			FulfillmentMode: 1, SaleAmountMinor: 0, ReferenceAmountMinor: 0, Currency: "CNY", Version: 1,
@@ -1227,7 +1242,6 @@ func (r *Repo) CopyAdminProduct(ctx context.Context, id uint64) (*catalogpb.Admi
 		if err := tx.Create(&sku).Error; err != nil {
 			return err
 		}
-		var err error
 		out, err = findAdminProduct(ctx, tx, row.ID)
 		return err
 	})

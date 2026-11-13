@@ -244,24 +244,24 @@ WHERE b.name = '泡泡玛特'
 
 -- 商品列表演示数据（倒序插入以匹配 ID 倒序展示）
 INSERT IGNORE INTO `products`
-  (`product_code`, `title`, `status`, `version`, `ip_id`, `brand_id`, `series_id`, `sale_type`, `shipped_quantity`, `cost_amount_minor`, `cover_url`)
-SELECT seed.code, seed.title, 1, 1, i.id, b.id, s.id, 'IN_STOCK', 0, seed.cost, seed.cover
+  (`id`, `product_code`, `title`, `status`, `version`, `ip_id`, `brand_id`, `series_id`, `sale_type`, `shipped_quantity`, `cost_amount_minor`, `cover_url`)
+SELECT seed.id, seed.product_code, seed.title, 1, 1, i.id, b.id, s.id, 'IN_STOCK', 0, seed.cost, seed.cover
 FROM (
-  SELECT 'PM-015' AS code, '泡泡玛特 Hirono小野 钢琴家 艺术潮流公仔 8cm' AS title, 32900 AS cost, '/covers/popmart-5.svg' AS cover
-  UNION ALL SELECT 'PM-014', '泡泡玛特 Hirono小野 人偶熊猫 吊卡', 29900, '/covers/popmart-4.svg'
-  UNION ALL SELECT 'PM-013', '泡泡玛特xGary Baseman贝斯曼 Hirono小野 美国拉斯维加斯联名款潮流公仔', 23900, '/covers/popmart-3.svg'
-  UNION ALL SELECT 'PM-012', '泡泡玛特xTheHundreds Hirono小野 摆件 吊卡', 20900, '/covers/popmart-2.svg'
-  UNION ALL SELECT 'PM-011', '泡泡玛特 Hirono小野 恐龙毛绒 吊卡', 17900, '/covers/popmart-1.svg'
-  UNION ALL SELECT 'PM-010', '泡泡玛特 Hirono小野 公路日志 毛绒公仔挂件 灰色砾石 拆盒拆袋', 16900, '/covers/popmart-5.svg'
-  UNION ALL SELECT 'PM-009', '泡泡玛特 Hirono小野二代 小小的使坏系列 100% 手办 庇护所 拆盒拆袋', 15900, '/covers/popmart-4.svg'
-  UNION ALL SELECT 'PM-008', '泡泡玛特 雾中人系列 Hirono小野 毛绒公仔挂件 逆光信使原盒原袋', 13900, '/covers/popmart-3.svg'
-  UNION ALL SELECT 'PM-007', '泡泡玛特 Hirono小野五代 重塑系列 盲盒类 消逝 拆盒拆袋', 12900, '/covers/popmart-2.svg'
-  UNION ALL SELECT 'PM-006', '泡泡玛 Hirono小野 特庇护所系列 盲盒类 烛台 拆盒拆袋', 11000, '/covers/popmart-1.svg'
-  UNION ALL SELECT 'PM-005', '泡泡玛 Hirono小野 特庇护所系列 盲盒类 鸟笼 原盒原袋', 9900, '/covers/popmart-5.svg'
-  UNION ALL SELECT 'PM-004', '泡泡玛特 Hirono小野 温室芒草系列 盲盒类 关注 原盒原袋', 9500, '/covers/popmart-4.svg'
-  UNION ALL SELECT 'PM-003', '泡泡玛特 Hirono小野 温室芒草系列 盲盒类 循环 原盒原袋', 9000, '/covers/popmart-3.svg'
-  UNION ALL SELECT 'PM-002', '泡泡玛特 Hirono小野 温室芒草系列 盲盒类 重缚 原盒原袋', 7500, '/covers/popmart-2.svg'
-  UNION ALL SELECT 'PM-001', '泡泡玛特 Hirono小野五代 重塑系列 盲盒类 愈合 拆盒拆袋', 6700, '/covers/popmart-1.svg'
+  SELECT 800000001 AS id, 'PSZFrT0qaA' AS product_code, '泡泡玛特 Hirono小野 钢琴家 艺术潮流公仔 8cm' AS title, 32900 AS cost, '/covers/popmart-5.svg' AS cover
+  UNION ALL SELECT 800000002, 'P9hbgyFmxi', '泡泡玛特 Hirono小野 人偶熊猫 吊卡', 29900, '/covers/popmart-4.svg'
+  UNION ALL SELECT 800000003, 'PZesiW9iPe', '泡泡玛特xGary Baseman贝斯曼 Hirono小野 美国拉斯维加斯联名款潮流公仔', 23900, '/covers/popmart-3.svg'
+  UNION ALL SELECT 800000004, 'PDjQyCmSbU', '泡泡玛特xTheHundreds Hirono小野 摆件 吊卡', 20900, '/covers/popmart-2.svg'
+  UNION ALL SELECT 800000005, 'PPJvhEAGci', '泡泡玛特 Hirono小野 恐龙毛绒 吊卡', 17900, '/covers/popmart-1.svg'
+  UNION ALL SELECT 800000006, 'PIHnVp3fii', '泡泡玛特 Hirono小野 公路日志 毛绒公仔挂件 灰色砾石 拆盒拆袋', 16900, '/covers/popmart-5.svg'
+  UNION ALL SELECT 800000007, 'PVj6KM5su', '泡泡玛特 Hirono小野二代 小小的使坏系列 100% 手办 庇护所 拆盒拆袋', 15900, '/covers/popmart-4.svg'
+  UNION ALL SELECT 800000008, 'PdxEhAFtCE', '泡泡玛特 雾中人系列 Hirono小野 毛绒公仔挂件 逆光信使原盒原袋', 13900, '/covers/popmart-3.svg'
+  UNION ALL SELECT 800000009, 'PKBIOwfltY', '泡泡玛特 Hirono小野五代 重塑系列 盲盒类 消逝 拆盒拆袋', 12900, '/covers/popmart-2.svg'
+  UNION ALL SELECT 800000010, 'PCyi4IjcT1', '泡泡玛 Hirono小野 特庇护所系列 盲盒类 烛台 拆盒拆袋', 11000, '/covers/popmart-1.svg'
+  UNION ALL SELECT 800000011, 'PCSHOtls3J', '泡泡玛 Hirono小野 特庇护所系列 盲盒类 鸟笼 原盒原袋', 9900, '/covers/popmart-5.svg'
+  UNION ALL SELECT 800000012, 'PJafdTgXEA', '泡泡玛特 Hirono小野 温室芒草系列 盲盒类 关注 原盒原袋', 9500, '/covers/popmart-4.svg'
+  UNION ALL SELECT 800000013, 'PB8gsDtisB', '泡泡玛特 Hirono小野 温室芒草系列 盲盒类 循环 原盒原袋', 9000, '/covers/popmart-3.svg'
+  UNION ALL SELECT 800000014, 'PV8PtTx7kW', '泡泡玛特 Hirono小野 温室芒草系列 盲盒类 重缚 原盒原袋', 7500, '/covers/popmart-2.svg'
+  UNION ALL SELECT 800000015, 'PX9JepdDSP', '泡泡玛特 Hirono小野五代 重塑系列 盲盒类 愈合 拆盒拆袋', 6700, '/covers/popmart-1.svg'
 ) AS seed
 JOIN `catalog_ips` AS i ON i.name = '小野'
 JOIN `catalog_brands` AS b ON b.name = '泡泡玛特'
