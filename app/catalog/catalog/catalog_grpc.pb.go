@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	Catalog_CreateProduct_FullMethodName              = "/catalog.Catalog/CreateProduct"
 	Catalog_GetProduct_FullMethodName                 = "/catalog.Catalog/GetProduct"
+	Catalog_GetSKU_FullMethodName                     = "/catalog.Catalog/GetSKU"
 	Catalog_ListProducts_FullMethodName               = "/catalog.Catalog/ListProducts"
 	Catalog_PublishProduct_FullMethodName             = "/catalog.Catalog/PublishProduct"
 	Catalog_GetPublishedProduct_FullMethodName        = "/catalog.Catalog/GetPublishedProduct"
@@ -38,6 +39,7 @@ type CatalogClient interface {
 	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*Product, error)
 	// 查看商品（ACTIVE 读已发布快照，否则读 live 草稿表）
 	GetProduct(ctx context.Context, in *GetProductRequest, opts ...grpc.CallOption) (*Product, error)
+	GetSKU(ctx context.Context, in *GetSKURequest, opts ...grpc.CallOption) (*SKU, error)
 	// 商品列表（游标分页，摘要）
 	ListProducts(ctx context.Context, in *ListProductsRequest, opts ...grpc.CallOption) (*ListProductsReply, error)
 	// 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
@@ -74,6 +76,15 @@ func (c *catalogClient) CreateProduct(ctx context.Context, in *CreateProductRequ
 func (c *catalogClient) GetProduct(ctx context.Context, in *GetProductRequest, opts ...grpc.CallOption) (*Product, error) {
 	out := new(Product)
 	err := c.cc.Invoke(ctx, Catalog_GetProduct_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogClient) GetSKU(ctx context.Context, in *GetSKURequest, opts ...grpc.CallOption) (*SKU, error) {
+	out := new(SKU)
+	err := c.cc.Invoke(ctx, Catalog_GetSKU_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -151,6 +162,7 @@ type CatalogServer interface {
 	CreateProduct(context.Context, *CreateProductRequest) (*Product, error)
 	// 查看商品（ACTIVE 读已发布快照，否则读 live 草稿表）
 	GetProduct(context.Context, *GetProductRequest) (*Product, error)
+	GetSKU(context.Context, *GetSKURequest) (*SKU, error)
 	// 商品列表（游标分页，摘要）
 	ListProducts(context.Context, *ListProductsRequest) (*ListProductsReply, error)
 	// 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
@@ -177,6 +189,9 @@ func (UnimplementedCatalogServer) CreateProduct(context.Context, *CreateProductR
 }
 func (UnimplementedCatalogServer) GetProduct(context.Context, *GetProductRequest) (*Product, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProduct not implemented")
+}
+func (UnimplementedCatalogServer) GetSKU(context.Context, *GetSKURequest) (*SKU, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSKU not implemented")
 }
 func (UnimplementedCatalogServer) ListProducts(context.Context, *ListProductsRequest) (*ListProductsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListProducts not implemented")
@@ -244,6 +259,24 @@ func _Catalog_GetProduct_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CatalogServer).GetProduct(ctx, req.(*GetProductRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Catalog_GetSKU_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSKURequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServer).GetSKU(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Catalog_GetSKU_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServer).GetSKU(ctx, req.(*GetSKURequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -388,6 +421,10 @@ var Catalog_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProduct",
 			Handler:    _Catalog_GetProduct_Handler,
+		},
+		{
+			MethodName: "GetSKU",
+			Handler:    _Catalog_GetSKU_Handler,
 		},
 		{
 			MethodName: "ListProducts",

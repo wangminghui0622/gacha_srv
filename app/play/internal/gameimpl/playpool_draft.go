@@ -35,7 +35,7 @@ func CreatePlayPoolDraft(ctx context.Context, svcCtx *svc.ServiceContext, in *pl
 			err := tx.Where("idempotency_key = ?", in.IdempotencyKey).First(&d).Error
 			if err == nil {
 				if d.RequestHash != hash {
-					return status.Error(codes.Aborted, "code=400 msg=幂等键冲突")
+					return status.Error(codes.InvalidArgument, "幂等键冲突")
 				}
 				outPoolId, outVersion = d.PoolId, d.Version
 				return nil
@@ -50,12 +50,12 @@ func CreatePlayPoolDraft(ctx context.Context, svcCtx *svc.ServiceContext, in *pl
 			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 				Where("id = ?", in.PoolId).First(&head).Error; err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return status.Error(codes.Aborted, "code=400 msg=赏池不存在")
+					return status.Error(codes.InvalidArgument, "赏池不存在")
 				}
 				return err
 			}
 			if head.Mode != in.Mode {
-				return status.Error(codes.Aborted, "code=400 msg=赏池玩法不一致")
+				return status.Error(codes.InvalidArgument, "赏池玩法不一致")
 			}
 		} else {
 			head = gamemodelnc.PlayPoolHead{

@@ -22,6 +22,7 @@ type (
 	GetProductRequest                 = catalog.GetProductRequest
 	GetProductRevisionRequest         = catalog.GetProductRevisionRequest
 	GetPublishedProductRequest        = catalog.GetPublishedProductRequest
+	GetSKURequest                     = catalog.GetSKURequest
 	ListProductsReply                 = catalog.ListProductsReply
 	ListProductsRequest               = catalog.ListProductsRequest
 	Money                             = catalog.Money
@@ -42,6 +43,7 @@ type (
 		CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*Product, error)
 		// 查看商品（ACTIVE 读已发布快照，否则读 live 草稿表）
 		GetProduct(ctx context.Context, in *GetProductRequest, opts ...grpc.CallOption) (*Product, error)
+		GetSKU(ctx context.Context, in *GetSKURequest, opts ...grpc.CallOption) (*SKU, error)
 		// 商品列表（游标分页，摘要）
 		ListProducts(ctx context.Context, in *ListProductsRequest, opts ...grpc.CallOption) (*ListProductsReply, error)
 		// 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
@@ -79,6 +81,11 @@ func (m *defaultCatalog) CreateProduct(ctx context.Context, in *CreateProductReq
 func (m *defaultCatalog) GetProduct(ctx context.Context, in *GetProductRequest, opts ...grpc.CallOption) (*Product, error) {
 	client := catalog.NewCatalogClient(m.cli.Conn())
 	return client.GetProduct(ctx, in, opts...)
+}
+
+func (m *defaultCatalog) GetSKU(ctx context.Context, in *GetSKURequest, opts ...grpc.CallOption) (*SKU, error) {
+	client := catalog.NewCatalogClient(m.cli.Conn())
+	return client.GetSKU(ctx, in, opts...)
 }
 
 // 商品列表（游标分页，摘要）

@@ -25,6 +25,13 @@ MarketingRpc:
       - 127.0.0.1:2379
     Key: marketing.rpc
 
+# 商品目录（发布实物 SKU 奖时校验 sku 存在性/履约方式）
+CatalogRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: catalog.rpc
+
 # 玩法配置等缓存版模型使用的 Redis
 CacheRedis:
   - Host: 127.0.0.1:6379

@@ -1,7 +1,9 @@
 // Package repo 商品目录数据访问（M14c）：七表 GORM 行结构 + 单库事务流。
 // 事务语义逐条移植 server_v2 catalog data/mysql.go + revision.go：
-//   live 表=草稿工作区；发布=激活+落快照；已发布版本只读快照；
-//   修订=草稿 blob（base/target 校验 + 同内容幂等）；修订发布=版本前进+删草稿。
+//
+//	live 表=草稿工作区；发布=激活+落快照；已发布版本只读快照；
+//	修订=草稿 blob（base/target 校验 + 同内容幂等）；修订发布=版本前进+删草稿。
+//
 // 本包只做数据流；业务校验在 core；行锁/CAS 在事务内。
 package repo
 
@@ -175,6 +177,36 @@ func (r *Repo) Save(ctx context.Context, draft *core.DraftProduct) (*catalogpb.P
 }
 
 // ── 读取 ──
+
+// GetSKU 按 SKU ID 读取（play 发布实物奖校验用）；未找到 → ErrNotFound。
+func (r *Repo) GetSKU(ctx context.Context, id uint64) (*catalogpb.SKU, error) {
+	var row skuRow
+	if err := r.db.WithContext(ctx).First(&row, "id = ?", id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	var selections []selectionRow
+	if err := r.db.WithContext(ctx).Where("sku_id = ?", id).Order("option_id").Find(&selections).Error; err != nil {
+		return nil, err
+	}
+	sku := &catalogpb.SKU{
+		SkuId:           row.ID,
+		ProductId:       row.ProductID,
+		SkuCode:         row.SkuCode,
+		Title:           row.Title,
+		Status:          catalogpb.ProductStatus(row.Status),
+		FulfillmentMode: catalogpb.FulfillmentMode(row.FulfillmentMode),
+		SalePrice:       &catalogpb.Money{AmountMinor: row.SaleAmountMinor, Currency: row.Currency},
+		ReferencePrice:  &catalogpb.Money{AmountMinor: row.ReferenceAmountMinor, Currency: row.Currency},
+		ExternalCode:    row.ExternalCode,
+	}
+	for _, sel := range selections {
+		sku.Selections = append(sku.Selections, &catalogpb.SKUSelection{OptionId: sel.OptionID, OptionValueId: sel.OptionValueID})
+	}
+	return sku, nil
+}
 
 // Find 查看商品：head ACTIVE → 读已发布快照（head.Version）；否则拼 live 表。
 func (r *Repo) Find(ctx context.Context, id uint64) (*catalogpb.Product, error) {

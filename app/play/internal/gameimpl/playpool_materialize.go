@@ -33,7 +33,7 @@ import (
 func materializePlayPool(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []gamemodelnc.PlayPoolPrize) error {
 	for _, p := range prizes {
 		if p.PrizeType == 3 {
-			return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=奖品 %s 使用箱子类型，玩法投影暂不支持", p.Name))
+			return status.Error(codes.InvalidArgument, fmt.Sprintf("奖品 %s 使用箱子类型，玩法投影暂不支持", p.Name))
 		}
 	}
 	// 新版本发布重置运行态（entries 库存已替换；旧 state 会与之不一致）。
@@ -55,7 +55,7 @@ func materializePlayPool(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 	case "memorymatch":
 		return materializeMemoryMatch(db, v, prizes)
 	default:
-		return status.Error(codes.Aborted, "code=400 msg=未知玩法")
+		return status.Error(codes.InvalidArgument, "未知玩法")
 	}
 }
 
@@ -99,11 +99,11 @@ func materializeGashapon(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 	for _, p := range prizes {
 		if p.SpecialKind != "" {
 			if p.PrizeType == 2 {
-				return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=扭蛋特别赏 %s 暂不支持实物 SKU", p.Name))
+				return status.Error(codes.InvalidArgument, fmt.Sprintf("扭蛋特别赏 %s 暂不支持实物 SKU", p.Name))
 			}
 			kind := playPoolAssetKind(&p)
 			if kind == 0 {
-				return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=特别赏 %s 缺少奖金配置", p.Name))
+				return status.Error(codes.InvalidArgument, fmt.Sprintf("特别赏 %s 缺少奖金配置", p.Name))
 			}
 			stage := int32(0)
 			if p.SpecialKind == "LUCKY" && p.TargetValue > 0 {
@@ -151,7 +151,7 @@ func materializeGashapon(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 		return err
 	}
 	if len(entries) == 0 {
-		return status.Error(codes.Aborted, "code=400 msg=扭蛋没有普通赏")
+		return status.Error(codes.InvalidArgument, "扭蛋没有普通赏")
 	}
 	if err := db.Create(&entries).Error; err != nil {
 		return err
@@ -164,12 +164,12 @@ func materializeGashapon(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 		var total int64
 		for _, e := range entries {
 			if e.Quantity < 0 {
-				return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=扭蛋条目 %s 必须限量", e.Name))
+				return status.Error(codes.InvalidArgument, fmt.Sprintf("扭蛋条目 %s 必须限量", e.Name))
 			}
 			total += e.Quantity
 		}
 		if total <= 0 {
-			return status.Error(codes.Aborted, "code=400 msg=扭蛋总票数必须大于 0")
+			return status.Error(codes.InvalidArgument, "扭蛋总票数必须大于 0")
 		}
 		return db.Create(&gamemodelnc.GashaponState{
 			ConfigId:         v.PoolId,
@@ -191,14 +191,14 @@ func materializeGashapon(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 func materializeFullCar(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []gamemodelnc.PlayPoolPrize) error {
 	cfg, err := parseFullCarPoolConfig(v.ConfigJson)
 	if err != nil {
-		return status.Error(codes.Aborted, "code=400 msg=整车 configJson 非法: "+err.Error())
+		return status.Error(codes.InvalidArgument, "整车 configJson 非法: "+err.Error())
 	}
 	settlements := make([]core.FullCarSettlementPrize, 0)
 	entries := make([]gamemodel.FullCarEntries, 0)
 	for _, p := range prizes {
 		if p.SpecialKind == "SETTLEMENT" {
 			if p.PrizeType == 2 {
-				return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=整车结算奖 %s 暂不支持实物 SKU", p.Name))
+				return status.Error(codes.InvalidArgument, fmt.Sprintf("整车结算奖 %s 暂不支持实物 SKU", p.Name))
 			}
 			settlements = append(settlements, core.FullCarSettlementPrize{
 				Tier:             p.TargetValue,
@@ -241,7 +241,7 @@ func materializeFullCar(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []ga
 		return err
 	}
 	if len(entries) == 0 {
-		return status.Error(codes.Aborted, "code=400 msg=整车没有普通条目")
+		return status.Error(codes.InvalidArgument, "整车没有普通条目")
 	}
 	if err := db.Create(&entries).Error; err != nil {
 		return err
@@ -262,7 +262,7 @@ func materializeFullCar(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []ga
 func materializeComboChain(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []gamemodelnc.PlayPoolPrize) error {
 	cfg, err := parseComboChainPoolConfig(v.ConfigJson)
 	if err != nil {
-		return status.Error(codes.Aborted, "code=400 msg=连击链 configJson 非法: "+err.Error())
+		return status.Error(codes.InvalidArgument, "连击链 configJson 非法: "+err.Error())
 	}
 	globals := make([]core.ComboChainGlobalSlot, 0)
 	shared := make([]core.ComboChainSharedPrize, 0)
@@ -291,7 +291,7 @@ func materializeComboChain(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes [
 			}{}
 			if strings.TrimSpace(p.ExtraJson) != "" {
 				if err := json.Unmarshal([]byte(p.ExtraJson), &extra); err != nil {
-					return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=共享奖 %s 的 extraJson 非法: %v", p.Name, err))
+					return status.Error(codes.InvalidArgument, fmt.Sprintf("共享奖 %s 的 extraJson 非法: %v", p.Name, err))
 				}
 			}
 			shared = append(shared, core.ComboChainSharedPrize{
@@ -303,7 +303,7 @@ func materializeComboChain(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes [
 				PrizeShape:           shape,
 			})
 		default:
-			return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=连击链奖品 %s 类别非法", p.Name))
+			return status.Error(codes.InvalidArgument, fmt.Sprintf("连击链奖品 %s 类别非法", p.Name))
 		}
 	}
 	globalJSON, err := json.Marshal(globals)
@@ -335,7 +335,7 @@ func materializeComboChain(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes [
 func materializeDig(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []gamemodelnc.PlayPoolPrize) error {
 	cfg, err := parseDigPoolConfig(v.ConfigJson)
 	if err != nil {
-		return status.Error(codes.Aborted, "code=400 msg=挖宝 configJson 非法: "+err.Error())
+		return status.Error(codes.InvalidArgument, "挖宝 configJson 非法: "+err.Error())
 	}
 	cells := make([]gamemodel.DigBoxCells, 0, len(prizes))
 	for _, p := range prizes {
@@ -370,7 +370,7 @@ func materializeDig(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []gamemo
 		return err
 	}
 	if len(cells) == 0 {
-		return status.Error(codes.Aborted, "code=400 msg=挖宝没有格子")
+		return status.Error(codes.InvalidArgument, "挖宝没有格子")
 	}
 	return db.Create(&cells).Error
 }
@@ -389,7 +389,7 @@ func groupBuyNormalPrizeKind(p *gamemodelnc.PlayPoolPrize) int64 {
 func materializeGroupBuy(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []gamemodelnc.PlayPoolPrize) error {
 	cfg, err := parseGroupBuyPoolConfig(v.ConfigJson)
 	if err != nil {
-		return status.Error(codes.Aborted, "code=400 msg=拼团 configJson 非法: "+err.Error())
+		return status.Error(codes.InvalidArgument, "拼团 configJson 非法: "+err.Error())
 	}
 	type luckyJSON struct {
 		PrizeIndex       int64  `json:"prize_index"`
@@ -441,7 +441,7 @@ func materializeGroupBuy(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 		}
 		ordinal, ok := luckyOrdinal[int32(p.TargetValue)]
 		if !ok {
-			return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=幸运子奖 %s 指向的幸运奖不存在", p.Name))
+			return status.Error(codes.InvalidArgument, fmt.Sprintf("幸运子奖 %s 指向的幸运奖不存在", p.Name))
 		}
 		children = append(children, luckyChildJSON{
 			LuckyIndex:       int64(ordinal),
@@ -513,7 +513,7 @@ func materializeGroupBuy(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 		}
 		parentID, ok := parentIDs[p.ParentIndex]
 		if !ok {
-			return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=拼团子奖 %s 指向的父条目不存在", p.Name))
+			return status.Error(codes.InvalidArgument, fmt.Sprintf("拼团子奖 %s 指向的父条目不存在", p.Name))
 		}
 		if err := db.Create(&gamemodel.GroupBuyEntries{
 			ConfigId:         v.PoolId,
@@ -542,7 +542,7 @@ func materializeGroupBuy(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 func materializeMemoryMatch(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []gamemodelnc.PlayPoolPrize) error {
 	cfg, err := parseMemoryMatchPoolConfig(v.ConfigJson)
 	if err != nil {
-		return status.Error(codes.Aborted, "code=400 msg=记忆翻牌 configJson 非法: "+err.Error())
+		return status.Error(codes.InvalidArgument, "记忆翻牌 configJson 非法: "+err.Error())
 	}
 	weightsJSON, err := json.Marshal(cfg.PatternWeights)
 	if err != nil {
@@ -607,7 +607,7 @@ func materializeMemoryMatch(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes 
 		return err
 	}
 	if len(entries) == 0 {
-		return status.Error(codes.Aborted, "code=400 msg=记忆翻牌没有奖档")
+		return status.Error(codes.InvalidArgument, "记忆翻牌没有奖档")
 	}
 	return db.Create(&entries).Error
 }

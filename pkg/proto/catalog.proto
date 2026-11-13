@@ -16,6 +16,7 @@ service Catalog {
   rpc CreateProduct(CreateProductRequest) returns (Product);
   // 查看商品（ACTIVE 读已发布快照，否则读 live 草稿表）
   rpc GetProduct(GetProductRequest) returns (Product);
+rpc GetSKU(GetSKURequest) returns (SKU);
   // 商品列表（游标分页，摘要）
   rpc ListProducts(ListProductsRequest) returns (ListProductsReply);
   // 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
@@ -133,6 +134,10 @@ message CreateProductRequest {
 
 message GetProductRequest {
   uint64 productId = 1; // 商品ID
+}
+
+message GetSKURequest {
+  uint64 skuId = 1; // SKU ID
 }
 
 message ProductSummary {

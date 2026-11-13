@@ -21,7 +21,7 @@ var (
 )
 
 func abortf(format string, args ...interface{}) error {
-	return status.Error(codes.Aborted, "code=400 msg="+fmt.Sprintf(format, args...))
+	return status.Error(codes.InvalidArgument, fmt.Sprintf(format, args...))
 }
 
 // ── 各玩法 config_json DTO（camelCase；缺省值在 parse 内补齐）──

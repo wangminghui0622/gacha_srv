@@ -3,6 +3,7 @@ package svc
 import (
 	"time"
 
+	"gacha_srv/app/catalog/catalogClient"
 	"gacha_srv/app/marketing/marketingClient"
 	"gacha_srv/app/money/moneyClient"
 	"gacha_srv/app/play/internal/config"
@@ -76,6 +77,8 @@ type ServiceContext struct {
 	MoneyRpc moneyClient.Money
 	// MarketingRpc 营销服务客户端（锁报价/读报价/券名/发券，走 Etcd；旧同服务直连表）
 	MarketingRpc marketingClient.Marketing
+	// CatalogRpc 商品目录客户端（实物 SKU 校验）
+	CatalogRpc catalogClient.Catalog
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -108,6 +111,8 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	moneyRpc := moneyClient.NewMoney(zrpc.MustNewClient(c.MoneyRpc,
 		zrpc.WithUnaryClientInterceptor(errorx.ClientErrorInterceptor)))
 	marketingRpc := marketingClient.NewMarketing(zrpc.MustNewClient(c.MarketingRpc,
+		zrpc.WithUnaryClientInterceptor(errorx.ClientErrorInterceptor)))
+	catalogRpc := catalogClient.NewCatalog(zrpc.MustNewClient(c.CatalogRpc,
 		zrpc.WithUnaryClientInterceptor(errorx.ClientErrorInterceptor)))
 
 	return &ServiceContext{
@@ -157,5 +162,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 
 		MoneyRpc:     moneyRpc,
 		MarketingRpc: marketingRpc,
+		CatalogRpc:   catalogRpc,
 	}
 }

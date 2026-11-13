@@ -16,7 +16,7 @@ import (
 // GetPlayPoolVersion 查询统一玩赏池版本详情。
 func GetPlayPoolVersion(ctx context.Context, svcCtx *svc.ServiceContext, in *play.GetPlayPoolVersionReq) (*play.GetPlayPoolVersionResp, error) {
 	if in.PoolId <= 0 {
-		return nil, status.Error(codes.Aborted, "code=400 msg=poolId 非法")
+		return nil, status.Error(codes.InvalidArgument, "poolId 非法")
 	}
 	var v gamemodelnc.PlayPoolVersion
 	q := svcCtx.DB.Where("pool_id = ?", in.PoolId)
@@ -27,7 +27,7 @@ func GetPlayPoolVersion(ctx context.Context, svcCtx *svc.ServiceContext, in *pla
 	}
 	if err := q.First(&v).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, status.Error(codes.Aborted, "code=400 msg=赏池版本不存在")
+			return nil, status.Error(codes.InvalidArgument, "赏池版本不存在")
 		}
 		return nil, err
 	}

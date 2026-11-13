@@ -17,4 +17,6 @@ type Config struct {
 	MoneyRpc zrpc.RpcClientConf
 	// MarketingRpc 营销服务客户端（锁报价/读报价/券名/发券，走 Etcd；旧同服务直连表）
 	MarketingRpc zrpc.RpcClientConf
+	// CatalogRpc 商品目录客户端（发布实物 SKU 奖时校验 sku 存在性与履约方式）
+	CatalogRpc zrpc.RpcClientConf
 }

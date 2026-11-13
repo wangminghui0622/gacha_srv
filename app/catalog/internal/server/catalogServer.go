@@ -35,6 +35,11 @@ func (s *CatalogServer) GetProduct(ctx context.Context, in *catalog.GetProductRe
 	return l.GetProduct(in)
 }
 
+func (s *CatalogServer) GetSKU(ctx context.Context, in *catalog.GetSKURequest) (*catalog.SKU, error) {
+	l := logic.NewGetSKULogic(ctx, s.svcCtx)
+	return l.GetSKU(in)
+}
+
 // 商品列表（游标分页，摘要）
 func (s *CatalogServer) ListProducts(ctx context.Context, in *catalog.ListProductsRequest) (*catalog.ListProductsReply, error) {
 	l := logic.NewListProductsLogic(ctx, s.svcCtx)
