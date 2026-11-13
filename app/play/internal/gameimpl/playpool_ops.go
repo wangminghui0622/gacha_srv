@@ -22,7 +22,8 @@ func hashPlayPoolDraft(in *play.CreatePlayPoolDraftReq) string {
 		Tags       []string              `json:"tags"`
 		Periods    int64                 `json:"periods"`
 		Weight     int64                 `json:"weight"`
-	}{in.Mode, in.Name, in.PriceFen, in.ConfigJson, in.Prizes, in.IpId, in.Tags, in.Periods, in.Weight}
+		AdminJSON  string                `json:"adminJson"`
+	}{in.Mode, in.Name, in.PriceFen, in.ConfigJson, in.Prizes, in.IpId, in.Tags, in.Periods, in.Weight, in.AdminJson}
 	b, _ := json.Marshal(payload)
 	sum := sha256.Sum256(b)
 	return hex.EncodeToString(sum[:])

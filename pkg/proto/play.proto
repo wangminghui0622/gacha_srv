@@ -106,6 +106,7 @@ message CreatePlayPoolDraftReq {
   repeated string tags  = 9;
   int64 periods         = 10;
   int64 weight          = 11;
+  string adminJson      = 12; // 活动时间/开关/折扣/封面/优惠券等后台扩展字段
 }
 message CreatePlayPoolDraftResp {
   int64  poolId  = 1;

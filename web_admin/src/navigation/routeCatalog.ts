@@ -329,6 +329,15 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     component: () => import('@/views/gacha/PlayPoolManagementView.vue'),
   },
   {
+    name: 'gacha-create',
+    path: 'gacha/create',
+    title: 'nav.gachaPools',
+    permission: { resource: 'gacha.pool', action: 'create' },
+    showInMenu: false,
+    backFallback: '/gacha',
+    component: () => import('@/views/gacha/PlayPoolCreateView.vue'),
+  },
+  {
     name: 'gacha-match',
     path: 'gacha/match',
     title: 'nav.gachaMatch',

@@ -114,6 +114,7 @@ export const playPoolClient = {
     tags?: string[]
     periods?: number
     weight?: number
+    adminJson?: string
   }): Promise<{ poolId?: string; version?: string; status?: string }> {
     return http.post('/console/v2/api/gacha/play-pools/drafts', payload, {
       headers: { 'Idempotency-Key': payload.idempotencyKey },

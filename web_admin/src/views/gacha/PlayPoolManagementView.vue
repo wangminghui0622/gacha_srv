@@ -376,15 +376,7 @@ function setWeight(record: AdminPlayPool, value: number | null) {
 }
 
 function openCreate() {
-  createForm.mode = 'gashapon'
-  createForm.name = ''
-  createForm.priceYuan = 100
-  createForm.ipId = undefined
-  createForm.tags = []
-  createForm.periods = 0
-  createForm.weight = 0
-  resetSkeleton()
-  createOpen.value = true
+  router.push('/gacha/create')
 }
 
 async function copyPool(record: AdminPlayPool) {

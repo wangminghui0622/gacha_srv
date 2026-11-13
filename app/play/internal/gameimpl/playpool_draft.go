@@ -75,6 +75,10 @@ func CreatePlayPoolDraft(ctx context.Context, svcCtx *svc.ServiceContext, in *pl
 		if err != nil {
 			return status.Error(codes.InvalidArgument, "标签格式错误")
 		}
+		adminJSON := in.AdminJson
+		if adminJSON == "" {
+			adminJSON = "{}"
+		}
 		if err := tx.Model(&gamemodelnc.PlayPoolHead{}).Where("id = ?", head.Id).Updates(map[string]interface{}{
 			"name":         in.Name,
 			"next_version": version + 1,
@@ -82,6 +86,7 @@ func CreatePlayPoolDraft(ctx context.Context, svcCtx *svc.ServiceContext, in *pl
 			"tags_json":    tagsJSON,
 			"periods":      in.Periods,
 			"weight":       in.Weight,
+			"admin_json":   adminJSON,
 			"updated_at":   time.Now(),
 		}).Error; err != nil {
 			return err

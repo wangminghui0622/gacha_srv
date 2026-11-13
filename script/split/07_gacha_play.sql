@@ -690,6 +690,7 @@ CREATE TABLE IF NOT EXISTS `play_pool_heads` (
   `tags_json` varchar(1024) NOT NULL DEFAULT '[]' COMMENT '标签 JSON 数组',
   `periods` int unsigned NOT NULL DEFAULT '0' COMMENT '期数',
   `weight` int NOT NULL DEFAULT '0' COMMENT '权重/排序',
+  `admin_json` mediumtext COMMENT '后台扩展字段 JSON（活动时间/开关/折扣/封面/优惠券）',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
