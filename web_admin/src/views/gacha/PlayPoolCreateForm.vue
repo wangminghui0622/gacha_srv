@@ -582,8 +582,9 @@ onMounted(loadOptions)
 
 .create-actions {
   display: flex;
+  justify-content: center;
   gap: 10px;
-  margin: 16px 0 0 20.8%;
+  margin: 16px 0 0;
 }
 
 .create-actions button {
