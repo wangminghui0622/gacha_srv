@@ -154,6 +154,7 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     name: 'campaign',
     path: 'campaigns',
     title: 'nav.campaign',
+    menuTitle: 'nav.campaignWheel',
     permissions: [
       { resource: 'campaign.definition', action: 'read' },
       { resource: 'campaign.definition', action: 'write' },
@@ -162,6 +163,106 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     showInMenu: true,
     icon: FlagOutlined,
     menuGroup: 'operations',
+    backFallback: '/campaigns',
+    component: () => import('@/views/campaign/CampaignManagementView.vue'),
+  },
+  {
+    name: 'campaign-fortune',
+    path: 'campaigns/fortune',
+    title: 'nav.campaignFortune',
+    permission: { resource: 'campaign.definition', action: 'read' },
+    showInMenu: false,
+    backFallback: '/campaigns',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'campaign-fortune-rank',
+    path: 'campaigns/fortune-rank',
+    title: 'nav.campaignFortuneRank',
+    permission: { resource: 'campaign.definition', action: 'read' },
+    showInMenu: false,
+    backFallback: '/campaigns',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'campaign-rank',
+    path: 'campaigns/rank',
+    title: 'nav.campaignRank',
+    permission: { resource: 'campaign.definition', action: 'read' },
+    showInMenu: false,
+    backFallback: '/campaigns',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'campaign-fortune-multiplier',
+    path: 'campaigns/fortune-multiplier',
+    title: 'nav.campaignFortuneMultiplier',
+    permission: { resource: 'campaign.definition', action: 'read' },
+    showInMenu: false,
+    backFallback: '/campaigns',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'campaign-spend-coupon',
+    path: 'campaigns/spend-coupon',
+    title: 'nav.campaignSpendCoupon',
+    permission: { resource: 'campaign.definition', action: 'read' },
+    showInMenu: false,
+    backFallback: '/campaigns',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'campaign-exchange',
+    path: 'campaigns/exchange',
+    title: 'nav.campaignExchange',
+    permission: { resource: 'campaign.definition', action: 'read' },
+    showInMenu: false,
+    backFallback: '/campaigns',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'campaign-coupon-batch',
+    path: 'campaigns/coupon-batch',
+    title: 'nav.campaignCouponBatch',
+    permission: { resource: 'promotion.coupon_template', action: 'read' },
+    showInMenu: false,
+    backFallback: '/campaigns',
+    component: () => import('@/views/promotion/CouponManagementView.vue'),
+  },
+  {
+    name: 'campaign-item-batch',
+    path: 'campaigns/item-batch',
+    title: 'nav.campaignItemBatch',
+    permission: { resource: 'campaign.definition', action: 'read' },
+    showInMenu: false,
+    backFallback: '/campaigns',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'campaign-random-discount',
+    path: 'campaigns/random-discount',
+    title: 'nav.campaignRandomDiscount',
+    permission: { resource: 'campaign.definition', action: 'read' },
+    showInMenu: false,
+    backFallback: '/campaigns',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'campaign-chaodan',
+    path: 'campaigns/chaodan',
+    title: 'nav.campaignChaodan',
+    permission: { resource: 'campaign.definition', action: 'read' },
+    showInMenu: false,
+    backFallback: '/campaigns',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'campaign-redeem',
+    path: 'campaigns/redeem-code',
+    title: 'nav.campaignRedeem',
+    permission: { resource: 'campaign.definition', action: 'read' },
+    showInMenu: false,
+    backFallback: '/campaigns',
     component: () => import('@/views/campaign/CampaignManagementView.vue'),
   },
   {
@@ -246,11 +347,68 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     name: 'customers',
     path: 'customers',
     title: 'nav.customers',
+    menuTitle: 'nav.customerUsers',
     permission: { resource: 'reporting.metric', action: 'read' },
     showInMenu: true,
     icon: UserOutlined,
     backFallback: '/catalog',
     component: () => import('@/views/customers/CustomerManagementView.vue'),
+  },
+  {
+    name: 'customer-shipments',
+    path: 'customers/shipments',
+    title: 'nav.customerShipments',
+    showInMenu: false,
+    backFallback: '/customers',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'customer-sms',
+    path: 'customers/sms',
+    title: 'nav.customerSms',
+    showInMenu: false,
+    backFallback: '/customers',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'customer-refunds',
+    path: 'customers/refunds',
+    title: 'nav.customerRefunds',
+    showInMenu: false,
+    backFallback: '/customers',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'customer-recharges',
+    path: 'customers/recharges',
+    title: 'nav.customerRecharges',
+    showInMenu: false,
+    backFallback: '/customers',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'customer-stored-refunds',
+    path: 'customers/stored-refunds',
+    title: 'nav.customerStoredRefunds',
+    showInMenu: false,
+    backFallback: '/customers',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'customer-jishi-orders',
+    path: 'customers/jishi-orders',
+    title: 'nav.customerJishiOrders',
+    showInMenu: false,
+    backFallback: '/customers',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'customer-wallet-reset',
+    path: 'customers/wallet-reset',
+    title: 'nav.customerWalletReset',
+    showInMenu: false,
+    backFallback: '/customers',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
   },
   {
     name: 'system',
@@ -344,7 +502,31 @@ export interface MenuNode {
 
 const CATALOG_CHILDREN = ['catalog-ip', 'catalog-brand', 'catalog-series', 'catalog'] as const
 const GACHA_CHILDREN = ['gacha-grade', 'gacha', 'gacha-match', 'gacha-codex'] as const
-const PRIMARY_LEAVES = ['customers', 'campaign', 'system', 'accounts'] as const
+const CUSTOMER_CHILDREN = [
+  'customers',
+  'customer-shipments',
+  'customer-sms',
+  'customer-refunds',
+  'customer-recharges',
+  'customer-stored-refunds',
+  'customer-jishi-orders',
+  'customer-wallet-reset',
+] as const
+const CAMPAIGN_CHILDREN = [
+  'campaign-fortune',
+  'campaign-fortune-rank',
+  'campaign-rank',
+  'campaign-fortune-multiplier',
+  'campaign-spend-coupon',
+  'campaign-exchange',
+  'campaign-coupon-batch',
+  'campaign-item-batch',
+  'campaign-random-discount',
+  'campaign',
+  'campaign-chaodan',
+  'campaign-redeem',
+] as const
+const PRIMARY_LEAVES = ['system', 'accounts'] as const
 
 export function accessibleRoutes(nodes: PermissionNode[]): ConsoleRouteDef[] {
   return consoleRouteCatalog.filter((item) => !item.placeholder && granted(item, nodes))
@@ -367,6 +549,14 @@ export function menuTree(nodes: PermissionNode[]): MenuNode[] {
   const gachaChildren = childNodes(GACHA_CHILDREN, nodes, byName)
   if (gachaChildren.length > 0) {
     tree.push({ key: 'gacha-group', title: 'nav.gacha', icon: GiftOutlined, children: gachaChildren })
+  }
+  const customerChildren = childNodes(CUSTOMER_CHILDREN, nodes, byName)
+  if (customerChildren.length > 0) {
+    tree.push({ key: 'customer-group', title: 'nav.customers', icon: UserOutlined, children: customerChildren })
+  }
+  const campaignChildren = childNodes(CAMPAIGN_CHILDREN, nodes, byName)
+  if (campaignChildren.length > 0) {
+    tree.push({ key: 'campaign-group', title: 'nav.campaign', icon: FireOutlined, children: campaignChildren })
   }
   for (const name of PRIMARY_LEAVES) {
     const item = byName.get(name)

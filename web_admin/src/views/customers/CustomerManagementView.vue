@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader :title="$t('nav.customers')" :show-back="false" />
+    <PageHeader :title="$t('nav.customerUsers')" :show-back="false" />
     <a-row :gutter="16">
       <a-col :xs="24" :md="14">
         <a-card :title="$t('customers.searchTitle')">

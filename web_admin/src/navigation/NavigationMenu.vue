@@ -121,8 +121,8 @@ nav {
 }
 
 .side-menu-popup .ant-menu-item {
-  height: 40px;
-  line-height: 40px;
+  height: 44px !important;
+  line-height: 44px !important;
   margin: 0 !important;
   width: 100% !important;
   border-radius: 0;
