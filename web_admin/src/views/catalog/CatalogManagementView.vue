@@ -147,11 +147,12 @@
       :confirm-loading="saving"
       :mask-closable="false"
       width="820px"
-      :body-style="{ maxHeight: '72vh', overflowY: 'auto' }"
+      :style="{ top: '16px' }"
+      :body-style="{ maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }"
       @ok="save"
     >
       <a-spin :spinning="detailLoading">
-        <a-form :label-col="{ span: 4 }" :wrapper-col="{ span: 19 }">
+        <a-form class="product-form" :label-col="{ span: 4 }" :wrapper-col="{ span: 19 }">
           <a-form-item :label="$t('catalog.nameLabel')" required>
             <a-input v-model:value="form.title" :maxlength="255" :placeholder="$t('catalog.nameLabel')" />
           </a-form-item>
@@ -734,6 +735,10 @@ onMounted(async () => {
   display: flex;
   justify-content: flex-end;
   margin-top: 16px;
+}
+
+.product-form :deep(.ant-form-item) {
+  margin-bottom: 12px;
 }
 
 .detail-params {
