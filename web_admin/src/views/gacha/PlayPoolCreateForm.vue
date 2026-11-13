@@ -1,5 +1,7 @@
 <template>
   <div class="create-form">
+    <div class="form-layout">
+      <div class="form-left">
       <a-form :label-col="{ span: 5 }" :wrapper-col="{ span: 18 }" label-align="right">
         <a-form-item label="主题名称" required>
           <a-input v-model:value="form.name" placeholder="主题名称" />
@@ -29,53 +31,6 @@
         <a-form-item label="排序权重">
           <a-input-number v-model:value="form.sortWeight" :min="0" :precision="0" style="width: 100%" />
         </a-form-item>
-
-        <div class="prize-section">
-          <div class="prize-label">赏品配置：</div>
-          <div class="prize-config">
-            <a-table :data-source="prizes" :pagination="false" row-key="prizeIndex" size="small" :locale="{ emptyText: '暂无数据' }">
-              <a-table-column title="序号" data-index="prizeIndex" width="60" align="center" />
-              <a-table-column title="赏别" data-index="prizeGrade" width="90" align="center" />
-              <a-table-column title="类型" width="80" align="center">
-                <template #default="{ record }">{{ record.prizeType === 2 ? '商品' : '虚拟' }}</template>
-              </a-table-column>
-              <a-table-column title="赏品" data-index="name" align="center" />
-              <a-table-column title="缩略图" width="90" align="center">
-                <template #default>—</template>
-              </a-table-column>
-              <a-table-column title="中奖记录" width="90" align="center">
-                <template #default="{ record }">{{ record.isPrize ? '是' : '否' }}</template>
-              </a-table-column>
-              <a-table-column title="成本价" width="90" align="center">
-                <template #default="{ record }">{{ Number(record.costFen ?? 0) / 100 }}</template>
-              </a-table-column>
-              <a-table-column title="总数" data-index="quantity" width="70" align="center" />
-              <a-table-column title="概率(%)" width="90" align="center">
-                <template #default="{ record }">{{ probability(record) }}</template>
-              </a-table-column>
-              <a-table-column title="操作" width="80" align="center">
-                <template #default="{ record }">
-                  <a-button type="link" danger size="small" @click="removePrize(record.prizeIndex)">删除</a-button>
-                </template>
-              </a-table-column>
-            </a-table>
-
-            <div class="prize-inline">
-              <a-select v-model:value="prizeDraft.prizeGrade" :options="gradeOptions" style="width: 100px" />
-              <a-select v-model:value="prizeDraft.prizeType" :options="prizeTypeOptions" style="width: 100px" />
-              <div class="prize-picker">
-                <a-button v-if="prizeDraft.prizeType === 2" @click="skuModalOpen = true">选择赏品</a-button>
-                <span v-if="prizeDraft.prizeType === 2 && prizeDraft.skuId" class="picked-sku">SKU {{ prizeDraft.skuId }}</span>
-                <a-input v-else v-model:value="prizeDraft.name" placeholder="赏品名称" />
-              </div>
-              <span class="inline-label">中奖记录</span>
-              <a-switch v-model:checked="prizeDraft.isPrize" />
-              <a-input-number v-model:value="prizeDraft.costYuan" :min="0" :precision="2" style="width: 90px" />
-              <a-button @click="addPrize">添加</a-button>
-              <a-button @click="clearPrizeDraft">清除</a-button>
-            </div>
-          </div>
-        </div>
 
         <a-form-item label="优惠券">
           <div class="coupon-config">
@@ -121,6 +76,56 @@
           </div>
         </a-form-item>
       </a-form>
+      </div>
+
+      <div class="form-right">
+        <div class="prize-section">
+          <div class="prize-label">赏品配置：</div>
+          <div class="prize-config">
+            <a-table :data-source="prizes" :pagination="false" row-key="prizeIndex" size="small" :locale="{ emptyText: '暂无数据' }" :scroll="{ x: 680 }">
+              <a-table-column title="序号" data-index="prizeIndex" width="50" align="center" />
+              <a-table-column title="赏别" data-index="prizeGrade" width="80" align="center" />
+              <a-table-column title="类型" width="70" align="center">
+                <template #default="{ record }">{{ record.prizeType === 2 ? '商品' : '虚拟' }}</template>
+              </a-table-column>
+              <a-table-column title="赏品" data-index="name" align="center" />
+              <a-table-column title="缩略图" width="70" align="center">
+                <template #default>—</template>
+              </a-table-column>
+              <a-table-column title="中奖记录" width="80" align="center">
+                <template #default="{ record }">{{ record.isPrize ? '是' : '否' }}</template>
+              </a-table-column>
+              <a-table-column title="成本价" width="80" align="center">
+                <template #default="{ record }">{{ Number(record.costFen ?? 0) / 100 }}</template>
+              </a-table-column>
+              <a-table-column title="总数" data-index="quantity" width="60" align="center" />
+              <a-table-column title="概率(%)" width="80" align="center">
+                <template #default="{ record }">{{ probability(record) }}</template>
+              </a-table-column>
+              <a-table-column title="操作" width="80" align="center">
+                <template #default="{ record }">
+                  <a-button type="link" danger size="small" @click="removePrize(record.prizeIndex)">删除</a-button>
+                </template>
+              </a-table-column>
+            </a-table>
+
+            <div class="prize-inline">
+              <a-select v-model:value="prizeDraft.prizeGrade" :options="gradeOptions" style="width: 90px" />
+              <a-select v-model:value="prizeDraft.prizeType" :options="prizeTypeOptions" style="width: 85px" />
+              <div class="prize-picker">
+                <a-button v-if="prizeDraft.prizeType === 2" @click="skuModalOpen = true">选择赏品</a-button>
+                <span v-if="prizeDraft.prizeType === 2 && prizeDraft.skuId" class="picked-sku">SKU {{ prizeDraft.skuId }}</span>
+                <a-input v-else v-model:value="prizeDraft.name" placeholder="赏品名称" />
+              </div>
+              <a-switch v-model:checked="prizeDraft.isPrize" />
+              <a-input-number v-model:value="prizeDraft.costYuan" :min="0" :precision="2" style="width: 80px" />
+              <a-button @click="addPrize">添加</a-button>
+              <a-button @click="clearPrizeDraft">清除</a-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
       <div class="switch-panel">
         <div class="switch-panel-title">其他设置</div>
@@ -410,29 +415,38 @@ onMounted(loadOptions)
   width: 100%;
 }
 
+.form-layout {
+  display: grid;
+  grid-template-columns: minmax(420px, 42%) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.form-left,
+.form-right {
+  min-width: 0;
+}
+
 .prize-section {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 24px;
+  margin-bottom: 0;
 }
 
 .prize-label {
-  flex: 0 0 20.833333%;
-  box-sizing: border-box;
-  padding: 6px 8px 0 0;
+  padding: 6px 0 10px;
   color: #606266;
   font-size: 14px;
-  font-weight: 400;
-  text-align: right;
+  font-weight: 500;
+  text-align: left;
 }
 
 .prize-config {
-  flex: 1;
+  width: 100%;
   min-width: 0;
 }
 
 .prize-inline {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   margin-top: 8px;

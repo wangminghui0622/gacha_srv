@@ -86,7 +86,8 @@
       v-model:open="createModalOpen"
       :title="$t('poolAdmin.createTitle')"
       centered
-      width="1180px"
+      width="96vw"
+      :style="{ maxWidth: '1360px' }"
       :footer="null"
       :destroy-on-close="true"
       :body-style="{ maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }"
