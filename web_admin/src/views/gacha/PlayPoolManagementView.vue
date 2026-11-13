@@ -396,16 +396,18 @@ function setWeight(record: AdminPlayPool, value: number | null) {
 
 function syncCreateModalLayout() {
   const content = document.querySelector('.content')
-  const rect = content?.getBoundingClientRect()
-  if (!rect || rect.width <= 0) return
+  if (!content) return
+  const sider = document.querySelector('.desktop-sider')
+  const siderRect = sider?.getBoundingClientRect()
+  const leftBound = siderRect && siderRect.width > 0 ? siderRect.right : 0
   const gap = window.innerWidth <= 767 ? 12 : 16
   const viewportRight = document.body.clientWidth || document.documentElement.clientWidth
   const scrollbar = Math.max(0, window.innerWidth - viewportRight)
   createModalWrapStyle.value = {
-    left: `${Math.round(rect.left)}px`,
+    left: `${Math.round(leftBound)}px`,
     right: `${scrollbar}px`,
   }
-  createModalWidth.value = `${Math.max(320, Math.round(viewportRight - rect.left - gap * 2))}px`
+  createModalWidth.value = `${Math.max(320, Math.round(viewportRight - leftBound - gap * 2))}px`
 }
 
 function onWindowResize() {
