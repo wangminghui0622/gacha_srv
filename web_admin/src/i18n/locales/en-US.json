@@ -143,6 +143,25 @@
     "updated": "IP updated",
     "itemsPerPage": "/ page"
   },
+  "catalogBrand": {
+    "searchPlaceholder": "Brand",
+    "query": "Query",
+    "create": "Create",
+    "name": "Brand",
+    "logo": "Logo",
+    "edit": "Edit",
+    "createTitle": "Create brand",
+    "editTitle": "Edit brand",
+    "nameLabel": "Brand name",
+    "namePlaceholder": "Enter brand name",
+    "logoLabel": "Logo URL",
+    "logoPlaceholder": "Enter logo image URL",
+    "nameRequired": "Enter brand name",
+    "logoTooLong": "Logo URL cannot exceed 512 characters",
+    "created": "Brand created",
+    "updated": "Brand updated",
+    "itemsPerPage": "/ page"
+  },
   "login": {
     "title": "Lucky Box Admin Console",
     "username": "Username",

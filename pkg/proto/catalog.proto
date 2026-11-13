@@ -25,6 +25,12 @@ rpc GetSKU(GetSKURequest) returns (SKU);
   rpc CreateIP(CreateIPRequest) returns (IP);
   // 编辑 IP 名称/排序权重
   rpc UpdateIP(UpdateIPRequest) returns (IP);
+  // 品牌列表（分页 + 名称搜索）
+  rpc ListBrands(ListBrandsRequest) returns (ListBrandsReply);
+  // 创建品牌
+  rpc CreateBrand(CreateBrandRequest) returns (Brand);
+  // 编辑品牌名称/Logo
+  rpc UpdateBrand(UpdateBrandRequest) returns (Brand);
   // 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
   rpc PublishProduct(PublishProductRequest) returns (Product);
   // 读取已发布快照（任意历史版本）
@@ -192,6 +198,36 @@ message UpdateIPRequest {
   uint64 ipId = 1;      // IP ID
   string name = 2;      // IP 名称
   int32 sortWeight = 3; // 排序权重
+}
+
+message Brand {
+  uint64 brandId = 1; // 品牌 ID
+  string name = 2;    // 品牌名称
+  string logo = 3;    // Logo 图片地址
+}
+
+message ListBrandsRequest {
+  string keyword = 1;  // 名称模糊搜索（空=全部）
+  uint32 page = 2;     // 页码（从 1 开始）
+  uint32 pageSize = 3; // 每页条数（默认 15，最大 100）
+}
+
+message ListBrandsReply {
+  repeated Brand brands = 1; // 品牌列表
+  uint64 total = 2;          // 总条数
+  uint32 page = 3;           // 当前页码
+  uint32 pageSize = 4;       // 每页条数
+}
+
+message CreateBrandRequest {
+  string name = 1; // 品牌名称
+  string logo = 2; // Logo 图片地址
+}
+
+message UpdateBrandRequest {
+  uint64 brandId = 1; // 品牌 ID
+  string name = 2;    // 品牌名称
+  string logo = 3;    // Logo 图片地址
 }
 
 message GetPublishedProductRequest {

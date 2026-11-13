@@ -64,6 +64,24 @@ func (s *CatalogServer) UpdateIP(ctx context.Context, in *catalog.UpdateIPReques
 	return l.UpdateIP(in)
 }
 
+// 品牌列表（分页 + 名称搜索）
+func (s *CatalogServer) ListBrands(ctx context.Context, in *catalog.ListBrandsRequest) (*catalog.ListBrandsReply, error) {
+	l := logic.NewListBrandsLogic(ctx, s.svcCtx)
+	return l.ListBrands(in)
+}
+
+// 创建品牌
+func (s *CatalogServer) CreateBrand(ctx context.Context, in *catalog.CreateBrandRequest) (*catalog.Brand, error) {
+	l := logic.NewCreateBrandLogic(ctx, s.svcCtx)
+	return l.CreateBrand(in)
+}
+
+// 编辑品牌名称/Logo
+func (s *CatalogServer) UpdateBrand(ctx context.Context, in *catalog.UpdateBrandRequest) (*catalog.Brand, error) {
+	l := logic.NewUpdateBrandLogic(ctx, s.svcCtx)
+	return l.UpdateBrand(in)
+}
+
 // 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
 func (s *CatalogServer) PublishProduct(ctx context.Context, in *catalog.PublishProductRequest) (*catalog.Product, error) {
 	l := logic.NewPublishProductLogic(ctx, s.svcCtx)

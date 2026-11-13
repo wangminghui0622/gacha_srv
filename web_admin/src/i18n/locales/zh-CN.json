@@ -143,6 +143,25 @@
     "updated": "IP 已更新",
     "itemsPerPage": "条/页"
   },
+  "catalogBrand": {
+    "searchPlaceholder": "品牌",
+    "query": "查询",
+    "create": "创建",
+    "name": "品牌",
+    "logo": "logo",
+    "edit": "编辑",
+    "createTitle": "创建品牌",
+    "editTitle": "编辑品牌",
+    "nameLabel": "品牌名称",
+    "namePlaceholder": "请输入品牌名称",
+    "logoLabel": "Logo 地址",
+    "logoPlaceholder": "请输入 Logo 图片地址",
+    "nameRequired": "请输入品牌名称",
+    "logoTooLong": "Logo 地址不能超过 512 个字符",
+    "created": "品牌已创建",
+    "updated": "品牌已更新",
+    "itemsPerPage": "条/页"
+  },
   "login": {
     "title": "Lucky Box 管理后台",
     "username": "用户名",

@@ -41,3 +41,17 @@ func mapIPRepoErr(err error) error {
 		return errorx.FromError(err)
 	}
 }
+
+// mapBrandRepoErr 品牌数据访问错误 → 业务码。
+func mapBrandRepoErr(err error) error {
+	switch {
+	case err == nil:
+		return nil
+	case errors.Is(err, repo.ErrNotFound):
+		return errorx.NewCodeError(errorx.CodeCatalogNotFound, "品牌不存在")
+	case errors.Is(err, repo.ErrBrandExists):
+		return errorx.NewCodeError(errorx.CodeCatalogInvalid, "品牌名称已存在")
+	default:
+		return errorx.FromError(err)
+	}
+}

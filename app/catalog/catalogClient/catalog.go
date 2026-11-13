@@ -14,6 +14,8 @@ import (
 )
 
 type (
+	Brand                             = catalog.Brand
+	CreateBrandRequest                = catalog.CreateBrandRequest
 	CreateIPRequest                   = catalog.CreateIPRequest
 	CreateOptionValueInput            = catalog.CreateOptionValueInput
 	CreateProductOptionInput          = catalog.CreateProductOptionInput
@@ -25,6 +27,8 @@ type (
 	GetPublishedProductRequest        = catalog.GetPublishedProductRequest
 	GetSKURequest                     = catalog.GetSKURequest
 	IP                                = catalog.IP
+	ListBrandsReply                   = catalog.ListBrandsReply
+	ListBrandsRequest                 = catalog.ListBrandsRequest
 	ListIPsReply                      = catalog.ListIPsReply
 	ListIPsRequest                    = catalog.ListIPsRequest
 	ListProductsReply                 = catalog.ListProductsReply
@@ -41,6 +45,7 @@ type (
 	SKUSelection                      = catalog.SKUSelection
 	SaveProductRevisionRequest        = catalog.SaveProductRevisionRequest
 	SaveProductVariantRevisionRequest = catalog.SaveProductVariantRevisionRequest
+	UpdateBrandRequest                = catalog.UpdateBrandRequest
 	UpdateIPRequest                   = catalog.UpdateIPRequest
 
 	Catalog interface {
@@ -57,6 +62,12 @@ type (
 		CreateIP(ctx context.Context, in *CreateIPRequest, opts ...grpc.CallOption) (*IP, error)
 		// 编辑 IP 名称/排序权重
 		UpdateIP(ctx context.Context, in *UpdateIPRequest, opts ...grpc.CallOption) (*IP, error)
+		// 品牌列表（分页 + 名称搜索）
+		ListBrands(ctx context.Context, in *ListBrandsRequest, opts ...grpc.CallOption) (*ListBrandsReply, error)
+		// 创建品牌
+		CreateBrand(ctx context.Context, in *CreateBrandRequest, opts ...grpc.CallOption) (*Brand, error)
+		// 编辑品牌名称/Logo
+		UpdateBrand(ctx context.Context, in *UpdateBrandRequest, opts ...grpc.CallOption) (*Brand, error)
 		// 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
 		PublishProduct(ctx context.Context, in *PublishProductRequest, opts ...grpc.CallOption) (*Product, error)
 		// 读取已发布快照（任意历史版本）
@@ -121,6 +132,24 @@ func (m *defaultCatalog) CreateIP(ctx context.Context, in *CreateIPRequest, opts
 func (m *defaultCatalog) UpdateIP(ctx context.Context, in *UpdateIPRequest, opts ...grpc.CallOption) (*IP, error) {
 	client := catalog.NewCatalogClient(m.cli.Conn())
 	return client.UpdateIP(ctx, in, opts...)
+}
+
+// 品牌列表（分页 + 名称搜索）
+func (m *defaultCatalog) ListBrands(ctx context.Context, in *ListBrandsRequest, opts ...grpc.CallOption) (*ListBrandsReply, error) {
+	client := catalog.NewCatalogClient(m.cli.Conn())
+	return client.ListBrands(ctx, in, opts...)
+}
+
+// 创建品牌
+func (m *defaultCatalog) CreateBrand(ctx context.Context, in *CreateBrandRequest, opts ...grpc.CallOption) (*Brand, error) {
+	client := catalog.NewCatalogClient(m.cli.Conn())
+	return client.CreateBrand(ctx, in, opts...)
+}
+
+// 编辑品牌名称/Logo
+func (m *defaultCatalog) UpdateBrand(ctx context.Context, in *UpdateBrandRequest, opts ...grpc.CallOption) (*Brand, error) {
+	client := catalog.NewCatalogClient(m.cli.Conn())
+	return client.UpdateBrand(ctx, in, opts...)
 }
 
 // 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）

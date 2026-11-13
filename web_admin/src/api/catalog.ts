@@ -117,6 +117,31 @@ export const catalogIpClient = {
   },
 }
 
+export interface BrandItem {
+  brandId?: string
+  name?: string
+  logo?: string
+}
+
+export interface ListBrandsReply {
+  brands?: BrandItem[]
+  total?: string
+  page?: number
+  pageSize?: number
+}
+
+export const catalogBrandClient = {
+  List({ keyword, page, pageSize }: { keyword: string; page: number; pageSize: number }): Promise<ListBrandsReply> {
+    return http.get('/console/v2/api/catalog/brands', { params: { keyword, page, pageSize } })
+  },
+  Create(payload: { name: string; logo: string }): Promise<BrandItem> {
+    return http.post('/console/v2/api/catalog/brands', payload)
+  },
+  Update(brandId: string, payload: { name: string; logo: string }): Promise<BrandItem> {
+    return http.put(`/console/v2/api/catalog/brands/${encodeURIComponent(brandId)}`, payload)
+  },
+}
+
 export const catalogClient = {
   Get({ productId }: { productId: string }): Promise<Product> {
     return http.get(`/console/v2/api/catalog/products/${encodeURIComponent(productId)}`)

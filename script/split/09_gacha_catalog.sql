@@ -79,6 +79,16 @@ CREATE TABLE IF NOT EXISTS `catalog_ips` (
   KEY `idx_catalog_ip_sort` (`sort_weight`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='IP 列表';
 
+CREATE TABLE IF NOT EXISTS `catalog_brands` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '品牌 ID',
+  `name` varchar(128) NOT NULL COMMENT '品牌名称',
+  `logo` varchar(512) NOT NULL DEFAULT '' COMMENT 'Logo 图片地址',
+  `created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  `updated_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_catalog_brand_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='品牌列表';
+
 CREATE TABLE IF NOT EXISTS `sku_selections` (
   `sku_id` bigint unsigned NOT NULL COMMENT 'SKU ID',
   `option_id` bigint unsigned NOT NULL COMMENT '选项ID',
@@ -134,6 +144,28 @@ FROM (
   UNION ALL SELECT '明日方舟', 30
 ) AS seed
 WHERE NOT EXISTS (SELECT 1 FROM `catalog_ips`);
+
+-- 品牌列表演示数据：仅在表为空时插入（可重复执行；倒序插入以匹配 ID 倒序展示）
+INSERT INTO `catalog_brands` (`name`, `logo`)
+SELECT seed.name, seed.logo
+FROM (
+  SELECT 'OPPO' AS name, '' AS logo
+  UNION ALL SELECT 'vivo', ''
+  UNION ALL SELECT '荣耀', ''
+  UNION ALL SELECT '三星', ''
+  UNION ALL SELECT '寻找独角兽', ''
+  UNION ALL SELECT '蜂蜜罐', ''
+  UNION ALL SELECT '线条小狗', ''
+  UNION ALL SELECT 'MORTEN SOLUM', ''
+  UNION ALL SELECT '星辰铸造', ''
+  UNION ALL SELECT '志扬玩具', ''
+  UNION ALL SELECT '共鸣GONG', ''
+  UNION ALL SELECT '影之刃零', ''
+  UNION ALL SELECT '飞智 FLYDIGI', ''
+  UNION ALL SELECT '玩家国度', ''
+  UNION ALL SELECT '盖世小鸡', ''
+) AS seed
+WHERE NOT EXISTS (SELECT 1 FROM `catalog_brands`);
 
 SET FOREIGN_KEY_CHECKS = 1;
 

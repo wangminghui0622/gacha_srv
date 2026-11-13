@@ -25,9 +25,10 @@ import (
 
 // 业务哨兵错误（logic 层映射 errorx 4001/4002）
 var (
-	ErrNotFound = errors.New("product not found")
-	ErrConflict = errors.New("product version or status conflict")
-	ErrIPExists = errors.New("ip name already exists")
+	ErrNotFound    = errors.New("product not found")
+	ErrConflict    = errors.New("product version or status conflict")
+	ErrIPExists    = errors.New("ip name already exists")
+	ErrBrandExists = errors.New("brand name already exists")
 )
 
 // 状态取值（与 proto ProductStatus 同值）
@@ -60,6 +61,16 @@ type ipRow struct {
 }
 
 func (ipRow) TableName() string { return "catalog_ips" }
+
+type brandRow struct {
+	ID        uint64    `gorm:"column:id;primaryKey;autoIncrement"`
+	Name      string    `gorm:"column:name"`
+	Logo      string    `gorm:"column:logo"`
+	CreatedAt time.Time `gorm:"column:created_at"`
+	UpdatedAt time.Time `gorm:"column:updated_at"`
+}
+
+func (brandRow) TableName() string { return "catalog_brands" }
 
 type optionRow struct {
 	ID        uint64 `gorm:"column:id;primaryKey;autoIncrement"`
@@ -761,4 +772,69 @@ func (r *Repo) UpdateIP(ctx context.Context, id uint64, name string, sortWeight 
 
 func ipToProto(row ipRow) *catalogpb.IP {
 	return &catalogpb.IP{IpId: row.ID, Name: row.Name, SortWeight: row.SortWeight}
+}
+
+// ── 品牌列表 ──
+
+// ListBrands 按名称模糊搜索 + ID 倒序分页。
+func (r *Repo) ListBrands(ctx context.Context, keyword string, page, pageSize uint32) ([]*catalogpb.Brand, uint64, error) {
+	query := func() *gorm.DB {
+		q := r.db.WithContext(ctx).Model(&brandRow{})
+		if keyword != "" {
+			q = q.Where("name LIKE ?", "%"+keyword+"%")
+		}
+		return q
+	}
+
+	var total int64
+	if err := query().Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	var rows []brandRow
+	offset := int64(page-1) * int64(pageSize)
+	if err := query().Order("id DESC").Offset(int(offset)).Limit(int(pageSize)).
+		Find(&rows).Error; err != nil {
+		return nil, 0, err
+	}
+	out := make([]*catalogpb.Brand, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, brandToProto(row))
+	}
+	return out, uint64(total), nil
+}
+
+// CreateBrand 新建品牌；名称唯一冲突返回 ErrBrandExists。
+func (r *Repo) CreateBrand(ctx context.Context, name, logo string) (*catalogpb.Brand, error) {
+	row := brandRow{Name: name, Logo: logo}
+	if err := r.db.WithContext(ctx).Create(&row).Error; err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, ErrBrandExists
+		}
+		return nil, err
+	}
+	return brandToProto(row), nil
+}
+
+// UpdateBrand 编辑品牌；不存在返回 ErrNotFound，名称冲突返回 ErrBrandExists。
+func (r *Repo) UpdateBrand(ctx context.Context, id uint64, name, logo string) (*catalogpb.Brand, error) {
+	var row brandRow
+	if err := r.db.WithContext(ctx).First(&row, "id = ?", id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	row.Name = name
+	row.Logo = logo
+	if err := r.db.WithContext(ctx).Save(&row).Error; err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, ErrBrandExists
+		}
+		return nil, err
+	}
+	return brandToProto(row), nil
+}
+
+func brandToProto(row brandRow) *catalogpb.Brand {
+	return &catalogpb.Brand{BrandId: row.ID, Name: row.Name, Logo: row.Logo}
 }
