@@ -236,18 +236,6 @@ async function onLogout() {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
-.submenu-card::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 6px;
-  height: 2px;
-  background: #409eff;
-  border-radius: 1px;
-  transform: translateY(-50%);
-  z-index: 2;
-}
 .mobile-submenu-panel {
   margin: 8px;
   background: #fff;
