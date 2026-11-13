@@ -456,6 +456,7 @@ onMounted(loadOptions)
   width: 100%;
   min-width: 0;
   min-height: 0;
+  border: 1px solid #f0f0f0;
 }
 
 .prize-table-wrap {
