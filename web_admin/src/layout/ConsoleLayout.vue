@@ -24,8 +24,10 @@
         @toggle-group="toggleGroup"
         @navigate="navigate"
       />
-      <div v-if="activeGroup" class="secondary-title mobile">{{ $t(activeGroup.title) }}</div>
-      <SubmenuList v-if="activeGroup" :group="activeGroup" @navigate="mobileOpen = false" />
+      <div v-if="activeGroup" class="mobile-submenu-panel">
+        <div class="secondary-title mobile">{{ $t(activeGroup.title) }}</div>
+        <SubmenuList :group="activeGroup" @navigate="mobileOpen = false" />
+      </div>
     </a-drawer>
     <a-layout>
       <a-layout-header class="header">
@@ -168,10 +170,11 @@ async function onLogout() {
   align-self: stretch;
   width: 0;
   overflow: hidden;
-  background: #263445;
+  background: transparent;
 }
 .secondary-sider.open {
   width: 144px;
+  border-right: 1px solid #e4e7ed;
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -180,15 +183,16 @@ async function onLogout() {
   height: 48px;
   line-height: 48px;
   padding: 0 16px;
-  color: #fff;
+  color: #303133;
   font-size: 14px;
   font-weight: 600;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid #e4e7ed;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.secondary-title.mobile { background: #263445; }
+.secondary-title.mobile { background: #fff; }
+.mobile-submenu-panel { background: #fff; }
 .header {
   height: 48px;
   line-height: normal;

@@ -41,19 +41,19 @@ function isActive(path: string): boolean {
   padding: 9px 16px;
   line-height: 20px;
   font-size: 14px;
-  color: #bfcbd9;
+  color: #606266;
   text-align: center;
   white-space: normal;
   word-break: break-word;
 }
 
 .submenu-item:hover {
-  background: #1f2d3d;
+  background: #e6f4ff;
   color: #409eff;
 }
 
 .submenu-item.active {
-  background: #1f2d3d;
+  background: #e6f4ff;
   color: #409eff;
   font-weight: 500;
 }
