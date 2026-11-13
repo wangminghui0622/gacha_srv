@@ -86,6 +86,8 @@ type (
 	ListGroupBuyRecordsResp            = play.ListGroupBuyRecordsResp
 	ListPlayPoolsReq                   = play.ListPlayPoolsReq
 	ListPlayPoolsResp                  = play.ListPlayPoolsResp
+	ListPrizeGradesReq                 = play.ListPrizeGradesReq
+	ListPrizeGradesResp                = play.ListPrizeGradesResp
 	LockComboChainReq                  = play.LockComboChainReq
 	LockComboChainResp                 = play.LockComboChainResp
 	LockDigBoxReq                      = play.LockDigBoxReq
@@ -118,6 +120,7 @@ type (
 	PlayReleaseResp                    = play.PlayReleaseResp
 	PlaySettleReq                      = play.PlaySettleReq
 	PlaySettleResp                     = play.PlaySettleResp
+	PrizeGrade                         = play.PrizeGrade
 	PrizeItem                          = play.PrizeItem
 	PublishPlayPoolReq                 = play.PublishPlayPoolReq
 	PublishPlayPoolResp                = play.PublishPlayPoolResp
@@ -166,6 +169,8 @@ type (
 		PublishPlayPool(ctx context.Context, in *PublishPlayPoolReq, opts ...grpc.CallOption) (*PublishPlayPoolResp, error)
 		GetPlayPoolVersion(ctx context.Context, in *GetPlayPoolVersionReq, opts ...grpc.CallOption) (*GetPlayPoolVersionResp, error)
 		ListPlayPools(ctx context.Context, in *ListPlayPoolsReq, opts ...grpc.CallOption) (*ListPlayPoolsResp, error)
+		// 赏级配置（赏别列表，控制台只读）
+		ListPrizeGrades(ctx context.Context, in *ListPrizeGradesReq, opts ...grpc.CallOption) (*ListPrizeGradesResp, error)
 		// ---- 挖宝 ----
 		ListDigBoxes(ctx context.Context, in *ListDigBoxesReq, opts ...grpc.CallOption) (*ListDigBoxesResp, error)
 		GetDigBoxSession(ctx context.Context, in *GetDigBoxSessionReq, opts ...grpc.CallOption) (*GetDigBoxSessionResp, error)
@@ -262,6 +267,12 @@ func (m *defaultPlay) GetPlayPoolVersion(ctx context.Context, in *GetPlayPoolVer
 func (m *defaultPlay) ListPlayPools(ctx context.Context, in *ListPlayPoolsReq, opts ...grpc.CallOption) (*ListPlayPoolsResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.ListPlayPools(ctx, in, opts...)
+}
+
+// 赏级配置（赏别列表，控制台只读）
+func (m *defaultPlay) ListPrizeGrades(ctx context.Context, in *ListPrizeGradesReq, opts ...grpc.CallOption) (*ListPrizeGradesResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.ListPrizeGrades(ctx, in, opts...)
 }
 
 // ---- 挖宝 ----

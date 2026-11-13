@@ -7,6 +7,7 @@ import (
 	"gacha_srv/app/marketing/marketingClient"
 	"gacha_srv/app/money/moneyClient"
 	"gacha_srv/app/play/internal/config"
+	"gacha_srv/app/play/internal/repo"
 	gamemodel "gacha_srv/pkg/model/gacha_play"
 	gamemodelnc "gacha_srv/pkg/model_nocache/gacha_play"
 	"gacha_srv/pkg/utils/errorx"
@@ -23,6 +24,7 @@ type ServiceContext struct {
 	Config       config.Config
 	DB           *gorm.DB
 	BarrierModel gamemodelnc.DtmBarrierModel
+	PrizeGrades  *repo.PrizeGradeStore
 
 	// M11 cache 模型：挖宝配置与格子（纯种子配置，运行时只读）
 	DigBoxCfgModel  gamemodel.DigBoxConfigsModel
@@ -119,6 +121,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Config:       c,
 		DB:           db,
 		BarrierModel: gamemodelnc.NewDtmBarrierModel(db),
+		PrizeGrades:  repo.NewPrizeGradeStore(db),
 
 		DigBoxCfgModel:  gamemodel.NewDigBoxConfigsModel(db, c.CacheRedis, cache.WithExpiry(30*time.Second)),
 		DigBoxCellModel: gamemodel.NewDigBoxCellsModel(db, c.CacheRedis, cache.WithExpiry(30*time.Second)),

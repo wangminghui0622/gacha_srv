@@ -80,6 +80,12 @@ func (s *PlayServer) ListPlayPools(ctx context.Context, in *play.ListPlayPoolsRe
 	return l.ListPlayPools(in)
 }
 
+// 赏级配置（赏别列表，控制台只读）
+func (s *PlayServer) ListPrizeGrades(ctx context.Context, in *play.ListPrizeGradesReq) (*play.ListPrizeGradesResp, error) {
+	l := logic.NewListPrizeGradesLogic(ctx, s.svcCtx)
+	return l.ListPrizeGrades(in)
+}
+
 // ---- 挖宝 ----
 func (s *PlayServer) ListDigBoxes(ctx context.Context, in *play.ListDigBoxesReq) (*play.ListDigBoxesResp, error) {
 	l := logic.NewListDigBoxesLogic(ctx, s.svcCtx)

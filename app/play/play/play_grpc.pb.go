@@ -30,6 +30,7 @@ const (
 	Play_PublishPlayPool_FullMethodName                = "/play.Play/PublishPlayPool"
 	Play_GetPlayPoolVersion_FullMethodName             = "/play.Play/GetPlayPoolVersion"
 	Play_ListPlayPools_FullMethodName                  = "/play.Play/ListPlayPools"
+	Play_ListPrizeGrades_FullMethodName                = "/play.Play/ListPrizeGrades"
 	Play_ListDigBoxes_FullMethodName                   = "/play.Play/ListDigBoxes"
 	Play_GetDigBoxSession_FullMethodName               = "/play.Play/GetDigBoxSession"
 	Play_GetFullCar_FullMethodName                     = "/play.Play/GetFullCar"
@@ -69,6 +70,8 @@ type PlayClient interface {
 	PublishPlayPool(ctx context.Context, in *PublishPlayPoolReq, opts ...grpc.CallOption) (*PublishPlayPoolResp, error)
 	GetPlayPoolVersion(ctx context.Context, in *GetPlayPoolVersionReq, opts ...grpc.CallOption) (*GetPlayPoolVersionResp, error)
 	ListPlayPools(ctx context.Context, in *ListPlayPoolsReq, opts ...grpc.CallOption) (*ListPlayPoolsResp, error)
+	// 赏级配置（赏别列表，控制台只读）
+	ListPrizeGrades(ctx context.Context, in *ListPrizeGradesReq, opts ...grpc.CallOption) (*ListPrizeGradesResp, error)
 	// ---- 挖宝 ----
 	ListDigBoxes(ctx context.Context, in *ListDigBoxesReq, opts ...grpc.CallOption) (*ListDigBoxesResp, error)
 	GetDigBoxSession(ctx context.Context, in *GetDigBoxSessionReq, opts ...grpc.CallOption) (*GetDigBoxSessionResp, error)
@@ -200,6 +203,15 @@ func (c *playClient) GetPlayPoolVersion(ctx context.Context, in *GetPlayPoolVers
 func (c *playClient) ListPlayPools(ctx context.Context, in *ListPlayPoolsReq, opts ...grpc.CallOption) (*ListPlayPoolsResp, error) {
 	out := new(ListPlayPoolsResp)
 	err := c.cc.Invoke(ctx, Play_ListPlayPools_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) ListPrizeGrades(ctx context.Context, in *ListPrizeGradesReq, opts ...grpc.CallOption) (*ListPrizeGradesResp, error) {
+	out := new(ListPrizeGradesResp)
+	err := c.cc.Invoke(ctx, Play_ListPrizeGrades_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -403,6 +415,8 @@ type PlayServer interface {
 	PublishPlayPool(context.Context, *PublishPlayPoolReq) (*PublishPlayPoolResp, error)
 	GetPlayPoolVersion(context.Context, *GetPlayPoolVersionReq) (*GetPlayPoolVersionResp, error)
 	ListPlayPools(context.Context, *ListPlayPoolsReq) (*ListPlayPoolsResp, error)
+	// 赏级配置（赏别列表，控制台只读）
+	ListPrizeGrades(context.Context, *ListPrizeGradesReq) (*ListPrizeGradesResp, error)
 	// ---- 挖宝 ----
 	ListDigBoxes(context.Context, *ListDigBoxesReq) (*ListDigBoxesResp, error)
 	GetDigBoxSession(context.Context, *GetDigBoxSessionReq) (*GetDigBoxSessionResp, error)
@@ -470,6 +484,9 @@ func (UnimplementedPlayServer) GetPlayPoolVersion(context.Context, *GetPlayPoolV
 }
 func (UnimplementedPlayServer) ListPlayPools(context.Context, *ListPlayPoolsReq) (*ListPlayPoolsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPlayPools not implemented")
+}
+func (UnimplementedPlayServer) ListPrizeGrades(context.Context, *ListPrizeGradesReq) (*ListPrizeGradesResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPrizeGrades not implemented")
 }
 func (UnimplementedPlayServer) ListDigBoxes(context.Context, *ListDigBoxesReq) (*ListDigBoxesResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListDigBoxes not implemented")
@@ -738,6 +755,24 @@ func _Play_ListPlayPools_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PlayServer).ListPlayPools(ctx, req.(*ListPlayPoolsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_ListPrizeGrades_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPrizeGradesReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).ListPrizeGrades(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_ListPrizeGrades_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).ListPrizeGrades(ctx, req.(*ListPrizeGradesReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1152,6 +1187,10 @@ var Play_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPlayPools",
 			Handler:    _Play_ListPlayPools_Handler,
+		},
+		{
+			MethodName: "ListPrizeGrades",
+			Handler:    _Play_ListPrizeGrades_Handler,
 		},
 		{
 			MethodName: "ListDigBoxes",

@@ -56,6 +56,7 @@ func All() []Operation {
 		{ID: "console.pool.get", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/pools/:poolId/versions/:version", Title: "读取赏池版本"},
 		// ── 统一玩赏池（所有玩法共用；resource 同 gacha.pool）──
 		{ID: "console.playpool.list", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/play-pools", Title: "统一玩赏池列表"},
+		{ID: "console.playpool.prize_grades.list", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/prize-grades", Title: "赏级配置列表"},
 		{ID: "console.playpool.get", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/play-pools/:poolId/versions/:version", Title: "读取统一玩赏池版本"},
 		{ID: "console.playpool.create", Resource: "gacha.pool", Action: "create", Method: "POST", Path: "/gacha/play-pools/drafts", Title: "创建统一玩赏池草稿"},
 		{ID: "console.playpool.publish", Resource: "gacha.pool", Action: "publish", Method: "POST", Path: "/gacha/play-pools/:poolId/versions/:version/publish", Title: "发布统一玩赏池"},

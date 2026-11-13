@@ -184,6 +184,12 @@
     "updated": "系列已更新",
     "itemsPerPage": "条/页"
   },
+  "prizeGrade": {
+    "query": "查询",
+    "sort": "排序",
+    "name": "名称",
+    "category": "赏别"
+  },
   "login": {
     "title": "Lucky Box 管理后台",
     "username": "用户名",

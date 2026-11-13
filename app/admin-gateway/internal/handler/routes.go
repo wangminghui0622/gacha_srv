@@ -380,6 +380,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: pool.ListPlayPoolsHandler(serverCtx),
 				},
 				{
+					// 赏级配置列表（gacha.pool:read）
+					Method:  http.MethodGet,
+					Path:    "/gacha/prize-grades",
+					Handler: pool.ListPrizeGradesHandler(serverCtx),
+				},
+				{
 					// 统一玩赏池版本详情（gacha.pool:read）
 					Method:  http.MethodGet,
 					Path:    "/gacha/play-pools/:poolId/versions/:version",

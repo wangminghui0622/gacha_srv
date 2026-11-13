@@ -747,4 +747,43 @@ CREATE TABLE IF NOT EXISTS `play_pool_drafts` (
   KEY `idx_pool_version` (`pool_id`,`version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='统一玩赏池草稿幂等表';
 
+CREATE TABLE IF NOT EXISTS `prize_grades` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `sort` int NOT NULL COMMENT '排序值（越大越靠前）',
+  `code` varchar(64) NOT NULL COMMENT '名称/编码，如 PairCard、SSR、SP1',
+  `category` varchar(64) NOT NULL COMMENT '赏别，如 碰碰赏、普通赏',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_prize_grade_code` (`code`),
+  KEY `idx_prize_grade_sort` (`sort`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='赏级配置（赏别列表）';
+
+INSERT IGNORE INTO `prize_grades` (`sort`, `code`, `category`) VALUES
+  (50, 'PairCard', '碰碰赏'),
+  (49, 'BoxAward', '普通赏'),
+  (48, 'QianQian', '钱钱赏'),
+  (47, 'KOF', '拳皇赏'),
+  (46, 'Empty', '空车赏'),
+  (45, 'Chuan', '串串赏'),
+  (44, 'Battle', '插台赏'),
+  (43, 'Mvp', 'MVP赏'),
+  (42, 'Lucky', 'Lucky赏'),
+  (41, 'Global', '全局赏'),
+  (40, 'SSR', '普通赏'),
+  (39, 'SS', '普通赏'),
+  (38, 'S', '普通赏'),
+  (37, 'SP9', '普通赏'),
+  (36, 'SP8', '普通赏'),
+  (35, 'SP7', '普通赏'),
+  (34, 'SP6', '普通赏'),
+  (33, 'SP5', '普通赏'),
+  (32, 'SP4', '普通赏'),
+  (31, 'SP3', '普通赏'),
+  (30, 'SP2', '普通赏'),
+  (29, 'SP1', '普通赏'),
+  (28, 'SP', '普通赏'),
+  (27, 'Last', 'Last赏'),
+  (26, 'A', '普通赏'),
+  (25, 'B', '普通赏');
+
 SET FOREIGN_KEY_CHECKS = 1;

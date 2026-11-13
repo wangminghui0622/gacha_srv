@@ -184,6 +184,12 @@
     "updated": "Series updated",
     "itemsPerPage": "/ page"
   },
+  "prizeGrade": {
+    "query": "Query",
+    "sort": "Sort",
+    "name": "Name",
+    "category": "Prize category"
+  },
   "login": {
     "title": "Lucky Box Admin Console",
     "username": "Username",
