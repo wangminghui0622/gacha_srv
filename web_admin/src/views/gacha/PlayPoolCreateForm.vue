@@ -32,7 +32,8 @@
           <a-input-number v-model:value="form.sortWeight" :min="0" :precision="0" style="width: 100%" />
         </a-form-item>
 
-        <a-form-item label="赏品配置">
+        <div class="prize-section">
+          <div class="prize-label">赏品配置：</div>
           <div class="prize-config">
             <a-table :data-source="prizes" :pagination="false" row-key="prizeIndex" size="small" :locale="{ emptyText: '暂无数据' }">
               <a-table-column title="序号" data-index="prizeIndex" width="60" align="center" />
@@ -76,7 +77,7 @@
               <a-button @click="clearPrizeDraft">清除</a-button>
             </div>
           </div>
-        </a-form-item>
+        </div>
 
         <a-form-item label="优惠券">
           <div class="coupon-config">
@@ -419,8 +420,24 @@ onMounted(loadOptions)
   color: #303133;
 }
 
+.prize-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.prize-label {
+  flex: 0 0 86px;
+  padding-top: 6px;
+  color: #303133;
+  font-size: 14px;
+  font-weight: 500;
+}
+
 .prize-config {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
 }
 
 .prize-inline {
