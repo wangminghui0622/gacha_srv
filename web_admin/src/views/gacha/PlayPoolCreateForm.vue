@@ -81,6 +81,7 @@
         <div class="prize-section">
           <div class="prize-label">赏品配置：</div>
           <div class="prize-config">
+            <div class="prize-table-wrap">
             <a-table :data-source="prizes" :pagination="false" row-key="prizeIndex" size="small" :locale="{ emptyText: '暂无数据' }" :scroll="{ x: 680 }">
               <a-table-column title="序号" data-index="prizeIndex" width="50" align="center" />
               <a-table-column title="赏别" data-index="prizeGrade" width="80" align="center" />
@@ -107,6 +108,7 @@
                 </template>
               </a-table-column>
             </a-table>
+            </div>
 
             <div class="prize-inline">
               <a-select v-model:value="prizeDraft.prizeGrade" :options="gradeOptions" style="width: 90px" />
@@ -418,7 +420,7 @@ onMounted(loadOptions)
   display: grid;
   grid-template-columns: minmax(360px, 36%) minmax(0, 1fr);
   gap: 28px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .form-left,
@@ -426,7 +428,16 @@ onMounted(loadOptions)
   min-width: 0;
 }
 
+.form-right {
+  display: flex;
+  flex-direction: column;
+}
+
 .prize-section {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
   margin-bottom: 0;
 }
 
@@ -439,8 +450,19 @@ onMounted(loadOptions)
 }
 
 .prize-config {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   width: 100%;
   min-width: 0;
+  min-height: 0;
+}
+
+.prize-table-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .prize-inline {
