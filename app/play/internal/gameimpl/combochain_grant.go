@@ -62,6 +62,9 @@ func (l *GrantComboChainPrizesLogic) GrantComboChainPrizes(in *play.GrantComboCh
 			CashFen:          a.CashFen,
 			Points:           a.PointsAmount,
 			CouponTemplateNo: a.CouponTemplateNo,
+			SkuId:            a.SkuId,
+			ItemName:         a.ItemName,
+			PoolId:           in.ConfigId,
 		})
 	}
 

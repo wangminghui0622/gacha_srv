@@ -142,6 +142,8 @@ func (l *SettleGroupBuyLogic) SettleGroupBuy(in *play.SettleGroupBuyReq) (*play.
 							EntryName: e.Name,
 							IsPrize:   e.IsPrize == 1,
 							Remaining: int32(e.Remaining),
+							PrizeKind: e.PrizeKind,
+							SkuId:     e.SkuId,
 						})
 					}
 					continue
@@ -151,7 +153,7 @@ func (l *SettleGroupBuyLogic) SettleGroupBuy(in *play.SettleGroupBuyReq) (*play.
 						EntryID:    e.Id,
 						ParentID:   e.ParentEntryId,
 						Remaining:  int32(e.Remaining),
-						PrizeShape: core.PrizeShape{PrizeKind: e.PrizeKind, CashFen: e.CashFen, PointsAmount: e.PointsAmount, CouponTemplateNo: e.CouponTemplateNo},
+						PrizeShape: core.PrizeShape{PrizeKind: e.PrizeKind, CashFen: e.CashFen, PointsAmount: e.PointsAmount, CouponTemplateNo: e.CouponTemplateNo, SkuId: e.SkuId, ItemName: e.Name},
 					})
 				}
 			}

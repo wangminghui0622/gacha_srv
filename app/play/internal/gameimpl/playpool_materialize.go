@@ -35,8 +35,8 @@ func materializePlayPool(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 		if p.PrizeType == 3 {
 			return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=奖品 %s 使用箱子类型，玩法投影暂不支持", p.Name))
 		}
-		if p.PrizeType == 2 && v.Mode != "dig" && v.Mode != "memorymatch" {
-			return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=奖品 %s 为实物 SKU，目前仅挖宝箱/记忆翻牌支持", p.Name))
+		if p.PrizeType == 2 && v.Mode != "dig" && v.Mode != "memorymatch" && v.Mode != "groupbuy" && v.Mode != "combochain" {
+			return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=奖品 %s 为实物 SKU，当前玩法暂不支持", p.Name))
 		}
 	}
 	// 新版本发布重置运行态（entries 库存已替换；旧 state 会与之不一致）。
@@ -251,11 +251,18 @@ func materializeComboChain(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes [
 	globals := make([]core.ComboChainGlobalSlot, 0)
 	shared := make([]core.ComboChainSharedPrize, 0)
 	for _, p := range prizes {
+		kind := playPoolPrizeKind(&p)
+		itemName := ""
+		if kind == prizeGoods {
+			itemName = p.Name
+		}
 		shape := core.PrizeShape{
-			PrizeKind:        playPoolAssetKind(&p),
+			PrizeKind:        kind,
 			CashFen:          p.CashFen,
 			PointsAmount:     p.PointsAmount,
 			CouponTemplateNo: p.CouponTemplateNo,
+			SkuId:            p.SkuId,
+			ItemName:         itemName,
 		}
 		switch p.SpecialKind {
 		case "GLOBAL":
@@ -354,6 +361,15 @@ func materializeDig(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []gamemo
 
 // ── 拼团 ──
 
+// groupBuyNormalPrizeKind 普通条目自带资产：仅实物（SKU）在普通槽发奖；
+// 虚拟资产继续走子奖（parent_entry_id）语义，保持旧配置行为。
+func groupBuyNormalPrizeKind(p *gamemodelnc.PlayPoolPrize) int64 {
+	if p.PrizeType == 2 {
+		return prizeGoods
+	}
+	return 0
+}
+
 func materializeGroupBuy(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []gamemodelnc.PlayPoolPrize) error {
 	cfg, err := parseGroupBuyPoolConfig(v.ConfigJson)
 	if err != nil {
@@ -365,6 +381,8 @@ func materializeGroupBuy(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 		CashFen          int64  `json:"cash_fen"`
 		PointsAmount     int64  `json:"points_amount"`
 		CouponTemplateNo string `json:"coupon_template_no"`
+		SkuId            int64  `json:"sku_id,omitempty"`
+		ItemName         string `json:"item_name,omitempty"`
 		Quantity         int32  `json:"quantity"`
 	}
 	type luckyChildJSON struct {
@@ -373,6 +391,8 @@ func materializeGroupBuy(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 		CashFen          int64  `json:"cash_fen"`
 		PointsAmount     int64  `json:"points_amount"`
 		CouponTemplateNo string `json:"coupon_template_no"`
+		SkuId            int64  `json:"sku_id,omitempty"`
+		ItemName         string `json:"item_name,omitempty"`
 		Quantity         int32  `json:"quantity"`
 	}
 
@@ -382,13 +402,19 @@ func materializeGroupBuy(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 	children := make([]luckyChildJSON, 0)
 	for _, p := range prizes {
 		if p.SpecialKind == "LUCKY" {
+			kind := playPoolAssetKind(&p)
+			if p.PrizeType == 2 {
+				kind = prizeGoods
+			}
 			luckyOrdinal[p.PrizeIndex] = int32(len(lucky))
 			lucky = append(lucky, luckyJSON{
 				PrizeIndex:       int64(len(lucky)),
-				PrizeKind:        playPoolAssetKind(&p),
+				PrizeKind:        kind,
 				CashFen:          p.CashFen,
 				PointsAmount:     p.PointsAmount,
 				CouponTemplateNo: p.CouponTemplateNo,
+				SkuId:            p.SkuId,
+				ItemName:         p.Name,
 				Quantity:         p.Quantity,
 			})
 		}
@@ -403,10 +429,12 @@ func materializeGroupBuy(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 		}
 		children = append(children, luckyChildJSON{
 			LuckyIndex:       int64(ordinal),
-			PrizeKind:        playPoolAssetKind(&p),
+			PrizeKind:        playPoolPrizeKind(&p),
 			CashFen:          p.CashFen,
 			PointsAmount:     p.PointsAmount,
 			CouponTemplateNo: p.CouponTemplateNo,
+			SkuId:            p.SkuId,
+			ItemName:         p.Name,
 			Quantity:         p.Quantity,
 		})
 	}
@@ -452,6 +480,8 @@ func materializeGroupBuy(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 			Quantity:  int64(p.Quantity),
 			Remaining: int64(p.Remaining),
 			IsPrize:   int64(p.IsPrize),
+			PrizeKind: groupBuyNormalPrizeKind(p),
+			SkuId:     p.SkuId,
 			CreatedAt: now,
 			UpdatedAt: now,
 		}
@@ -477,10 +507,11 @@ func materializeGroupBuy(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 			Remaining:        int64(p.Remaining),
 			IsPrize:          int64(p.IsPrize),
 			ParentEntryId:    parentID,
-			PrizeKind:        playPoolAssetKind(p),
+			PrizeKind:        playPoolPrizeKind(p),
 			CashFen:          p.CashFen,
 			PointsAmount:     p.PointsAmount,
 			CouponTemplateNo: p.CouponTemplateNo,
+			SkuId:            p.SkuId,
 			CreatedAt:        now,
 			UpdatedAt:        now,
 		}).Error; err != nil {

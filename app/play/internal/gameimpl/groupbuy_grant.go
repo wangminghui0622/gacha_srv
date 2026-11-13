@@ -56,12 +56,19 @@ func (l *GrantGroupBuyPrizesLogic) GrantGroupBuyPrizes(in *play.GrantGroupBuyPri
 	awards := groupBuyAwardsOfRequest(state.Awards, in.RequestId)
 	prizes := make([]playkit.Prize, 0, len(awards))
 	for _, a := range awards {
+		itemName := a.ItemName
+		if a.PrizeKind == prizeGoods && itemName == "" {
+			itemName = a.EntryName
+		}
 		prizes = append(prizes, playkit.Prize{
 			UserID:           a.UserID,
 			Kind:             a.PrizeKind,
 			CashFen:          a.CashFen,
 			Points:           a.PointsAmount,
 			CouponTemplateNo: a.CouponTemplateNo,
+			SkuId:            a.SkuId,
+			ItemName:         itemName,
+			PoolId:           in.ConfigId,
 		})
 	}
 

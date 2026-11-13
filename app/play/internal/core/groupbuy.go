@@ -51,6 +51,8 @@ type GroupBuySlot struct {
 	EntryName string
 	IsPrize   bool
 	Remaining int32 // 展开时的剩余库存（本次结算调用方先行扣减依据）
+	PrizeKind int64 // 普通条目自带资产类型：0 仅展示 / 5 实物
+	SkuId     int64 // PrizeKind=5：catalog SKU ID
 }
 
 // GroupBuyChildStock 条目子奖库存（parent_entry_id 关联父条目）
@@ -81,6 +83,14 @@ type GroupBuyLuckyStock struct {
 // GroupBuyRandom 拼团抽确定性随机数（复用满车同款派生）
 func GroupBuyRandom(seed []byte, domain string, index uint32) uint64 {
 	return FullCarRandom(seed, domain, index)
+}
+
+// groupBuySlotItemName 普通槽实物奖的展示名（虚拟/无奖不写 item_name，保持旧 JSON 形状）
+func groupBuySlotItemName(slot GroupBuySlot) string {
+	if slot.PrizeKind == 5 {
+		return slot.EntryName
+	}
+	return ""
 }
 
 // SettleGroupBuyBatch 整批结算（server_v2 SettleGroupBuyBatch 同款）。
@@ -165,6 +175,11 @@ func SettleGroupBuyBatch(bets []GroupBuyBet, target int, perBetLimit int, slots 
 					Kind:      GroupBuyAwardKindNormal,
 					EntryID:   slot.EntryID,
 					EntryName: slot.EntryName,
+					PrizeShape: PrizeShape{
+						PrizeKind: slot.PrizeKind,
+						SkuId:     slot.SkuId,
+						ItemName:  groupBuySlotItemName(slot),
+					},
 				})
 				// 条目子奖：父条目抽中发 1 件（remaining 扣减）
 				for ci := range childrenCopy {

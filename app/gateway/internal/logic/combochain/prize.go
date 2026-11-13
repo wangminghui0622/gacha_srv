@@ -1,8 +1,8 @@
 package combochain
 
 import (
-	playClient "gacha_srv/app/play/playClient"
 	"gacha_srv/app/gateway/internal/types"
+	playClient "gacha_srv/app/play/playClient"
 )
 
 // prizeItemToView play.PrizeItem → 网关 DigPrizeItem 视图映射
@@ -16,5 +16,7 @@ func prizeItemToView(p *playClient.PrizeItem) types.DigPrizeItem {
 		Points:           p.Points,
 		CouponTemplateNo: p.CouponTemplateNo,
 		CouponName:       p.CouponName,
+		SkuId:            p.SkuId,
+		ItemName:         p.ItemName,
 	}
 }

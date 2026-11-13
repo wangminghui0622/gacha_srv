@@ -176,6 +176,14 @@ func playPoolAssetKind(p *gamemodelnc.PlayPoolPrize) int64 {
 	}
 }
 
+// playPoolPrizeKind 统一池奖品 → 运行态 prize_kind（实物 SKU=5，其余按资产字段推导）。
+func playPoolPrizeKind(p *gamemodelnc.PlayPoolPrize) int64 {
+	if p.PrizeType == 2 {
+		return prizeGoods
+	}
+	return playPoolAssetKind(p)
+}
+
 func validatePlayPoolDraft(in *play.CreatePlayPoolDraftReq) error {
 	if !validPlayModes[in.Mode] {
 		return abortf("未知玩法")
@@ -364,12 +372,20 @@ func validateComboChainPool(in *play.CreatePlayPoolDraftReq) error {
 			if p.TargetValue < 0 {
 				return abortf("全局奖 %s 的 targetValue(槽位) 不能为负", p.Name)
 			}
-			if p.CashFen <= 0 && p.PointsAmount <= 0 && p.CouponTemplateNo == "" {
+			if p.PrizeType == 2 {
+				if p.CashFen > 0 || p.PointsAmount > 0 || p.CouponTemplateNo != "" {
+					return abortf("全局实物奖 %s 不能同时配置现金/积分/券", p.Name)
+				}
+			} else if p.CashFen <= 0 && p.PointsAmount <= 0 && p.CouponTemplateNo == "" {
 				return abortf("全局奖 %s 缺少奖金配置", p.Name)
 			}
 			globals++
 		case "COMBO_TIER", "EMPTY_STREAK", "WIN_STREAK":
-			if p.CashFen <= 0 && p.PointsAmount <= 0 && p.CouponTemplateNo == "" {
+			if p.PrizeType == 2 {
+				if p.CashFen > 0 || p.PointsAmount > 0 || p.CouponTemplateNo != "" {
+					return abortf("共享实物奖 %s 不能同时配置现金/积分/券", p.Name)
+				}
+			} else if p.CashFen <= 0 && p.PointsAmount <= 0 && p.CouponTemplateNo == "" {
 				return abortf("共享奖 %s 缺少奖金配置", p.Name)
 			}
 			if p.Quantity < 0 {
@@ -429,7 +445,11 @@ func validateGroupBuyPool(in *play.CreatePlayPoolDraftReq) error {
 			if p.Quantity < 0 {
 				return abortf("幸运奖 %s 必须配置有限数量", p.Name)
 			}
-			if p.CashFen <= 0 && p.PointsAmount <= 0 && p.CouponTemplateNo == "" {
+			if p.PrizeType == 2 {
+				if p.CashFen > 0 || p.PointsAmount > 0 || p.CouponTemplateNo != "" {
+					return abortf("幸运实物奖 %s 不能同时配置现金/积分/券", p.Name)
+				}
+			} else if p.CashFen <= 0 && p.PointsAmount <= 0 && p.CouponTemplateNo == "" {
 				return abortf("幸运奖 %s 缺少奖金配置", p.Name)
 			}
 			luckyIndexes[p.PrizeIndex] = true
@@ -454,7 +474,11 @@ func validateGroupBuyPool(in *play.CreatePlayPoolDraftReq) error {
 				if !ordinary[p.ParentIndex] {
 					return abortf("拼团子奖 %s 指向的父条目不存在", p.Name)
 				}
-				if p.CashFen <= 0 && p.PointsAmount <= 0 && p.CouponTemplateNo == "" {
+				if p.PrizeType == 2 {
+					if p.CashFen > 0 || p.PointsAmount > 0 || p.CouponTemplateNo != "" {
+						return abortf("拼团实物子奖 %s 不能同时配置现金/积分/券", p.Name)
+					}
+				} else if p.CashFen <= 0 && p.PointsAmount <= 0 && p.CouponTemplateNo == "" {
 					return abortf("拼团子奖 %s 缺少奖金配置", p.Name)
 				}
 			}
@@ -466,7 +490,11 @@ func validateGroupBuyPool(in *play.CreatePlayPoolDraftReq) error {
 			if !luckyIndexes[p.TargetValue] {
 				return abortf("幸运子奖 %s 指向的幸运奖不存在", p.Name)
 			}
-			if p.CashFen <= 0 && p.PointsAmount <= 0 && p.CouponTemplateNo == "" {
+			if p.PrizeType == 2 {
+				if p.CashFen > 0 || p.PointsAmount > 0 || p.CouponTemplateNo != "" {
+					return abortf("幸运实物子奖 %s 不能同时配置现金/积分/券", p.Name)
+				}
+			} else if p.CashFen <= 0 && p.PointsAmount <= 0 && p.CouponTemplateNo == "" {
 				return abortf("幸运子奖 %s 缺少奖金配置", p.Name)
 			}
 		default:

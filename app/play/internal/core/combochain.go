@@ -38,10 +38,12 @@ const (
 
 // PrizeShape 资产形状（全局奖槽/共享奖/拼团结算奖共用；kind=0 无资产仅展示）
 type PrizeShape struct {
-	PrizeKind        int64  `json:"prize_kind"` // 1 CASH 2 POINTS 3 COUPON
+	PrizeKind        int64  `json:"prize_kind"` // 1 CASH 2 POINTS 3 COUPON 5 GOODS
 	CashFen          int64  `json:"cash_fen"`
 	PointsAmount     int64  `json:"points_amount"`
 	CouponTemplateNo string `json:"coupon_template_no"`
+	SkuId            int64  `json:"sku_id,omitempty"`    // kind=5：catalog SKU ID
+	ItemName         string `json:"item_name,omitempty"` // kind=5：奖品名（展示/资产快照）
 }
 
 // ComboChainGlobalSlot 全局奖槽（global_slots_json 元素；每槽 1 件，JSON 平铺 prize 形状）

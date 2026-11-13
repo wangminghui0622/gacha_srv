@@ -3,6 +3,7 @@ package gameimpl
 import (
 	"context"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -133,8 +134,11 @@ func TestPlayPoolMaterializeAllModes(t *testing.T) {
 				{PrizeIndex: 2, Name: "普通子奖", ParentIndex: 1, HasParent: true, PointsAmount: 50, Quantity: 1, IsPrize: true},
 				{PrizeIndex: 3, Name: "幸运奖", SpecialKind: "LUCKY", CashFen: 500, Quantity: 1, IsPrize: true},
 				{PrizeIndex: 4, Name: "幸运子奖", SpecialKind: "LUCKY_CHILD", TargetValue: 3, PointsAmount: 20, Quantity: 1, IsPrize: true},
+				{PrizeIndex: 5, Name: "实物手办", PrizeType: 2, SkuId: 9003, Weight: 10, Quantity: 1, IsPrize: true},
+				{PrizeIndex: 6, Name: "实物幸运奖", SpecialKind: "LUCKY", PrizeType: 2, SkuId: 9004, Quantity: 1, IsPrize: true},
+				{PrizeIndex: 7, Name: "实物幸运子奖", SpecialKind: "LUCKY_CHILD", TargetValue: 6, PrizeType: 2, SkuId: 9005, Quantity: 1, IsPrize: true},
 			},
-			table: "group_buy_entries", wantRows: 3,
+			table: "group_buy_entries", wantRows: 4,
 		},
 		{
 			mode: "memorymatch",
@@ -198,6 +202,33 @@ func TestPlayPoolMaterializeAllModes(t *testing.T) {
 				}
 				if entry.PrizeKind != 5 || entry.SkuId != 9002 || entry.Name != "实物徽章" {
 					t.Fatalf("sku entry not projected: %+v", entry)
+				}
+			}
+			if tc.mode == "groupbuy" {
+				var entry struct {
+					PrizeKind int64
+					SkuId     int64
+				}
+				if err := db.Table("group_buy_entries").
+					Select("prize_kind, sku_id").
+					Where("config_id = ? AND name = ?", draft.PoolId, "实物手办").Scan(&entry).Error; err != nil {
+					t.Fatalf("query sku entry: %v", err)
+				}
+				if entry.PrizeKind != 5 || entry.SkuId != 9003 {
+					t.Fatalf("groupbuy sku entry not projected: %+v", entry)
+				}
+				var cfg struct {
+					LuckyPrizesJson   string
+					LuckyChildrenJson string
+				}
+				if err := db.Table("group_buy_configs").
+					Select("lucky_prizes_json, lucky_children_json").
+					Where("id = ?", draft.PoolId).Scan(&cfg).Error; err != nil {
+					t.Fatalf("query lucky json: %v", err)
+				}
+				if !strings.Contains(cfg.LuckyPrizesJson, `"sku_id":9004`) ||
+					!strings.Contains(cfg.LuckyChildrenJson, `"sku_id":9005`) {
+					t.Fatalf("lucky sku not projected: %s / %s", cfg.LuckyPrizesJson, cfg.LuckyChildrenJson)
 				}
 			}
 		})

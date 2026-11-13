@@ -51,6 +51,7 @@ type (
 		CashFen          int64     `gorm:"column:cash_fen"`           // 子奖现金（分）
 		PointsAmount     int64     `gorm:"column:points_amount"`      // 子奖积分
 		CouponTemplateNo string    `gorm:"column:coupon_template_no"` // 子奖券模板单号
+		SkuId            int64     `gorm:"column:sku_id"`
 		CreatedAt        time.Time `gorm:"column:created_at"`         // 创建时间
 		UpdatedAt        time.Time `gorm:"column:updated_at"`         // 更新时间
 	}

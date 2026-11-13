@@ -174,7 +174,7 @@ func upsertComboChainStreak(db *gorm.DB, configId, userId int64, s core.ComboCha
 
 // prizeShapeItem 资产形状 → PrizeItem（现金金额转元；券名尽力解析，展示用）
 func prizeShapeItem(ctx context.Context, svcCtx *svc.ServiceContext, shape core.PrizeShape) *play.PrizeItem {
-	item := &play.PrizeItem{Kind: shape.PrizeKind, Points: shape.PointsAmount, CouponTemplateNo: shape.CouponTemplateNo}
+	item := &play.PrizeItem{Kind: shape.PrizeKind, Points: shape.PointsAmount, CouponTemplateNo: shape.CouponTemplateNo, SkuId: shape.SkuId, ItemName: shape.ItemName}
 	switch shape.PrizeKind {
 	case prizeCash:
 		item.Amount = utils.FenToYuan(shape.CashFen)
