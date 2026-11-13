@@ -32,8 +32,11 @@ import (
 
 func materializePlayPool(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []gamemodelnc.PlayPoolPrize) error {
 	for _, p := range prizes {
-		if p.PrizeType == 2 || p.PrizeType == 3 {
-			return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=奖品 %s 使用实物/箱子类型，玩法投影暂不支持", p.Name))
+		if p.PrizeType == 3 {
+			return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=奖品 %s 使用箱子类型，玩法投影暂不支持", p.Name))
+		}
+		if p.PrizeType == 2 && v.Mode != "dig" {
+			return status.Error(codes.Aborted, fmt.Sprintf("code=400 msg=奖品 %s 为实物 SKU，目前仅挖宝箱支持", p.Name))
 		}
 	}
 	// 新版本发布重置运行态（entries 库存已替换；旧 state 会与之不一致）。
@@ -313,13 +316,19 @@ func materializeDig(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []gamemo
 	}
 	cells := make([]gamemodel.DigBoxCells, 0, len(prizes))
 	for _, p := range prizes {
+		kind := playPoolAssetKind(&p)
+		if p.PrizeType == 2 {
+			kind = prizeGoods
+		}
 		cells = append(cells, gamemodel.DigBoxCells{
 			ConfigId:         v.PoolId,
 			CellIndex:        int64(p.TargetValue),
-			PrizeKind:        playPoolAssetKind(&p),
+			PrizeKind:        kind,
 			CashFen:          p.CashFen,
 			PointsAmount:     p.PointsAmount,
 			CouponTemplateNo: p.CouponTemplateNo,
+			SkuId:            p.SkuId,
+			ItemName:         p.Name,
 		})
 	}
 	now := time.Now()

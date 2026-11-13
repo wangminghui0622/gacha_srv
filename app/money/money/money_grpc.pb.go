@@ -28,6 +28,7 @@ const (
 	Money_GetWallet_FullMethodName                  = "/money.Money/GetWallet"
 	Money_GrantAsset_FullMethodName                 = "/money.Money/GrantAsset"
 	Money_GrantAssetRevert_FullMethodName           = "/money.Money/GrantAssetRevert"
+	Money_GrantPlayAsset_FullMethodName             = "/money.Money/GrantPlayAsset"
 	Money_CheckGrantsByRequestId_FullMethodName     = "/money.Money/CheckGrantsByRequestId"
 	Money_AuthorizeWalletPayment_FullMethodName     = "/money.Money/AuthorizeWalletPayment"
 	Money_CancelPayment_FullMethodName              = "/money.Money/CancelPayment"
@@ -54,6 +55,8 @@ type MoneyClient interface {
 	// ── 资产发放（SAGA 分支 06：开奖后发奖）──
 	GrantAsset(ctx context.Context, in *GrantAssetReq, opts ...grpc.CallOption) (*GrantAssetResp, error)
 	GrantAssetRevert(ctx context.Context, in *GrantAssetReq, opts ...grpc.CallOption) (*GrantAssetResp, error)
+	// ── 玩法发奖：实物 SKU 入资产仓（幂等键 = grantNo；不依赖 draw 记录）──
+	GrantPlayAsset(ctx context.Context, in *GrantPlayAssetReq, opts ...grpc.CallOption) (*GrantPlayAssetResp, error)
 	// ── 发奖落库查询（SAGA 04 补偿退款前置检查：draw 域资产未撤销即视为已发放）──
 	CheckGrantsByRequestId(ctx context.Context, in *CheckGrantsByRequestIdReq, opts ...grpc.CallOption) (*CheckGrantsByRequestIdResp, error)
 	// ── 支付（SAGA 分支 04/07）──
@@ -157,6 +160,15 @@ func (c *moneyClient) GrantAssetRevert(ctx context.Context, in *GrantAssetReq, o
 	return out, nil
 }
 
+func (c *moneyClient) GrantPlayAsset(ctx context.Context, in *GrantPlayAssetReq, opts ...grpc.CallOption) (*GrantPlayAssetResp, error) {
+	out := new(GrantPlayAssetResp)
+	err := c.cc.Invoke(ctx, Money_GrantPlayAsset_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *moneyClient) CheckGrantsByRequestId(ctx context.Context, in *CheckGrantsByRequestIdReq, opts ...grpc.CallOption) (*CheckGrantsByRequestIdResp, error) {
 	out := new(CheckGrantsByRequestIdResp)
 	err := c.cc.Invoke(ctx, Money_CheckGrantsByRequestId_FullMethodName, in, out, opts...)
@@ -253,6 +265,8 @@ type MoneyServer interface {
 	// ── 资产发放（SAGA 分支 06：开奖后发奖）──
 	GrantAsset(context.Context, *GrantAssetReq) (*GrantAssetResp, error)
 	GrantAssetRevert(context.Context, *GrantAssetReq) (*GrantAssetResp, error)
+	// ── 玩法发奖：实物 SKU 入资产仓（幂等键 = grantNo；不依赖 draw 记录）──
+	GrantPlayAsset(context.Context, *GrantPlayAssetReq) (*GrantPlayAssetResp, error)
 	// ── 发奖落库查询（SAGA 04 补偿退款前置检查：draw 域资产未撤销即视为已发放）──
 	CheckGrantsByRequestId(context.Context, *CheckGrantsByRequestIdReq) (*CheckGrantsByRequestIdResp, error)
 	// ── 支付（SAGA 分支 04/07）──
@@ -298,6 +312,9 @@ func (UnimplementedMoneyServer) GrantAsset(context.Context, *GrantAssetReq) (*Gr
 }
 func (UnimplementedMoneyServer) GrantAssetRevert(context.Context, *GrantAssetReq) (*GrantAssetResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GrantAssetRevert not implemented")
+}
+func (UnimplementedMoneyServer) GrantPlayAsset(context.Context, *GrantPlayAssetReq) (*GrantPlayAssetResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GrantPlayAsset not implemented")
 }
 func (UnimplementedMoneyServer) CheckGrantsByRequestId(context.Context, *CheckGrantsByRequestIdReq) (*CheckGrantsByRequestIdResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckGrantsByRequestId not implemented")
@@ -497,6 +514,24 @@ func _Money_GrantAssetRevert_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MoneyServer).GrantAssetRevert(ctx, req.(*GrantAssetReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Money_GrantPlayAsset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GrantPlayAssetReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MoneyServer).GrantPlayAsset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Money_GrantPlayAsset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MoneyServer).GrantPlayAsset(ctx, req.(*GrantPlayAssetReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -705,6 +740,10 @@ var Money_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GrantAssetRevert",
 			Handler:    _Money_GrantAssetRevert_Handler,
+		},
+		{
+			MethodName: "GrantPlayAsset",
+			Handler:    _Money_GrantPlayAsset_Handler,
 		},
 		{
 			MethodName: "CheckGrantsByRequestId",

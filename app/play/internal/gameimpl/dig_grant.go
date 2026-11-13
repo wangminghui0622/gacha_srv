@@ -75,6 +75,9 @@ func (l *GrantDigPrizesLogic) GrantDigPrizes(in *play.GrantDigPrizesReq) (*play.
 			CashFen:          p.CashFen,
 			Points:           p.Points,
 			CouponTemplateNo: p.CouponTemplateNo,
+			SkuId:            p.SkuId,
+			ItemName:         p.ItemName,
+			PoolId:           rec.ConfigId,
 		})
 	}
 

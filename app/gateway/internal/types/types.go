@@ -391,11 +391,13 @@ type DigBuyResp struct {
 }
 
 type DigPrizeItem struct {
-	Kind             int64  `json:"kind"` // 1 CASH 2 POINTS 3 COUPON
+	Kind             int64  `json:"kind"` // 1 CASH 2 POINTS 3 COUPON 5 GOODS
 	Amount           string `json:"amount"`
 	Points           int64  `json:"points"`
 	CouponTemplateNo string `json:"couponTemplateNo"`
 	CouponName       string `json:"couponName"`
+	SkuId            int64  `json:"skuId"`
+	ItemName         string `json:"itemName"`
 }
 
 type DigRecordItem struct {
@@ -964,8 +966,8 @@ type PassResp struct {
 	XpPerSpendMinor    int64            `json:"xpPerSpendMinor"`
 	PremiumLine        int64            `json:"premiumLine"` // 0 无 1 付费解锁 2 会员
 	PremiumMemberLevel int64            `json:"premiumMemberLevel"`
-	Xp                 int64            `json:"xp"`     // 用户当前 XP
-	Level              int64            `json:"level"`  // 用户当前等级
+	Xp                 int64            `json:"xp"`      // 用户当前 XP
+	Level              int64            `json:"level"`   // 用户当前等级
 	Premium            bool             `json:"premium"` // 高级线已解锁
 }
 

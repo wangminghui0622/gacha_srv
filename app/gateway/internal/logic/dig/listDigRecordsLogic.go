@@ -47,6 +47,8 @@ func (l *ListDigRecordsLogic) ListDigRecords(req *types.DigRecordsReq) (resp *ty
 				Points:           p.Points,
 				CouponTemplateNo: p.CouponTemplateNo,
 				CouponName:       p.CouponName,
+				SkuId:            p.SkuId,
+				ItemName:         p.ItemName,
 			})
 		}
 		resp.Items = append(resp.Items, types.DigRecordItem{

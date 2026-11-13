@@ -201,13 +201,15 @@ service Play {
 
 // PrizeItem 奖品统一结构（campaign 发奖 / 转盘槽 / 玩法揭晓共用，活动域同形状复制）
 message PrizeItem {
-    int64  kind = 1;             // 1 CASH 2 POINTS 3 COUPON 4 GACHA_BOX
+    int64  kind = 1;             // 1 CASH 2 POINTS 3 COUPON 4 GACHA_BOX 5 GOODS
     string amount = 2;           // 现金金额（元字符串，kind=1）
     int64  points = 3;           // 积分数（kind=2）
     string couponTemplateNo = 4; // 券模板单号（kind=3）
     string couponName = 5;       // 券名称（kind=3，展示）
     int64  boxId = 6;            // 宝箱ID（kind=4）
     string boxName = 7;          // 宝箱名称（kind=4，展示）
+    int64  skuId = 8;            // catalog SKU ID（kind=5）
+    string itemName = 9;         // 实物名称（kind=5，展示）
 }
 
 // ============================================================

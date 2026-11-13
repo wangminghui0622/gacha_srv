@@ -33,11 +33,13 @@ const (
 
 // digCellPrize 挖宝格奖品（prizes_json 数组元素；kind=0 空格不落 JSON）
 type digCellPrize struct {
-	Kind             int64  `json:"kind"`                       // 1 CASH 2 POINTS 3 COUPON
+	Kind             int64  `json:"kind"`                       // 1 CASH 2 POINTS 3 COUPON 5 GOODS
 	CashFen          int64  `json:"cashFen,omitempty"`          // 现金金额（分）
 	Points           int64  `json:"points,omitempty"`           // 积分数
 	CouponTemplateNo string `json:"couponTemplateNo,omitempty"` // 券模板单号
 	CouponName       string `json:"couponName,omitempty"`       // 券名称（展示）
+	SkuId            int64  `json:"skuId,omitempty"`            // catalog SKU ID（kind=5）
+	ItemName         string `json:"itemName,omitempty"`         // 实物名（kind=5，展示）
 }
 
 // digCellMask 格子列表 → 位图掩码（cell_index 为位号；调用方保证索引合法）
@@ -89,8 +91,8 @@ func digPrizesOfCells(ctx context.Context, svcCtx *svc.ServiceContext, cells []*
 		if c.PrizeKind == 0 {
 			continue
 		}
-		p := digCellPrize{Kind: c.PrizeKind, CashFen: c.CashFen, Points: c.PointsAmount, CouponTemplateNo: c.CouponTemplateNo}
-		item := &play.PrizeItem{Kind: c.PrizeKind, Points: c.PointsAmount, CouponTemplateNo: c.CouponTemplateNo}
+		p := digCellPrize{Kind: c.PrizeKind, CashFen: c.CashFen, Points: c.PointsAmount, CouponTemplateNo: c.CouponTemplateNo, SkuId: c.SkuId, ItemName: c.ItemName}
+		item := &play.PrizeItem{Kind: c.PrizeKind, Points: c.PointsAmount, CouponTemplateNo: c.CouponTemplateNo, SkuId: c.SkuId, ItemName: c.ItemName}
 		switch c.PrizeKind {
 		case prizeCash:
 			item.Amount = utils.FenToYuan(c.CashFen)
@@ -113,7 +115,7 @@ func digPrizesOfCells(ctx context.Context, svcCtx *svc.ServiceContext, cells []*
 
 // digPrizeItemOf 揭晓奖品 → 响应 PrizeItem（列表/记录读回组装）
 func digPrizeItemOf(p digCellPrize) *play.PrizeItem {
-	item := &play.PrizeItem{Kind: p.Kind, Points: p.Points, CouponTemplateNo: p.CouponTemplateNo, CouponName: p.CouponName}
+	item := &play.PrizeItem{Kind: p.Kind, Points: p.Points, CouponTemplateNo: p.CouponTemplateNo, CouponName: p.CouponName, SkuId: p.SkuId, ItemName: p.ItemName}
 	if p.Kind == prizeCash {
 		item.Amount = utils.FenToYuan(p.CashFen)
 	}

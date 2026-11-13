@@ -23,6 +23,7 @@ const (
 	KindCash   int64 = 1 // 现金
 	KindPoints int64 = 2 // 积分
 	KindCoupon int64 = 3 // 券
+	KindGoods  int64 = 5 // 实物 SKU（catalog.skus.id）
 )
 
 // 钱包类型（money.CreditWallet kind）
@@ -38,6 +39,9 @@ type Prize struct {
 	CashFen          int64
 	Points           int64
 	CouponTemplateNo string
+	SkuId            int64  // KindGoods：catalog SKU ID
+	ItemName         string // KindGoods：奖品名称快照
+	PoolId           int64  // KindGoods：玩法池/配置 ID（落资产行）
 }
 
 // GrantAll 逐奖幂等发放：grant_no = prefix_requestID#idx（确定性派生）。
@@ -58,6 +62,7 @@ func GrantAll(ctx context.Context, svcCtx *svc.ServiceContext, requestID, prefix
 //   - 现金 → money.CreditWallet（kind=1）
 //   - 积分 → money.CreditWallet（kind=4）
 //   - 券   → marketing.GrantPlayCoupon（coupon_no="uc_"+grantNo 幂等）
+//   - 实物 → money.GrantPlayAsset（asset_no="pa_"+grantNo 幂等）
 //   - 其它 → no-op（无奖普通条目，如拼团普通奖）
 func GrantOne(ctx context.Context, svcCtx *svc.ServiceContext, userID int64, grantNo string, p Prize) error {
 	switch p.Kind {
@@ -82,6 +87,15 @@ func GrantOne(ctx context.Context, svcCtx *svc.ServiceContext, userID int64, gra
 			RequestId:  grantNo,
 			UserId:     userID,
 			TemplateNo: p.CouponTemplateNo,
+		})
+		return err
+	case KindGoods:
+		_, err := svcCtx.MoneyRpc.GrantPlayAsset(ctx, &moneyClient.GrantPlayAssetReq{
+			GrantNo:  grantNo,
+			UserId:   userID,
+			PoolId:   p.PoolId,
+			SkuId:    p.SkuId,
+			ItemName: p.ItemName,
 		})
 		return err
 	default:

@@ -120,8 +120,9 @@ func TestPlayPoolMaterializeAllModes(t *testing.T) {
 			prizes: []*play.PlayPoolPrize{
 				{PrizeIndex: 0, Name: "现金格", TargetValue: 0, CashFen: 50, IsPrize: true},
 				{PrizeIndex: 1, Name: "空格", TargetValue: 1, IsPrize: false},
+				{PrizeIndex: 2, Name: "实物手办", PrizeType: 2, SkuId: 9001, TargetValue: 2, IsPrize: true},
 			},
-			table: "dig_box_cells", wantRows: 2,
+			table: "dig_box_cells", wantRows: 3,
 		},
 		{
 			mode:       "groupbuy",
@@ -167,6 +168,21 @@ func TestPlayPoolMaterializeAllModes(t *testing.T) {
 			}
 			if n := tableCount(t, db, tc.table, draft.PoolId); n != tc.wantRows {
 				t.Fatalf("%s rows = %d, want %d", tc.table, n, tc.wantRows)
+			}
+			if tc.mode == "dig" {
+				var cell struct {
+					PrizeKind int64
+					SkuId     int64
+					ItemName  string
+				}
+				if err := db.Table("dig_box_cells").
+					Select("prize_kind, sku_id, item_name").
+					Where("config_id = ? AND cell_index = ?", draft.PoolId, 2).Scan(&cell).Error; err != nil {
+					t.Fatalf("query sku cell: %v", err)
+				}
+				if cell.PrizeKind != 5 || cell.SkuId != 9001 || cell.ItemName != "实物手办" {
+					t.Fatalf("sku cell not projected: %+v", cell)
+				}
 			}
 		})
 	}

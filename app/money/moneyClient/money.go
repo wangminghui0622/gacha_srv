@@ -36,6 +36,8 @@ type (
 	GetWalletResp              = money.GetWalletResp
 	GrantAssetReq              = money.GrantAssetReq
 	GrantAssetResp             = money.GrantAssetResp
+	GrantPlayAssetReq          = money.GrantPlayAssetReq
+	GrantPlayAssetResp         = money.GrantPlayAssetResp
 	PaymentLegItem             = money.PaymentLegItem
 	PaymentRouteCandidate      = money.PaymentRouteCandidate
 	PaymentRoutePolicy         = money.PaymentRoutePolicy
@@ -63,6 +65,8 @@ type (
 		// ── 资产发放（SAGA 分支 06：开奖后发奖）──
 		GrantAsset(ctx context.Context, in *GrantAssetReq, opts ...grpc.CallOption) (*GrantAssetResp, error)
 		GrantAssetRevert(ctx context.Context, in *GrantAssetReq, opts ...grpc.CallOption) (*GrantAssetResp, error)
+		// ── 玩法发奖：实物 SKU 入资产仓（幂等键 = grantNo；不依赖 draw 记录）──
+		GrantPlayAsset(ctx context.Context, in *GrantPlayAssetReq, opts ...grpc.CallOption) (*GrantPlayAssetResp, error)
 		// ── 发奖落库查询（SAGA 04 补偿退款前置检查：draw 域资产未撤销即视为已发放）──
 		CheckGrantsByRequestId(ctx context.Context, in *CheckGrantsByRequestIdReq, opts ...grpc.CallOption) (*CheckGrantsByRequestIdResp, error)
 		// ── 支付（SAGA 分支 04/07）──
@@ -133,6 +137,12 @@ func (m *defaultMoney) GrantAsset(ctx context.Context, in *GrantAssetReq, opts .
 func (m *defaultMoney) GrantAssetRevert(ctx context.Context, in *GrantAssetReq, opts ...grpc.CallOption) (*GrantAssetResp, error) {
 	client := money.NewMoneyClient(m.cli.Conn())
 	return client.GrantAssetRevert(ctx, in, opts...)
+}
+
+// ── 玩法发奖：实物 SKU 入资产仓（幂等键 = grantNo；不依赖 draw 记录）──
+func (m *defaultMoney) GrantPlayAsset(ctx context.Context, in *GrantPlayAssetReq, opts ...grpc.CallOption) (*GrantPlayAssetResp, error) {
+	client := money.NewMoneyClient(m.cli.Conn())
+	return client.GrantPlayAsset(ctx, in, opts...)
 }
 
 // ── 发奖落库查询（SAGA 04 补偿退款前置检查：draw 域资产未撤销即视为已发放）──

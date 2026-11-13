@@ -30,10 +30,13 @@ CREATE TABLE IF NOT EXISTS `asset_reservations` (
 
 CREATE TABLE IF NOT EXISTS `assets` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
-  `asset_no` varchar(64) NOT NULL COMMENT '资产单号：asset_no="a_"+requestId 确定性派生',
+  `asset_no` varchar(64) NOT NULL COMMENT '资产单号：draw="a_"+requestId；play="pa_"+grantNo',
   `user_id` bigint NOT NULL COMMENT '用户ID',
   `box_id` bigint NOT NULL DEFAULT '0' COMMENT '宝箱ID',
-  `record_id` bigint NOT NULL DEFAULT '0' COMMENT '抽赏记录ID',
+  `record_id` bigint NOT NULL DEFAULT '0' COMMENT '抽赏记录ID（draw 域）',
+  `pool_id` bigint NOT NULL DEFAULT '0' COMMENT '玩法池/配置ID（play 域；draw 域=0）',
+  `sku_id` bigint NOT NULL DEFAULT '0' COMMENT 'catalog SKU ID（实物奖；0=虚拟/无）',
+  `source` varchar(16) NOT NULL DEFAULT 'draw' COMMENT '来源域：draw/play',
   `item_name` varchar(64) NOT NULL COMMENT '奖品名称',
   `state` tinyint NOT NULL DEFAULT '1' COMMENT '状态：1 AVAILABLE 2 RESERVED 3 CONSUMED 4 DELIVERED 5 CANCELED',
   `pickup_code` varchar(32) DEFAULT NULL COMMENT '自提码（实物奖品，可空）',

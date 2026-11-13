@@ -30,6 +30,8 @@ service Money {
     // ── 资产发放（SAGA 分支 06：开奖后发奖）──
     rpc GrantAsset(GrantAssetReq) returns (GrantAssetResp);
     rpc GrantAssetRevert(GrantAssetReq) returns (GrantAssetResp);
+    // ── 玩法发奖：实物 SKU 入资产仓（幂等键 = grantNo；不依赖 draw 记录）──
+    rpc GrantPlayAsset(GrantPlayAssetReq) returns (GrantPlayAssetResp);
     // ── 发奖落库查询（SAGA 04 补偿退款前置检查：draw 域资产未撤销即视为已发放）──
     rpc CheckGrantsByRequestId(CheckGrantsByRequestIdReq) returns (CheckGrantsByRequestIdResp);
     // ── 支付（SAGA 分支 04/07）──
@@ -136,6 +138,21 @@ message GrantAssetResp {
     int64 assetId = 1;   // 资产ID（谢谢参与=0）
     string itemName = 2; // 奖品名称
     string status = 3;   // granted=已发放 canceled=已撤销 skipped=空补偿
+}
+
+// 玩法实物发奖：play 域 grant_no 为幂等键，asset_no="pa_"+grantNo。
+message GrantPlayAssetReq {
+    string grantNo = 1;  // 幂等键（playkit grant_no = prefix_gid#idx）
+    int64 userId = 2;    // 用户ID
+    int64 poolId = 3;    // 玩法池/配置ID
+    int64 skuId = 4;     // catalog SKU ID
+    string itemName = 5; // 奖品名称快照
+}
+
+message GrantPlayAssetResp {
+    int64 assetId = 1;  // 资产ID
+    string itemName = 2; // 奖品名称
+    int32 state = 3;    // 资产状态：1=AVAILABLE
 }
 
 // CheckGrantsByRequestIdReq/Resp：SAGA 04 补偿退款前置检查（按 gid 查 draw 域资产）

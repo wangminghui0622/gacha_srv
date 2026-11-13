@@ -412,6 +412,9 @@ func validateDigPool(in *play.CreatePlayPoolDraftReq) error {
 			return abortf("挖宝格 targetValue 重复: %d", p.TargetValue)
 		}
 		cells[p.TargetValue] = true
+		if p.PrizeType == 2 && (p.CashFen > 0 || p.PointsAmount > 0 || p.CouponTemplateNo != "") {
+			return abortf("挖宝实物格 %s 不能同时配置现金/积分/券", p.Name)
+		}
 	}
 	return nil
 }

@@ -48,6 +48,8 @@ type (
 		CashFen          int64     `gorm:"column:cash_fen"`           // 现金金额（分）
 		PointsAmount     int64     `gorm:"column:points_amount"`      // 积分数
 		CouponTemplateNo string    `gorm:"column:coupon_template_no"` // 券模板单号
+		SkuId            int64     `gorm:"column:sku_id"`
+		ItemName         string    `gorm:"column:item_name"`
 		CreatedAt        time.Time `gorm:"column:created_at"`         // 创建时间
 		UpdatedAt        time.Time `gorm:"column:updated_at"`         // 更新时间
 	}

@@ -70,6 +70,12 @@ func (s *MoneyServer) GrantAssetRevert(ctx context.Context, in *money.GrantAsset
 	return l.GrantAssetRevert(in)
 }
 
+// ── 玩法发奖：实物 SKU 入资产仓（幂等键 = grantNo；不依赖 draw 记录）──
+func (s *MoneyServer) GrantPlayAsset(ctx context.Context, in *money.GrantPlayAssetReq) (*money.GrantPlayAssetResp, error) {
+	l := logic.NewGrantPlayAssetLogic(ctx, s.svcCtx)
+	return l.GrantPlayAsset(in)
+}
+
 // ── 发奖落库查询（SAGA 04 补偿退款前置检查：draw 域资产未撤销即视为已发放）──
 func (s *MoneyServer) CheckGrantsByRequestId(ctx context.Context, in *money.CheckGrantsByRequestIdReq) (*money.CheckGrantsByRequestIdResp, error) {
 	l := logic.NewCheckGrantsByRequestIdLogic(ctx, s.svcCtx)

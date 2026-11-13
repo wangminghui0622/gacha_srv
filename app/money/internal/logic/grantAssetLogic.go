@@ -110,6 +110,7 @@ func (l *GrantAssetLogic) GrantAsset(in *money.GrantAssetReq) (*money.GrantAsset
 			UserId:    in.UserId,
 			BoxId:     in.BoxId,
 			RecordId:  rec.Record.RecordId,
+			Source:    "draw",
 			ItemName:  itemName,
 			State:     assetStateDelivered,
 			CreatedAt: now,

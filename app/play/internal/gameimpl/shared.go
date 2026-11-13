@@ -55,6 +55,7 @@ const (
 	prizeCash   int64 = 1 // 现金（CreditWallet kind=1）
 	prizePoints int64 = 2 // 积分（CreditWallet kind=4）
 	prizeCoupon int64 = 3 // 券（"uc_"+grantNo 确定性单号）
+	prizeGoods  int64 = 5 // 实物 SKU（money.GrantPlayAsset，asset_no="pa_"+grantNo）
 )
 
 // couponNameOf 经营销服务查券名（展示用；NotFound/系统错误静默降级返回空——旧仓同款容错）

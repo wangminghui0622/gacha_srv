@@ -39,6 +39,9 @@ type (
 		UserId        int64     `gorm:"column:user_id"`         // 用户ID
 		BoxId         int64     `gorm:"column:box_id"`          // 宝箱ID
 		RecordId      int64     `gorm:"column:record_id"`       // 抽赏记录ID
+		PoolId        int64     `gorm:"column:pool_id"`
+		SkuId         int64     `gorm:"column:sku_id"`
+		Source        string    `gorm:"column:source"`
 		ItemName      string    `gorm:"column:item_name"`       // 奖品名称
 		State         int64     `gorm:"column:state"`           // 状态：1 AVAILABLE 2 RESERVED 3 CONSUMED 4 DELIVERED 5 CANCELED
 		PickupCode    *string   `gorm:"column:pickup_code"`     // 自提码（实物奖品，可空）
