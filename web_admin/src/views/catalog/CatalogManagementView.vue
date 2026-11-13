@@ -146,59 +146,105 @@
       :title="editing ? $t('catalog.editTitle') : $t('catalog.createTitle')"
       :confirm-loading="saving"
       :mask-closable="false"
-      width="680px"
+      width="820px"
+      :body-style="{ maxHeight: '72vh', overflowY: 'auto' }"
       @ok="save"
     >
-      <a-form :label-col="{ span: 5 }" :wrapper-col="{ span: 18 }">
-        <a-form-item :label="$t('catalog.nameLabel')" required>
-          <a-input v-model:value="form.title" :maxlength="255" :placeholder="$t('catalog.nameLabel')" />
-        </a-form-item>
-        <a-form-item :label="$t('catalog.codeLabel')">
-          <a-input v-model:value="form.productCode" :disabled="!!editing" :maxlength="64" :placeholder="$t('catalog.codePlaceholder')" />
-        </a-form-item>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item :label="$t('catalog.ipLabel')" :label-col="{ span: 10 }" :wrapper-col="{ span: 13 }">
-              <a-select v-model:value="form.ipId" :options="ipOptions" allow-clear show-search option-filter-prop="label" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item :label="$t('catalog.saleTypeLabel')" :label-col="{ span: 10 }" :wrapper-col="{ span: 13 }">
-              <a-select v-model:value="form.saleType" :options="saleTypeOptions" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item :label="$t('catalog.brandLabel')" :label-col="{ span: 10 }" :wrapper-col="{ span: 13 }">
-              <a-select v-model:value="form.brandId" :options="brandOptions" allow-clear show-search option-filter-prop="label" @change="onFormBrandChange" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item :label="$t('catalog.seriesLabel')" :label-col="{ span: 10 }" :wrapper-col="{ span: 13 }">
-              <a-select v-model:value="form.seriesId" :options="modalSeriesOptions" allow-clear show-search option-filter-prop="label" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item :label="$t('catalog.costLabel')" :label-col="{ span: 10 }" :wrapper-col="{ span: 13 }">
-              <a-input-number v-model:value="form.costYuan" :min="0" :precision="2" style="width: 100%" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item :label="$t('catalog.priceLabel')" :label-col="{ span: 10 }" :wrapper-col="{ span: 13 }">
-              <a-input-number v-model:value="form.saleYuan" :min="0" :precision="2" style="width: 100%" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-form-item :label="$t('catalog.coverLabel')">
-          <a-input v-model:value="form.coverUrl" :maxlength="512" placeholder="/covers/popmart-1.svg" />
-        </a-form-item>
-        <a-form-item v-if="form.coverUrl.trim()" label=" " :colon="false">
-          <a-image :src="form.coverUrl.trim()" :width="72" :height="72" />
-        </a-form-item>
-      </a-form>
+      <a-spin :spinning="detailLoading">
+        <a-form :label-col="{ span: 4 }" :wrapper-col="{ span: 19 }">
+          <a-form-item :label="$t('catalog.nameLabel')" required>
+            <a-input v-model:value="form.title" :maxlength="255" :placeholder="$t('catalog.nameLabel')" />
+          </a-form-item>
+          <a-form-item :label="$t('catalog.totalStock')">
+            <a-input-number v-model:value="form.totalStock" :min="0" :precision="0" style="width: 100%" />
+          </a-form-item>
+          <a-form-item :label="$t('catalog.frozenStock')">
+            <a-input-number v-model:value="form.frozenStock" :min="0" :precision="0" style="width: 100%" />
+          </a-form-item>
+          <a-form-item :label="$t('catalog.status')">
+            <a-select v-model:value="form.saleType" :options="saleTypeOptions" />
+          </a-form-item>
+          <a-form-item :label="$t('catalog.costPrice')" required>
+            <a-input-number v-model:value="form.costYuan" :min="0" :precision="2" style="width: 100%" />
+          </a-form-item>
+          <a-form-item :label="$t('catalog.ipLabel')" required>
+            <a-select v-model:value="form.ipId" :options="ipOptions" show-search option-filter-prop="label" :placeholder="$t('catalog.ipPlaceholder')" />
+          </a-form-item>
+          <a-form-item :label="$t('catalog.brandLabel')" required>
+            <a-select v-model:value="form.brandId" :options="brandOptions" show-search option-filter-prop="label" :placeholder="$t('catalog.brandPlaceholder')" @change="onFormBrandChange" />
+          </a-form-item>
+          <a-form-item :label="$t('catalog.seriesLabel')" required>
+            <a-select v-model:value="form.seriesId" :options="modalSeriesOptions" show-search option-filter-prop="label" :placeholder="$t('catalog.seriesPlaceholder')" />
+          </a-form-item>
+          <a-form-item :label="$t('catalog.detailParams')">
+            <div class="detail-params">
+              <div v-for="(param, index) in form.detailParams" :key="index" class="param-row">
+                <a-input v-model:value="param.name" :placeholder="$t('catalog.paramName')" />
+                <a-input v-model:value="param.value" :placeholder="$t('catalog.paramValue')" />
+                <a-button type="text" danger @click="form.detailParams.splice(index, 1)">
+                  <template #icon><DeleteOutlined /></template>
+                </a-button>
+              </div>
+              <a-button type="dashed" block @click="form.detailParams.push({ name: '', value: '' })">
+                <template #icon><PlusOutlined /></template>
+                {{ $t('catalog.addField') }}
+              </a-button>
+            </div>
+          </a-form-item>
+          <a-form-item :label="$t('catalog.halfBodyImage')">
+            <a-upload :show-upload-list="false" accept="image/*" :before-upload="(file: File) => uploadImage(file, 'halfBodyImage')">
+              <div class="image-upload-box">
+                <img v-if="form.halfBodyImage" :src="form.halfBodyImage" alt="" />
+                <template v-else>
+                  <PlusOutlined />
+                  <span>{{ $t('catalog.upload') }}</span>
+                </template>
+              </div>
+            </a-upload>
+          </a-form-item>
+          <a-form-item :label="$t('catalog.coverLabel')">
+            <a-upload :show-upload-list="false" accept="image/*" :before-upload="(file: File) => uploadImage(file, 'coverUrl')">
+              <div class="image-upload-box">
+                <img v-if="form.coverUrl" :src="form.coverUrl" alt="" />
+                <template v-else>
+                  <PlusOutlined />
+                  <span>{{ $t('catalog.upload') }}</span>
+                </template>
+              </div>
+            </a-upload>
+          </a-form-item>
+          <a-form-item :label="$t('catalog.thumbImage')">
+            <a-upload :show-upload-list="false" accept="image/*" :before-upload="(file: File) => uploadImage(file, 'thumbUrl')">
+              <div class="image-upload-box">
+                <img v-if="form.thumbUrl" :src="form.thumbUrl" alt="" />
+                <template v-else>
+                  <PlusOutlined />
+                  <span>{{ $t('catalog.upload') }}</span>
+                </template>
+              </div>
+            </a-upload>
+          </a-form-item>
+          <a-form-item :label="$t('catalog.detailIntro')">
+            <a-textarea v-model:value="form.detailIntro" :rows="3" :maxlength="2000" />
+          </a-form-item>
+          <a-form-item :label="$t('catalog.detailImages')">
+            <div class="detail-images">
+              <a-upload multiple :show-upload-list="false" accept="image/*" :before-upload="uploadDetailImage">
+                <div class="image-upload-box">
+                  <PlusOutlined />
+                  <span>{{ $t('catalog.upload') }}</span>
+                </div>
+              </a-upload>
+              <div v-for="(image, index) in form.detailImages" :key="index" class="detail-image-item">
+                <img :src="image" alt="" />
+                <button type="button" @click="form.detailImages.splice(index, 1)">
+                  <DeleteOutlined />
+                </button>
+              </div>
+            </div>
+          </a-form-item>
+        </a-form>
+      </a-spin>
     </a-modal>
   </div>
 </template>
@@ -206,6 +252,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
+import { DeleteOutlined, PlusOutlined } from '@ant-design/icons-vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { allows } from '@/access/grants'
@@ -218,6 +265,7 @@ import {
   type AdminProductItem,
   type BrandItem,
   type IpItem,
+  type ProductDetailParam,
   type SeriesItem,
 } from '@/api/catalog'
 
@@ -284,17 +332,23 @@ const rowSelection = computed(() => ({
 
 const modalOpen = ref(false)
 const saving = ref(false)
+const detailLoading = ref(false)
 const editing = ref<AdminProductItem | null>(null)
 const form = reactive({
-  productCode: '',
   title: '',
   ipId: undefined as string | undefined,
   brandId: undefined as string | undefined,
   seriesId: undefined as string | undefined,
   saleType: 'IN_STOCK',
   costYuan: 0,
-  saleYuan: 0,
+  totalStock: 0,
+  frozenStock: 0,
+  halfBodyImage: '',
   coverUrl: '',
+  thumbUrl: '',
+  detailIntro: '',
+  detailImages: [] as string[],
+  detailParams: [] as ProductDetailParam[],
 })
 const modalSeriesOptions = computed(() =>
   form.brandId ? allSeriesOptions.value.filter((item) => item.brandId === form.brandId) : allSeriesOptions.value,
@@ -398,38 +452,113 @@ function formatMoney(value?: string): string {
   return String(Number(value ?? 0) / 100)
 }
 
-function openCreate() {
-  editing.value = null
-  form.productCode = ''
+function resetForm() {
   form.title = ''
   form.ipId = undefined
   form.brandId = undefined
   form.seriesId = undefined
   form.saleType = 'IN_STOCK'
   form.costYuan = 0
-  form.saleYuan = 0
+  form.totalStock = 0
+  form.frozenStock = 0
+  form.halfBodyImage = ''
   form.coverUrl = ''
+  form.thumbUrl = ''
+  form.detailIntro = ''
+  form.detailImages = []
+  form.detailParams = []
+}
+
+function openCreate() {
+  editing.value = null
+  resetForm()
   modalOpen.value = true
 }
 
-function openEdit(record: AdminProductItem) {
+async function openEdit(record: AdminProductItem) {
   editing.value = record
-  form.productCode = record.productCode ?? ''
+  resetForm()
   form.title = record.title ?? ''
   form.ipId = record.ipId || undefined
   form.brandId = record.brandId || undefined
   form.seriesId = record.seriesId || undefined
   form.saleType = record.saleType || 'IN_STOCK'
   form.costYuan = Number(record.costAmountMinor ?? 0) / 100
-  form.saleYuan = Number(record.saleAmountMinor ?? 0) / 100
   form.coverUrl = record.coverUrl ?? ''
   modalOpen.value = true
+  if (!record.productId) return
+  detailLoading.value = true
+  try {
+    const detail = await catalogAdminProductClient.Get(record.productId)
+    const product = detail.product ?? record
+    form.title = product.title ?? form.title
+    form.ipId = product.ipId || form.ipId
+    form.brandId = product.brandId || form.brandId
+    form.seriesId = product.seriesId || form.seriesId
+    form.saleType = product.saleType || form.saleType
+    form.costYuan = Number(product.costAmountMinor ?? 0) / 100
+    form.coverUrl = product.coverUrl ?? form.coverUrl
+    form.totalStock = Number(detail.totalStock ?? 0)
+    form.frozenStock = Number(detail.frozenStock ?? 0)
+    form.halfBodyImage = detail.halfBodyImage ?? ''
+    form.thumbUrl = detail.thumbUrl ?? ''
+    form.detailIntro = detail.detailIntro ?? ''
+    form.detailImages = [...(detail.detailImages ?? [])]
+    form.detailParams = (detail.detailParams ?? []).map((item) => ({ name: item.name ?? '', value: item.value ?? '' }))
+  } catch {
+    message.error(t('catalog.detailLoadFailed'))
+  } finally {
+    detailLoading.value = false
+  }
 }
 
 function onFormBrandChange() {
   if (form.seriesId && !modalSeriesOptions.value.some((item) => item.value === form.seriesId)) {
     form.seriesId = undefined
   }
+}
+
+function readImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result ?? ''))
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
+
+async function uploadImage(file: File, field: 'halfBodyImage' | 'coverUrl' | 'thumbUrl'): Promise<boolean> {
+  if (!file.type.startsWith('image/')) {
+    message.warning(t('catalog.imageTypeInvalid'))
+    return false
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    message.warning(t('catalog.imageTooLarge'))
+    return false
+  }
+  try {
+    form[field] = await readImage(file)
+  } catch {
+    // 读取失败时保持原图。
+  }
+  return false
+}
+
+async function uploadDetailImage(file: File): Promise<boolean> {
+  if (!file.type.startsWith('image/')) {
+    message.warning(t('catalog.imageTypeInvalid'))
+    return false
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    message.warning(t('catalog.imageTooLarge'))
+    return false
+  }
+  try {
+    form.detailImages.push(await readImage(file))
+  } catch {
+    // 读取失败时忽略该文件。
+  }
+  return false
 }
 
 async function save() {
@@ -442,38 +571,35 @@ async function save() {
     message.warning(t('catalog.costPriceInvalid'))
     return
   }
-  if (typeof form.saleYuan !== 'number' || !Number.isFinite(form.saleYuan) || form.saleYuan < 0) {
-    message.warning(t('catalog.salePriceInvalid'))
+  if (!form.ipId || !form.brandId || !form.seriesId) {
+    message.warning(t('catalog.requiredRefs'))
     return
   }
   const costAmountMinor = Math.round(form.costYuan * 100)
-  const saleAmountMinor = Math.round(form.saleYuan * 100)
+  const payload = {
+    title,
+    ipId: form.ipId,
+    brandId: form.brandId,
+    seriesId: form.seriesId,
+    saleType: form.saleType,
+    costAmountMinor,
+    saleAmountMinor: 0,
+    coverUrl: form.coverUrl.trim(),
+    totalStock: Math.max(0, Math.trunc(form.totalStock ?? 0)),
+    frozenStock: Math.max(0, Math.trunc(form.frozenStock ?? 0)),
+    halfBodyImage: form.halfBodyImage,
+    thumbUrl: form.thumbUrl,
+    detailIntro: form.detailIntro,
+    detailImages: form.detailImages,
+    detailParams: form.detailParams,
+  }
   saving.value = true
   try {
     if (editing.value?.productId) {
-      await catalogAdminProductClient.Update(editing.value.productId, {
-        title,
-        ipId: form.ipId ?? '',
-        brandId: form.brandId ?? '',
-        seriesId: form.seriesId ?? '',
-        saleType: form.saleType,
-        costAmountMinor,
-        saleAmountMinor,
-        coverUrl: form.coverUrl.trim(),
-      })
+      await catalogAdminProductClient.Update(editing.value.productId, payload)
       message.success(t('catalog.productUpdated'))
     } else {
-      await catalogAdminProductClient.Create({
-        productCode: form.productCode.trim(),
-        title,
-        ipId: form.ipId ?? '',
-        brandId: form.brandId ?? '',
-        seriesId: form.seriesId ?? '',
-        saleType: form.saleType,
-        costAmountMinor,
-        saleAmountMinor,
-        coverUrl: form.coverUrl.trim(),
-      })
+      await catalogAdminProductClient.Create({ ...payload, productCode: '' })
       message.success(t('catalog.productCreated'))
       page.value = 1
     }
@@ -608,5 +734,80 @@ onMounted(async () => {
   display: flex;
   justify-content: flex-end;
   margin-top: 16px;
+}
+
+.detail-params {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.param-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.image-upload-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+  overflow: hidden;
+  color: #8c8c8c;
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+.image-upload-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-upload-box span {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.detail-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.detail-image-item {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  overflow: hidden;
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+}
+
+.detail-image-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detail-image-item button {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.45);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
 }
 </style>

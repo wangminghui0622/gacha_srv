@@ -7,6 +7,7 @@ import (
 
 	"gacha_srv/app/catalog/catalog"
 	"gacha_srv/app/catalog/internal/core"
+	"gacha_srv/app/catalog/internal/repo"
 	"gacha_srv/app/catalog/internal/svc"
 	"gacha_srv/pkg/utils/errorx"
 
@@ -29,10 +30,25 @@ func (l *CreateAdminProductLogic) CreateAdminProduct(in *catalog.CreateAdminProd
 	if err != nil {
 		return nil, errorx.NewCodeError(errorx.CodeCatalogInvalid, err.Error())
 	}
+	if in.IpId == 0 || in.BrandId == 0 || in.SeriesId == 0 {
+		return nil, errorx.NewCodeError(errorx.CodeCatalogInvalid, "IP、厂商、系列必填")
+	}
 	if code == "" {
 		code = fmt.Sprintf("PRD-%d", time.Now().UnixNano())
 	}
-	out, err := l.svcCtx.Repo.CreateAdminProduct(l.ctx, title, code, saleType, cover, in.IpId, in.BrandId, in.SeriesId, in.CostAmountMinor, in.SaleAmountMinor)
+	saleAmount := in.SaleAmountMinor
+	if saleAmount == 0 {
+		saleAmount = in.CostAmountMinor
+	}
+	adminJSON, err := encodeAdminJSON(in.TotalStock, in.FrozenStock, in.HalfBodyImage, in.ThumbUrl, in.DetailIntro, in.DetailImages, in.DetailParams)
+	if err != nil {
+		return nil, errorx.NewCodeError(errorx.CodeCatalogInvalid, "商品扩展字段格式错误")
+	}
+	out, err := l.svcCtx.Repo.CreateAdminProduct(l.ctx, repo.AdminProductFields{
+		Title: title, ProductCode: code, SaleType: saleType, CoverURL: cover, AdminJSON: adminJSON,
+		IPID: in.IpId, BrandID: in.BrandId, SeriesID: in.SeriesId,
+		CostAmountMinor: in.CostAmountMinor, SaleAmountMinor: saleAmount,
+	})
 	if err != nil {
 		return nil, mapAdminProductRepoErr(err)
 	}

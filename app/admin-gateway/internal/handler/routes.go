@@ -185,6 +185,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: catalog.CreateAdminProductHandler(serverCtx),
 				},
 				{
+					// 商品管理详情（catalog.product:read；编辑表单完整字段）
+					Method:  http.MethodGet,
+					Path:    "/catalog/admin/products/:productId",
+					Handler: catalog.GetAdminProductHandler(serverCtx),
+				},
+				{
 					// 编辑商品（catalog.product:write）
 					Method:  http.MethodPut,
 					Path:    "/catalog/admin/products/:productId",

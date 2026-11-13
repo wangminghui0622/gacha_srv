@@ -195,6 +195,22 @@ export interface ListAdminProductsReply {
   pageSize?: number
 }
 
+export interface ProductDetailParam {
+  name: string
+  value: string
+}
+
+export interface AdminProductDetail {
+  product?: AdminProductItem
+  totalStock?: string
+  frozenStock?: string
+  halfBodyImage?: string
+  thumbUrl?: string
+  detailIntro?: string
+  detailImages?: string[]
+  detailParams?: ProductDetailParam[]
+}
+
 export interface AdminProductInput {
   productCode?: string
   title: string
@@ -205,6 +221,13 @@ export interface AdminProductInput {
   costAmountMinor: number
   saleAmountMinor: number
   coverUrl: string
+  totalStock: number
+  frozenStock: number
+  halfBodyImage: string
+  thumbUrl: string
+  detailIntro: string
+  detailImages: string[]
+  detailParams: ProductDetailParam[]
 }
 
 export const catalogAdminProductClient = {
@@ -222,6 +245,9 @@ export const catalogAdminProductClient = {
     pageSize: number
   }): Promise<ListAdminProductsReply> {
     return http.get('/console/v2/api/catalog/admin/products', { params })
+  },
+  Get(productId: string): Promise<AdminProductDetail> {
+    return http.get(`/console/v2/api/catalog/admin/products/${encodeURIComponent(productId)}`)
   },
   Create(payload: AdminProductInput): Promise<AdminProductItem> {
     return http.post('/console/v2/api/catalog/admin/products', payload)

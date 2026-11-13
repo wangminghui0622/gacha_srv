@@ -74,6 +74,7 @@ func All() []Operation {
 		{ID: "console.catalog.series.update", Resource: "catalog.product", Action: "write", Method: "PUT", Path: "/catalog/series/:seriesId", Title: "编辑系列"},
 		{ID: "console.catalog.admin_products.list", Resource: "catalog.product", Action: "read", Method: "GET", Path: "/catalog/admin/products", Title: "商品管理列表"},
 		{ID: "console.catalog.admin_products.create", Resource: "catalog.product", Action: "create", Method: "POST", Path: "/catalog/admin/products", Title: "创建商品"},
+		{ID: "console.catalog.admin_products.get", Resource: "catalog.product", Action: "read", Method: "GET", Path: "/catalog/admin/products/:productId", Title: "商品管理详情"},
 		{ID: "console.catalog.admin_products.update", Resource: "catalog.product", Action: "write", Method: "PUT", Path: "/catalog/admin/products/:productId", Title: "编辑商品"},
 		{ID: "console.catalog.admin_products.copy", Resource: "catalog.product", Action: "create", Method: "POST", Path: "/catalog/admin/products/:productId/copy", Title: "复制商品"},
 		{ID: "console.catalog.list", Resource: "catalog.product", Action: "read", Method: "GET", Path: "/catalog/products", Title: "商品列表"},

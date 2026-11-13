@@ -57,11 +57,41 @@ type productRow struct {
 	ShippedQuantity uint64    `gorm:"column:shipped_quantity"`
 	CostAmountMinor int64     `gorm:"column:cost_amount_minor"`
 	CoverURL        string    `gorm:"column:cover_url"`
+	AdminJSON       string    `gorm:"column:admin_json"`
 	CreatedAt       time.Time `gorm:"column:created_at"`
 	UpdatedAt       time.Time `gorm:"column:updated_at"`
 }
 
 func (productRow) TableName() string { return "products" }
+
+// AdminProductFields 后台商品创建/编辑字段（AdminJSON 存放库存、图片、详情等扩展字段）。
+type AdminProductFields struct {
+	Title           string
+	ProductCode     string
+	SaleType        string
+	CoverURL        string
+	AdminJSON       string
+	IPID            uint64
+	BrandID         uint64
+	SeriesID        uint64
+	CostAmountMinor int64
+	SaleAmountMinor int64
+}
+
+type adminProductExtras struct {
+	TotalStock    uint64             `json:"totalStock"`
+	FrozenStock   uint64             `json:"frozenStock"`
+	HalfBodyImage string             `json:"halfBodyImage"`
+	ThumbURL      string             `json:"thumbUrl"`
+	DetailIntro   string             `json:"detailIntro"`
+	DetailImages  []string           `json:"detailImages"`
+	DetailParams  []adminDetailParam `json:"detailParams"`
+}
+
+type adminDetailParam struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
 
 type adminProductRow struct {
 	ID              uint64 `gorm:"column:id"`
@@ -1077,13 +1107,13 @@ func applyAdminProductFilters(q *gorm.DB, in *catalogpb.ListAdminProductsRequest
 }
 
 // CreateAdminProduct 创建商品 + 默认 SKU（后台商品页字段）。
-func (r *Repo) CreateAdminProduct(ctx context.Context, title, productCode, saleType, coverURL string, ipID, brandID, seriesID uint64, costAmountMinor, saleAmountMinor int64) (*catalogpb.AdminProduct, error) {
+func (r *Repo) CreateAdminProduct(ctx context.Context, f AdminProductFields) (*catalogpb.AdminProduct, error) {
 	var out *catalogpb.AdminProduct
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		row := productRow{
-			ProductCode: productCode, Title: title, Status: StatusDraft, Version: 1,
-			IPID: ipID, BrandID: brandID, SeriesID: seriesID, SaleType: saleType,
-			CostAmountMinor: costAmountMinor, CoverURL: coverURL,
+			ProductCode: f.ProductCode, Title: f.Title, Status: StatusDraft, Version: 1,
+			IPID: f.IPID, BrandID: f.BrandID, SeriesID: f.SeriesID, SaleType: f.SaleType,
+			CostAmountMinor: f.CostAmountMinor, CoverURL: f.CoverURL, AdminJSON: f.AdminJSON,
 		}
 		if err := tx.Create(&row).Error; err != nil {
 			if errors.Is(err, gorm.ErrDuplicatedKey) {
@@ -1091,13 +1121,13 @@ func (r *Repo) CreateAdminProduct(ctx context.Context, title, productCode, saleT
 			}
 			return err
 		}
-		skuCode := productCode + "-SKU"
+		skuCode := f.ProductCode + "-SKU"
 		if len(skuCode) > 64 {
-			skuCode = truncateRunes(productCode, 59) + "-SKU"
+			skuCode = truncateRunes(f.ProductCode, 59) + "-SKU"
 		}
 		sku := skuRow{
-			ProductID: row.ID, SkuCode: skuCode, Title: title, Status: StatusDraft,
-			FulfillmentMode: 1, SaleAmountMinor: saleAmountMinor, ReferenceAmountMinor: saleAmountMinor,
+			ProductID: row.ID, SkuCode: skuCode, Title: f.Title, Status: StatusDraft,
+			FulfillmentMode: 1, SaleAmountMinor: f.SaleAmountMinor, ReferenceAmountMinor: f.SaleAmountMinor,
 			Currency: "CNY", Version: 1,
 		}
 		if err := tx.Create(&sku).Error; err != nil {
@@ -1114,7 +1144,7 @@ func (r *Repo) CreateAdminProduct(ctx context.Context, title, productCode, saleT
 }
 
 // UpdateAdminProduct 编辑后台商品字段。
-func (r *Repo) UpdateAdminProduct(ctx context.Context, id uint64, title string, ipID, brandID, seriesID uint64, saleType, coverURL string, costAmountMinor, saleAmountMinor int64) (*catalogpb.AdminProduct, error) {
+func (r *Repo) UpdateAdminProduct(ctx context.Context, id uint64, f AdminProductFields) (*catalogpb.AdminProduct, error) {
 	var row productRow
 	if err := r.db.WithContext(ctx).First(&row, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -1122,16 +1152,20 @@ func (r *Repo) UpdateAdminProduct(ctx context.Context, id uint64, title string, 
 		}
 		return nil, err
 	}
-	row.Title = title
-	row.IPID = ipID
-	row.BrandID = brandID
-	row.SeriesID = seriesID
-	row.SaleType = saleType
-	row.CoverURL = coverURL
-	row.CostAmountMinor = costAmountMinor
+	row.Title = f.Title
+	row.IPID = f.IPID
+	row.BrandID = f.BrandID
+	row.SeriesID = f.SeriesID
+	row.SaleType = f.SaleType
+	row.CoverURL = f.CoverURL
+	row.CostAmountMinor = f.CostAmountMinor
+	row.AdminJSON = f.AdminJSON
 	if err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Save(&row).Error; err != nil {
 			return err
+		}
+		if f.SaleAmountMinor <= 0 {
+			return nil
 		}
 		var sku skuRow
 		if err := tx.Where("product_id = ?", id).Order("id").First(&sku).Error; err != nil {
@@ -1140,8 +1174,8 @@ func (r *Repo) UpdateAdminProduct(ctx context.Context, id uint64, title string, 
 			}
 			return err
 		}
-		sku.SaleAmountMinor = saleAmountMinor
-		sku.ReferenceAmountMinor = saleAmountMinor
+		sku.SaleAmountMinor = f.SaleAmountMinor
+		sku.ReferenceAmountMinor = f.SaleAmountMinor
 		return tx.Save(&sku).Error
 	}); err != nil {
 		return nil, err
@@ -1198,6 +1232,36 @@ func (r *Repo) CopyAdminProduct(ctx context.Context, id uint64) (*catalogpb.Admi
 		return err
 	})
 	return out, err
+}
+
+// GetAdminProduct 读取后台商品编辑表单完整字段。
+func (r *Repo) GetAdminProduct(ctx context.Context, id uint64) (*catalogpb.AdminProductDetail, error) {
+	summary, err := findAdminProduct(ctx, r.db, id)
+	if err != nil {
+		return nil, err
+	}
+	var row productRow
+	if err = r.db.WithContext(ctx).Select("id, admin_json").First(&row, "id = ?", id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	extras := adminProductExtras{}
+	if strings.TrimSpace(row.AdminJSON) != "" {
+		if err = json.Unmarshal([]byte(row.AdminJSON), &extras); err != nil {
+			return nil, fmt.Errorf("decode product admin_json: %w", err)
+		}
+	}
+	out := &catalogpb.AdminProductDetail{
+		Product: summary, TotalStock: extras.TotalStock, FrozenStock: extras.FrozenStock,
+		HalfBodyImage: extras.HalfBodyImage, ThumbUrl: extras.ThumbURL,
+		DetailIntro: extras.DetailIntro, DetailImages: extras.DetailImages,
+	}
+	for _, p := range extras.DetailParams {
+		out.DetailParams = append(out.DetailParams, &catalogpb.ProductDetailParam{Name: p.Name, Value: p.Value})
+	}
+	return out, nil
 }
 
 func findAdminProduct(ctx context.Context, q *gorm.DB, id uint64) (*catalogpb.AdminProduct, error) {

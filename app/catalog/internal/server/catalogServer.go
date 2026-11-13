@@ -106,6 +106,12 @@ func (s *CatalogServer) ListAdminProducts(ctx context.Context, in *catalog.ListA
 	return l.ListAdminProducts(in)
 }
 
+// 商品管理详情（编辑表单完整字段）
+func (s *CatalogServer) GetAdminProduct(ctx context.Context, in *catalog.GetAdminProductRequest) (*catalog.AdminProductDetail, error) {
+	l := logic.NewGetAdminProductLogic(ctx, s.svcCtx)
+	return l.GetAdminProduct(in)
+}
+
 // 创建商品（后台商品页；含 IP/品牌/系列/成本/封面字段）
 func (s *CatalogServer) CreateAdminProduct(ctx context.Context, in *catalog.CreateAdminProductRequest) (*catalog.AdminProduct, error) {
 	l := logic.NewCreateAdminProductLogic(ctx, s.svcCtx)

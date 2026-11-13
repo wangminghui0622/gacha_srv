@@ -39,6 +39,8 @@ rpc GetSKU(GetSKURequest) returns (SKU);
   rpc UpdateSeries(UpdateSeriesRequest) returns (Series);
   // 商品管理列表（搜索/厂商/系列/IP/销售类型/价格区间 + 分页）
   rpc ListAdminProducts(ListAdminProductsRequest) returns (ListAdminProductsReply);
+  // 商品管理详情（编辑表单完整字段）
+  rpc GetAdminProduct(GetAdminProductRequest) returns (AdminProductDetail);
   // 创建商品（后台商品页；含 IP/品牌/系列/成本/封面字段）
   rpc CreateAdminProduct(CreateAdminProductRequest) returns (AdminProduct);
   // 编辑商品（后台商品页展示字段）
@@ -298,6 +300,26 @@ message AdminProduct {
   int64 saleAmountMinor = 16; // 最低售价（分，来自 SKU）
 }
 
+message ProductDetailParam {
+  string name = 1;
+  string value = 2;
+}
+
+message AdminProductDetail {
+  AdminProduct product = 1;
+  uint64 totalStock = 2;
+  uint64 frozenStock = 3;
+  string halfBodyImage = 4;
+  string thumbUrl = 5;
+  string detailIntro = 6;
+  repeated string detailImages = 7;
+  repeated ProductDetailParam detailParams = 8;
+}
+
+message GetAdminProductRequest {
+  uint64 productId = 1;
+}
+
 message ListAdminProductsRequest {
   string keyword = 1;         // 商品名称/商品ID/编码
   uint64 brandId = 2;         // 厂商筛选
@@ -329,6 +351,13 @@ message CreateAdminProductRequest {
   int64 costAmountMinor = 7;  // 成本价（分）
   int64 saleAmountMinor = 8;  // 售价（分）
   string coverUrl = 9;        // 封面图
+  uint64 totalStock = 10;     // 总库存
+  uint64 frozenStock = 11;    // 冻结库存
+  string halfBodyImage = 12;  // 半身图
+  string thumbUrl = 13;       // 缩略图
+  string detailIntro = 14;    // 详情介绍
+  repeated string detailImages = 15;          // 详情图片
+  repeated ProductDetailParam detailParams = 16; // 详细参数
 }
 
 message UpdateAdminProductRequest {
@@ -341,6 +370,13 @@ message UpdateAdminProductRequest {
   int64 costAmountMinor = 7;  // 成本价（分）
   string coverUrl = 8;        // 封面图
   int64 saleAmountMinor = 9;  // 售价（分）
+  uint64 totalStock = 10;     // 总库存
+  uint64 frozenStock = 11;    // 冻结库存
+  string halfBodyImage = 12;  // 半身图
+  string thumbUrl = 13;       // 缩略图
+  string detailIntro = 14;    // 详情介绍
+  repeated string detailImages = 15;          // 详情图片
+  repeated ProductDetailParam detailParams = 16; // 详细参数
 }
 
 message CopyAdminProductRequest {

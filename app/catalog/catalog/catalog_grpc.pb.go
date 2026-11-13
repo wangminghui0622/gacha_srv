@@ -33,6 +33,7 @@ const (
 	Catalog_CreateSeries_FullMethodName               = "/catalog.Catalog/CreateSeries"
 	Catalog_UpdateSeries_FullMethodName               = "/catalog.Catalog/UpdateSeries"
 	Catalog_ListAdminProducts_FullMethodName          = "/catalog.Catalog/ListAdminProducts"
+	Catalog_GetAdminProduct_FullMethodName            = "/catalog.Catalog/GetAdminProduct"
 	Catalog_CreateAdminProduct_FullMethodName         = "/catalog.Catalog/CreateAdminProduct"
 	Catalog_UpdateAdminProduct_FullMethodName         = "/catalog.Catalog/UpdateAdminProduct"
 	Catalog_CopyAdminProduct_FullMethodName           = "/catalog.Catalog/CopyAdminProduct"
@@ -75,6 +76,8 @@ type CatalogClient interface {
 	UpdateSeries(ctx context.Context, in *UpdateSeriesRequest, opts ...grpc.CallOption) (*Series, error)
 	// 商品管理列表（搜索/厂商/系列/IP/销售类型/价格区间 + 分页）
 	ListAdminProducts(ctx context.Context, in *ListAdminProductsRequest, opts ...grpc.CallOption) (*ListAdminProductsReply, error)
+	// 商品管理详情（编辑表单完整字段）
+	GetAdminProduct(ctx context.Context, in *GetAdminProductRequest, opts ...grpc.CallOption) (*AdminProductDetail, error)
 	// 创建商品（后台商品页；含 IP/品牌/系列/成本/封面字段）
 	CreateAdminProduct(ctx context.Context, in *CreateAdminProductRequest, opts ...grpc.CallOption) (*AdminProduct, error)
 	// 编辑商品（后台商品页展示字段）
@@ -229,6 +232,15 @@ func (c *catalogClient) ListAdminProducts(ctx context.Context, in *ListAdminProd
 	return out, nil
 }
 
+func (c *catalogClient) GetAdminProduct(ctx context.Context, in *GetAdminProductRequest, opts ...grpc.CallOption) (*AdminProductDetail, error) {
+	out := new(AdminProductDetail)
+	err := c.cc.Invoke(ctx, Catalog_GetAdminProduct_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *catalogClient) CreateAdminProduct(ctx context.Context, in *CreateAdminProductRequest, opts ...grpc.CallOption) (*AdminProduct, error) {
 	out := new(AdminProduct)
 	err := c.cc.Invoke(ctx, Catalog_CreateAdminProduct_FullMethodName, in, out, opts...)
@@ -341,6 +353,8 @@ type CatalogServer interface {
 	UpdateSeries(context.Context, *UpdateSeriesRequest) (*Series, error)
 	// 商品管理列表（搜索/厂商/系列/IP/销售类型/价格区间 + 分页）
 	ListAdminProducts(context.Context, *ListAdminProductsRequest) (*ListAdminProductsReply, error)
+	// 商品管理详情（编辑表单完整字段）
+	GetAdminProduct(context.Context, *GetAdminProductRequest) (*AdminProductDetail, error)
 	// 创建商品（后台商品页；含 IP/品牌/系列/成本/封面字段）
 	CreateAdminProduct(context.Context, *CreateAdminProductRequest) (*AdminProduct, error)
 	// 编辑商品（后台商品页展示字段）
@@ -407,6 +421,9 @@ func (UnimplementedCatalogServer) UpdateSeries(context.Context, *UpdateSeriesReq
 }
 func (UnimplementedCatalogServer) ListAdminProducts(context.Context, *ListAdminProductsRequest) (*ListAdminProductsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAdminProducts not implemented")
+}
+func (UnimplementedCatalogServer) GetAdminProduct(context.Context, *GetAdminProductRequest) (*AdminProductDetail, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAdminProduct not implemented")
 }
 func (UnimplementedCatalogServer) CreateAdminProduct(context.Context, *CreateAdminProductRequest) (*AdminProduct, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateAdminProduct not implemented")
@@ -700,6 +717,24 @@ func _Catalog_ListAdminProducts_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Catalog_GetAdminProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAdminProductRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServer).GetAdminProduct(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Catalog_GetAdminProduct_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServer).GetAdminProduct(ctx, req.(*GetAdminProductRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Catalog_CreateAdminProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateAdminProductRequest)
 	if err := dec(in); err != nil {
@@ -924,6 +959,10 @@ var Catalog_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAdminProducts",
 			Handler:    _Catalog_ListAdminProducts_Handler,
+		},
+		{
+			MethodName: "GetAdminProduct",
+			Handler:    _Catalog_GetAdminProduct_Handler,
 		},
 		{
 			MethodName: "CreateAdminProduct",
