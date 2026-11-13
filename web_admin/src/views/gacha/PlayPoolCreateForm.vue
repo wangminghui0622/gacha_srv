@@ -99,21 +99,27 @@
           </div>
         </a-form-item>
 
-        <a-form-item label="封面大图">
-          <a-upload :show-upload-list="false" accept="image/*" :before-upload="(file: File) => uploadImage(file, 'coverImage')">
-            <div class="image-upload-box">
-              <img v-if="form.coverImage" :src="form.coverImage" alt="" />
-              <template v-else><PlusOutlined /><span>Upload</span></template>
+        <a-form-item label="封面图">
+          <div class="cover-row">
+            <div class="cover-item">
+              <div class="cover-label">封面大图</div>
+              <a-upload :show-upload-list="false" accept="image/*" :before-upload="(file: File) => uploadImage(file, 'coverImage')">
+                <div class="image-upload-box">
+                  <img v-if="form.coverImage" :src="form.coverImage" alt="" />
+                  <template v-else><PlusOutlined /><span>Upload</span></template>
+                </div>
+              </a-upload>
             </div>
-          </a-upload>
-        </a-form-item>
-        <a-form-item label="封面缩略图">
-          <a-upload :show-upload-list="false" accept="image/*" :before-upload="(file: File) => uploadImage(file, 'coverThumb')">
-            <div class="image-upload-box">
-              <img v-if="form.coverThumb" :src="form.coverThumb" alt="" />
-              <template v-else><PlusOutlined /><span>Upload</span></template>
+            <div class="cover-item">
+              <div class="cover-label">封面缩略图</div>
+              <a-upload :show-upload-list="false" accept="image/*" :before-upload="(file: File) => uploadImage(file, 'coverThumb')">
+                <div class="image-upload-box">
+                  <img v-if="form.coverThumb" :src="form.coverThumb" alt="" />
+                  <template v-else><PlusOutlined /><span>Upload</span></template>
+                </div>
+              </a-upload>
             </div>
-          </a-upload>
+          </div>
         </a-form-item>
       </a-form>
 
@@ -449,6 +455,23 @@ onMounted(loadOptions)
 
 .coupon-table {
   margin-top: 10px;
+}
+
+.cover-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+}
+
+.cover-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cover-label {
+  color: #606266;
+  font-size: 13px;
 }
 
 .image-upload-box {
