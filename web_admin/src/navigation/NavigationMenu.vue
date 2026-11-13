@@ -132,10 +132,14 @@ nav {
 }
 
 .side-menu-popup .ant-menu-title-content {
+  display: block;
+  width: 100%;
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: clip !important;
   line-height: 20px;
+  text-align: justify;
+  text-align-last: justify;
 }
 
 .side-menu-popup .ant-menu-item-selected {
