@@ -46,6 +46,9 @@
     "campaign": "Campaigns",
     "catalog": "Products",
     "gacha": "Pools",
+    "customers": "Customers",
+    "system": "System",
+    "accounts": "Accounts",
     "eligibility": "Eligibility",
     "authorization": "Roles",
     "reporting": "Dashboards",
@@ -497,6 +500,30 @@
       "codeInvalid": "Policy code format invalid",
       "selectFirst": "Select a policy from the list first"
     }
+  },
+  "customers": {
+    "searchTitle": "Find a customer",
+    "customerId": "Customer ID",
+    "customerIdPlaceholder": "Enter customer ID",
+    "openOverview": "Open overview",
+    "openProfit": "Open profit curve",
+    "invalidId": "Enter a valid customer ID",
+    "quickTitle": "Quick links",
+    "quickHint": "Customers are resolved by user ID. Common entries:",
+    "aboutTitle": "About customer management",
+    "aboutHint": "The customer list API is not available yet. You can open a customer overview or profit curve by ID."
+  },
+  "system": {
+    "intro": "System configuration and operations tools. Only modules allowed for this account are shown.",
+    "taskPlanDesc": "Create, revise and publish task plans.",
+    "taskProgressDesc": "Track user task progress and completion.",
+    "eligibilityDesc": "Configure eligibility and access policies.",
+    "riskDesc": "Handle risk cases and user risk events.",
+    "reportingDesc": "Review business reports and dashboards.",
+    "promotionDesc": "Manage coupon templates, grants and loyalty."
+  },
+  "accounts": {
+    "title": "Accounts & permissions"
   },
   "authorization": {
     "title": "Roles & permissions",

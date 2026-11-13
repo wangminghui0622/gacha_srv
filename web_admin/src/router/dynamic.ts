@@ -14,14 +14,14 @@ export function installDynamicRoutes(router: Router, nodes: PermissionNode[]): v
     path: '/',
     name: consoleRootName,
     component: ConsoleLayout,
-    redirect: '/dashboard',
+    redirect: '/catalog',
     children,
   }
   router.addRoute(root)
   router.addRoute({
     path: '/:pathMatch(.*)*',
     name: 'not-found',
-    redirect: '/dashboard',
+    redirect: '/catalog',
   })
 }
 

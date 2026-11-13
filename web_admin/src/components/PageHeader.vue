@@ -1,7 +1,7 @@
 <template>
   <div class="page-header">
     <a-space align="center">
-      <a-button type="text" @click="goBack">
+      <a-button v-if="showBack" type="text" @click="goBack">
         <template #icon><ArrowLeftOutlined /></template>
         {{ $t('common.back') }}
       </a-button>
@@ -17,7 +17,7 @@
 import { ArrowLeftOutlined } from '@ant-design/icons-vue'
 import { usePageBack } from '@/composables/usePageBack'
 
-defineProps<{ title: string }>()
+withDefaults(defineProps<{ title: string; showBack?: boolean }>(), { showBack: true })
 const { goBack } = usePageBack()
 </script>
 

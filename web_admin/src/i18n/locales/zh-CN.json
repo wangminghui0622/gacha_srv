@@ -43,9 +43,12 @@
     "pool": "赏池",
     "box": "箱子",
     "promotion": "营销",
-    "campaign": "活动",
+    "campaign": "活动管理",
     "catalog": "商品管理",
     "gacha": "赏池管理",
+    "customers": "客户管理",
+    "system": "系统管理",
+    "accounts": "账户管理",
     "eligibility": "条件政策",
     "authorization": "权限管理",
     "reporting": "报表看板",
@@ -497,6 +500,30 @@
       "codeInvalid": "政策标识格式错误",
       "selectFirst": "请先从列表选择政策"
     }
+  },
+  "customers": {
+    "searchTitle": "查询客户",
+    "customerId": "客户 ID",
+    "customerIdPlaceholder": "请输入客户 ID",
+    "openOverview": "查看客户概览",
+    "openProfit": "查看盈亏曲线",
+    "invalidId": "请输入有效的客户 ID",
+    "quickTitle": "快捷入口",
+    "quickHint": "客户信息按用户 ID 查询，常用入口如下。",
+    "aboutTitle": "关于客户管理",
+    "aboutHint": "客户列表接口尚未开放；当前支持按客户 ID 查看客户概览、盈亏曲线，并从商品/赏池记录继续下钻。"
+  },
+  "system": {
+    "intro": "系统配置与运营工具入口，仅展示当前账号有权限的模块。",
+    "taskPlanDesc": "创建、修订与发布任务计划。",
+    "taskProgressDesc": "查看用户任务进度与完成情况。",
+    "eligibilityDesc": "配置参与条件与准入政策。",
+    "riskDesc": "处理风控案例与用户风险事件。",
+    "reportingDesc": "查看经营报表与指标看板。",
+    "promotionDesc": "管理券模板、发券与积分营销。"
+  },
+  "accounts": {
+    "title": "账户与权限"
   },
   "authorization": {
     "title": "角色与权限",

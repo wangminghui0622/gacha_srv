@@ -17,7 +17,9 @@ export function parseConsoleJwt(token: string): ConsoleJwtClaims | null {
   try {
     const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
     const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
-    const json = atob(padded)
+    const binary = atob(padded)
+    const bytes = Uint8Array.from(binary, (ch) => ch.charCodeAt(0))
+    const json = new TextDecoder().decode(bytes)
     return JSON.parse(json) as ConsoleJwtClaims
   } catch {
     return null

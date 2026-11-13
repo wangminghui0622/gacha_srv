@@ -27,7 +27,7 @@ export function installRouterGuard(router: Router): void {
     }
 
     if (to.path === '/login') {
-      next({ path: '/dashboard' })
+      next({ path: '/catalog' })
       return
     }
 
@@ -47,7 +47,7 @@ export function installRouterGuard(router: Router): void {
 
     const name = typeof to.name === 'string' ? to.name : undefined
     if (!canAccessRoute(name, session.permissionNodes)) {
-      next({ path: '/dashboard' })
+      next({ path: '/catalog' })
       return
     }
     next()

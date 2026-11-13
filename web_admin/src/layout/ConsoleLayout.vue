@@ -1,12 +1,10 @@
 <template>
   <a-layout class="console-layout">
     <SecurityWatermark v-if="session.accessToken" />
-    <a-layout-sider v-model:collapsed="collapsed" class="desktop-sider" collapsible theme="dark" width="232">
-      <div class="brand">{{ collapsed ? 'LB' : $t('common.appName') }}</div>
+    <a-layout-sider class="desktop-sider" theme="light" width="208">
       <NavigationMenu :nodes="session.permissionNodes" :selected-key="selectedKey" @navigate="navigate" />
     </a-layout-sider>
-    <a-drawer v-model:open="mobileOpen" placement="left" :width="232" :closable="false" root-class-name="console-mobile-drawer">
-      <div class="brand">{{ $t('common.appName') }}</div>
+    <a-drawer v-model:open="mobileOpen" placement="left" :width="208" :closable="false" root-class-name="console-mobile-drawer">
       <NavigationMenu :nodes="session.permissionNodes" :selected-key="selectedKey" @navigate="navigate" />
     </a-drawer>
     <a-layout>
@@ -41,11 +39,9 @@ const route = useRoute()
 const router = useRouter()
 const session = useSessionStore()
 const { t } = useI18n()
-const collapsed = ref(false)
 const mobileOpen = ref(false)
 const menus = computed(() => menuRoutes(session.permissionNodes))
-// 路由目录 title 存 i18n KEY（双语是刻意差异），渲染处统一翻译。
-const headerTitle = computed(() => t((route.meta.title as string) ?? 'nav.dashboard'))
+const headerTitle = computed(() => t((route.meta.title as string) ?? 'nav.catalog'))
 const selectedKey = computed(() => {
   const hit = menus.value
     .filter((item) => route.path === menuPath(item) || route.path.startsWith(`${menuPath(item)}/`))
@@ -75,7 +71,10 @@ async function onLogout() {
 
 <style scoped lang="scss">
 .console-layout { min-height: 100vh; }
-.brand { color: #fff; font-weight: 600; padding: 18px 16px; text-align: center; white-space: nowrap; overflow: hidden; }
+.desktop-sider {
+  border-right: 1px solid #f0f0f0;
+  background: #fff;
+}
 .header { background: #fff; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-inline: 24px; border-bottom: 1px solid #f0f0f0; }
 .header-heading { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .header-title { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -92,5 +91,5 @@ async function onLogout() {
 </style>
 
 <style lang="scss">
-.console-mobile-drawer .ant-drawer-body { padding: 0; background: #001529; }
+.console-mobile-drawer .ant-drawer-body { padding: 0; background: #fff; }
 </style>

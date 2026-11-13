@@ -6,14 +6,18 @@ import type { RouteRecordRaw } from 'vue-router'
 import {
   AppstoreOutlined,
   DashboardOutlined,
+  FireOutlined,
   FlagOutlined,
   FilterOutlined,
   GiftOutlined,
   LineChartOutlined,
   SafetyOutlined,
   SafetyCertificateOutlined,
+  SettingOutlined,
   ShoppingOutlined,
+  TeamOutlined,
   UnorderedListOutlined,
+  UserOutlined,
 } from '@ant-design/icons-vue'
 import { allows, type PermissionNode } from '@/access/grants'
 
@@ -167,7 +171,7 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     menuGroup: 'business',
     icon: ShoppingOutlined,
     backFallback: '/dashboard',
-    component: () => import('@/views/catalog/ProductLookupView.vue'),
+    component: () => import('@/views/catalog/CatalogManagementView.vue'),
   },
   {
     name: 'gacha',
@@ -178,7 +182,36 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     menuGroup: 'business',
     icon: AppstoreOutlined,
     backFallback: '/dashboard',
-    component: () => import('@/views/gacha/PoolLookupView.vue'),
+    component: () => import('@/views/gacha/PlayPoolManagementView.vue'),
+  },
+  {
+    name: 'customers',
+    path: 'customers',
+    title: 'nav.customers',
+    permission: { resource: 'reporting.metric', action: 'read' },
+    showInMenu: true,
+    icon: UserOutlined,
+    backFallback: '/catalog',
+    component: () => import('@/views/customers/CustomerManagementView.vue'),
+  },
+  {
+    name: 'system',
+    path: 'system',
+    title: 'nav.system',
+    showInMenu: true,
+    icon: SettingOutlined,
+    backFallback: '/catalog',
+    component: () => import('@/views/system/SystemManagementView.vue'),
+  },
+  {
+    name: 'accounts',
+    path: 'accounts',
+    title: 'nav.accounts',
+    permission: { resource: 'authorization.role', action: 'read' },
+    showInMenu: true,
+    icon: TeamOutlined,
+    backFallback: '/catalog',
+    component: () => import('@/views/authorization/RoleManagementView.vue'),
   },
   {
     name: 'eligibility',
@@ -242,12 +275,17 @@ function granted(item: ConsoleRouteDef, nodes: PermissionNode[]): boolean {
   return allows(nodes, item.permission.resource, item.permission.action)
 }
 
+// 主菜单：与设计稿一致的一级导航（顺序即展示顺序）
+const PRIMARY_MENU = ['catalog', 'gacha', 'customers', 'campaign', 'system', 'accounts'] as const
+
 export function accessibleRoutes(nodes: PermissionNode[]): ConsoleRouteDef[] {
   return consoleRouteCatalog.filter((item) => !item.placeholder && granted(item, nodes))
 }
 
 export function menuRoutes(nodes: PermissionNode[]): ConsoleRouteDef[] {
-  return consoleRouteCatalog.filter((item) => item.showInMenu && !item.placeholder && granted(item, nodes))
+  const byName = new Map(consoleRouteCatalog.map((item) => [item.name, item]))
+  return PRIMARY_MENU.map((name) => byName.get(name))
+    .filter((item): item is ConsoleRouteDef => !!item && !item.placeholder && granted(item, nodes))
 }
 
 export const menuGroupTitles = { operations: 'menu.operations', business: 'menu.business', governance: 'menu.governance' } as const

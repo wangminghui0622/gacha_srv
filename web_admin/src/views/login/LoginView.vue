@@ -101,7 +101,7 @@ async function onSubmit() {
     )
     if (reply.session?.accessToken) {
       message.success(t('login.loginSuccess'))
-      const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/dashboard'
+      const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/catalog'
       await router.push(redirect)
       return
     }
