@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import type { PermissionNode } from '@/access/grants'
 import { menuPath, menuRoutes, menuTree } from './routeCatalog'
 
@@ -37,26 +37,9 @@ const tree = computed(() => menuTree(props.nodes))
 const paths = computed(() => menuRoutes(props.nodes).map(menuPath))
 const openKeys = ref<string[]>([])
 
-function activeParent(): string | undefined {
-  return tree.value.find((node) => node.children?.some((child) => props.selectedKey === child.path || props.selectedKey.startsWith(`${child.path}/`)))?.key
-}
-
-watch(
-  () => [props.selectedKey, tree.value] as const,
-  () => {
-    const parent = activeParent()
-    if (parent) openKeys.value = [parent]
-  },
-  { immediate: true },
-)
-
 function onOpenChange(keys: string[]) {
-  // 商品子菜单在选中子项后保持展开（与设计稿一致）；切到其他一级菜单时自然关闭
-  if (keys.length === 0 && activeParent()) {
-    openKeys.value = [activeParent()!]
-    return
-  }
-  openKeys.value = keys
+  // 只保留最后打开的一个父菜单，避免旧弹层残留
+  openKeys.value = keys.slice(-1)
 }
 
 function onClick(info: { key: string | number }) {
