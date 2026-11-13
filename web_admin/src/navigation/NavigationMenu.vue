@@ -79,8 +79,10 @@ nav {
 :deep(.ant-menu-submenu-title) {
   height: 44px;
   line-height: 44px;
-  margin: 4px 8px;
-  width: calc(100% - 16px);
+  margin: 4px 0 4px 8px;
+  width: calc(100% - 8px);
+  padding-left: 16px !important;
+  padding-right: 7px !important;
   color: rgba(0, 0, 0, 0.75);
   font-size: 14px;
 }

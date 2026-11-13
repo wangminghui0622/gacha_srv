@@ -1,10 +1,10 @@
 <template>
   <a-layout class="console-layout">
     <SecurityWatermark v-if="session.accessToken" />
-    <a-layout-sider class="desktop-sider" theme="light" width="160">
+    <a-layout-sider class="desktop-sider" theme="light" width="144">
       <NavigationMenu :nodes="session.permissionNodes" :selected-key="selectedKey" @navigate="navigate" />
     </a-layout-sider>
-    <a-drawer v-model:open="mobileOpen" placement="left" :width="160" :closable="false" root-class-name="console-mobile-drawer">
+    <a-drawer v-model:open="mobileOpen" placement="left" :width="144" :closable="false" root-class-name="console-mobile-drawer">
       <NavigationMenu :nodes="session.permissionNodes" :selected-key="selectedKey" @navigate="navigate" />
     </a-drawer>
     <a-layout>
