@@ -14,6 +14,7 @@ import {
   LineChartOutlined,
   SafetyOutlined,
   SafetyCertificateOutlined,
+  SearchOutlined,
   SettingOutlined,
   ShoppingOutlined,
   TeamOutlined,
@@ -588,6 +589,70 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     component: () => import('@/views/common/ModulePlaceholderView.vue'),
   },
   {
+    name: 'query-item-flow',
+    path: 'query/item-flow',
+    title: 'nav.queryItemFlow',
+    showInMenu: false,
+    backFallback: '/dashboard',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'query-user-profit',
+    path: 'query/user-profit',
+    title: 'nav.queryUserProfit',
+    showInMenu: false,
+    backFallback: '/dashboard',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'query-user-bag',
+    path: 'query/user-bag',
+    title: 'nav.queryUserBag',
+    showInMenu: false,
+    backFallback: '/dashboard',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'query-box-revenue',
+    path: 'query/box-revenue',
+    title: 'nav.queryBoxRevenue',
+    showInMenu: false,
+    backFallback: '/dashboard',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'query-balance-flow',
+    path: 'query/balance-flow',
+    title: 'nav.queryBalanceFlow',
+    showInMenu: false,
+    backFallback: '/dashboard',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'query-coupon-flow',
+    path: 'query/coupon-flow',
+    title: 'nav.queryCouponFlow',
+    showInMenu: false,
+    backFallback: '/dashboard',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'query-invite',
+    path: 'query/invite',
+    title: 'nav.queryInvite',
+    showInMenu: false,
+    backFallback: '/dashboard',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'query-task-flow',
+    path: 'query/task-flow',
+    title: 'nav.queryTaskFlow',
+    showInMenu: false,
+    backFallback: '/dashboard',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
     name: 'eligibility',
     path: 'eligibility',
     title: 'nav.eligibility',
@@ -707,6 +772,16 @@ const REPORT_CHILDREN = [
   'report-invite',
   'report-orders',
 ] as const
+const QUERY_CHILDREN = [
+  'query-item-flow',
+  'query-user-profit',
+  'query-user-bag',
+  'query-box-revenue',
+  'query-balance-flow',
+  'query-coupon-flow',
+  'query-invite',
+  'query-task-flow',
+] as const
 const PRIMARY_LEAVES: readonly string[] = []
 
 export function accessibleRoutes(nodes: PermissionNode[]): ConsoleRouteDef[] {
@@ -754,6 +829,10 @@ export function menuTree(nodes: PermissionNode[]): MenuNode[] {
   const reportChildren = childNodes(REPORT_CHILDREN, nodes, byName)
   if (reportChildren.length > 0) {
     tree.push({ key: 'report-group', title: 'nav.reports', icon: BarChartOutlined, children: reportChildren })
+  }
+  const queryChildren = childNodes(QUERY_CHILDREN, nodes, byName)
+  if (queryChildren.length > 0) {
+    tree.push({ key: 'query-group', title: 'nav.query', icon: SearchOutlined, children: queryChildren })
   }
   for (const name of PRIMARY_LEAVES) {
     const item = byName.get(name)
