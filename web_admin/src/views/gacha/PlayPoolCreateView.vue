@@ -2,7 +2,7 @@
   <div>
     <PageHeader :title="$t('nav.gachaPools')" />
     <div class="create-page">
-      <PlayPoolCreateForm @success="onSuccess" />
+      <PlayPoolCreateForm @success="onSuccess" @cancel="router.push('/gacha')" />
     </div>
   </div>
 </template>

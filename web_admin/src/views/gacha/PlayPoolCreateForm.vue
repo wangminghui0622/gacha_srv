@@ -140,6 +140,7 @@
 
       <div class="create-actions">
         <a-button class="btn-create" type="primary" :loading="saving" @click="submit">创建</a-button>
+        <a-button @click="emit('cancel')">取消</a-button>
       </div>
 
     <a-modal v-model:open="skuModalOpen" title="选择赏品" :confirm-loading="false" width="420px" @ok="confirmSku">
@@ -161,7 +162,7 @@ import { catalogIpClient, type IpItem } from '@/api/catalog'
 import { listPrizeGrades, type PrizeGrade } from '@/api/prizeGrade'
 import { playPoolClient, type PlayPoolPrize } from '@/api/playPool'
 
-const emit = defineEmits<{ success: [] }>()
+const emit = defineEmits<{ success: []; cancel: [] }>()
 const saving = ref(false)
 const ips = ref<IpItem[]>([])
 const grades = ref<PrizeGrade[]>([])
@@ -580,6 +581,8 @@ onMounted(loadOptions)
 }
 
 .create-actions {
+  display: flex;
+  gap: 10px;
   margin: 16px 0 0 20.8%;
 }
 

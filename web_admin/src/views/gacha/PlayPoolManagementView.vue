@@ -94,7 +94,7 @@
       <template #title>
         <div class="create-pool-title">{{ $t('poolAdmin.createTitle') }}</div>
       </template>
-      <PlayPoolCreateForm @success="onCreateSuccess" />
+      <PlayPoolCreateForm @success="onCreateSuccess" @cancel="createModalOpen = false" />
     </a-modal>
 
     <a-modal v-model:open="createOpen" :title="$t('poolAdmin.createTitle')" :confirm-loading="creating" width="760px" @ok="submitCreate">
