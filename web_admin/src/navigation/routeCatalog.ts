@@ -648,6 +648,10 @@ function childNodes(names: readonly string[], nodes: PermissionNode[], byName: M
 export function menuTree(nodes: PermissionNode[]): MenuNode[] {
   const byName = new Map(consoleRouteCatalog.map((item) => [item.name, item]))
   const tree: MenuNode[] = []
+  const dashboard = byName.get('dashboard')
+  if (dashboard && !dashboard.placeholder && granted(dashboard, nodes)) {
+    tree.push({ key: dashboard.name, title: dashboard.title, icon: dashboard.icon, path: menuPath(dashboard) })
+  }
   const catalogChildren = childNodes(CATALOG_CHILDREN, nodes, byName)
   if (catalogChildren.length > 0) {
     tree.push({ key: 'catalog-group', title: 'nav.catalog', icon: ShoppingOutlined, children: catalogChildren })

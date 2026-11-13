@@ -41,7 +41,7 @@ const session = useSessionStore()
 const { t } = useI18n()
 const mobileOpen = ref(false)
 const menus = computed(() => menuRoutes(session.permissionNodes))
-const headerTitle = computed(() => t((route.meta.title as string) ?? 'nav.catalog'))
+const headerTitle = computed(() => t((route.meta.title as string) ?? 'nav.dashboard'))
 const selectedKey = computed(() => {
   const hit = menus.value
     .filter((item) => route.path === menuPath(item) || route.path.startsWith(`${menuPath(item)}/`))
