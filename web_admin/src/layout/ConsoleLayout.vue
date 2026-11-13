@@ -201,6 +201,7 @@ async function onLogout() {
   background: #304156;
 }
 .secondary-sider {
+  position: relative;
   flex: 0 0 auto;
   align-self: stretch;
   width: 0;
@@ -211,6 +212,17 @@ async function onLogout() {
   width: 144px;
   overflow-y: auto;
   overflow-x: hidden;
+}
+.secondary-sider.open::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  background: #e4e7ed;
+  pointer-events: none;
+  z-index: 2;
 }
 .secondary-body { min-height: 100%; }
 .submenu-card {
