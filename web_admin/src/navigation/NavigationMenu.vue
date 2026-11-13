@@ -138,8 +138,7 @@ nav {
   overflow: visible !important;
   text-overflow: clip !important;
   line-height: 20px;
-  text-align: justify;
-  text-align-last: justify;
+  text-align: center;
 }
 
 .side-menu-popup .ant-menu-item-selected {
