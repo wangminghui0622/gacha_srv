@@ -102,6 +102,10 @@ message CreatePlayPoolDraftReq {
   int64  priceFen       = 5;
   string configJson     = 6;
   repeated PlayPoolPrize prizes = 7;
+  uint64 ipId           = 8;
+  repeated string tags  = 9;
+  int64 periods         = 10;
+  int64 weight          = 11;
 }
 message CreatePlayPoolDraftResp {
   int64  poolId  = 1;
@@ -155,6 +159,51 @@ message PrizeGrade {
 message ListPrizeGradesReq {}
 message ListPrizeGradesResp { repeated PrizeGrade items = 1; }
 
+message AdminPlayPool {
+  int64 poolId = 1;
+  string name = 2;
+  int64 priceFen = 3;
+  int64 startAt = 4;
+  int64 status = 5;
+  string mode = 6;
+  repeated string tags = 7;
+  int64 periods = 8;
+  int64 weight = 9;
+  uint64 ipId = 10;
+  int64 latestVersion = 11;
+  int64 createdAt = 12;
+}
+message ListAdminPlayPoolsReq {
+  string keyword = 1;
+  string mode = 2;
+  uint64 ipId = 3;
+  string status = 4;     // draft / published / retired
+  string tag = 5;
+  string sortOrder = 6;  // desc / asc（创建时间）
+  uint32 page = 7;
+  uint32 pageSize = 8;
+}
+message ListAdminPlayPoolsResp {
+  repeated AdminPlayPool items = 1;
+  uint64 total = 2;
+  uint32 page = 3;
+  uint32 pageSize = 4;
+}
+message UpdateAdminPlayPoolReq {
+  int64 poolId = 1;
+  string name = 2;
+  uint64 ipId = 3;
+  repeated string tags = 4;
+  int64 periods = 5;
+  int64 weight = 6;
+  int64 priceFen = 7;
+}
+message SaveAdminPlayPoolWeightsReq { repeated AdminPlayPoolWeight weights = 1; }
+message AdminPlayPoolWeight { int64 poolId = 1; int64 weight = 2; }
+message SaveAdminPlayPoolWeightsResp { bool saved = 1; }
+message DeleteAdminPlayPoolsReq { repeated int64 poolIds = 1; }
+message DeleteAdminPlayPoolsResp { int64 deleted = 1; }
+
 service Play {
   // ---- 通用 SAGA 分支（payload 内是各玩法 typed 请求）----
   rpc PlayLock(PlayLockReq) returns (PlayLockResp);
@@ -172,6 +221,11 @@ service Play {
   rpc ListPlayPools(ListPlayPoolsReq) returns (ListPlayPoolsResp);
   // 赏级配置（赏别列表，控制台只读）
   rpc ListPrizeGrades(ListPrizeGradesReq) returns (ListPrizeGradesResp);
+  // 赏池管理（控制台列表/编辑/排序/删除）
+  rpc ListAdminPlayPools(ListAdminPlayPoolsReq) returns (ListAdminPlayPoolsResp);
+  rpc UpdateAdminPlayPool(UpdateAdminPlayPoolReq) returns (AdminPlayPool);
+  rpc SaveAdminPlayPoolWeights(SaveAdminPlayPoolWeightsReq) returns (SaveAdminPlayPoolWeightsResp);
+  rpc DeleteAdminPlayPools(DeleteAdminPlayPoolsReq) returns (DeleteAdminPlayPoolsResp);
 
   // ---- 挖宝 ----
   rpc ListDigBoxes(ListDigBoxesReq) returns (ListDigBoxesResp);

@@ -31,6 +31,10 @@ const (
 	Play_GetPlayPoolVersion_FullMethodName             = "/play.Play/GetPlayPoolVersion"
 	Play_ListPlayPools_FullMethodName                  = "/play.Play/ListPlayPools"
 	Play_ListPrizeGrades_FullMethodName                = "/play.Play/ListPrizeGrades"
+	Play_ListAdminPlayPools_FullMethodName             = "/play.Play/ListAdminPlayPools"
+	Play_UpdateAdminPlayPool_FullMethodName            = "/play.Play/UpdateAdminPlayPool"
+	Play_SaveAdminPlayPoolWeights_FullMethodName       = "/play.Play/SaveAdminPlayPoolWeights"
+	Play_DeleteAdminPlayPools_FullMethodName           = "/play.Play/DeleteAdminPlayPools"
 	Play_ListDigBoxes_FullMethodName                   = "/play.Play/ListDigBoxes"
 	Play_GetDigBoxSession_FullMethodName               = "/play.Play/GetDigBoxSession"
 	Play_GetFullCar_FullMethodName                     = "/play.Play/GetFullCar"
@@ -72,6 +76,11 @@ type PlayClient interface {
 	ListPlayPools(ctx context.Context, in *ListPlayPoolsReq, opts ...grpc.CallOption) (*ListPlayPoolsResp, error)
 	// 赏级配置（赏别列表，控制台只读）
 	ListPrizeGrades(ctx context.Context, in *ListPrizeGradesReq, opts ...grpc.CallOption) (*ListPrizeGradesResp, error)
+	// 赏池管理（控制台列表/编辑/排序/删除）
+	ListAdminPlayPools(ctx context.Context, in *ListAdminPlayPoolsReq, opts ...grpc.CallOption) (*ListAdminPlayPoolsResp, error)
+	UpdateAdminPlayPool(ctx context.Context, in *UpdateAdminPlayPoolReq, opts ...grpc.CallOption) (*AdminPlayPool, error)
+	SaveAdminPlayPoolWeights(ctx context.Context, in *SaveAdminPlayPoolWeightsReq, opts ...grpc.CallOption) (*SaveAdminPlayPoolWeightsResp, error)
+	DeleteAdminPlayPools(ctx context.Context, in *DeleteAdminPlayPoolsReq, opts ...grpc.CallOption) (*DeleteAdminPlayPoolsResp, error)
 	// ---- 挖宝 ----
 	ListDigBoxes(ctx context.Context, in *ListDigBoxesReq, opts ...grpc.CallOption) (*ListDigBoxesResp, error)
 	GetDigBoxSession(ctx context.Context, in *GetDigBoxSessionReq, opts ...grpc.CallOption) (*GetDigBoxSessionResp, error)
@@ -212,6 +221,42 @@ func (c *playClient) ListPlayPools(ctx context.Context, in *ListPlayPoolsReq, op
 func (c *playClient) ListPrizeGrades(ctx context.Context, in *ListPrizeGradesReq, opts ...grpc.CallOption) (*ListPrizeGradesResp, error) {
 	out := new(ListPrizeGradesResp)
 	err := c.cc.Invoke(ctx, Play_ListPrizeGrades_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) ListAdminPlayPools(ctx context.Context, in *ListAdminPlayPoolsReq, opts ...grpc.CallOption) (*ListAdminPlayPoolsResp, error) {
+	out := new(ListAdminPlayPoolsResp)
+	err := c.cc.Invoke(ctx, Play_ListAdminPlayPools_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) UpdateAdminPlayPool(ctx context.Context, in *UpdateAdminPlayPoolReq, opts ...grpc.CallOption) (*AdminPlayPool, error) {
+	out := new(AdminPlayPool)
+	err := c.cc.Invoke(ctx, Play_UpdateAdminPlayPool_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) SaveAdminPlayPoolWeights(ctx context.Context, in *SaveAdminPlayPoolWeightsReq, opts ...grpc.CallOption) (*SaveAdminPlayPoolWeightsResp, error) {
+	out := new(SaveAdminPlayPoolWeightsResp)
+	err := c.cc.Invoke(ctx, Play_SaveAdminPlayPoolWeights_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) DeleteAdminPlayPools(ctx context.Context, in *DeleteAdminPlayPoolsReq, opts ...grpc.CallOption) (*DeleteAdminPlayPoolsResp, error) {
+	out := new(DeleteAdminPlayPoolsResp)
+	err := c.cc.Invoke(ctx, Play_DeleteAdminPlayPools_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -417,6 +462,11 @@ type PlayServer interface {
 	ListPlayPools(context.Context, *ListPlayPoolsReq) (*ListPlayPoolsResp, error)
 	// 赏级配置（赏别列表，控制台只读）
 	ListPrizeGrades(context.Context, *ListPrizeGradesReq) (*ListPrizeGradesResp, error)
+	// 赏池管理（控制台列表/编辑/排序/删除）
+	ListAdminPlayPools(context.Context, *ListAdminPlayPoolsReq) (*ListAdminPlayPoolsResp, error)
+	UpdateAdminPlayPool(context.Context, *UpdateAdminPlayPoolReq) (*AdminPlayPool, error)
+	SaveAdminPlayPoolWeights(context.Context, *SaveAdminPlayPoolWeightsReq) (*SaveAdminPlayPoolWeightsResp, error)
+	DeleteAdminPlayPools(context.Context, *DeleteAdminPlayPoolsReq) (*DeleteAdminPlayPoolsResp, error)
 	// ---- 挖宝 ----
 	ListDigBoxes(context.Context, *ListDigBoxesReq) (*ListDigBoxesResp, error)
 	GetDigBoxSession(context.Context, *GetDigBoxSessionReq) (*GetDigBoxSessionResp, error)
@@ -487,6 +537,18 @@ func (UnimplementedPlayServer) ListPlayPools(context.Context, *ListPlayPoolsReq)
 }
 func (UnimplementedPlayServer) ListPrizeGrades(context.Context, *ListPrizeGradesReq) (*ListPrizeGradesResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPrizeGrades not implemented")
+}
+func (UnimplementedPlayServer) ListAdminPlayPools(context.Context, *ListAdminPlayPoolsReq) (*ListAdminPlayPoolsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAdminPlayPools not implemented")
+}
+func (UnimplementedPlayServer) UpdateAdminPlayPool(context.Context, *UpdateAdminPlayPoolReq) (*AdminPlayPool, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAdminPlayPool not implemented")
+}
+func (UnimplementedPlayServer) SaveAdminPlayPoolWeights(context.Context, *SaveAdminPlayPoolWeightsReq) (*SaveAdminPlayPoolWeightsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SaveAdminPlayPoolWeights not implemented")
+}
+func (UnimplementedPlayServer) DeleteAdminPlayPools(context.Context, *DeleteAdminPlayPoolsReq) (*DeleteAdminPlayPoolsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAdminPlayPools not implemented")
 }
 func (UnimplementedPlayServer) ListDigBoxes(context.Context, *ListDigBoxesReq) (*ListDigBoxesResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListDigBoxes not implemented")
@@ -773,6 +835,78 @@ func _Play_ListPrizeGrades_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PlayServer).ListPrizeGrades(ctx, req.(*ListPrizeGradesReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_ListAdminPlayPools_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAdminPlayPoolsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).ListAdminPlayPools(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_ListAdminPlayPools_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).ListAdminPlayPools(ctx, req.(*ListAdminPlayPoolsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_UpdateAdminPlayPool_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAdminPlayPoolReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).UpdateAdminPlayPool(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_UpdateAdminPlayPool_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).UpdateAdminPlayPool(ctx, req.(*UpdateAdminPlayPoolReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_SaveAdminPlayPoolWeights_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveAdminPlayPoolWeightsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).SaveAdminPlayPoolWeights(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_SaveAdminPlayPoolWeights_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).SaveAdminPlayPoolWeights(ctx, req.(*SaveAdminPlayPoolWeightsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_DeleteAdminPlayPools_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAdminPlayPoolsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).DeleteAdminPlayPools(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_DeleteAdminPlayPools_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).DeleteAdminPlayPools(ctx, req.(*DeleteAdminPlayPoolsReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1191,6 +1325,22 @@ var Play_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPrizeGrades",
 			Handler:    _Play_ListPrizeGrades_Handler,
+		},
+		{
+			MethodName: "ListAdminPlayPools",
+			Handler:    _Play_ListAdminPlayPools_Handler,
+		},
+		{
+			MethodName: "UpdateAdminPlayPool",
+			Handler:    _Play_UpdateAdminPlayPool_Handler,
+		},
+		{
+			MethodName: "SaveAdminPlayPoolWeights",
+			Handler:    _Play_SaveAdminPlayPoolWeights_Handler,
+		},
+		{
+			MethodName: "DeleteAdminPlayPools",
+			Handler:    _Play_DeleteAdminPlayPools_Handler,
 		},
 		{
 			MethodName: "ListDigBoxes",

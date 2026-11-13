@@ -1,142 +1,275 @@
 <template>
-  <div>
-    <PageHeader :title="$t('nav.gacha')" :show-back="false">
-      <template #extra>
-        <a-space>
-          <a-input v-model:value="modeFilter" placeholder="按玩法筛选（可选）" allow-clear style="width: 180px" @press-enter="load" />
-          <a-button :loading="loading" @click="load">刷新</a-button>
-          <a-button v-if="canCreate" type="primary" @click="openCreate">新建赏池</a-button>
-        </a-space>
-      </template>
-    </PageHeader>
+  <div class="pool-page">
+    <div class="pool-toolbar">
+      <a-input v-model:value="filters.keyword" class="filter-keyword" :placeholder="$t('poolAdmin.keywordPlaceholder')" allow-clear @press-enter="search" />
+      <a-select v-model:value="filters.mode" class="filter-select" :placeholder="$t('poolAdmin.modePlaceholder')" :options="modeOptions" allow-clear />
+      <a-select v-model:value="filters.ipId" class="filter-select" :placeholder="$t('poolAdmin.ipPlaceholder')" :options="ipOptions" allow-clear show-search option-filter-prop="label" />
+      <a-select v-model:value="filters.status" class="filter-select" :placeholder="$t('poolAdmin.statusPlaceholder')" :options="statusOptions" allow-clear />
+      <a-input v-model:value="filters.tag" class="filter-tag" :placeholder="$t('poolAdmin.tagPlaceholder')" allow-clear @press-enter="search" />
+      <a-select v-model:value="filters.sortOrder" class="filter-sort" :options="sortOptions" />
+      <a-button class="btn-query" type="primary" :loading="loading" @click="search">{{ $t('poolAdmin.query') }}</a-button>
+      <a-button class="btn-plain" @click="openReference">{{ $t('poolAdmin.referenceQuery') }}</a-button>
+      <a-button v-if="canCreate" class="btn-plain" @click="openCreate">{{ $t('poolAdmin.create') }}</a-button>
+      <a-button v-if="canWrite" class="btn-plain" @click="saveWeights">{{ $t('poolAdmin.saveSort') }}</a-button>
+      <a-button v-if="canWrite" class="btn-plain" @click="deleteSelected">{{ $t('poolAdmin.deletePools') }}</a-button>
+    </div>
 
-    <a-table :data-source="pools" :loading="loading" :pagination="false" :row-key="(row: PlayPoolSummary) => String(row.poolId)" size="middle" :scroll="{ x: 820 }">
-      <a-table-column title="赏池 ID" data-index="poolId" width="110" />
-      <a-table-column title="玩法" width="130">
+    <a-table
+      :data-source="items"
+      :loading="loading"
+      :pagination="false"
+      :row-key="(record: AdminPlayPool) => record.poolId ?? ''"
+      :row-selection="rowSelection"
+      size="middle"
+      :scroll="{ x: 1700 }"
+    >
+      <a-table-column :title="$t('poolAdmin.id')" data-index="poolId" width="190" align="center" />
+      <a-table-column :title="$t('poolAdmin.name')" data-index="name" min-width="300" align="center" />
+      <a-table-column :title="$t('poolAdmin.price')" width="110" align="center">
+        <template #default="{ record }">{{ formatPrice(record.priceFen) }}</template>
+      </a-table-column>
+      <a-table-column :title="$t('poolAdmin.startAt')" width="180" align="center">
+        <template #default="{ record }">{{ formatTime(record.startAt) }}</template>
+      </a-table-column>
+      <a-table-column :title="$t('poolAdmin.status')" width="100" align="center">
+        <template #default="{ record }">{{ statusText(record.status) }}</template>
+      </a-table-column>
+      <a-table-column :title="$t('poolAdmin.gameType')" width="130" align="center">
         <template #default="{ record }">{{ modeText(record.mode) }}</template>
       </a-table-column>
-      <a-table-column title="名称" data-index="name" />
-      <a-table-column title="最新版本" data-index="latestVersion" width="100" />
-      <a-table-column title="状态" width="110">
-        <template #default="{ record }"><a-tag :color="statusColor(record.status)">{{ statusText(record.status) }}</a-tag></template>
-      </a-table-column>
-      <a-table-column title="发布时间" width="180">
-        <template #default="{ record }">{{ timeText(record.publishedAt) }}</template>
-      </a-table-column>
-      <a-table-column title="操作" width="170">
+      <a-table-column :title="$t('poolAdmin.tags')" width="320" align="center">
         <template #default="{ record }">
-          <a-space>
-            <a @click="openDetail(record)">查看</a>
-            <a v-if="canPublish && isDraft(record.status)" @click="publish(record)">发布</a>
+          <a-space :size="4" wrap>
+            <a-tag v-for="tag in record.tags ?? []" :key="tag" class="pool-tag">{{ tag }}</a-tag>
+          </a-space>
+        </template>
+      </a-table-column>
+      <a-table-column :title="$t('poolAdmin.periods')" data-index="periods" width="90" align="center" />
+      <a-table-column :title="$t('poolAdmin.weight')" width="120" align="center">
+        <template #default="{ record }">
+          <a-input-number
+            :value="weightOf(record)"
+            :controls="false"
+            :min="0"
+            :precision="0"
+            class="weight-input"
+            @change="(value: number | null) => setWeight(record, value)"
+          />
+        </template>
+      </a-table-column>
+      <a-table-column :title="$t('poolAdmin.action')" width="240" align="center" fixed="right">
+        <template #default="{ record }">
+          <a-space :size="4">
+            <a-button v-if="canCreate" class="btn-copy" size="small" :loading="copyingId === record.poolId" @click="copyPool(record)">{{ $t('poolAdmin.copy') }}</a-button>
+            <a-button v-if="canWrite" class="btn-edit" size="small" @click="openEdit(record)">{{ $t('poolAdmin.edit') }}</a-button>
+            <a-button v-if="record.mode === 'memorymatch'" class="btn-match" size="small" @click="openMatch(record)">{{ $t('poolAdmin.pairMatch') }}</a-button>
           </a-space>
         </template>
       </a-table-column>
     </a-table>
 
-    <a-space class="pager">
-      <a-button :disabled="loading || !afterPoolId" @click="previous">上一页</a-button>
-      <a-button :disabled="loading || !hasMore" @click="next">下一页</a-button>
-    </a-space>
+    <div class="pool-footer">
+      <a-pagination
+        :current="page"
+        :page-size="pageSize"
+        :total="total"
+        :page-size-options="pageSizeOptions"
+        :locale="paginationLocale"
+        show-size-changer
+        show-less-items
+        @change="onPageChange"
+        @show-size-change="onPageSizeChange"
+      />
+    </div>
 
-    <a-modal v-model:open="createOpen" title="新建赏池草稿" :confirm-loading="creating" width="760px" @ok="create">
-      <a-form layout="vertical">
+    <a-modal v-model:open="createOpen" :title="$t('poolAdmin.createTitle')" :confirm-loading="creating" width="760px" @ok="submitCreate">
+      <a-form :label-col="{ span: 5 }" :wrapper-col="{ span: 18 }">
         <a-row :gutter="16">
-          <a-col :xs="24" :md="8">
-            <a-form-item label="玩法" required>
-              <a-select v-model:value="form.mode" :options="modeOptions" @change="resetSkeleton" />
+          <a-col :span="12">
+            <a-form-item :label="$t('poolAdmin.modeLabel')" required>
+              <a-select v-model:value="createForm.mode" :options="modeOptions" @change="resetSkeleton" />
             </a-form-item>
           </a-col>
-          <a-col :xs="24" :md="10">
-            <a-form-item label="名称" required><a-input v-model:value="form.name" /></a-form-item>
-          </a-col>
-          <a-col :xs="24" :md="6">
-            <a-form-item label="单价（分）"><a-input-number v-model:value="form.priceFen" :min="0" style="width: 100%" /></a-form-item>
+          <a-col :span="12">
+            <a-form-item :label="$t('poolAdmin.nameLabel')" required>
+              <a-input v-model:value="createForm.name" />
+            </a-form-item>
           </a-col>
         </a-row>
-        <a-form-item label="玩法配置 configJson">
-          <a-textarea v-model:value="form.configJson" :rows="5" spellcheck="false" />
+        <a-row :gutter="16">
+          <a-col :span="12">
+            <a-form-item :label="$t('poolAdmin.priceLabel')">
+              <a-input-number v-model:value="createForm.priceYuan" :min="0" :precision="2" style="width: 100%" />
+            </a-form-item>
+          </a-col>
+          <a-col :span="12">
+            <a-form-item :label="$t('poolAdmin.ipLabel')">
+              <a-select v-model:value="createForm.ipId" :options="ipOptions" allow-clear show-search option-filter-prop="label" />
+            </a-form-item>
+          </a-col>
+        </a-row>
+        <a-row :gutter="16">
+          <a-col :span="12">
+            <a-form-item :label="$t('poolAdmin.tagsLabel')">
+              <a-select v-model:value="createForm.tags" mode="tags" :token-separators="[',']" />
+            </a-form-item>
+          </a-col>
+          <a-col :span="6">
+            <a-form-item :label="$t('poolAdmin.periodsLabel')" :label-col="{ span: 10 }" :wrapper-col="{ span: 13 }">
+              <a-input-number v-model:value="createForm.periods" :min="0" :precision="0" style="width: 100%" />
+            </a-form-item>
+          </a-col>
+          <a-col :span="6">
+            <a-form-item :label="$t('poolAdmin.weightLabel')" :label-col="{ span: 10 }" :wrapper-col="{ span: 13 }">
+              <a-input-number v-model:value="createForm.weight" :min="0" :precision="0" style="width: 100%" />
+            </a-form-item>
+          </a-col>
+        </a-row>
+        <a-form-item :label="$t('poolAdmin.configJson')">
+          <a-textarea v-model:value="createForm.configJson" :rows="4" spellcheck="false" />
         </a-form-item>
-        <a-form-item label="奖品 prizes（JSON 数组）">
-          <a-textarea v-model:value="form.prizesJson" :rows="12" spellcheck="false" />
+        <a-form-item :label="$t('poolAdmin.prizesJson')">
+          <a-textarea v-model:value="createForm.prizesJson" :rows="9" spellcheck="false" />
         </a-form-item>
       </a-form>
     </a-modal>
 
-    <a-drawer v-model:open="detailOpen" title="赏池版本" width="640">
-      <a-spin :spinning="detailLoading">
-        <template v-if="detail">
-          <a-descriptions bordered :column="2" size="small">
-            <a-descriptions-item label="赏池 ID">{{ detail.poolId }}</a-descriptions-item>
-            <a-descriptions-item label="版本">{{ detail.version }}</a-descriptions-item>
-            <a-descriptions-item label="玩法">{{ modeText(detail.mode) }}</a-descriptions-item>
-            <a-descriptions-item label="状态">{{ statusText(detail.status) }}</a-descriptions-item>
-            <a-descriptions-item label="名称" :span="2">{{ detail.name }}</a-descriptions-item>
-            <a-descriptions-item label="单价（分）">{{ detail.priceFen }}</a-descriptions-item>
-            <a-descriptions-item label="配置哈希">{{ detail.configHash }}</a-descriptions-item>
-          </a-descriptions>
-          <h4>configJson</h4>
-          <pre class="json-block">{{ detail.configJson }}</pre>
-          <h4>奖品</h4>
-          <a-table :data-source="detail.prizes ?? []" :pagination="false" row-key="prizeIndex" size="small">
-            <a-table-column title="#" data-index="prizeIndex" width="50" />
-            <a-table-column title="名称" data-index="name" />
-            <a-table-column title="类别" width="110">
-              <template #default="{ record }">{{ record.specialKind || '普通' }}</template>
-            </a-table-column>
-            <a-table-column title="类型" width="70">
-              <template #default="{ record }">{{ record.prizeType === 2 ? '实物' : record.prizeType === 3 ? '箱子' : '虚拟' }}</template>
-            </a-table-column>
-            <a-table-column title="SKU" data-index="skuId" width="80" />
-            <a-table-column title="权重" data-index="weight" width="70" />
-            <a-table-column title="剩余/总量" width="110">
-              <template #default="{ record }">{{ record.remaining }} / {{ record.quantity }}</template>
-            </a-table-column>
-          </a-table>
+    <a-modal v-model:open="editOpen" :title="$t('poolAdmin.editTitle')" :confirm-loading="editingSaving" width="620px" @ok="submitEdit">
+      <a-form :label-col="{ span: 6 }" :wrapper-col="{ span: 17 }">
+        <a-form-item :label="$t('poolAdmin.nameLabel')" required>
+          <a-input v-model:value="editForm.name" />
+        </a-form-item>
+        <a-form-item :label="$t('poolAdmin.priceLabel')">
+          <a-input-number v-model:value="editForm.priceYuan" :min="0" :precision="2" style="width: 100%" />
+        </a-form-item>
+        <a-form-item :label="$t('poolAdmin.ipLabel')">
+          <a-select v-model:value="editForm.ipId" :options="ipOptions" allow-clear show-search option-filter-prop="label" />
+        </a-form-item>
+        <a-form-item :label="$t('poolAdmin.tagsLabel')">
+          <a-select v-model:value="editForm.tags" mode="tags" :token-separators="[',']" />
+        </a-form-item>
+        <a-row :gutter="16">
+          <a-col :span="12">
+            <a-form-item :label="$t('poolAdmin.periodsLabel')" :label-col="{ span: 10 }" :wrapper-col="{ span: 13 }">
+              <a-input-number v-model:value="editForm.periods" :min="0" :precision="0" style="width: 100%" />
+            </a-form-item>
+          </a-col>
+          <a-col :span="12">
+            <a-form-item :label="$t('poolAdmin.weightLabel')" :label-col="{ span: 10 }" :wrapper-col="{ span: 13 }">
+              <a-input-number v-model:value="editForm.weight" :min="0" :precision="0" style="width: 100%" />
+            </a-form-item>
+          </a-col>
+        </a-row>
+      </a-form>
+    </a-modal>
+
+    <a-modal v-model:open="referenceOpen" :title="$t('poolAdmin.referenceTitle')" :footer="null" width="560px">
+      <a-space class="reference-search">
+        <a-input v-model:value="referencePoolId" :placeholder="$t('poolAdmin.referencePlaceholder')" allow-clear @press-enter="queryReference" />
+        <a-button type="primary" :loading="referenceLoading" @click="queryReference">{{ $t('poolAdmin.query') }}</a-button>
+      </a-space>
+      <a-empty v-if="!referenceLoading && referenceResults.length === 0" :description="$t('poolAdmin.referenceEmpty')" />
+      <a-list v-else :data-source="referenceResults" size="small">
+        <template #renderItem="{ item }">
+          <a-list-item>{{ item.poolId }} · {{ item.name }}</a-list-item>
         </template>
-      </a-spin>
-    </a-drawer>
+      </a-list>
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
-import { message } from 'ant-design-vue'
-import PageHeader from '@/components/PageHeader.vue'
+import { message, Modal } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { allows } from '@/access/grants'
 import { useSessionStore } from '@/stores/session'
-import { playPoolClient, type PlayPoolPrize, type PlayPoolSummary, type PlayPoolVersion } from '@/api/playPool'
+import { catalogIpClient, type IpItem } from '@/api/catalog'
+import { playPoolClient, type AdminPlayPool, type PlayPoolPrize, type PlayPoolVersion } from '@/api/playPool'
 
 const session = useSessionStore()
+const router = useRouter()
+const { t } = useI18n()
 const canCreate = computed(() => allows(session.permissionNodes, 'gacha.pool', 'create'))
-const canPublish = computed(() => allows(session.permissionNodes, 'gacha.pool', 'publish'))
+const canWrite = computed(() => allows(session.permissionNodes, 'gacha.pool', 'write'))
 
-const pools = ref<PlayPoolSummary[]>([])
+const filters = reactive({
+  keyword: '',
+  mode: undefined as string | undefined,
+  ipId: undefined as string | undefined,
+  status: undefined as string | undefined,
+  tag: '',
+  sortOrder: 'desc',
+})
+const items = ref<AdminPlayPool[]>([])
+const ips = ref<IpItem[]>([])
+const page = ref(1)
+const pageSize = ref(15)
+const total = ref(0)
 const loading = ref(false)
-const afterPoolId = ref('')
-const history = ref<string[]>([])
-const hasMore = ref(false)
-const modeFilter = ref('')
+const copyingId = ref<string | undefined>(undefined)
+const pageSizeOptions = ['15', '30', '50']
+const paginationLocale = computed(() => ({ items_per_page: t('poolAdmin.itemsPerPage') }))
+const weights = reactive<Record<string, number>>({})
+
+const modeOptions = computed(() => [
+  { label: t('poolAdmin.modeGashapon'), value: 'gashapon' },
+  { label: t('poolAdmin.modeFullcar'), value: 'fullcar' },
+  { label: t('poolAdmin.modeCombochain'), value: 'combochain' },
+  { label: t('poolAdmin.modeDig'), value: 'dig' },
+  { label: t('poolAdmin.modeGroupbuy'), value: 'groupbuy' },
+  { label: t('poolAdmin.modeMemorymatch'), value: 'memorymatch' },
+])
+const statusOptions = computed(() => [
+  { label: t('poolAdmin.statusDraft'), value: 'draft' },
+  { label: t('poolAdmin.statusPublished'), value: 'published' },
+  { label: t('poolAdmin.statusRetired'), value: 'retired' },
+])
+const sortOptions = computed(() => [
+  { label: t('poolAdmin.sortDesc'), value: 'desc' },
+  { label: t('poolAdmin.sortAsc'), value: 'asc' },
+])
+const ipOptions = computed(() => ips.value.filter((item) => item.ipId && item.name).map((item) => ({ label: item.name as string, value: item.ipId as string })))
+
+const selectedRowKeys = ref<string[]>([])
+const rowSelection = computed(() => ({
+  selectedRowKeys: selectedRowKeys.value,
+  onChange: (keys: (string | number)[]) => {
+    selectedRowKeys.value = keys.map((key) => String(key))
+  },
+}))
 
 const createOpen = ref(false)
 const creating = ref(false)
-const form = reactive({ mode: 'gashapon', name: '', priceFen: 100, configJson: '', prizesJson: '' })
+const createForm = reactive({
+  mode: 'gashapon',
+  name: '',
+  priceYuan: 100,
+  ipId: undefined as string | undefined,
+  tags: [] as string[],
+  periods: 0,
+  weight: 0,
+  configJson: '{}',
+  prizesJson: '[]',
+})
 
-const detailOpen = ref(false)
-const detailLoading = ref(false)
-const detail = ref<PlayPoolVersion | null>(null)
+const editOpen = ref(false)
+const editingSaving = ref(false)
+const editing = ref<AdminPlayPool | null>(null)
+const editForm = reactive({
+  name: '',
+  priceYuan: 0,
+  ipId: undefined as string | undefined,
+  tags: [] as string[],
+  periods: 0,
+  weight: 0,
+})
 
-const modeOptions = [
-  { label: '扭蛋 gashapon', value: 'gashapon' },
-  { label: '整车 fullcar', value: 'fullcar' },
-  { label: '连击链 combochain', value: 'combochain' },
-  { label: '挖宝箱 dig', value: 'dig' },
-  { label: '拼团 groupbuy', value: 'groupbuy' },
-  { label: '记忆翻牌 memorymatch', value: 'memorymatch' },
-]
-
-const modeNames: Record<string, string> = {
-  gashapon: '扭蛋', fullcar: '整车', combochain: '连击链', dig: '挖宝箱', groupbuy: '拼团', memorymatch: '记忆翻牌',
-}
+const referenceOpen = ref(false)
+const referenceLoading = ref(false)
+const referencePoolId = ref('')
+const referenceResults = ref<AdminPlayPool[]>([])
 
 const configSkeleton: Record<string, string> = {
   gashapon: '{}',
@@ -146,7 +279,6 @@ const configSkeleton: Record<string, string> = {
   groupbuy: '{"targetBetCount":3,"perBetAwardLimit":0}',
   memorymatch: '{"roundsPerPurchase":3,"maxPairCount":3,"patternWeights":[1,1,1,1,1,1,1,1,1],"facePresets":[{"presetId":1,"name":"默认","faces":[]}],"backPresets":[{"presetId":1,"name":"默认","backImageUrl":"","faceBackgroundImageUrl":""}]}',
 }
-
 const prizeSkeleton: Record<string, unknown[]> = {
   gashapon: [
     { prizeIndex: 0, prizeType: 1, name: '普通赏', weight: 10, quantity: 10, isPrize: true },
@@ -158,173 +290,395 @@ const prizeSkeleton: Record<string, unknown[]> = {
     { prizeIndex: 2, prizeType: 1, name: '整车结算', specialKind: 'SETTLEMENT', targetValue: 1, weight: 1, cashFen: 500, quantity: 0 },
   ],
   combochain: [
-    { prizeIndex: 0, prizeType: 2, name: '实物手办', skuId: 1, specialKind: 'GLOBAL', targetValue: 0, weight: 1, quantity: 1, isPrize: true },
+    { prizeIndex: 0, prizeType: 1, name: '全局奖', specialKind: 'GLOBAL', targetValue: 0, cashFen: 100, quantity: 1, isPrize: true },
     { prizeIndex: 1, prizeType: 1, name: '连击奖', specialKind: 'COMBO_TIER', weight: 1, quantity: 1, cashFen: 100, isPrize: true, extraJson: '{"tierWeight":1}' },
   ],
   dig: [
-    { prizeIndex: 0, prizeType: 1, name: '现金格', targetValue: 0, cashFen: 50, isPrize: true },
-    { prizeIndex: 1, prizeType: 1, name: '空格', targetValue: 1, isPrize: false },
+    { prizeIndex: 0, prizeType: 1, name: '现金奖', targetValue: 0, cashFen: 50, isPrize: true },
+    { prizeIndex: 1, prizeType: 1, name: '空奖', targetValue: 1, isPrize: false },
   ],
   groupbuy: [
     { prizeIndex: 0, prizeType: 1, name: '普通奖', weight: 10, quantity: 2, isPrize: true },
     { prizeIndex: 1, prizeType: 1, name: '幸运奖', specialKind: 'LUCKY', cashFen: 500, quantity: 1, isPrize: true },
   ],
   memorymatch: [
-    { prizeIndex: 0, prizeType: 1, name: '现金档', targetValue: 3, weight: 1, cashFen: 500, quantity: 10, isPrize: true },
+    { prizeIndex: 0, prizeType: 1, name: '现金奖', targetValue: 3, weight: 1, cashFen: 500, quantity: 10, isPrize: true },
     { prizeIndex: 1, prizeType: 1, name: '谢谢参与', targetValue: 0, weight: 1, quantity: -1, isPrize: false },
   ],
 }
 
 function resetSkeleton() {
-  form.configJson = configSkeleton[form.mode] ?? '{}'
-  form.prizesJson = JSON.stringify(prizeSkeleton[form.mode] ?? [], null, 2)
+  createForm.configJson = configSkeleton[createForm.mode] ?? '{}'
+  createForm.prizesJson = JSON.stringify(prizeSkeleton[createForm.mode] ?? [], null, 2)
 }
 
-function modeText(mode?: string): string {
-  return mode ? modeNames[mode] ?? mode : '—'
-}
-
-function statusText(status?: string | number): string {
-  const value = String(status ?? '')
-  if (value === '2') return '已发布'
-  if (value === '3') return '已下架'
-  return '草稿'
-}
-
-function statusColor(status?: string | number): string {
-  const value = String(status ?? '')
-  if (value === '2') return 'green'
-  if (value === '3') return 'default'
-  return 'blue'
-}
-
-function isDraft(status?: string | number): boolean {
-  return statusText(status) === '草稿'
-}
-
-function timeText(value?: string): string {
-  if (!value || value === '0') return '—'
-  return new Date(Number(value) * 1000).toLocaleString()
+async function loadOptions() {
+  try {
+    const reply = await catalogIpClient.List({ keyword: '', page: 1, pageSize: 100 })
+    ips.value = reply.ips ?? []
+  } catch {
+    ips.value = []
+  }
 }
 
 async function load() {
   loading.value = true
   try {
-    const result = await playPoolClient.List({ afterPoolId: afterPoolId.value || undefined, pageSize: 20, mode: modeFilter.value || undefined })
-    pools.value = result.items ?? []
-    hasMore.value = pools.value.length >= 20
+    const reply = await playPoolClient.AdminList({
+      keyword: filters.keyword.trim(),
+      mode: filters.mode ?? '',
+      ipId: filters.ipId ?? '',
+      status: filters.status ?? '',
+      tag: filters.tag.trim(),
+      sortOrder: filters.sortOrder,
+      page: page.value,
+      pageSize: pageSize.value,
+    })
+    items.value = reply.items ?? []
+    total.value = Number(reply.total ?? 0)
+    page.value = Number(reply.page ?? page.value)
+    pageSize.value = Number(reply.pageSize ?? pageSize.value)
+    for (const item of items.value) {
+      if (item.poolId) weights[item.poolId] = Number(item.weight ?? 0)
+    }
+    selectedRowKeys.value = []
   } catch {
-    pools.value = []
-    hasMore.value = false
-    message.error('赏池列表加载失败')
+    items.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
 }
 
-function next() {
-  const last = pools.value.at(-1)?.poolId
-  if (!last) return
-  history.value.push(afterPoolId.value)
-  afterPoolId.value = String(last)
+function search() {
+  page.value = 1
   void load()
 }
 
-function previous() {
-  afterPoolId.value = history.value.pop() ?? ''
+function onPageChange(nextPage: number) {
+  page.value = nextPage
   void load()
+}
+
+function onPageSizeChange(_current: number, size: number) {
+  pageSize.value = size
+  page.value = 1
+  void load()
+}
+
+function weightOf(record: AdminPlayPool): number {
+  return record.poolId ? weights[record.poolId] ?? 0 : 0
+}
+
+function setWeight(record: AdminPlayPool, value: number | null) {
+  if (!record.poolId) return
+  weights[record.poolId] = Math.max(0, Math.trunc(value ?? 0))
 }
 
 function openCreate() {
-  form.mode = 'gashapon'
-  form.name = ''
-  form.priceFen = 100
+  createForm.mode = 'gashapon'
+  createForm.name = ''
+  createForm.priceYuan = 100
+  createForm.ipId = undefined
+  createForm.tags = []
+  createForm.periods = 0
+  createForm.weight = 0
   resetSkeleton()
   createOpen.value = true
 }
 
-async function create() {
-  if (!form.name.trim()) {
-    message.warning('请填写赏池名称')
+async function copyPool(record: AdminPlayPool) {
+  if (!record.poolId) return
+  copyingId.value = record.poolId
+  try {
+    const detail = record.latestVersion
+      ? await playPoolClient.Get({ poolId: record.poolId, version: record.latestVersion })
+      : null
+    createForm.mode = record.mode ?? detail?.mode ?? 'gashapon'
+    createForm.name = `${record.name ?? ''}${t('poolAdmin.copySuffix')}`
+    createForm.priceYuan = Number(detail?.priceFen ?? record.priceFen ?? 0) / 100
+    createForm.ipId = record.ipId || undefined
+    createForm.tags = [...(record.tags ?? [])]
+    createForm.periods = Number(record.periods ?? 0)
+    createForm.weight = Number(record.weight ?? 0)
+    createForm.configJson = detail?.configJson ?? configSkeleton[createForm.mode] ?? '{}'
+    createForm.prizesJson = JSON.stringify(detail?.prizes ?? prizeSkeleton[createForm.mode] ?? [], null, 2)
+    createOpen.value = true
+  } catch {
+    message.error(t('poolAdmin.detailLoadFailed'))
+  } finally {
+    copyingId.value = undefined
+  }
+}
+
+async function submitCreate() {
+  if (!createForm.name.trim()) {
+    message.warning(t('poolAdmin.nameRequired'))
     return
   }
   let prizes: unknown[]
   try {
-    prizes = JSON.parse(form.prizesJson)
+    prizes = JSON.parse(createForm.prizesJson)
     if (!Array.isArray(prizes) || prizes.length === 0) throw new Error('empty')
+    JSON.parse(createForm.configJson || '{}')
   } catch {
-    message.error('奖品 JSON 必须是数组且不能为空')
-    return
-  }
-  if (!form.configJson.trim()) form.configJson = '{}'
-  try {
-    JSON.parse(form.configJson)
-  } catch {
-    message.error('configJson 不是合法 JSON')
+    message.error(t('poolAdmin.jsonInvalid'))
     return
   }
   creating.value = true
   try {
     await playPoolClient.CreateDraft({
       idempotencyKey: crypto.randomUUID(),
-      mode: form.mode,
-      name: form.name.trim(),
-      priceFen: form.priceFen,
-      configJson: form.configJson,
+      mode: createForm.mode,
+      name: createForm.name.trim(),
+      priceFen: Math.round((createForm.priceYuan || 0) * 100),
+      configJson: createForm.configJson || '{}',
       prizes: prizes as PlayPoolPrize[],
+      ipId: createForm.ipId ?? '',
+      tags: createForm.tags,
+      periods: createForm.periods,
+      weight: createForm.weight,
     })
-    message.success('赏池草稿已创建')
+    message.success(t('poolAdmin.created'))
     createOpen.value = false
+    page.value = 1
     await load()
   } catch {
-    message.error('创建失败，请检查配置与奖品')
+    message.error(t('poolAdmin.createFailed'))
   } finally {
     creating.value = false
   }
 }
 
-async function publish(record: PlayPoolSummary) {
+function openEdit(record: AdminPlayPool) {
+  editing.value = record
+  editForm.name = record.name ?? ''
+  editForm.priceYuan = Number(record.priceFen ?? 0) / 100
+  editForm.ipId = record.ipId || undefined
+  editForm.tags = [...(record.tags ?? [])]
+  editForm.periods = Number(record.periods ?? 0)
+  editForm.weight = Number(record.weight ?? 0)
+  editOpen.value = true
+}
+
+async function submitEdit() {
+  if (!editing.value?.poolId) return
+  if (!editForm.name.trim()) {
+    message.warning(t('poolAdmin.nameRequired'))
+    return
+  }
+  editingSaving.value = true
   try {
-    await playPoolClient.Publish({ poolId: String(record.poolId), version: String(record.latestVersion) })
-    message.success('赏池已发布')
+    await playPoolClient.AdminUpdate(editing.value.poolId, {
+      name: editForm.name.trim(),
+      ipId: editForm.ipId ?? '',
+      tags: editForm.tags,
+      periods: editForm.periods,
+      weight: editForm.weight,
+      priceFen: Math.round((editForm.priceYuan || 0) * 100),
+    })
+    message.success(t('poolAdmin.updated'))
+    editOpen.value = false
     await load()
   } catch {
-    message.error('发布失败，请检查奖品/SKU 配置')
-  }
-}
-
-async function openDetail(record: PlayPoolSummary) {
-  detailOpen.value = true
-  detailLoading.value = true
-  detail.value = null
-  try {
-    detail.value = await playPoolClient.Get({ poolId: String(record.poolId), version: String(record.latestVersion) })
-  } catch {
-    message.error('赏池详情加载失败')
+    message.error(t('poolAdmin.updateFailed'))
   } finally {
-    detailLoading.value = false
+    editingSaving.value = false
   }
 }
 
-onMounted(load)
+async function saveWeights() {
+  const payload = items.value
+    .filter((item) => item.poolId)
+    .map((item) => ({ poolId: item.poolId as string, weight: weights[item.poolId as string] ?? 0 }))
+  if (payload.length === 0) return
+  try {
+    await playPoolClient.SaveAdminWeights(payload)
+    message.success(t('poolAdmin.weightsSaved'))
+  } catch {
+    message.error(t('poolAdmin.weightsSaveFailed'))
+  }
+}
+
+function deleteSelected() {
+  if (selectedRowKeys.value.length === 0) {
+    message.warning(t('poolAdmin.selectToDelete'))
+    return
+  }
+  Modal.confirm({
+    title: t('poolAdmin.deletePools'),
+    content: t('poolAdmin.deleteConfirm'),
+    okText: t('common.delete'),
+    cancelText: t('poolAdmin.cancel'),
+    okType: 'danger',
+    onOk: async () => {
+      await playPoolClient.DeleteAdminPools(selectedRowKeys.value)
+      message.success(t('poolAdmin.deleted'))
+      selectedRowKeys.value = []
+      await load()
+    },
+  })
+}
+
+function openReference() {
+  referencePoolId.value = ''
+  referenceResults.value = []
+  referenceOpen.value = true
+}
+
+async function queryReference() {
+  if (!referencePoolId.value.trim()) return
+  referenceLoading.value = true
+  try {
+    const reply = await playPoolClient.AdminList({
+      keyword: referencePoolId.value.trim(),
+      mode: '',
+      ipId: '',
+      status: '',
+      tag: '',
+      sortOrder: 'desc',
+      page: 1,
+      pageSize: 50,
+    })
+    referenceResults.value = reply.items ?? []
+  } catch {
+    referenceResults.value = []
+  } finally {
+    referenceLoading.value = false
+  }
+}
+
+function openMatch(record: AdminPlayPool) {
+  if (record.poolId) router.push({ path: '/gacha/match', query: { poolId: record.poolId } })
+}
+
+function modeText(mode?: string): string {
+  switch (mode) {
+    case 'gashapon': return t('poolAdmin.modeGashapon')
+    case 'fullcar': return t('poolAdmin.modeFullcar')
+    case 'combochain': return t('poolAdmin.modeCombochain')
+    case 'dig': return t('poolAdmin.modeDig')
+    case 'groupbuy': return t('poolAdmin.modeGroupbuy')
+    case 'memorymatch': return t('poolAdmin.modeMemorymatch')
+    default: return mode || '-'
+  }
+}
+
+function statusText(status?: string | number): string {
+  switch (String(status ?? '')) {
+    case '2': return t('poolAdmin.statusPublished')
+    case '3': return t('poolAdmin.statusRetired')
+    default: return t('poolAdmin.statusDraft')
+  }
+}
+
+function formatPrice(value?: string): string {
+  return String(Number(value ?? 0) / 100)
+}
+
+function formatTime(value?: string): string {
+  const seconds = Number(value ?? 0)
+  if (!seconds) return ''
+  return new Date(seconds * 1000).toLocaleString()
+}
+
+onMounted(async () => {
+  await loadOptions()
+  await load()
+})
 </script>
 
 <style scoped lang="scss">
-.pager {
+.pool-page {
+  min-height: calc(100vh - 132px);
+  padding: 14px 16px 18px;
+  background: #fff;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+}
+
+.pool-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.filter-keyword { width: 180px; }
+.filter-select { width: 150px; }
+.filter-tag { width: 150px; }
+.filter-sort { width: 160px; }
+
+.btn-query {
+  background: #42b983 !important;
+  border-color: #42b983 !important;
+}
+
+.btn-query:hover {
+  background: #36a374 !important;
+  border-color: #36a374 !important;
+}
+
+.btn-plain {
+  color: #606266;
+  border-color: #dcdfe6;
+  background: #fff;
+}
+
+.btn-plain:hover {
+  color: #409eff;
+  border-color: #409eff;
+}
+
+.pool-tag {
+  color: #e6a23c;
+  border-color: #f3d19e;
+  background: #fdf6ec;
+}
+
+.weight-input {
+  width: 84px;
+}
+
+.btn-copy {
+  color: #606266;
+  border-color: #dcdfe6;
+  background: #fff;
+}
+
+.btn-edit {
+  min-width: 54px;
+  background: #ff9f1a !important;
+  border-color: #ff9f1a !important;
+  color: #fff !important;
+}
+
+.btn-edit:hover {
+  background: #f2940f !important;
+  border-color: #f2940f !important;
+}
+
+.btn-match {
+  min-width: 64px;
+  background: #2d8cf0 !important;
+  border-color: #2d8cf0 !important;
+  color: #fff !important;
+}
+
+.pool-footer {
+  display: flex;
+  justify-content: flex-end;
   margin-top: 16px;
 }
 
-.json-block {
-  background: #f6f8fa;
-  border-radius: 6px;
-  padding: 12px;
-  white-space: pre-wrap;
-  word-break: break-all;
-  max-height: 220px;
-  overflow: auto;
+.reference-search {
+  display: flex;
+  width: 100%;
+  margin-bottom: 12px;
 }
 
-h4 {
-  margin: 18px 0 8px;
+.reference-search .ant-input {
+  flex: 1;
 }
 </style>

@@ -14,6 +14,8 @@ import (
 )
 
 type (
+	AdminPlayPool                      = play.AdminPlayPool
+	AdminPlayPoolWeight                = play.AdminPlayPoolWeight
 	ApplyMemoryMatchDestinyDrawReq     = play.ApplyMemoryMatchDestinyDrawReq
 	ApplyMemoryMatchDestinyDrawResp    = play.ApplyMemoryMatchDestinyDrawResp
 	ApplyMemoryMatchPairReq            = play.ApplyMemoryMatchPairReq
@@ -28,6 +30,8 @@ type (
 	CompleteMemoryMatchRoundResp       = play.CompleteMemoryMatchRoundResp
 	CreatePlayPoolDraftReq             = play.CreatePlayPoolDraftReq
 	CreatePlayPoolDraftResp            = play.CreatePlayPoolDraftResp
+	DeleteAdminPlayPoolsReq            = play.DeleteAdminPlayPoolsReq
+	DeleteAdminPlayPoolsResp           = play.DeleteAdminPlayPoolsResp
 	DigBoxItem                         = play.DigBoxItem
 	DigRecordItem                      = play.DigRecordItem
 	FullCarAwardItem                   = play.FullCarAwardItem
@@ -72,6 +76,8 @@ type (
 	GrantMemoryMatchPrizesResp         = play.GrantMemoryMatchPrizesResp
 	GroupBuyLuckyPrizeItem             = play.GroupBuyLuckyPrizeItem
 	GroupBuyRecordItem                 = play.GroupBuyRecordItem
+	ListAdminPlayPoolsReq              = play.ListAdminPlayPoolsReq
+	ListAdminPlayPoolsResp             = play.ListAdminPlayPoolsResp
 	ListComboChainRecordsReq           = play.ListComboChainRecordsReq
 	ListComboChainRecordsResp          = play.ListComboChainRecordsResp
 	ListDigBoxesReq                    = play.ListDigBoxesReq
@@ -134,6 +140,8 @@ type (
 	ReleaseGashaponResp                = play.ReleaseGashaponResp
 	ReleaseGroupBuyReq                 = play.ReleaseGroupBuyReq
 	ReleaseGroupBuyResp                = play.ReleaseGroupBuyResp
+	SaveAdminPlayPoolWeightsReq        = play.SaveAdminPlayPoolWeightsReq
+	SaveAdminPlayPoolWeightsResp       = play.SaveAdminPlayPoolWeightsResp
 	SelectMemoryMatchDestinyReq        = play.SelectMemoryMatchDestinyReq
 	SelectMemoryMatchDestinyResp       = play.SelectMemoryMatchDestinyResp
 	SelectMemoryMatchSecondDestinyReq  = play.SelectMemoryMatchSecondDestinyReq
@@ -154,6 +162,7 @@ type (
 	SettleMemoryMatchResp              = play.SettleMemoryMatchResp
 	SkipMemoryMatchReq                 = play.SkipMemoryMatchReq
 	SkipMemoryMatchResp                = play.SkipMemoryMatchResp
+	UpdateAdminPlayPoolReq             = play.UpdateAdminPlayPoolReq
 
 	Play interface {
 		// ---- 通用 SAGA 分支（payload 内是各玩法 typed 请求）----
@@ -171,6 +180,11 @@ type (
 		ListPlayPools(ctx context.Context, in *ListPlayPoolsReq, opts ...grpc.CallOption) (*ListPlayPoolsResp, error)
 		// 赏级配置（赏别列表，控制台只读）
 		ListPrizeGrades(ctx context.Context, in *ListPrizeGradesReq, opts ...grpc.CallOption) (*ListPrizeGradesResp, error)
+		// 赏池管理（控制台列表/编辑/排序/删除）
+		ListAdminPlayPools(ctx context.Context, in *ListAdminPlayPoolsReq, opts ...grpc.CallOption) (*ListAdminPlayPoolsResp, error)
+		UpdateAdminPlayPool(ctx context.Context, in *UpdateAdminPlayPoolReq, opts ...grpc.CallOption) (*AdminPlayPool, error)
+		SaveAdminPlayPoolWeights(ctx context.Context, in *SaveAdminPlayPoolWeightsReq, opts ...grpc.CallOption) (*SaveAdminPlayPoolWeightsResp, error)
+		DeleteAdminPlayPools(ctx context.Context, in *DeleteAdminPlayPoolsReq, opts ...grpc.CallOption) (*DeleteAdminPlayPoolsResp, error)
 		// ---- 挖宝 ----
 		ListDigBoxes(ctx context.Context, in *ListDigBoxesReq, opts ...grpc.CallOption) (*ListDigBoxesResp, error)
 		GetDigBoxSession(ctx context.Context, in *GetDigBoxSessionReq, opts ...grpc.CallOption) (*GetDigBoxSessionResp, error)
@@ -273,6 +287,27 @@ func (m *defaultPlay) ListPlayPools(ctx context.Context, in *ListPlayPoolsReq, o
 func (m *defaultPlay) ListPrizeGrades(ctx context.Context, in *ListPrizeGradesReq, opts ...grpc.CallOption) (*ListPrizeGradesResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.ListPrizeGrades(ctx, in, opts...)
+}
+
+// 赏池管理（控制台列表/编辑/排序/删除）
+func (m *defaultPlay) ListAdminPlayPools(ctx context.Context, in *ListAdminPlayPoolsReq, opts ...grpc.CallOption) (*ListAdminPlayPoolsResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.ListAdminPlayPools(ctx, in, opts...)
+}
+
+func (m *defaultPlay) UpdateAdminPlayPool(ctx context.Context, in *UpdateAdminPlayPoolReq, opts ...grpc.CallOption) (*AdminPlayPool, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.UpdateAdminPlayPool(ctx, in, opts...)
+}
+
+func (m *defaultPlay) SaveAdminPlayPoolWeights(ctx context.Context, in *SaveAdminPlayPoolWeightsReq, opts ...grpc.CallOption) (*SaveAdminPlayPoolWeightsResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.SaveAdminPlayPoolWeights(ctx, in, opts...)
+}
+
+func (m *defaultPlay) DeleteAdminPlayPools(ctx context.Context, in *DeleteAdminPlayPoolsReq, opts ...grpc.CallOption) (*DeleteAdminPlayPoolsResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.DeleteAdminPlayPools(ctx, in, opts...)
 }
 
 // ---- 挖宝 ----

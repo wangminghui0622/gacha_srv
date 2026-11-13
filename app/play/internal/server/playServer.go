@@ -86,6 +86,27 @@ func (s *PlayServer) ListPrizeGrades(ctx context.Context, in *play.ListPrizeGrad
 	return l.ListPrizeGrades(in)
 }
 
+// 赏池管理（控制台列表/编辑/排序/删除）
+func (s *PlayServer) ListAdminPlayPools(ctx context.Context, in *play.ListAdminPlayPoolsReq) (*play.ListAdminPlayPoolsResp, error) {
+	l := logic.NewListAdminPlayPoolsLogic(ctx, s.svcCtx)
+	return l.ListAdminPlayPools(in)
+}
+
+func (s *PlayServer) UpdateAdminPlayPool(ctx context.Context, in *play.UpdateAdminPlayPoolReq) (*play.AdminPlayPool, error) {
+	l := logic.NewUpdateAdminPlayPoolLogic(ctx, s.svcCtx)
+	return l.UpdateAdminPlayPool(in)
+}
+
+func (s *PlayServer) SaveAdminPlayPoolWeights(ctx context.Context, in *play.SaveAdminPlayPoolWeightsReq) (*play.SaveAdminPlayPoolWeightsResp, error) {
+	l := logic.NewSaveAdminPlayPoolWeightsLogic(ctx, s.svcCtx)
+	return l.SaveAdminPlayPoolWeights(in)
+}
+
+func (s *PlayServer) DeleteAdminPlayPools(ctx context.Context, in *play.DeleteAdminPlayPoolsReq) (*play.DeleteAdminPlayPoolsResp, error) {
+	l := logic.NewDeleteAdminPlayPoolsLogic(ctx, s.svcCtx)
+	return l.DeleteAdminPlayPools(in)
+}
+
 // ---- 挖宝 ----
 func (s *PlayServer) ListDigBoxes(ctx context.Context, in *play.ListDigBoxesReq) (*play.ListDigBoxesResp, error) {
 	l := logic.NewListDigBoxesLogic(ctx, s.svcCtx)

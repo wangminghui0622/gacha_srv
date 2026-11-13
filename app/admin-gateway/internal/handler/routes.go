@@ -386,6 +386,30 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: pool.ListPrizeGradesHandler(serverCtx),
 				},
 				{
+					// 赏池管理列表（gacha.pool:read）
+					Method:  http.MethodGet,
+					Path:    "/gacha/admin/pools",
+					Handler: pool.ListAdminPlayPoolsHandler(serverCtx),
+				},
+				{
+					// 批量保存赏池权重（gacha.pool:write）
+					Method:  http.MethodPut,
+					Path:    "/gacha/admin/pool-weights",
+					Handler: pool.SaveAdminPlayPoolWeightsHandler(serverCtx),
+				},
+				{
+					// 删除赏池（gacha.pool:delete）
+					Method:  http.MethodPost,
+					Path:    "/gacha/admin/pools/delete",
+					Handler: pool.DeleteAdminPlayPoolsHandler(serverCtx),
+				},
+				{
+					// 编辑赏池（gacha.pool:write）
+					Method:  http.MethodPut,
+					Path:    "/gacha/admin/pools/:poolId",
+					Handler: pool.UpdateAdminPlayPoolHandler(serverCtx),
+				},
+				{
 					// 统一玩赏池版本详情（gacha.pool:read）
 					Method:  http.MethodGet,
 					Path:    "/gacha/play-pools/:poolId/versions/:version",

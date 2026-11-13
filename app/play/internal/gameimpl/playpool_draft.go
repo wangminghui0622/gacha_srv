@@ -71,9 +71,17 @@ func CreatePlayPoolDraft(ctx context.Context, svcCtx *svc.ServiceContext, in *pl
 		}
 
 		version := head.NextVersion
+		tagsJSON, err := encodePoolTags(in.Tags)
+		if err != nil {
+			return status.Error(codes.InvalidArgument, "标签格式错误")
+		}
 		if err := tx.Model(&gamemodelnc.PlayPoolHead{}).Where("id = ?", head.Id).Updates(map[string]interface{}{
 			"name":         in.Name,
 			"next_version": version + 1,
+			"ip_id":        in.IpId,
+			"tags_json":    tagsJSON,
+			"periods":      in.Periods,
+			"weight":       in.Weight,
 			"updated_at":   time.Now(),
 		}).Error; err != nil {
 			return err

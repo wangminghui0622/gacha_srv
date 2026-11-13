@@ -686,10 +686,16 @@ CREATE TABLE IF NOT EXISTS `play_pool_heads` (
   `mode` varchar(32) NOT NULL COMMENT '玩法：gashapon/fullcar/combochain/dig/groupbuy/memorymatch',
   `name` varchar(128) NOT NULL DEFAULT '' COMMENT '主题名称',
   `next_version` bigint unsigned NOT NULL DEFAULT '1' COMMENT '下一版本号',
+  `ip_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT 'IP ID',
+  `tags_json` varchar(1024) NOT NULL DEFAULT '[]' COMMENT '标签 JSON 数组',
+  `periods` int unsigned NOT NULL DEFAULT '0' COMMENT '期数',
+  `weight` int NOT NULL DEFAULT '0' COMMENT '权重/排序',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `idx_mode_id` (`mode`,`id`)
+  KEY `idx_mode_id` (`mode`,`id`),
+  KEY `idx_pool_ip` (`ip_id`),
+  KEY `idx_pool_weight` (`weight`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1000000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='统一玩赏池头表';
 
 CREATE TABLE IF NOT EXISTS `play_pool_versions` (
