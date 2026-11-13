@@ -82,6 +82,18 @@
       />
     </div>
 
+    <a-modal
+      v-model:open="createModalOpen"
+      :title="$t('poolAdmin.createTitle')"
+      centered
+      width="1000px"
+      :footer="null"
+      :destroy-on-close="true"
+      :body-style="{ maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }"
+    >
+      <PlayPoolCreateForm @success="onCreateSuccess" />
+    </a-modal>
+
     <a-modal v-model:open="createOpen" :title="$t('poolAdmin.createTitle')" :confirm-loading="creating" width="760px" @ok="submitCreate">
       <a-form :label-col="{ span: 5 }" :wrapper-col="{ span: 18 }">
         <a-row :gutter="16">
@@ -187,6 +199,7 @@ import { allows } from '@/access/grants'
 import { useSessionStore } from '@/stores/session'
 import { catalogIpClient, type IpItem } from '@/api/catalog'
 import { playPoolClient, type AdminPlayPool, type PlayPoolPrize, type PlayPoolVersion } from '@/api/playPool'
+import PlayPoolCreateForm from '@/views/gacha/PlayPoolCreateForm.vue'
 
 const session = useSessionStore()
 const router = useRouter()
@@ -240,6 +253,7 @@ const rowSelection = computed(() => ({
   },
 }))
 
+const createModalOpen = ref(false)
 const createOpen = ref(false)
 const creating = ref(false)
 const createForm = reactive({
@@ -376,7 +390,13 @@ function setWeight(record: AdminPlayPool, value: number | null) {
 }
 
 function openCreate() {
-  router.push('/gacha/create')
+  createModalOpen.value = true
+}
+
+function onCreateSuccess() {
+  createModalOpen.value = false
+  page.value = 1
+  void load()
 }
 
 async function copyPool(record: AdminPlayPool) {
