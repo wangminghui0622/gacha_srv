@@ -11,7 +11,11 @@
       />
     </a-layout-sider>
     <aside class="secondary-sider" :class="{ open: !!activeGroup }" :style="{ width: secondaryWidth }">
-      <SubmenuList v-if="activeGroup" :group="activeGroup" @navigate="mobileOpen = false" />
+      <div class="secondary-body" :style="{ paddingTop: `${submenuTop}px` }">
+        <div ref="submenuMeasure">
+          <SubmenuList v-if="activeGroup" :group="activeGroup" @navigate="mobileOpen = false" />
+        </div>
+      </div>
     </aside>
     <a-drawer v-model:open="mobileOpen" placement="left" :width="144" :closable="false" root-class-name="console-mobile-drawer">
       <NavigationMenu
@@ -59,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { CloseOutlined, MenuOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
@@ -86,6 +90,43 @@ const tree = computed(() => menuTree(session.permissionNodes))
 const activeGroupKey = ref<string | null>(null)
 const activeGroup = computed(() => tree.value.find((node) => node.key === activeGroupKey.value && node.children) ?? null)
 const secondaryWidth = computed(() => (activeGroup.value ? '144px' : '0px'))
+const submenuMeasure = ref<HTMLElement | null>(null)
+const submenuTop = ref(0)
+let submenuObserver: ResizeObserver | null = null
+
+function updateSubmenuTop() {
+  if (!activeGroup.value || !submenuMeasure.value) {
+    submenuTop.value = 0
+    return
+  }
+  const index = tree.value.findIndex((node) => node.key === activeGroupKey.value)
+  // 一级菜单首项中心 34px，之后每项间距 48px（44px 高度 + 4px 外边距折叠）
+  const parentCenter = 34 + Math.max(index, 0) * 48
+  const height = submenuMeasure.value.offsetHeight
+  const maxTop = Math.max(0, window.innerHeight - height - 8)
+  submenuTop.value = Math.max(0, Math.min(parentCenter - height / 2, maxTop))
+}
+
+watch(
+  () => [activeGroupKey.value, submenuMeasure.value] as const,
+  async () => {
+    await nextTick()
+    submenuObserver?.disconnect()
+    submenuObserver = null
+    if (submenuMeasure.value) {
+      submenuObserver = new ResizeObserver(updateSubmenuTop)
+      submenuObserver.observe(submenuMeasure.value)
+    }
+    updateSubmenuTop()
+  },
+  { immediate: true },
+)
+
+onMounted(() => window.addEventListener('resize', updateSubmenuTop))
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateSubmenuTop)
+  submenuObserver?.disconnect()
+})
 const headerTitle = computed(() => t((route.meta.title as string) ?? 'nav.dashboard'))
 const selectedKey = computed(() => {
   const hit = menus.value
@@ -174,6 +215,7 @@ async function onLogout() {
   overflow-y: auto;
   overflow-x: hidden;
 }
+.secondary-body { min-height: 100%; }
 .mobile-submenu-panel { background: #f0f2f5; }
 .header {
   height: 48px;
