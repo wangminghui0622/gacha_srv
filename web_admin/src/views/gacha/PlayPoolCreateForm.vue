@@ -586,6 +586,10 @@ onMounted(loadOptions)
   margin: 16px 0 0 20.8%;
 }
 
+.create-actions button {
+  min-width: 72px;
+}
+
 .btn-create {
   min-width: 72px;
   background: #42b983 !important;
