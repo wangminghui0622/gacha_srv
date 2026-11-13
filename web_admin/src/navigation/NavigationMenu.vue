@@ -117,14 +117,14 @@ nav {
 }
 
 .side-menu-popup .ant-menu-vertical {
-  padding: 8px 0;
+  padding: 8px 0 !important;
 }
 
 .side-menu-popup .ant-menu-item {
   height: 40px;
   line-height: 40px;
-  margin: 0;
-  width: 100%;
+  margin: 0 !important;
+  width: 100% !important;
   border-radius: 0;
   color: rgba(0, 0, 0, 0.75);
 }
