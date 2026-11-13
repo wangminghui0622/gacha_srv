@@ -5,6 +5,7 @@ import type { Component } from 'vue'
 import type { RouteRecordRaw } from 'vue-router'
 import {
   AppstoreOutlined,
+  BarChartOutlined,
   DashboardOutlined,
   FireOutlined,
   FlagOutlined,
@@ -523,6 +524,70 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     component: () => import('@/views/common/ModulePlaceholderView.vue'),
   },
   {
+    name: 'report-download',
+    path: 'reports/download',
+    title: 'nav.reportDownload',
+    showInMenu: false,
+    backFallback: '/dashboard',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'report-daily',
+    path: 'reports/daily',
+    title: 'nav.reportDaily',
+    showInMenu: false,
+    backFallback: '/dashboard',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'report-retention',
+    path: 'reports/retention',
+    title: 'nav.reportRetention',
+    showInMenu: false,
+    backFallback: '/dashboard',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'report-revenue',
+    path: 'reports/revenue',
+    title: 'nav.reportRevenue',
+    showInMenu: false,
+    backFallback: '/dashboard',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'report-realtime',
+    path: 'reports/realtime',
+    title: 'nav.reportRealtime',
+    showInMenu: false,
+    backFallback: '/dashboard',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'report-market',
+    path: 'reports/market',
+    title: 'nav.reportMarket',
+    showInMenu: false,
+    backFallback: '/dashboard',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'report-invite',
+    path: 'reports/invite',
+    title: 'nav.reportInvite',
+    showInMenu: false,
+    backFallback: '/dashboard',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'report-orders',
+    path: 'reports/orders',
+    title: 'nav.reportOrders',
+    showInMenu: false,
+    backFallback: '/dashboard',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
     name: 'eligibility',
     path: 'eligibility',
     title: 'nav.eligibility',
@@ -632,6 +697,16 @@ const SYSTEM_CHILDREN = [
   'system-tasks',
 ] as const
 const ACCOUNT_CHILDREN = ['account-list', 'accounts', 'account-audit'] as const
+const REPORT_CHILDREN = [
+  'report-download',
+  'report-daily',
+  'report-retention',
+  'report-revenue',
+  'report-realtime',
+  'report-market',
+  'report-invite',
+  'report-orders',
+] as const
 const PRIMARY_LEAVES: readonly string[] = []
 
 export function accessibleRoutes(nodes: PermissionNode[]): ConsoleRouteDef[] {
@@ -675,6 +750,10 @@ export function menuTree(nodes: PermissionNode[]): MenuNode[] {
   const accountChildren = childNodes(ACCOUNT_CHILDREN, nodes, byName)
   if (accountChildren.length > 0) {
     tree.push({ key: 'account-group', title: 'nav.accounts', icon: TeamOutlined, children: accountChildren })
+  }
+  const reportChildren = childNodes(REPORT_CHILDREN, nodes, byName)
+  if (reportChildren.length > 0) {
+    tree.push({ key: 'report-group', title: 'nav.reports', icon: BarChartOutlined, children: reportChildren })
   }
   for (const name of PRIMARY_LEAVES) {
     const item = byName.get(name)
