@@ -80,7 +80,7 @@
         <div class="switch-panel-title">其他设置</div>
         <div class="switch-grid">
           <label v-for="item in switchItems" :key="item.key" class="switch-item">
-            <a-switch v-model:checked="form[item.key]" />
+            <a-switch v-model:checked="form[item.key]" size="small" />
             <span>{{ item.label }}</span>
           </label>
         </div>
@@ -560,18 +560,23 @@ onMounted(loadOptions)
 
 .switch-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 8px;
 }
 
 .switch-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  min-width: 0;
   color: #606266;
   font-size: 13px;
-  white-space: nowrap;
   cursor: pointer;
+}
+
+.switch-item span {
+  min-width: 0;
+  line-height: 1.4;
 }
 
 .create-actions {
