@@ -27,6 +27,8 @@
       <a-layout-header class="header">
         <div class="header-heading">
           <a-button class="mobile-trigger" type="text" :aria-label="$t('layout.openMenu')" @click="mobileOpen = true"><MenuOutlined /></a-button>
+          <router-link to="/dashboard" class="crumb-home">{{ $t('nav.dashboard') }}</router-link>
+          <span class="crumb-sep">/</span>
           <span class="header-title">{{ headerTitle }}</span>
         </div>
         <a-space>
@@ -35,6 +37,20 @@
           <a-button type="link" @click="onLogout">{{ $t('common.logout') }}</a-button>
         </a-space>
       </a-layout-header>
+      <div class="tab-container">
+        <div class="custom-tabs">
+          <div
+            v-for="tab in tabs"
+            :key="tab.path"
+            class="custom-tab"
+            :class="{ active: activeTab === tab.path }"
+            @click="handleTabChange(tab.path)"
+          >
+            <span class="tab-label">{{ $t(tab.titleKey) }}</span>
+            <CloseOutlined v-if="tabs.length > 1" class="tab-close" @click.stop="handleTabRemove(tab.path)" />
+          </div>
+        </div>
+      </div>
       <a-layout-content class="content"><router-view /></a-layout-content>
     </a-layout>
   </a-layout>
@@ -42,7 +58,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { MenuOutlined } from '@ant-design/icons-vue'
+import { CloseOutlined, MenuOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -57,6 +73,12 @@ const router = useRouter()
 const session = useSessionStore()
 const { t } = useI18n()
 const mobileOpen = ref(false)
+interface TabItem {
+  path: string
+  titleKey: string
+}
+const tabs = ref<TabItem[]>([])
+const activeTab = computed(() => route.path)
 const menus = computed(() => menuRoutes(session.permissionNodes))
 const tree = computed(() => menuTree(session.permissionNodes))
 const activeGroupKey = ref<string | null>(null)
@@ -93,6 +115,32 @@ function navigate(path: string) {
   if (path !== route.path) router.push(path)
 }
 
+watch(
+  () => route.path,
+  (path) => {
+    if (path === '/login') return
+    const titleKey = (route.meta.title as string | undefined) ?? 'nav.dashboard'
+    if (!tabs.value.some((tab) => tab.path === path)) {
+      tabs.value.push({ path, titleKey })
+    }
+  },
+  { immediate: true },
+)
+
+function handleTabChange(path: string) {
+  if (path !== route.path) router.push(path)
+}
+
+function handleTabRemove(path: string) {
+  const index = tabs.value.findIndex((tab) => tab.path === path)
+  if (index < 0) return
+  const wasActive = path === route.path
+  tabs.value.splice(index, 1)
+  if (!wasActive) return
+  const next = tabs.value[index] ?? tabs.value[index - 1] ?? tabs.value[0]
+  router.push(next?.path ?? '/dashboard')
+}
+
 async function refreshPermissions() {
   try {
     await session.loadPermissions()
@@ -111,39 +159,104 @@ async function onLogout() {
 <style scoped lang="scss">
 .console-layout { min-height: 100vh; }
 .desktop-sider {
-  border-right: 1px solid #f0f0f0;
-  background: #fff;
+  border-right: none;
+  background: #304156;
 }
 .secondary-sider {
   flex: 0 0 auto;
   align-self: stretch;
   width: 0;
   overflow: hidden;
-  background: #fff;
+  background: #263445;
   transition: width 0.18s ease;
 }
 .secondary-sider.open {
   width: 144px;
-  border-right: 1px solid #f0f0f0;
   overflow-y: auto;
   overflow-x: hidden;
 }
-.header { background: #fff; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-inline: 24px; border-bottom: 1px solid #f0f0f0; }
-.header-heading { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.header-title { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-label { color: rgba(0, 0, 0, 0.65); white-space: nowrap; }
-.content { margin: 16px; padding: 16px; background: #fff; min-width: 0; min-height: 280px; }
+.header {
+  height: 48px;
+  line-height: normal;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 20px;
+  border-bottom: 1px solid #e4e7ed;
+}
+.header-heading { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.crumb-home { color: #606266; font-size: 14px; }
+.crumb-home:hover { color: #409eff; }
+.crumb-sep { color: #c0c4cc; }
+.header-title { font-size: 14px; font-weight: 500; color: #303133; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-label { color: #606266; white-space: nowrap; }
+.tab-container {
+  background: #fff;
+  border-bottom: 1px solid #e4e7ed;
+  padding: 6px 20px 0;
+}
+.custom-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.custom-tabs::-webkit-scrollbar { height: 0; }
+.custom-tab {
+  position: relative;
+  height: 32px;
+  line-height: 32px;
+  padding: 0 28px 0 16px;
+  border: 1px solid #dcdfe6;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  background: #e4e7ed;
+  color: #606266;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 14px;
+  user-select: none;
+}
+.custom-tab:hover { color: #409eff; }
+.custom-tab.active {
+  background: #fff;
+  border-bottom: 1px solid #fff;
+  color: #409eff;
+  font-weight: 500;
+  margin-bottom: -1px;
+}
+.tab-label {
+  display: inline-block;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+.tab-close {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: #909399;
+}
+.tab-close:hover { color: #409eff; }
+.content { padding: 20px; background: #f0f2f5; min-width: 0; min-height: calc(100vh - 88px); }
 .mobile-trigger { display: none; }
 @media (max-width: 767px) {
   .desktop-sider { display: none; }
   .secondary-sider { display: none; }
   .mobile-trigger { display: inline-flex; }
-  .header { padding-inline: 8px; }
+  .header { padding: 0 8px; }
   .user-label { display: none; }
-  .content { margin: 8px; padding: 12px; }
+  .tab-container { padding: 6px 8px 0; }
+  .content { padding: 12px; }
 }
 </style>
 
 <style lang="scss">
-.console-mobile-drawer .ant-drawer-body { padding: 0; background: #fff; }
+.console-mobile-drawer .ant-drawer-body { padding: 0; background: #304156; }
 </style>

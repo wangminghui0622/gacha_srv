@@ -1,7 +1,7 @@
 <template>
   <nav :aria-label="$t('nav.ariaLabel')">
     <a-menu
-      theme="light"
+      theme="dark"
       mode="vertical"
       :selected-keys="selectedKeys"
       @click="onClick"
@@ -55,7 +55,7 @@ nav {
   padding-top: 8px;
 }
 
-:deep(.ant-menu-light) {
+:deep(.ant-menu-dark) {
   border-inline-end: 0;
   background: transparent;
 }
@@ -68,13 +68,13 @@ nav {
   width: calc(100% - 8px);
   padding-left: 16px !important;
   padding-right: 26px !important;
-  color: rgba(0, 0, 0, 0.75);
+  color: #bfcbd9;
   font-size: 14px;
 }
 
 :deep(.ant-menu-item .anticon) {
   font-size: 17px;
-  color: rgba(0, 0, 0, 0.55);
+  color: #bfcbd9;
 }
 
 .item-title {
@@ -88,12 +88,12 @@ nav {
   right: 8px;
   transform: translateY(-50%);
   font-size: 10px;
-  color: rgba(0, 0, 0, 0.45);
+  color: #bfcbd9;
 }
 
 :deep(.ant-menu-item-selected) {
-  background: #fff;
-  color: #1677ff;
+  background: #263445;
+  color: #409eff;
   font-weight: 500;
 }
 
@@ -101,10 +101,11 @@ nav {
 :deep(.ant-menu-item.group-active),
 :deep(.ant-menu-item.group-active .anticon),
 :deep(.ant-menu-item.group-active .group-arrow) {
-  color: #1677ff;
+  color: #409eff;
 }
 
 :deep(.ant-menu-item:hover) {
-  color: #1677ff;
+  background: #263445;
+  color: #409eff;
 }
 </style>

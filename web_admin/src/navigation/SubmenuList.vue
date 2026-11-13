@@ -41,20 +41,20 @@ function isActive(path: string): boolean {
   padding: 9px 16px;
   line-height: 20px;
   font-size: 14px;
-  color: rgba(0, 0, 0, 0.75);
+  color: #bfcbd9;
   text-align: center;
   white-space: normal;
   word-break: break-word;
 }
 
 .submenu-item:hover {
-  background: #f5f5f5;
-  color: #1677ff;
+  background: #1f2d3d;
+  color: #409eff;
 }
 
 .submenu-item.active {
-  background: #e6f4ff;
-  color: #1677ff;
+  background: #1f2d3d;
+  color: #409eff;
   font-weight: 500;
 }
 </style>
