@@ -19,6 +19,12 @@ service Catalog {
 rpc GetSKU(GetSKURequest) returns (SKU);
   // 商品列表（游标分页，摘要）
   rpc ListProducts(ListProductsRequest) returns (ListProductsReply);
+  // IP 列表（分页 + 名称搜索，按排序权重倒序）
+  rpc ListIPs(ListIPsRequest) returns (ListIPsReply);
+  // 创建 IP
+  rpc CreateIP(CreateIPRequest) returns (IP);
+  // 编辑 IP 名称/排序权重
+  rpc UpdateIP(UpdateIPRequest) returns (IP);
   // 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
   rpc PublishProduct(PublishProductRequest) returns (Product);
   // 读取已发布快照（任意历史版本）
@@ -156,6 +162,36 @@ message ListProductsRequest {
 message ListProductsReply {
   repeated ProductSummary products = 1; // 商品摘要列表
   uint64 nextAfterProductId = 2;        // 下一页游标（0=无下一页）
+}
+
+message IP {
+  uint64 ipId = 1;      // IP ID
+  string name = 2;      // IP 名称
+  int32 sortWeight = 3; // 排序权重（越大越靠前）
+}
+
+message ListIPsRequest {
+  string keyword = 1;  // 名称模糊搜索（空=全部）
+  uint32 page = 2;     // 页码（从 1 开始）
+  uint32 pageSize = 3; // 每页条数（默认 15，最大 100）
+}
+
+message ListIPsReply {
+  repeated IP ips = 1; // IP 列表
+  uint64 total = 2;    // 总条数
+  uint32 page = 3;     // 当前页码
+  uint32 pageSize = 4; // 每页条数
+}
+
+message CreateIPRequest {
+  string name = 1;      // IP 名称
+  int32 sortWeight = 2; // 排序权重
+}
+
+message UpdateIPRequest {
+  uint64 ipId = 1;      // IP ID
+  string name = 2;      // IP 名称
+  int32 sortWeight = 3; // 排序权重
 }
 
 message GetPublishedProductRequest {

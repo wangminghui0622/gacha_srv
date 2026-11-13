@@ -27,6 +27,7 @@ import (
 var (
 	ErrNotFound = errors.New("product not found")
 	ErrConflict = errors.New("product version or status conflict")
+	ErrIPExists = errors.New("ip name already exists")
 )
 
 // 状态取值（与 proto ProductStatus 同值）
@@ -49,6 +50,16 @@ type productRow struct {
 }
 
 func (productRow) TableName() string { return "products" }
+
+type ipRow struct {
+	ID         uint64    `gorm:"column:id;primaryKey;autoIncrement"`
+	Name       string    `gorm:"column:name"`
+	SortWeight int32     `gorm:"column:sort_weight"`
+	CreatedAt  time.Time `gorm:"column:created_at"`
+	UpdatedAt  time.Time `gorm:"column:updated_at"`
+}
+
+func (ipRow) TableName() string { return "catalog_ips" }
 
 type optionRow struct {
 	ID        uint64 `gorm:"column:id;primaryKey;autoIncrement"`
@@ -685,4 +696,69 @@ func findStoredOption(p *core.StoredProduct, optionID uint64) *core.StoredOption
 		}
 	}
 	return nil
+}
+
+// ── IP 列表 ──
+
+// ListIPs 按名称模糊搜索 + 排序权重倒序分页。
+func (r *Repo) ListIPs(ctx context.Context, keyword string, page, pageSize uint32) ([]*catalogpb.IP, uint64, error) {
+	query := func() *gorm.DB {
+		q := r.db.WithContext(ctx).Model(&ipRow{})
+		if keyword != "" {
+			q = q.Where("name LIKE ?", "%"+keyword+"%")
+		}
+		return q
+	}
+
+	var total int64
+	if err := query().Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	var rows []ipRow
+	offset := int64(page-1) * int64(pageSize)
+	if err := query().Order("sort_weight DESC, id DESC").Offset(int(offset)).Limit(int(pageSize)).
+		Find(&rows).Error; err != nil {
+		return nil, 0, err
+	}
+	out := make([]*catalogpb.IP, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, ipToProto(row))
+	}
+	return out, uint64(total), nil
+}
+
+// CreateIP 新建 IP；名称唯一冲突返回 ErrIPExists。
+func (r *Repo) CreateIP(ctx context.Context, name string, sortWeight int32) (*catalogpb.IP, error) {
+	row := ipRow{Name: name, SortWeight: sortWeight}
+	if err := r.db.WithContext(ctx).Create(&row).Error; err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, ErrIPExists
+		}
+		return nil, err
+	}
+	return ipToProto(row), nil
+}
+
+// UpdateIP 编辑 IP；不存在返回 ErrNotFound，名称冲突返回 ErrIPExists。
+func (r *Repo) UpdateIP(ctx context.Context, id uint64, name string, sortWeight int32) (*catalogpb.IP, error) {
+	var row ipRow
+	if err := r.db.WithContext(ctx).First(&row, "id = ?", id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	row.Name = name
+	row.SortWeight = sortWeight
+	if err := r.db.WithContext(ctx).Save(&row).Error; err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, ErrIPExists
+		}
+		return nil, err
+	}
+	return ipToProto(row), nil
+}
+
+func ipToProto(row ipRow) *catalogpb.IP {
+	return &catalogpb.IP{IpId: row.ID, Name: row.Name, SortWeight: row.SortWeight}
 }

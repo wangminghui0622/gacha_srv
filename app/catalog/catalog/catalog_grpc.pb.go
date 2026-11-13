@@ -23,6 +23,9 @@ const (
 	Catalog_GetProduct_FullMethodName                 = "/catalog.Catalog/GetProduct"
 	Catalog_GetSKU_FullMethodName                     = "/catalog.Catalog/GetSKU"
 	Catalog_ListProducts_FullMethodName               = "/catalog.Catalog/ListProducts"
+	Catalog_ListIPs_FullMethodName                    = "/catalog.Catalog/ListIPs"
+	Catalog_CreateIP_FullMethodName                   = "/catalog.Catalog/CreateIP"
+	Catalog_UpdateIP_FullMethodName                   = "/catalog.Catalog/UpdateIP"
 	Catalog_PublishProduct_FullMethodName             = "/catalog.Catalog/PublishProduct"
 	Catalog_GetPublishedProduct_FullMethodName        = "/catalog.Catalog/GetPublishedProduct"
 	Catalog_SaveProductRevision_FullMethodName        = "/catalog.Catalog/SaveProductRevision"
@@ -42,6 +45,12 @@ type CatalogClient interface {
 	GetSKU(ctx context.Context, in *GetSKURequest, opts ...grpc.CallOption) (*SKU, error)
 	// 商品列表（游标分页，摘要）
 	ListProducts(ctx context.Context, in *ListProductsRequest, opts ...grpc.CallOption) (*ListProductsReply, error)
+	// IP 列表（分页 + 名称搜索，按排序权重倒序）
+	ListIPs(ctx context.Context, in *ListIPsRequest, opts ...grpc.CallOption) (*ListIPsReply, error)
+	// 创建 IP
+	CreateIP(ctx context.Context, in *CreateIPRequest, opts ...grpc.CallOption) (*IP, error)
+	// 编辑 IP 名称/排序权重
+	UpdateIP(ctx context.Context, in *UpdateIPRequest, opts ...grpc.CallOption) (*IP, error)
 	// 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
 	PublishProduct(ctx context.Context, in *PublishProductRequest, opts ...grpc.CallOption) (*Product, error)
 	// 读取已发布快照（任意历史版本）
@@ -94,6 +103,33 @@ func (c *catalogClient) GetSKU(ctx context.Context, in *GetSKURequest, opts ...g
 func (c *catalogClient) ListProducts(ctx context.Context, in *ListProductsRequest, opts ...grpc.CallOption) (*ListProductsReply, error) {
 	out := new(ListProductsReply)
 	err := c.cc.Invoke(ctx, Catalog_ListProducts_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogClient) ListIPs(ctx context.Context, in *ListIPsRequest, opts ...grpc.CallOption) (*ListIPsReply, error) {
+	out := new(ListIPsReply)
+	err := c.cc.Invoke(ctx, Catalog_ListIPs_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogClient) CreateIP(ctx context.Context, in *CreateIPRequest, opts ...grpc.CallOption) (*IP, error) {
+	out := new(IP)
+	err := c.cc.Invoke(ctx, Catalog_CreateIP_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogClient) UpdateIP(ctx context.Context, in *UpdateIPRequest, opts ...grpc.CallOption) (*IP, error) {
+	out := new(IP)
+	err := c.cc.Invoke(ctx, Catalog_UpdateIP_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -165,6 +201,12 @@ type CatalogServer interface {
 	GetSKU(context.Context, *GetSKURequest) (*SKU, error)
 	// 商品列表（游标分页，摘要）
 	ListProducts(context.Context, *ListProductsRequest) (*ListProductsReply, error)
+	// IP 列表（分页 + 名称搜索，按排序权重倒序）
+	ListIPs(context.Context, *ListIPsRequest) (*ListIPsReply, error)
+	// 创建 IP
+	CreateIP(context.Context, *CreateIPRequest) (*IP, error)
+	// 编辑 IP 名称/排序权重
+	UpdateIP(context.Context, *UpdateIPRequest) (*IP, error)
 	// 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
 	PublishProduct(context.Context, *PublishProductRequest) (*Product, error)
 	// 读取已发布快照（任意历史版本）
@@ -195,6 +237,15 @@ func (UnimplementedCatalogServer) GetSKU(context.Context, *GetSKURequest) (*SKU,
 }
 func (UnimplementedCatalogServer) ListProducts(context.Context, *ListProductsRequest) (*ListProductsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListProducts not implemented")
+}
+func (UnimplementedCatalogServer) ListIPs(context.Context, *ListIPsRequest) (*ListIPsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListIPs not implemented")
+}
+func (UnimplementedCatalogServer) CreateIP(context.Context, *CreateIPRequest) (*IP, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateIP not implemented")
+}
+func (UnimplementedCatalogServer) UpdateIP(context.Context, *UpdateIPRequest) (*IP, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateIP not implemented")
 }
 func (UnimplementedCatalogServer) PublishProduct(context.Context, *PublishProductRequest) (*Product, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PublishProduct not implemented")
@@ -295,6 +346,60 @@ func _Catalog_ListProducts_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CatalogServer).ListProducts(ctx, req.(*ListProductsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Catalog_ListIPs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListIPsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServer).ListIPs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Catalog_ListIPs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServer).ListIPs(ctx, req.(*ListIPsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Catalog_CreateIP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateIPRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServer).CreateIP(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Catalog_CreateIP_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServer).CreateIP(ctx, req.(*CreateIPRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Catalog_UpdateIP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateIPRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServer).UpdateIP(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Catalog_UpdateIP_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServer).UpdateIP(ctx, req.(*UpdateIPRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -429,6 +534,18 @@ var Catalog_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListProducts",
 			Handler:    _Catalog_ListProducts_Handler,
+		},
+		{
+			MethodName: "ListIPs",
+			Handler:    _Catalog_ListIPs_Handler,
+		},
+		{
+			MethodName: "CreateIP",
+			Handler:    _Catalog_CreateIP_Handler,
+		},
+		{
+			MethodName: "UpdateIP",
+			Handler:    _Catalog_UpdateIP_Handler,
 		},
 		{
 			MethodName: "PublishProduct",

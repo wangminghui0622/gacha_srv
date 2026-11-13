@@ -126,6 +126,23 @@
     "openMenu": "Open navigation menu",
     "closeAllTabs": "Close all"
   },
+  "catalogIp": {
+    "searchPlaceholder": "IP",
+    "query": "Query",
+    "create": "Create",
+    "name": "IP",
+    "sortWeight": "Sort weight",
+    "edit": "Edit",
+    "createTitle": "Create IP",
+    "editTitle": "Edit IP",
+    "nameLabel": "IP name",
+    "namePlaceholder": "Enter IP name",
+    "nameRequired": "Enter IP name",
+    "sortWeightInvalid": "Sort weight must be an integer greater than or equal to 0",
+    "created": "IP created",
+    "updated": "IP updated",
+    "itemsPerPage": "/ page"
+  },
   "login": {
     "title": "Lucky Box Admin Console",
     "username": "Username",

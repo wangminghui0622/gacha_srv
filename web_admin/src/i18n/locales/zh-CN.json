@@ -126,6 +126,23 @@
     "openMenu": "打开导航菜单",
     "closeAllTabs": "关闭全部"
   },
+  "catalogIp": {
+    "searchPlaceholder": "IP",
+    "query": "查询",
+    "create": "创建",
+    "name": "IP",
+    "sortWeight": "排序权重",
+    "edit": "编辑",
+    "createTitle": "创建 IP",
+    "editTitle": "编辑 IP",
+    "nameLabel": "IP 名称",
+    "namePlaceholder": "请输入 IP 名称",
+    "nameRequired": "请输入 IP 名称",
+    "sortWeightInvalid": "排序权重必须是大于等于 0 的整数",
+    "created": "IP 已创建",
+    "updated": "IP 已更新",
+    "itemsPerPage": "条/页"
+  },
   "login": {
     "title": "Lucky Box 管理后台",
     "username": "用户名",

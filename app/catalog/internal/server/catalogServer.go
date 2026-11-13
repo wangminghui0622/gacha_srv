@@ -46,6 +46,24 @@ func (s *CatalogServer) ListProducts(ctx context.Context, in *catalog.ListProduc
 	return l.ListProducts(in)
 }
 
+// IP 列表（分页 + 名称搜索，按排序权重倒序）
+func (s *CatalogServer) ListIPs(ctx context.Context, in *catalog.ListIPsRequest) (*catalog.ListIPsReply, error) {
+	l := logic.NewListIPsLogic(ctx, s.svcCtx)
+	return l.ListIPs(in)
+}
+
+// 创建 IP
+func (s *CatalogServer) CreateIP(ctx context.Context, in *catalog.CreateIPRequest) (*catalog.IP, error) {
+	l := logic.NewCreateIPLogic(ctx, s.svcCtx)
+	return l.CreateIP(in)
+}
+
+// 编辑 IP 名称/排序权重
+func (s *CatalogServer) UpdateIP(ctx context.Context, in *catalog.UpdateIPRequest) (*catalog.IP, error) {
+	l := logic.NewUpdateIPLogic(ctx, s.svcCtx)
+	return l.UpdateIP(in)
+}
+
 // 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
 func (s *CatalogServer) PublishProduct(ctx context.Context, in *catalog.PublishProductRequest) (*catalog.Product, error) {
 	l := logic.NewPublishProductLogic(ctx, s.svcCtx)

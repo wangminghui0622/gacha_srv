@@ -275,7 +275,7 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     permission: { resource: 'catalog.product', action: 'read' },
     showInMenu: false,
     backFallback: '/catalog',
-    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+    component: () => import('@/views/catalog/IpManagementView.vue'),
   },
   {
     name: 'catalog-brand',

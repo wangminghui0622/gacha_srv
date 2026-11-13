@@ -68,6 +68,17 @@ CREATE TABLE IF NOT EXISTS `products` (
   KEY `idx_catalog_product_status_updated` (`status`,`updated_at`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商品头表';
 
+CREATE TABLE IF NOT EXISTS `catalog_ips` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT 'IP ID',
+  `name` varchar(128) NOT NULL COMMENT 'IP 名称',
+  `sort_weight` int NOT NULL DEFAULT '0' COMMENT '排序权重（越大越靠前）',
+  `created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  `updated_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_catalog_ip_name` (`name`),
+  KEY `idx_catalog_ip_sort` (`sort_weight`,`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='IP 列表';
+
 CREATE TABLE IF NOT EXISTS `sku_selections` (
   `sku_id` bigint unsigned NOT NULL COMMENT 'SKU ID',
   `option_id` bigint unsigned NOT NULL COMMENT '选项ID',
@@ -101,6 +112,28 @@ CREATE TABLE IF NOT EXISTS `skus` (
   KEY `idx_catalog_sku_external` (`external_code`),
   CONSTRAINT `fk_catalog_sku_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商品 SKU 表';
+
+-- IP 列表演示数据：仅在表为空时插入（可重复执行）
+INSERT INTO `catalog_ips` (`name`, `sort_weight`)
+SELECT seed.name, seed.sort_weight
+FROM (
+  SELECT '布兰兔' AS name, 44 AS sort_weight
+  UNION ALL SELECT '宇宙的猜想', 43
+  UNION ALL SELECT 'Handhandhand', 42
+  UNION ALL SELECT '欧舒丹', 41
+  UNION ALL SELECT '野兽派', 40
+  UNION ALL SELECT 'BYREDO', 39
+  UNION ALL SELECT 'Baccarat', 38
+  UNION ALL SELECT '奢侈品', 37
+  UNION ALL SELECT '富士山', 36
+  UNION ALL SELECT '蝙蝠侠', 35
+  UNION ALL SELECT '英雄联盟', 34
+  UNION ALL SELECT '变形金刚', 33
+  UNION ALL SELECT '剑风传奇', 32
+  UNION ALL SELECT '生化危机', 31
+  UNION ALL SELECT '明日方舟', 30
+) AS seed
+WHERE NOT EXISTS (SELECT 1 FROM `catalog_ips`);
 
 SET FOREIGN_KEY_CHECKS = 1;
 

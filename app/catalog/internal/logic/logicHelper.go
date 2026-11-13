@@ -27,3 +27,17 @@ func mapRepoErr(err error) error {
 func mapVariantErr(err error) error {
 	return errorx.NewCodeError(errorx.CodeCatalogConflict, "商品版本或状态冲突")
 }
+
+// mapIPRepoErr IP 数据访问错误 → 业务码。
+func mapIPRepoErr(err error) error {
+	switch {
+	case err == nil:
+		return nil
+	case errors.Is(err, repo.ErrNotFound):
+		return errorx.NewCodeError(errorx.CodeCatalogNotFound, "IP 不存在")
+	case errors.Is(err, repo.ErrIPExists):
+		return errorx.NewCodeError(errorx.CodeCatalogInvalid, "IP 名称已存在")
+	default:
+		return errorx.FromError(err)
+	}
+}

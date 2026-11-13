@@ -14,6 +14,7 @@ import (
 )
 
 type (
+	CreateIPRequest                   = catalog.CreateIPRequest
 	CreateOptionValueInput            = catalog.CreateOptionValueInput
 	CreateProductOptionInput          = catalog.CreateProductOptionInput
 	CreateProductRequest              = catalog.CreateProductRequest
@@ -23,6 +24,9 @@ type (
 	GetProductRevisionRequest         = catalog.GetProductRevisionRequest
 	GetPublishedProductRequest        = catalog.GetPublishedProductRequest
 	GetSKURequest                     = catalog.GetSKURequest
+	IP                                = catalog.IP
+	ListIPsReply                      = catalog.ListIPsReply
+	ListIPsRequest                    = catalog.ListIPsRequest
 	ListProductsReply                 = catalog.ListProductsReply
 	ListProductsRequest               = catalog.ListProductsRequest
 	Money                             = catalog.Money
@@ -37,6 +41,7 @@ type (
 	SKUSelection                      = catalog.SKUSelection
 	SaveProductRevisionRequest        = catalog.SaveProductRevisionRequest
 	SaveProductVariantRevisionRequest = catalog.SaveProductVariantRevisionRequest
+	UpdateIPRequest                   = catalog.UpdateIPRequest
 
 	Catalog interface {
 		// 创建商品（DRAFT + version 1；选项/SKU 全量校验）
@@ -46,6 +51,12 @@ type (
 		GetSKU(ctx context.Context, in *GetSKURequest, opts ...grpc.CallOption) (*SKU, error)
 		// 商品列表（游标分页，摘要）
 		ListProducts(ctx context.Context, in *ListProductsRequest, opts ...grpc.CallOption) (*ListProductsReply, error)
+		// IP 列表（分页 + 名称搜索，按排序权重倒序）
+		ListIPs(ctx context.Context, in *ListIPsRequest, opts ...grpc.CallOption) (*ListIPsReply, error)
+		// 创建 IP
+		CreateIP(ctx context.Context, in *CreateIPRequest, opts ...grpc.CallOption) (*IP, error)
+		// 编辑 IP 名称/排序权重
+		UpdateIP(ctx context.Context, in *UpdateIPRequest, opts ...grpc.CallOption) (*IP, error)
 		// 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
 		PublishProduct(ctx context.Context, in *PublishProductRequest, opts ...grpc.CallOption) (*Product, error)
 		// 读取已发布快照（任意历史版本）
@@ -92,6 +103,24 @@ func (m *defaultCatalog) GetSKU(ctx context.Context, in *GetSKURequest, opts ...
 func (m *defaultCatalog) ListProducts(ctx context.Context, in *ListProductsRequest, opts ...grpc.CallOption) (*ListProductsReply, error) {
 	client := catalog.NewCatalogClient(m.cli.Conn())
 	return client.ListProducts(ctx, in, opts...)
+}
+
+// IP 列表（分页 + 名称搜索，按排序权重倒序）
+func (m *defaultCatalog) ListIPs(ctx context.Context, in *ListIPsRequest, opts ...grpc.CallOption) (*ListIPsReply, error) {
+	client := catalog.NewCatalogClient(m.cli.Conn())
+	return client.ListIPs(ctx, in, opts...)
+}
+
+// 创建 IP
+func (m *defaultCatalog) CreateIP(ctx context.Context, in *CreateIPRequest, opts ...grpc.CallOption) (*IP, error) {
+	client := catalog.NewCatalogClient(m.cli.Conn())
+	return client.CreateIP(ctx, in, opts...)
+}
+
+// 编辑 IP 名称/排序权重
+func (m *defaultCatalog) UpdateIP(ctx context.Context, in *UpdateIPRequest, opts ...grpc.CallOption) (*IP, error) {
+	client := catalog.NewCatalogClient(m.cli.Conn())
+	return client.UpdateIP(ctx, in, opts...)
 }
 
 // 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）

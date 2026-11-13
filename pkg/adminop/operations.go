@@ -63,6 +63,9 @@ func All() []Operation {
 		// 本仓幸运指派实体是扭蛋配置（gashapon_configs），不是箱子
 		{ID: "console.pool.assignluckyuser", Resource: "gacha.pool", Action: "assign_lucky", Method: "POST", Path: "/gacha/gashapons/:configId/lucky-assignment", Title: "指定幸运用户"},
 		// ── 商品（ConsoleCatalogHTTPService，resource: catalog.product）──
+		{ID: "console.catalog.ip.list", Resource: "catalog.product", Action: "read", Method: "GET", Path: "/catalog/ips", Title: "IP 列表"},
+		{ID: "console.catalog.ip.create", Resource: "catalog.product", Action: "create", Method: "POST", Path: "/catalog/ips", Title: "创建 IP"},
+		{ID: "console.catalog.ip.update", Resource: "catalog.product", Action: "write", Method: "PUT", Path: "/catalog/ips/:ipId", Title: "编辑 IP"},
 		{ID: "console.catalog.list", Resource: "catalog.product", Action: "read", Method: "GET", Path: "/catalog/products", Title: "商品列表"},
 		{ID: "console.catalog.create", Resource: "catalog.product", Action: "create", Method: "POST", Path: "/catalog/products", Title: "创建商品"},
 		{ID: "console.catalog.get", Resource: "catalog.product", Action: "read", Method: "GET", Path: "/catalog/products/:productId", Title: "查看商品"},

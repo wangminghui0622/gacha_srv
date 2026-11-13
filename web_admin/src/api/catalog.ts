@@ -92,6 +92,31 @@ export interface ReviseSkuInput {
   referencePrice: Money
 }
 
+export interface IpItem {
+  ipId?: string
+  name?: string
+  sortWeight?: number
+}
+
+export interface ListIpsReply {
+  ips?: IpItem[]
+  total?: string
+  page?: number
+  pageSize?: number
+}
+
+export const catalogIpClient = {
+  List({ keyword, page, pageSize }: { keyword: string; page: number; pageSize: number }): Promise<ListIpsReply> {
+    return http.get('/console/v2/api/catalog/ips', { params: { keyword, page, pageSize } })
+  },
+  Create(payload: { name: string; sortWeight: number }): Promise<IpItem> {
+    return http.post('/console/v2/api/catalog/ips', payload)
+  },
+  Update(ipId: string, payload: { name: string; sortWeight: number }): Promise<IpItem> {
+    return http.put(`/console/v2/api/catalog/ips/${encodeURIComponent(ipId)}`, payload)
+  },
+}
+
 export const catalogClient = {
   Get({ productId }: { productId: string }): Promise<Product> {
     return http.get(`/console/v2/api/catalog/products/${encodeURIComponent(productId)}`)
