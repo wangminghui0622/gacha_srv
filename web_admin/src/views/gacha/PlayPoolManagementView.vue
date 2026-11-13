@@ -85,8 +85,8 @@
     <a-modal
       v-model:open="createModalOpen"
       centered
-      width="96vw"
-      :style="{ maxWidth: '1360px' }"
+      :width="createModalWidth"
+      :wrap-style="createModalWrapStyle"
       :footer="null"
       :destroy-on-close="true"
       :body-style="{ maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }"
@@ -194,7 +194,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -257,6 +257,8 @@ const rowSelection = computed(() => ({
 }))
 
 const createModalOpen = ref(false)
+const createModalWidth = ref('96vw')
+const createModalWrapStyle = ref<Record<string, string>>({})
 const createOpen = ref(false)
 const creating = ref(false)
 const createForm = reactive({
@@ -392,8 +394,31 @@ function setWeight(record: AdminPlayPool, value: number | null) {
   weights[record.poolId] = Math.max(0, Math.trunc(value ?? 0))
 }
 
+function syncCreateModalLayout() {
+  const content = document.querySelector('.content')
+  const rect = content?.getBoundingClientRect()
+  if (!rect || rect.width <= 0) return
+  const gap = window.innerWidth <= 767 ? 12 : 16
+  const viewportRight = document.body.clientWidth || document.documentElement.clientWidth
+  const scrollbar = Math.max(0, window.innerWidth - viewportRight)
+  createModalWrapStyle.value = {
+    left: `${Math.round(rect.left)}px`,
+    right: `${scrollbar}px`,
+  }
+  createModalWidth.value = `${Math.max(320, Math.round(viewportRight - rect.left - gap * 2))}px`
+}
+
+function onWindowResize() {
+  if (createModalOpen.value) syncCreateModalLayout()
+}
+
 function openCreate() {
+  syncCreateModalLayout()
   createModalOpen.value = true
+  void nextTick(() => {
+    syncCreateModalLayout()
+    requestAnimationFrame(syncCreateModalLayout)
+  })
 }
 
 function onCreateSuccess() {
@@ -598,8 +623,13 @@ function formatTime(value?: string): string {
 }
 
 onMounted(async () => {
+  window.addEventListener('resize', onWindowResize)
   await loadOptions()
   await load()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onWindowResize)
 })
 </script>
 

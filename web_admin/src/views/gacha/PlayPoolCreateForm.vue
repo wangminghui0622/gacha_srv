@@ -418,7 +418,7 @@ onMounted(loadOptions)
 
 .form-layout {
   display: grid;
-  grid-template-columns: minmax(360px, 36%) minmax(0, 1fr);
+  grid-template-columns: clamp(360px, 30%, 480px) minmax(0, 1fr);
   gap: 28px;
   align-items: stretch;
 }
