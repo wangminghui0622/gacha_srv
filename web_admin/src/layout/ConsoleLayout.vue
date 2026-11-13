@@ -5,7 +5,6 @@
       <NavigationMenu
         :nodes="session.permissionNodes"
         :selected-key="selectedKey"
-        :active-group-key="activeGroupKey"
         @toggle-group="toggleGroup"
         @navigate="navigate"
       />
@@ -21,7 +20,6 @@
       <NavigationMenu
         :nodes="session.permissionNodes"
         :selected-key="selectedKey"
-        :active-group-key="activeGroupKey"
         @toggle-group="toggleGroup"
         @navigate="navigate"
       />

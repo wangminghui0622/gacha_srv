@@ -25,7 +25,7 @@ import { RightOutlined } from '@ant-design/icons-vue'
 import type { PermissionNode } from '@/access/grants'
 import { menuTree, type MenuNode } from './routeCatalog'
 
-const props = defineProps<{ nodes: PermissionNode[]; selectedKey: string; activeGroupKey?: string | null }>()
+const props = defineProps<{ nodes: PermissionNode[]; selectedKey: string }>()
 const emit = defineEmits<{ navigate: [path: string]; 'toggle-group': [key: string] }>()
 const tree = computed(() => menuTree(props.nodes))
 const selectedKeys = computed(() =>
@@ -34,7 +34,6 @@ const selectedKeys = computed(() =>
 
 function isGroupActive(item: MenuNode): boolean {
   if (!item.children) return false
-  if (props.activeGroupKey === item.key) return true
   return item.children.some((child) => props.selectedKey === child.path || props.selectedKey.startsWith(`${child.path}/`))
 }
 
