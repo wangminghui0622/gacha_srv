@@ -113,15 +113,15 @@ nav {
 }
 
 .side-menu-popup .ant-menu-vertical {
-  padding: 8px 0 !important;
+  padding: 6px 0 !important;
 }
 
 .side-menu-popup .ant-menu-item {
   height: auto !important;
-  min-height: 44px;
+  min-height: 38px;
   line-height: 20px !important;
   margin: 0 !important;
-  padding: 12px 16px !important;
+  padding: 9px 16px !important;
   width: 100% !important;
   border-radius: 0;
   color: rgba(0, 0, 0, 0.75);
