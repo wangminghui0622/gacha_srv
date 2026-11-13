@@ -30,6 +30,8 @@ func All() []Operation {
 		{ID: "console.session.refresh", Public: true, Method: "POST", Path: "/session/refresh", Title: "刷新令牌"},
 		{ID: "console.session.logout", Public: true, Method: "POST", Path: "/session/logout", Title: "退出登录"},
 		{ID: "console.session.permissions", Public: true, Method: "GET", Path: "/session/permissions", Title: "当前有效权限"},
+		{ID: "console.session.tabs.get", Public: true, Method: "GET", Path: "/session/tabs", Title: "读取账号页签"},
+		{ID: "console.session.tabs.put", Public: true, Method: "PUT", Path: "/session/tabs", Title: "保存账号页签"},
 		{ID: "console.session.openaccount", Resource: "identity.console_account", Action: "create", Method: "POST", Path: "/session/accounts", Title: "开通控制台账号"},
 		{ID: "console.session.resetaccounttotp", Resource: "identity.console_account", Action: "reset_totp", Method: "POST", Path: "/session/accounts/:principalId/totp-reset", Title: "重置账号 TOTP"},
 		// ── 权限（ConsoleAuthorizationService）──

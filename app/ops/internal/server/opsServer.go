@@ -49,6 +49,17 @@ func (s *OpsServer) ResetConsoleTotp(ctx context.Context, in *ops.ResetConsoleTo
 	return l.ResetConsoleTotp(in)
 }
 
+// 页签（按控制台账号持久化，登录后恢复）
+func (s *OpsServer) GetConsoleTabs(ctx context.Context, in *ops.GetConsoleTabsRequest) (*ops.ConsoleTabs, error) {
+	l := logic.NewGetConsoleTabsLogic(ctx, s.svcCtx)
+	return l.GetConsoleTabs(in)
+}
+
+func (s *OpsServer) PutConsoleTabs(ctx context.Context, in *ops.PutConsoleTabsRequest) (*ops.ConsoleTabs, error) {
+	l := logic.NewPutConsoleTabsLogic(ctx, s.svcCtx)
+	return l.PutConsoleTabs(in)
+}
+
 // 授权（AuthorizationService）
 func (s *OpsServer) Authorize(ctx context.Context, in *ops.AuthorizeRequest) (*ops.AuthorizationDecision, error) {
 	l := logic.NewAuthorizeLogic(ctx, s.svcCtx)

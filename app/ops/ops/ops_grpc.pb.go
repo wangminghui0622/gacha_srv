@@ -24,6 +24,8 @@ const (
 	Ops_ConsoleLogout_FullMethodName                  = "/ops.Ops/ConsoleLogout"
 	Ops_OpenConsoleAccount_FullMethodName             = "/ops.Ops/OpenConsoleAccount"
 	Ops_ResetConsoleTotp_FullMethodName               = "/ops.Ops/ResetConsoleTotp"
+	Ops_GetConsoleTabs_FullMethodName                 = "/ops.Ops/GetConsoleTabs"
+	Ops_PutConsoleTabs_FullMethodName                 = "/ops.Ops/PutConsoleTabs"
 	Ops_Authorize_FullMethodName                      = "/ops.Ops/Authorize"
 	Ops_ListEffectiveGrants_FullMethodName            = "/ops.Ops/ListEffectiveGrants"
 	Ops_ListPermissionCatalog_FullMethodName          = "/ops.Ops/ListPermissionCatalog"
@@ -63,6 +65,9 @@ type OpsClient interface {
 	ConsoleLogout(ctx context.Context, in *ConsoleLogoutRequest, opts ...grpc.CallOption) (*ConsoleLogoutReply, error)
 	OpenConsoleAccount(ctx context.Context, in *OpenConsoleAccountRequest, opts ...grpc.CallOption) (*OpenConsoleAccountReply, error)
 	ResetConsoleTotp(ctx context.Context, in *ResetConsoleTotpRequest, opts ...grpc.CallOption) (*ResetConsoleTotpReply, error)
+	// 页签（按控制台账号持久化，登录后恢复）
+	GetConsoleTabs(ctx context.Context, in *GetConsoleTabsRequest, opts ...grpc.CallOption) (*ConsoleTabs, error)
+	PutConsoleTabs(ctx context.Context, in *PutConsoleTabsRequest, opts ...grpc.CallOption) (*ConsoleTabs, error)
 	// 授权（AuthorizationService）
 	Authorize(ctx context.Context, in *AuthorizeRequest, opts ...grpc.CallOption) (*AuthorizationDecision, error)
 	ListEffectiveGrants(ctx context.Context, in *ListEffectiveGrantsRequest, opts ...grpc.CallOption) (*ListEffectiveGrantsReply, error)
@@ -144,6 +149,24 @@ func (c *opsClient) OpenConsoleAccount(ctx context.Context, in *OpenConsoleAccou
 func (c *opsClient) ResetConsoleTotp(ctx context.Context, in *ResetConsoleTotpRequest, opts ...grpc.CallOption) (*ResetConsoleTotpReply, error) {
 	out := new(ResetConsoleTotpReply)
 	err := c.cc.Invoke(ctx, Ops_ResetConsoleTotp_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *opsClient) GetConsoleTabs(ctx context.Context, in *GetConsoleTabsRequest, opts ...grpc.CallOption) (*ConsoleTabs, error) {
+	out := new(ConsoleTabs)
+	err := c.cc.Invoke(ctx, Ops_GetConsoleTabs_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *opsClient) PutConsoleTabs(ctx context.Context, in *PutConsoleTabsRequest, opts ...grpc.CallOption) (*ConsoleTabs, error) {
+	out := new(ConsoleTabs)
+	err := c.cc.Invoke(ctx, Ops_PutConsoleTabs_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -403,6 +426,9 @@ type OpsServer interface {
 	ConsoleLogout(context.Context, *ConsoleLogoutRequest) (*ConsoleLogoutReply, error)
 	OpenConsoleAccount(context.Context, *OpenConsoleAccountRequest) (*OpenConsoleAccountReply, error)
 	ResetConsoleTotp(context.Context, *ResetConsoleTotpRequest) (*ResetConsoleTotpReply, error)
+	// 页签（按控制台账号持久化，登录后恢复）
+	GetConsoleTabs(context.Context, *GetConsoleTabsRequest) (*ConsoleTabs, error)
+	PutConsoleTabs(context.Context, *PutConsoleTabsRequest) (*ConsoleTabs, error)
 	// 授权（AuthorizationService）
 	Authorize(context.Context, *AuthorizeRequest) (*AuthorizationDecision, error)
 	ListEffectiveGrants(context.Context, *ListEffectiveGrantsRequest) (*ListEffectiveGrantsReply, error)
@@ -456,6 +482,12 @@ func (UnimplementedOpsServer) OpenConsoleAccount(context.Context, *OpenConsoleAc
 }
 func (UnimplementedOpsServer) ResetConsoleTotp(context.Context, *ResetConsoleTotpRequest) (*ResetConsoleTotpReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResetConsoleTotp not implemented")
+}
+func (UnimplementedOpsServer) GetConsoleTabs(context.Context, *GetConsoleTabsRequest) (*ConsoleTabs, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConsoleTabs not implemented")
+}
+func (UnimplementedOpsServer) PutConsoleTabs(context.Context, *PutConsoleTabsRequest) (*ConsoleTabs, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PutConsoleTabs not implemented")
 }
 func (UnimplementedOpsServer) Authorize(context.Context, *AuthorizeRequest) (*AuthorizationDecision, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Authorize not implemented")
@@ -637,6 +669,42 @@ func _Ops_ResetConsoleTotp_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OpsServer).ResetConsoleTotp(ctx, req.(*ResetConsoleTotpRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Ops_GetConsoleTabs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConsoleTabsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OpsServer).GetConsoleTabs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Ops_GetConsoleTabs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OpsServer).GetConsoleTabs(ctx, req.(*GetConsoleTabsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Ops_PutConsoleTabs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PutConsoleTabsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OpsServer).PutConsoleTabs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Ops_PutConsoleTabs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OpsServer).PutConsoleTabs(ctx, req.(*PutConsoleTabsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1153,6 +1221,14 @@ var Ops_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ResetConsoleTotp",
 			Handler:    _Ops_ResetConsoleTotp_Handler,
+		},
+		{
+			MethodName: "GetConsoleTabs",
+			Handler:    _Ops_GetConsoleTabs_Handler,
+		},
+		{
+			MethodName: "PutConsoleTabs",
+			Handler:    _Ops_PutConsoleTabs_Handler,
 		},
 		{
 			MethodName: "Authorize",

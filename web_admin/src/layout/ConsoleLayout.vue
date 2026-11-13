@@ -75,7 +75,8 @@ import { useRoute, useRouter } from 'vue-router'
 import SecurityWatermark from '@/components/SecurityWatermark.vue'
 import NavigationMenu from '@/navigation/NavigationMenu.vue'
 import SubmenuList from '@/navigation/SubmenuList.vue'
-import { menuPath, menuRoutes, menuTree } from '@/navigation/routeCatalog'
+import { canAccessRoute, menuPath, menuRoutes, menuTree } from '@/navigation/routeCatalog'
+import { fetchConsoleTabs, saveConsoleTabs } from '@/api/console'
 import { useSessionStore } from '@/stores/session'
 
 const route = useRoute()
@@ -88,8 +89,88 @@ interface TabItem {
   titleKey: string
 }
 const tabs = ref<TabItem[]>([])
+const tabsLoaded = ref(false)
 const activeTab = computed(() => route.path)
 const menus = computed(() => menuRoutes(session.permissionNodes))
+let persistTimer: ReturnType<typeof setTimeout> | null = null
+let persistQueue: Promise<void> = Promise.resolve()
+
+function dashboardTab(): TabItem {
+  return { path: '/dashboard', titleKey: 'nav.dashboard' }
+}
+
+function titleKeyForPath(path: string, fallback = 'nav.dashboard'): string {
+  const title = router.resolve(path).meta.title
+  return typeof title === 'string' && title ? title : fallback
+}
+
+function isUsableTabPath(path: string): boolean {
+  if (!path.startsWith('/') || path === '/login') return false
+  const resolved = router.resolve(path)
+  if (!resolved.matched.length || resolved.name === 'not-found') return false
+  const name = typeof resolved.name === 'string' ? resolved.name : undefined
+  return canAccessRoute(name, session.permissionNodes)
+}
+
+function currentTabsPayload() {
+  const payload = tabs.value.map((tab) => ({ path: tab.path, titleKey: tab.titleKey }))
+  const activePath = payload.some((tab) => tab.path === route.path) ? route.path : (payload[0]?.path ?? '/dashboard')
+  return { tabs: payload, activePath }
+}
+
+function enqueueTabsSave(): Promise<void> {
+  if (!tabsLoaded.value) return persistQueue
+  const payload = currentTabsPayload()
+  const save = () => saveConsoleTabs(payload.tabs, payload.activePath).then(() => undefined)
+  persistQueue = persistQueue.then(save, save).catch(() => undefined)
+  return persistQueue
+}
+
+function schedulePersistTabs(delay = 250) {
+  if (!tabsLoaded.value) return
+  if (persistTimer) clearTimeout(persistTimer)
+  persistTimer = setTimeout(() => {
+    persistTimer = null
+    void enqueueTabsSave()
+  }, delay)
+}
+
+async function flushPersistTabs() {
+  if (persistTimer) {
+    clearTimeout(persistTimer)
+    persistTimer = null
+  }
+  if (!tabsLoaded.value) return
+  await enqueueTabsSave()
+}
+
+async function loadConsoleTabs() {
+  try {
+    const reply = await fetchConsoleTabs()
+    const loaded: TabItem[] = []
+    const seen = new Set<string>()
+    for (const item of reply.tabs ?? []) {
+      const path = typeof item.path === 'string' ? item.path : ''
+      if (!path || seen.has(path) || !isUsableTabPath(path)) continue
+      seen.add(path)
+      loaded.push({ path, titleKey: titleKeyForPath(path, item.titleKey || 'nav.dashboard') })
+    }
+    if (loaded.length === 0) loaded.push(dashboardTab())
+    if (isUsableTabPath(route.path) && !loaded.some((tab) => tab.path === route.path)) {
+      loaded.push({ path: route.path, titleKey: titleKeyForPath(route.path) })
+    }
+    tabs.value = loaded
+    tabsLoaded.value = true
+    const savedActive = typeof reply.activePath === 'string' ? reply.activePath : ''
+    // 登录默认落到仪表盘时恢复上次激活页；直接打开深链接时不覆盖用户目标页。
+    if (route.path === '/dashboard' && savedActive && savedActive !== '/dashboard' && loaded.some((tab) => tab.path === savedActive)) {
+      await router.push(savedActive)
+    }
+    schedulePersistTabs(0)
+  } catch {
+    // 拉取失败时保留内存页签，且不主动回写，避免覆盖服务端已保存数据。
+  }
+}
 const tree = computed(() => menuTree(session.permissionNodes))
 const activeGroupKey = ref<string | null>(null)
 const activeGroup = computed(() => tree.value.find((node) => node.key === activeGroupKey.value && node.children) ?? null)
@@ -126,10 +207,18 @@ watch(
   { immediate: true },
 )
 
-onMounted(() => window.addEventListener('resize', updateSubmenuTop))
+onMounted(() => {
+  window.addEventListener('resize', updateSubmenuTop)
+  void loadConsoleTabs()
+})
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateSubmenuTop)
   submenuObserver?.disconnect()
+  if (persistTimer) {
+    clearTimeout(persistTimer)
+    persistTimer = null
+    void enqueueTabsSave()
+  }
 })
 const headerTitle = computed(() => t((route.meta.title as string) ?? 'nav.dashboard'))
 const selectedKey = computed(() => {
@@ -162,11 +251,15 @@ function navigate(path: string) {
 watch(
   () => route.path,
   (path) => {
-    if (path === '/login') return
-    const titleKey = (route.meta.title as string | undefined) ?? 'nav.dashboard'
-    if (!tabs.value.some((tab) => tab.path === path)) {
+    if (path === '/login' || !isUsableTabPath(path)) return
+    const titleKey = titleKeyForPath(path)
+    const existing = tabs.value.find((tab) => tab.path === path)
+    if (existing) {
+      existing.titleKey = titleKey
+    } else {
       tabs.value.push({ path, titleKey })
     }
+    schedulePersistTabs()
   },
   { immediate: true },
 )
@@ -180,15 +273,26 @@ function handleTabRemove(path: string) {
   if (index < 0) return
   const wasActive = path === route.path
   tabs.value.splice(index, 1)
-  if (!wasActive) return
+  if (tabs.value.length === 0) {
+    tabs.value = [dashboardTab()]
+    if (route.path !== '/dashboard') router.push('/dashboard')
+    schedulePersistTabs()
+    return
+  }
+  if (!wasActive) {
+    schedulePersistTabs()
+    return
+  }
   const next = tabs.value[index] ?? tabs.value[index - 1] ?? tabs.value[0]
   router.push(next?.path ?? '/dashboard')
+  schedulePersistTabs()
 }
 
 function closeAllTabs() {
-  tabs.value = [{ path: '/dashboard', titleKey: 'nav.dashboard' }]
+  tabs.value = [dashboardTab()]
   activeGroupKey.value = null
   if (route.path !== '/dashboard') router.push('/dashboard')
+  void flushPersistTabs()
 }
 
 async function refreshPermissions() {
@@ -201,6 +305,7 @@ async function refreshPermissions() {
 }
 
 async function onLogout() {
+  await flushPersistTabs()
   await session.logout()
   router.push('/login')
 }

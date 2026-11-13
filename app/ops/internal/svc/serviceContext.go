@@ -35,6 +35,7 @@ type ServiceContext struct {
 	AuthzStore  *repo.AuthzStore
 	Tickets     *repo.LoginTicketStore
 	Revocations *repo.RevocationPublisher
+	TabStore    *repo.TabStore
 
 	// M14e 任务计划/报表存储与结果缓存
 	PlanStore      *repo.PlanStore
@@ -117,6 +118,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		AuthzStore:  repo.NewAuthzStore(db),
 		Tickets:     repo.NewLoginTicketStore(rdb),
 		Revocations: revocations,
+		TabStore:    repo.NewTabStore(db),
 
 		PlanStore:      repo.NewPlanStore(db),
 		ReportingStore: repo.NewReportingStore(db),

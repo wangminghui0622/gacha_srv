@@ -529,6 +529,18 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Path:    "/session/permissions",
 					Handler: session.ConsolePermissionsHandler(serverCtx),
 				},
+				{
+					// 当前账号页签
+					Method:  http.MethodGet,
+					Path:    "/session/tabs",
+					Handler: session.GetConsoleTabsHandler(serverCtx),
+				},
+				{
+					// 保存当前账号页签
+					Method:  http.MethodPut,
+					Path:    "/session/tabs",
+					Handler: session.PutConsoleTabsHandler(serverCtx),
+				},
 			}...,
 		),
 		rest.WithPrefix("/console/v2/api"),

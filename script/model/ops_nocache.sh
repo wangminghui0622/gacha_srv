@@ -3,6 +3,7 @@
 # 来源：旧仓 ops_nocache.sh 原样迁移（ops-rpc，库 gacha_ops）
 # reporting_metric_dimension / reporting_metric_snapshot / reporting_metric_bucket 为联合主键，
 # goctl model 不支持——手写模型 pkg/model_nocache/gacha_ops/ 下 *_model.go（勿重生成覆盖）
+# console_user_tabs 为 (tenant_id, account_id) 联合主键，走 app/ops/internal/repo/tabs.go 手写 GORM 层，不在此生成
 # 用法：bash script/model/ops_nocache.sh
 # 连接参数可用环境变量覆盖：USER / PASS / HOST（默认 root / we7root / 127.0.0.1:3306）
 set -eu

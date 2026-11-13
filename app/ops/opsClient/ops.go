@@ -26,12 +26,15 @@ type (
 	ConsoleLogoutRequest                  = ops.ConsoleLogoutRequest
 	ConsoleRefreshRequest                 = ops.ConsoleRefreshRequest
 	ConsoleSessionTokens                  = ops.ConsoleSessionTokens
+	ConsoleTab                            = ops.ConsoleTab
+	ConsoleTabs                           = ops.ConsoleTabs
 	ConsoleTotpChallenge                  = ops.ConsoleTotpChallenge
 	CouponRewardReference                 = ops.CouponRewardReference
 	CreateRoleRequest                     = ops.CreateRoleRequest
 	CreateTaskPlanDraftRequest            = ops.CreateTaskPlanDraftRequest
 	Dashboard                             = ops.Dashboard
 	DashboardWidget                       = ops.DashboardWidget
+	GetConsoleTabsRequest                 = ops.GetConsoleTabsRequest
 	GetDashboardRequest                   = ops.GetDashboardRequest
 	GetPrincipalRolesRequest              = ops.GetPrincipalRolesRequest
 	GetRoleRequest                        = ops.GetRoleRequest
@@ -65,6 +68,7 @@ type (
 	PrincipalRoles                        = ops.PrincipalRoles
 	PublishDashboardRequest               = ops.PublishDashboardRequest
 	PublishTaskPlanRequest                = ops.PublishTaskPlanRequest
+	PutConsoleTabsRequest                 = ops.PutConsoleTabsRequest
 	PutPrincipalRolesRequest              = ops.PutPrincipalRolesRequest
 	PutRolePermissionsRequest             = ops.PutRolePermissionsRequest
 	QueryDashboardReply                   = ops.QueryDashboardReply
@@ -98,6 +102,9 @@ type (
 		ConsoleLogout(ctx context.Context, in *ConsoleLogoutRequest, opts ...grpc.CallOption) (*ConsoleLogoutReply, error)
 		OpenConsoleAccount(ctx context.Context, in *OpenConsoleAccountRequest, opts ...grpc.CallOption) (*OpenConsoleAccountReply, error)
 		ResetConsoleTotp(ctx context.Context, in *ResetConsoleTotpRequest, opts ...grpc.CallOption) (*ResetConsoleTotpReply, error)
+		// 页签（按控制台账号持久化，登录后恢复）
+		GetConsoleTabs(ctx context.Context, in *GetConsoleTabsRequest, opts ...grpc.CallOption) (*ConsoleTabs, error)
+		PutConsoleTabs(ctx context.Context, in *PutConsoleTabsRequest, opts ...grpc.CallOption) (*ConsoleTabs, error)
 		// 授权（AuthorizationService）
 		Authorize(ctx context.Context, in *AuthorizeRequest, opts ...grpc.CallOption) (*AuthorizationDecision, error)
 		ListEffectiveGrants(ctx context.Context, in *ListEffectiveGrantsRequest, opts ...grpc.CallOption) (*ListEffectiveGrantsReply, error)
@@ -167,6 +174,17 @@ func (m *defaultOps) OpenConsoleAccount(ctx context.Context, in *OpenConsoleAcco
 func (m *defaultOps) ResetConsoleTotp(ctx context.Context, in *ResetConsoleTotpRequest, opts ...grpc.CallOption) (*ResetConsoleTotpReply, error) {
 	client := ops.NewOpsClient(m.cli.Conn())
 	return client.ResetConsoleTotp(ctx, in, opts...)
+}
+
+// 页签（按控制台账号持久化，登录后恢复）
+func (m *defaultOps) GetConsoleTabs(ctx context.Context, in *GetConsoleTabsRequest, opts ...grpc.CallOption) (*ConsoleTabs, error) {
+	client := ops.NewOpsClient(m.cli.Conn())
+	return client.GetConsoleTabs(ctx, in, opts...)
+}
+
+func (m *defaultOps) PutConsoleTabs(ctx context.Context, in *PutConsoleTabsRequest, opts ...grpc.CallOption) (*ConsoleTabs, error) {
+	client := ops.NewOpsClient(m.cli.Conn())
+	return client.PutConsoleTabs(ctx, in, opts...)
 }
 
 // 授权（AuthorizationService）

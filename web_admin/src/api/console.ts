@@ -77,6 +77,24 @@ export function fetchConsolePermissions(): Promise<PermissionTree> {
   return http.get(`${consoleBase}/session/permissions`)
 }
 
+export interface ConsoleTab {
+  path: string
+  titleKey: string
+}
+
+export interface ConsoleTabsReply {
+  tabs?: ConsoleTab[]
+  activePath?: string
+}
+
+export function fetchConsoleTabs(): Promise<ConsoleTabsReply> {
+  return http.get(`${consoleBase}/session/tabs`)
+}
+
+export function saveConsoleTabs(tabs: ConsoleTab[], activePath: string): Promise<ConsoleTabsReply> {
+  return http.put(`${consoleBase}/session/tabs`, { tabs, activePath })
+}
+
 export function fetchConsoleHealth(): Promise<ConsoleHealthReply> {
   return http.get(`${consoleBase}/health`)
 }

@@ -44,6 +44,16 @@ CREATE TABLE IF NOT EXISTS `console_sessions` (
   KEY `idx_family` (`family_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='鎺у埗鍙颁細璇濓紙access=JWT jti / refresh=SHA256 瀛樺偍锛';
 
+CREATE TABLE IF NOT EXISTS `console_user_tabs` (
+  `tenant_id` bigint unsigned NOT NULL,
+  `account_id` bigint unsigned NOT NULL,
+  `tabs_json` text NOT NULL COMMENT '页签数组 JSON：[{path,titleKey}]',
+  `active_path` varchar(512) NOT NULL DEFAULT '' COMMENT '当前激活页签路径',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`tenant_id`,`account_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='控制台账号页签';
+
 CREATE TABLE IF NOT EXISTS `ops_audit_logs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `tenant_id` bigint unsigned NOT NULL DEFAULT '1',
