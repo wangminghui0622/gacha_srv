@@ -119,6 +119,24 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			[]rest.Middleware{serverCtx.ConsoleAuthorize},
 			[]rest.Route{
 				{
+					// IP 列表（catalog.product:read；分页 + 名称搜索）
+					Method:  http.MethodGet,
+					Path:    "/catalog/ips",
+					Handler: catalog.ListIPsHandler(serverCtx),
+				},
+				{
+					// 创建 IP（catalog.product:create）
+					Method:  http.MethodPost,
+					Path:    "/catalog/ips",
+					Handler: catalog.CreateIPHandler(serverCtx),
+				},
+				{
+					// 编辑 IP（catalog.product:write）
+					Method:  http.MethodPut,
+					Path:    "/catalog/ips/:ipId",
+					Handler: catalog.UpdateIPHandler(serverCtx),
+				},
+				{
 					// 商品列表（catalog.product:read；游标分页）
 					Method:  http.MethodGet,
 					Path:    "/catalog/products",
