@@ -37,6 +37,14 @@ rpc GetSKU(GetSKURequest) returns (SKU);
   rpc CreateSeries(CreateSeriesRequest) returns (Series);
   // 编辑系列名称/品牌/排序权重
   rpc UpdateSeries(UpdateSeriesRequest) returns (Series);
+  // 商品管理列表（搜索/厂商/系列/IP/销售类型/价格区间 + 分页）
+  rpc ListAdminProducts(ListAdminProductsRequest) returns (ListAdminProductsReply);
+  // 创建商品（后台商品页；含 IP/品牌/系列/成本/封面字段）
+  rpc CreateAdminProduct(CreateAdminProductRequest) returns (AdminProduct);
+  // 编辑商品（后台商品页展示字段）
+  rpc UpdateAdminProduct(UpdateAdminProductRequest) returns (AdminProduct);
+  // 复制商品
+  rpc CopyAdminProduct(CopyAdminProductRequest) returns (AdminProduct);
   // 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
   rpc PublishProduct(PublishProductRequest) returns (Product);
   // 读取已发布快照（任意历史版本）
@@ -269,6 +277,74 @@ message UpdateSeriesRequest {
   string name = 2;      // 系列名称
   uint64 brandId = 3;   // 所属品牌 ID
   int32 sortWeight = 4; // 排序权重
+}
+
+message AdminProduct {
+  uint64 productId = 1;       // 商品 ID
+  string productCode = 2;     // 商品编码
+  string title = 3;           // 商品名称
+  ProductStatus status = 4;   // 生命周期状态
+  uint64 version = 5;         // 版本
+  uint64 ipId = 6;            // IP ID
+  string ipName = 7;          // IP 名称
+  uint64 brandId = 8;         // 品牌 ID
+  string brandName = 9;       // 品牌名称
+  uint64 seriesId = 10;       // 系列 ID
+  string seriesName = 11;     // 系列名称
+  string saleType = 12;       // 销售类型：IN_STOCK / PREORDER
+  uint64 shippedQuantity = 13;// 已发货数量
+  int64 costAmountMinor = 14; // 成本价（分）
+  string coverUrl = 15;       // 封面图
+  int64 saleAmountMinor = 16; // 最低售价（分，来自 SKU）
+}
+
+message ListAdminProductsRequest {
+  string keyword = 1;         // 商品名称/商品ID/编码
+  uint64 brandId = 2;         // 厂商筛选
+  uint64 seriesId = 3;        // 系列筛选
+  uint64 ipId = 4;            // IP 筛选
+  string saleType = 5;        // 销售类型
+  int64 minPriceMinor = 6;    // 最低价格（分）
+  int64 maxPriceMinor = 7;    // 最高价格（分）
+  string sortBy = 8;          // shippedQuantity / costAmountMinor
+  string sortOrder = 9;       // asc / desc
+  uint32 page = 10;           // 页码
+  uint32 pageSize = 11;       // 每页条数
+}
+
+message ListAdminProductsReply {
+  repeated AdminProduct products = 1;
+  uint64 total = 2;
+  uint32 page = 3;
+  uint32 pageSize = 4;
+}
+
+message CreateAdminProductRequest {
+  string productCode = 1;     // 商品编码（空=自动生成）
+  string title = 2;           // 商品名称
+  uint64 ipId = 3;            // IP ID
+  uint64 brandId = 4;         // 品牌 ID
+  uint64 seriesId = 5;        // 系列 ID
+  string saleType = 6;        // 销售类型
+  int64 costAmountMinor = 7;  // 成本价（分）
+  int64 saleAmountMinor = 8;  // 售价（分）
+  string coverUrl = 9;        // 封面图
+}
+
+message UpdateAdminProductRequest {
+  uint64 productId = 1;       // 商品 ID
+  string title = 2;           // 商品名称
+  uint64 ipId = 3;            // IP ID
+  uint64 brandId = 4;         // 品牌 ID
+  uint64 seriesId = 5;        // 系列 ID
+  string saleType = 6;        // 销售类型
+  int64 costAmountMinor = 7;  // 成本价（分）
+  string coverUrl = 8;        // 封面图
+  int64 saleAmountMinor = 9;  // 售价（分）
+}
+
+message CopyAdminProductRequest {
+  uint64 productId = 1;       // 被复制商品 ID
 }
 
 message GetPublishedProductRequest {

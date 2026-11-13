@@ -1,74 +1,203 @@
 <template>
-  <div>
-    <PageHeader :title="$t('nav.catalogGoods')" :show-back="false">
-      <template #extra>
-        <a-space>
-          <a-button :loading="loading" @click="load">刷新</a-button>
-          <a-button v-if="canCreate" type="primary" @click="openCreate">新建商品</a-button>
-        </a-space>
-      </template>
-    </PageHeader>
+  <div class="product-page">
+    <div class="product-toolbar">
+      <a-input
+        v-model:value="filters.keyword"
+        class="keyword-input"
+        :placeholder="$t('catalog.keywordPlaceholder')"
+        allow-clear
+        @press-enter="search"
+      />
+      <a-select
+        v-model:value="filters.brandId"
+        class="filter-select"
+        :placeholder="$t('catalog.brandPlaceholder')"
+        :options="brandOptions"
+        allow-clear
+        show-search
+        option-filter-prop="label"
+        @change="onFilterBrandChange"
+      />
+      <a-select
+        v-model:value="filters.seriesId"
+        class="filter-select"
+        :placeholder="$t('catalog.seriesPlaceholder')"
+        :options="filteredSeriesOptions"
+        allow-clear
+        show-search
+        option-filter-prop="label"
+      />
+      <a-select
+        v-model:value="filters.ipId"
+        class="filter-select"
+        :placeholder="$t('catalog.ipPlaceholder')"
+        :options="ipOptions"
+        allow-clear
+        show-search
+        option-filter-prop="label"
+      />
+      <a-select
+        v-model:value="filters.saleType"
+        class="filter-select"
+        :placeholder="$t('catalog.saleTypePlaceholder')"
+        :options="saleTypeOptions"
+        allow-clear
+      />
+      <a-input-number
+        v-model:value="filters.minPrice"
+        class="price-input"
+        :controls="false"
+        :min="0"
+        :placeholder="$t('catalog.minPricePlaceholder')"
+      />
+      <span class="price-sep">-</span>
+      <a-input-number
+        v-model:value="filters.maxPrice"
+        class="price-input"
+        :controls="false"
+        :min="0"
+        :placeholder="$t('catalog.maxPricePlaceholder')"
+      />
+      <a-button class="btn-query" type="primary" :loading="loading" @click="search">{{ $t('catalog.query') }}</a-button>
+      <a-button class="btn-reset" @click="reset">{{ $t('catalog.reset') }}</a-button>
+      <a-button v-if="canCreate" class="btn-create" @click="openCreate">{{ $t('catalog.create') }}</a-button>
+    </div>
 
     <a-table
-      :data-source="products"
+      :data-source="items"
       :loading="loading"
       :pagination="false"
-      :row-key="(row: ProductSummaryView) => row.productId"
+      :row-key="(record: AdminProductItem) => record.productId ?? ''"
+      :row-selection="rowSelection"
+      :scroll="{ x: 1560 }"
       size="middle"
-      :scroll="{ x: 760 }"
+      @change="onTableChange"
     >
-      <a-table-column title="商品 ID" data-index="productId" width="110" />
-      <a-table-column title="商品编码" data-index="productCode" width="180" />
-      <a-table-column title="名称" data-index="title" />
-      <a-table-column title="状态" width="110">
+      <a-table-column :title="$t('catalog.id')" data-index="productId" width="170" align="center" />
+      <a-table-column :title="$t('catalog.name')" data-index="title" min-width="420" align="center" />
+      <a-table-column :title="$t('catalog.ip')" data-index="ipName" width="90" align="center" />
+      <a-table-column :title="$t('catalog.brandSeries')" width="150" align="center">
         <template #default="{ record }">
-          <a-tag :color="statusColor(record.status)">{{ statusText(record.status) }}</a-tag>
+          <div class="brand-series">
+            <span>{{ record.brandName || '-' }}</span>
+            <span>{{ record.seriesName || '-' }}</span>
+          </div>
         </template>
       </a-table-column>
-      <a-table-column title="版本" data-index="version" width="90" />
-      <a-table-column title="操作" width="160">
+      <a-table-column :title="$t('catalog.status')" width="100" align="center">
         <template #default="{ record }">
-          <a-space>
-            <router-link :to="`/catalog/products/${record.productId}`">查看</router-link>
-            <a v-if="canPublish && isDraft(record.status)" @click="publish(record)">发布</a>
+          <a-tag :color="record.saleType === 'PREORDER' ? 'orange' : 'blue'">
+            {{ saleTypeText(record.saleType) }}
+          </a-tag>
+        </template>
+      </a-table-column>
+      <a-table-column
+        key="shippedQuantity"
+        :title="$t('catalog.shippedQuantity')"
+        data-index="shippedQuantity"
+        width="130"
+        align="center"
+        :sorter="true"
+      >
+        <template #default="{ record }">{{ record.shippedQuantity ?? '0' }}</template>
+      </a-table-column>
+      <a-table-column
+        key="costAmountMinor"
+        :title="$t('catalog.costPrice')"
+        data-index="costAmountMinor"
+        width="110"
+        align="center"
+        :sorter="true"
+      >
+        <template #default="{ record }">{{ formatMoney(record.costAmountMinor) }}</template>
+      </a-table-column>
+      <a-table-column :title="$t('catalog.cover')" width="100" align="center">
+        <template #default="{ record }">
+          <a-image v-if="record.coverUrl" :src="record.coverUrl" :width="40" :height="40" :preview="false" />
+        </template>
+      </a-table-column>
+      <a-table-column :title="$t('catalog.action')" width="220" align="center" fixed="right">
+        <template #default="{ record }">
+          <a-space :size="4">
+            <a-button v-if="canCreate" class="btn-copy" size="small" :loading="copyingId === record.productId" @click="copy(record)">{{ $t('catalog.copy') }}</a-button>
+            <a-button v-if="canWrite" class="btn-edit" size="small" @click="openEdit(record)">{{ $t('catalog.edit') }}</a-button>
+            <a-button class="btn-detail" size="small" @click="detail(record)">{{ $t('catalog.detail') }}</a-button>
           </a-space>
         </template>
       </a-table-column>
     </a-table>
 
-    <a-space class="pager">
-      <a-button :disabled="loading || cursors.length === 1" @click="previous">上一页</a-button>
-      <span>第 {{ cursors.length }} 页</span>
-      <a-button :disabled="loading || !nextCursor" @click="next">下一页</a-button>
-    </a-space>
+    <div class="product-footer">
+      <a-pagination
+        :current="page"
+        :page-size="pageSize"
+        :total="total"
+        :page-size-options="pageSizeOptions"
+        :locale="paginationLocale"
+        show-size-changer
+        show-less-items
+        @change="onPageChange"
+        @show-size-change="onPageSizeChange"
+      />
+    </div>
 
-    <a-modal v-model:open="createOpen" title="新建商品" :confirm-loading="creating" width="640px" @ok="create">
-      <a-form layout="vertical">
+    <a-modal
+      v-model:open="modalOpen"
+      :title="editing ? $t('catalog.editTitle') : $t('catalog.createTitle')"
+      :confirm-loading="saving"
+      :mask-closable="false"
+      width="680px"
+      @ok="save"
+    >
+      <a-form :label-col="{ span: 5 }" :wrapper-col="{ span: 18 }">
+        <a-form-item :label="$t('catalog.nameLabel')" required>
+          <a-input v-model:value="form.title" :maxlength="255" :placeholder="$t('catalog.nameLabel')" />
+        </a-form-item>
+        <a-form-item :label="$t('catalog.codeLabel')">
+          <a-input v-model:value="form.productCode" :disabled="!!editing" :maxlength="64" :placeholder="$t('catalog.codePlaceholder')" />
+        </a-form-item>
         <a-row :gutter="16">
-          <a-col :xs="24" :md="12">
-            <a-form-item label="商品编码" required><a-input v-model:value="form.productCode" placeholder="例如 PLAY-SKU-1" /></a-form-item>
-          </a-col>
-          <a-col :xs="24" :md="12">
-            <a-form-item label="商品名称" required><a-input v-model:value="form.title" /></a-form-item>
-          </a-col>
-        </a-row>
-        <a-divider orientation="left">默认 SKU</a-divider>
-        <a-row :gutter="16">
-          <a-col :xs="24" :md="12">
-            <a-form-item label="SKU 编码" required><a-input v-model:value="form.skuCode" placeholder="例如 PLAY-SKU-1-A" /></a-form-item>
-          </a-col>
-          <a-col :xs="24" :md="12">
-            <a-form-item label="SKU 名称" required><a-input v-model:value="form.skuTitle" /></a-form-item>
-          </a-col>
-          <a-col :xs="24" :md="12">
-            <a-form-item label="履约方式">
-              <a-select v-model:value="form.fulfillmentMode" :options="fulfillmentOptions" />
+          <a-col :span="12">
+            <a-form-item :label="$t('catalog.ipLabel')" :label-col="{ span: 10 }" :wrapper-col="{ span: 13 }">
+              <a-select v-model:value="form.ipId" :options="ipOptions" allow-clear show-search option-filter-prop="label" />
             </a-form-item>
           </a-col>
-          <a-col :xs="24" :md="12">
-            <a-form-item label="售价（分）"><a-input-number v-model:value="form.saleAmountMinor" :min="0" style="width: 100%" /></a-form-item>
+          <a-col :span="12">
+            <a-form-item :label="$t('catalog.saleTypeLabel')" :label-col="{ span: 10 }" :wrapper-col="{ span: 13 }">
+              <a-select v-model:value="form.saleType" :options="saleTypeOptions" />
+            </a-form-item>
           </a-col>
         </a-row>
+        <a-row :gutter="16">
+          <a-col :span="12">
+            <a-form-item :label="$t('catalog.brandLabel')" :label-col="{ span: 10 }" :wrapper-col="{ span: 13 }">
+              <a-select v-model:value="form.brandId" :options="brandOptions" allow-clear show-search option-filter-prop="label" @change="onFormBrandChange" />
+            </a-form-item>
+          </a-col>
+          <a-col :span="12">
+            <a-form-item :label="$t('catalog.seriesLabel')" :label-col="{ span: 10 }" :wrapper-col="{ span: 13 }">
+              <a-select v-model:value="form.seriesId" :options="modalSeriesOptions" allow-clear show-search option-filter-prop="label" />
+            </a-form-item>
+          </a-col>
+        </a-row>
+        <a-row :gutter="16">
+          <a-col :span="12">
+            <a-form-item :label="$t('catalog.costLabel')" :label-col="{ span: 10 }" :wrapper-col="{ span: 13 }">
+              <a-input-number v-model:value="form.costYuan" :min="0" :precision="2" style="width: 100%" />
+            </a-form-item>
+          </a-col>
+          <a-col :span="12">
+            <a-form-item :label="$t('catalog.priceLabel')" :label-col="{ span: 10 }" :wrapper-col="{ span: 13 }">
+              <a-input-number v-model:value="form.saleYuan" :min="0" :precision="2" style="width: 100%" />
+            </a-form-item>
+          </a-col>
+        </a-row>
+        <a-form-item :label="$t('catalog.coverLabel')">
+          <a-input v-model:value="form.coverUrl" :maxlength="512" placeholder="/covers/popmart-1.svg" />
+        </a-form-item>
+        <a-form-item v-if="form.coverUrl.trim()" label=" " :colon="false">
+          <a-image :src="form.coverUrl.trim()" :width="72" :height="72" />
+        </a-form-item>
       </a-form>
     </a-modal>
   </div>
@@ -77,142 +206,407 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import PageHeader from '@/components/PageHeader.vue'
 import { allows } from '@/access/grants'
 import { useSessionStore } from '@/stores/session'
-import { listConsoleProducts, type ProductSummaryView } from '@/api/console'
-import { catalogClient, type CreateProductInput } from '@/api/catalog'
+import {
+  catalogAdminProductClient,
+  catalogBrandClient,
+  catalogIpClient,
+  catalogSeriesClient,
+  type AdminProductItem,
+  type BrandItem,
+  type IpItem,
+  type SeriesItem,
+} from '@/api/catalog'
+
+interface TableSorter {
+  columnKey?: string
+  order?: 'ascend' | 'descend' | null
+}
 
 const session = useSessionStore()
 const router = useRouter()
+const { t } = useI18n()
 const canCreate = computed(() => allows(session.permissionNodes, 'catalog.product', 'create'))
-const canPublish = computed(() => allows(session.permissionNodes, 'catalog.product', 'publish'))
+const canWrite = computed(() => allows(session.permissionNodes, 'catalog.product', 'write'))
 
-const products = ref<ProductSummaryView[]>([])
-const cursors = ref([''])
-const nextCursor = ref('')
+const filters = reactive({
+  keyword: '',
+  brandId: undefined as string | undefined,
+  seriesId: undefined as string | undefined,
+  ipId: undefined as string | undefined,
+  saleType: undefined as string | undefined,
+  minPrice: undefined as number | undefined,
+  maxPrice: undefined as number | undefined,
+})
+const items = ref<AdminProductItem[]>([])
+const ips = ref<IpItem[]>([])
+const brands = ref<BrandItem[]>([])
+const series = ref<SeriesItem[]>([])
+const page = ref(1)
+const pageSize = ref(15)
+const total = ref(0)
 const loading = ref(false)
+const copyingId = ref<string | undefined>(undefined)
+const sortBy = ref('')
+const sortOrder = ref('')
+const pageSizeOptions = ['15', '30', '50']
+const paginationLocale = computed(() => ({ items_per_page: t('catalog.itemsPerPage') }))
 
-const createOpen = ref(false)
-const creating = ref(false)
+const ipOptions = computed(() =>
+  ips.value.filter((item) => item.ipId && item.name).map((item) => ({ label: item.name as string, value: item.ipId as string })),
+)
+const brandOptions = computed(() =>
+  brands.value.filter((item) => item.brandId && item.name).map((item) => ({ label: item.name as string, value: item.brandId as string })),
+)
+const allSeriesOptions = computed(() =>
+  series.value
+    .filter((item) => item.seriesId && item.name)
+    .map((item) => ({ label: item.name as string, value: item.seriesId as string, brandId: item.brandId ?? '' })),
+)
+const filteredSeriesOptions = computed(() =>
+  filters.brandId ? allSeriesOptions.value.filter((item) => item.brandId === filters.brandId) : allSeriesOptions.value,
+)
+const saleTypeOptions = computed(() => [
+  { label: t('catalog.saleTypeInStock'), value: 'IN_STOCK' },
+  { label: t('catalog.saleTypePreorder'), value: 'PREORDER' },
+])
+
+const selectedRowKeys = ref<string[]>([])
+const rowSelection = computed(() => ({
+  selectedRowKeys: selectedRowKeys.value,
+  onChange: (keys: (string | number)[]) => {
+    selectedRowKeys.value = keys.map((key) => String(key))
+  },
+}))
+
+const modalOpen = ref(false)
+const saving = ref(false)
+const editing = ref<AdminProductItem | null>(null)
 const form = reactive({
   productCode: '',
   title: '',
-  skuCode: '',
-  skuTitle: '',
-  fulfillmentMode: 'FULFILLMENT_MODE_PHYSICAL',
-  saleAmountMinor: 1000,
+  ipId: undefined as string | undefined,
+  brandId: undefined as string | undefined,
+  seriesId: undefined as string | undefined,
+  saleType: 'IN_STOCK',
+  costYuan: 0,
+  saleYuan: 0,
+  coverUrl: '',
 })
+const modalSeriesOptions = computed(() =>
+  form.brandId ? allSeriesOptions.value.filter((item) => item.brandId === form.brandId) : allSeriesOptions.value,
+)
 
-const fulfillmentOptions = [
-  { label: '实物', value: 'FULFILLMENT_MODE_PHYSICAL' },
-  { label: '数字', value: 'FULFILLMENT_MODE_DIGITAL' },
-  { label: '无需履约', value: 'FULFILLMENT_MODE_NONE' },
-]
-
-function statusText(status?: string | number): string {
-  const value = String(status ?? '')
-  if (value === '2' || value === 'PRODUCT_STATUS_ACTIVE') return '已上架'
-  if (value === '3' || value === 'PRODUCT_STATUS_ARCHIVED') return '已归档'
-  return '草稿'
-}
-
-function statusColor(status?: string | number): string {
-  const value = String(status ?? '')
-  if (value === '2' || value === 'PRODUCT_STATUS_ACTIVE') return 'green'
-  if (value === '3' || value === 'PRODUCT_STATUS_ARCHIVED') return 'default'
-  return 'blue'
-}
-
-function isDraft(status?: string | number): boolean {
-  return statusText(status) === '草稿'
+async function loadOptions() {
+  const [ipReply, brandReply, seriesReply] = await Promise.all([
+    catalogIpClient.List({ keyword: '', page: 1, pageSize: 100 }).catch(() => ({ ips: [] })),
+    catalogBrandClient.List({ keyword: '', page: 1, pageSize: 100 }).catch(() => ({ brands: [] })),
+    catalogSeriesClient.List({ keyword: '', brandId: '', page: 1, pageSize: 100 }).catch(() => ({ series: [] })),
+  ])
+  ips.value = ipReply.ips ?? []
+  brands.value = brandReply.brands ?? []
+  series.value = seriesReply.series ?? []
 }
 
 async function load() {
   loading.value = true
   try {
-    const result = await listConsoleProducts(cursors.value.at(-1))
-    products.value = result.products ?? []
-    nextCursor.value = result.nextAfterProductId === '0' ? '' : result.nextAfterProductId ?? ''
+    const reply = await catalogAdminProductClient.List({
+      keyword: filters.keyword.trim(),
+      brandId: filters.brandId ?? '',
+      seriesId: filters.seriesId ?? '',
+      ipId: filters.ipId ?? '',
+      saleType: filters.saleType ?? '',
+      minPriceMinor: filters.minPrice ? Math.round(filters.minPrice * 100) : 0,
+      maxPriceMinor: filters.maxPrice ? Math.round(filters.maxPrice * 100) : 0,
+      sortBy: sortBy.value,
+      sortOrder: sortOrder.value,
+      page: page.value,
+      pageSize: pageSize.value,
+    })
+    items.value = reply.products ?? []
+    total.value = Number(reply.total ?? 0)
+    page.value = Number(reply.page ?? page.value)
+    pageSize.value = Number(reply.pageSize ?? pageSize.value)
+    selectedRowKeys.value = []
   } catch {
-    products.value = []
-    message.error('商品列表加载失败')
+    items.value = []
+    total.value = 0
+    selectedRowKeys.value = []
   } finally {
     loading.value = false
   }
 }
 
-function next() {
-  if (!nextCursor.value) return
-  cursors.value.push(nextCursor.value)
+function search() {
+  page.value = 1
   void load()
 }
 
-function previous() {
-  if (cursors.value.length <= 1) return
-  cursors.value.pop()
+function reset() {
+  filters.keyword = ''
+  filters.brandId = undefined
+  filters.seriesId = undefined
+  filters.ipId = undefined
+  filters.saleType = undefined
+  filters.minPrice = undefined
+  filters.maxPrice = undefined
+  sortBy.value = ''
+  sortOrder.value = ''
+  page.value = 1
   void load()
+}
+
+function onFilterBrandChange() {
+  if (filters.seriesId && !filteredSeriesOptions.value.some((item) => item.value === filters.seriesId)) {
+    filters.seriesId = undefined
+  }
+}
+
+function onPageChange(nextPage: number) {
+  page.value = nextPage
+  void load()
+}
+
+function onPageSizeChange(_current: number, nextPageSize: number) {
+  pageSize.value = nextPageSize
+  page.value = 1
+  void load()
+}
+
+function onTableChange(_pagination: unknown, _filters: unknown, sorter: TableSorter | TableSorter[]) {
+  const active = Array.isArray(sorter) ? sorter[0] : sorter
+  if (active?.order && active.columnKey) {
+    sortBy.value = active.columnKey
+    sortOrder.value = active.order === 'ascend' ? 'asc' : 'desc'
+  } else {
+    sortBy.value = ''
+    sortOrder.value = ''
+  }
+  page.value = 1
+  void load()
+}
+
+function saleTypeText(value?: string): string {
+  return value === 'PREORDER' ? t('catalog.saleTypePreorder') : t('catalog.saleTypeInStock')
+}
+
+function formatMoney(value?: string): string {
+  return String(Number(value ?? 0) / 100)
 }
 
 function openCreate() {
-  createOpen.value = true
+  editing.value = null
+  form.productCode = ''
+  form.title = ''
+  form.ipId = undefined
+  form.brandId = undefined
+  form.seriesId = undefined
+  form.saleType = 'IN_STOCK'
+  form.costYuan = 0
+  form.saleYuan = 0
+  form.coverUrl = ''
+  modalOpen.value = true
 }
 
-async function create() {
-  if (!form.productCode.trim() || !form.title.trim() || !form.skuCode.trim() || !form.skuTitle.trim()) {
-    message.warning('请填写商品编码、名称及 SKU 编码、名称')
+function openEdit(record: AdminProductItem) {
+  editing.value = record
+  form.productCode = record.productCode ?? ''
+  form.title = record.title ?? ''
+  form.ipId = record.ipId || undefined
+  form.brandId = record.brandId || undefined
+  form.seriesId = record.seriesId || undefined
+  form.saleType = record.saleType || 'IN_STOCK'
+  form.costYuan = Number(record.costAmountMinor ?? 0) / 100
+  form.saleYuan = Number(record.saleAmountMinor ?? 0) / 100
+  form.coverUrl = record.coverUrl ?? ''
+  modalOpen.value = true
+}
+
+function onFormBrandChange() {
+  if (form.seriesId && !modalSeriesOptions.value.some((item) => item.value === form.seriesId)) {
+    form.seriesId = undefined
+  }
+}
+
+async function save() {
+  const title = form.title.trim()
+  if (!title) {
+    message.warning(t('catalog.nameRequired'))
     return
   }
-  creating.value = true
-  const payload: CreateProductInput = {
-    productCode: form.productCode.trim(),
-    title: form.title.trim(),
-    options: [],
-    skus: [
-      {
-        skuCode: form.skuCode.trim(),
-        title: form.skuTitle.trim(),
-        fulfillmentMode: form.fulfillmentMode,
-        salePrice: { amountMinor: form.saleAmountMinor, currency: 'CNY' },
-        referencePrice: { amountMinor: form.saleAmountMinor, currency: 'CNY' },
-        selections: [],
-        externalCode: '',
-      },
-    ],
+  if (typeof form.costYuan !== 'number' || !Number.isFinite(form.costYuan) || form.costYuan < 0) {
+    message.warning(t('catalog.costPriceInvalid'))
+    return
   }
+  if (typeof form.saleYuan !== 'number' || !Number.isFinite(form.saleYuan) || form.saleYuan < 0) {
+    message.warning(t('catalog.salePriceInvalid'))
+    return
+  }
+  const costAmountMinor = Math.round(form.costYuan * 100)
+  const saleAmountMinor = Math.round(form.saleYuan * 100)
+  saving.value = true
   try {
-    const created = await catalogClient.Create(payload)
-    message.success('商品已创建')
-    createOpen.value = false
-    form.productCode = ''
-    form.title = ''
-    form.skuCode = ''
-    form.skuTitle = ''
+    if (editing.value?.productId) {
+      await catalogAdminProductClient.Update(editing.value.productId, {
+        title,
+        ipId: form.ipId ?? '',
+        brandId: form.brandId ?? '',
+        seriesId: form.seriesId ?? '',
+        saleType: form.saleType,
+        costAmountMinor,
+        saleAmountMinor,
+        coverUrl: form.coverUrl.trim(),
+      })
+      message.success(t('catalog.productUpdated'))
+    } else {
+      await catalogAdminProductClient.Create({
+        productCode: form.productCode.trim(),
+        title,
+        ipId: form.ipId ?? '',
+        brandId: form.brandId ?? '',
+        seriesId: form.seriesId ?? '',
+        saleType: form.saleType,
+        costAmountMinor,
+        saleAmountMinor,
+        coverUrl: form.coverUrl.trim(),
+      })
+      message.success(t('catalog.productCreated'))
+      page.value = 1
+    }
+    modalOpen.value = false
     await load()
-    if (created.productId) router.push(`/catalog/products/${created.productId}`)
   } catch {
-    message.error('创建失败，请检查编码是否重复')
+    // 请求拦截器已展示服务端错误；保留弹窗便于修改后重试。
   } finally {
-    creating.value = false
+    saving.value = false
   }
 }
 
-async function publish(record: ProductSummaryView) {
+async function copy(record: AdminProductItem) {
+  if (!record.productId) return
+  copyingId.value = record.productId
   try {
-    await catalogClient.Publish({ productId: record.productId!, expectedVersion: record.version ?? '1' })
-    message.success('商品已发布')
+    await catalogAdminProductClient.Copy(record.productId)
+    message.success(t('catalog.productCopied'))
+    page.value = 1
     await load()
   } catch {
-    message.error('发布失败，请刷新后重试')
+    // 请求拦截器已展示失败信息。
+  } finally {
+    copyingId.value = undefined
   }
 }
 
-onMounted(load)
+function detail(record: AdminProductItem) {
+  if (record.productId) router.push(`/catalog/products/${record.productId}`)
+}
+
+onMounted(async () => {
+  await loadOptions()
+  await load()
+})
 </script>
 
 <style scoped lang="scss">
-.pager {
+.product-page {
+  min-height: calc(100vh - 132px);
+  padding: 14px 16px 18px;
+  background: #fff;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+}
+
+.product-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.keyword-input {
+  width: 200px;
+}
+
+.filter-select {
+  width: 150px;
+}
+
+.price-input {
+  width: 100px;
+}
+
+.price-sep {
+  color: #909399;
+}
+
+.btn-query {
+  background: #42b983 !important;
+  border-color: #42b983 !important;
+}
+
+.btn-query:hover {
+  background: #36a374 !important;
+  border-color: #36a374 !important;
+}
+
+.btn-reset,
+.btn-create {
+  color: #606266;
+  border-color: #dcdfe6;
+  background: #fff;
+}
+
+.btn-reset:hover,
+.btn-create:hover {
+  color: #409eff;
+  border-color: #409eff;
+}
+
+.brand-series {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.5;
+  color: #606266;
+}
+
+.btn-copy {
+  color: #606266;
+  border-color: #dcdfe6;
+  background: #fff;
+}
+
+.btn-edit {
+  min-width: 54px;
+  background: #ff9f1a !important;
+  border-color: #ff9f1a !important;
+  color: #fff !important;
+}
+
+.btn-edit:hover {
+  background: #f2940f !important;
+  border-color: #f2940f !important;
+}
+
+.btn-detail {
+  min-width: 54px;
+  background: #909399 !important;
+  border-color: #909399 !important;
+  color: #fff !important;
+}
+
+.btn-detail:hover {
+  background: #7f8286 !important;
+  border-color: #7f8286 !important;
+}
+
+.product-footer {
+  display: flex;
+  justify-content: flex-end;
   margin-top: 16px;
 }
 </style>

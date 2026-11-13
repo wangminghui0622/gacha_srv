@@ -61,11 +61,22 @@ CREATE TABLE IF NOT EXISTS `products` (
   `title` varchar(255) NOT NULL COMMENT '标题',
   `status` tinyint unsigned NOT NULL DEFAULT '1' COMMENT '状态：1=DRAFT 2=ACTIVE 3=ARCHIVED',
   `version` bigint unsigned NOT NULL DEFAULT '1' COMMENT '版本号（发布后快照版本）',
+  `ip_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT 'IP ID',
+  `brand_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '厂商/品牌 ID',
+  `series_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '系列 ID',
+  `sale_type` varchar(32) NOT NULL DEFAULT 'IN_STOCK' COMMENT '销售类型：IN_STOCK 现货 / PREORDER 预售',
+  `shipped_quantity` int unsigned NOT NULL DEFAULT '0' COMMENT '已发货数量',
+  `cost_amount_minor` bigint NOT NULL DEFAULT '0' COMMENT '成本价（分）',
+  `cover_url` varchar(512) NOT NULL DEFAULT '' COMMENT '封面图',
   `created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   `updated_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_catalog_product_code` (`product_code`),
-  KEY `idx_catalog_product_status_updated` (`status`,`updated_at`,`id`)
+  KEY `idx_catalog_product_status_updated` (`status`,`updated_at`,`id`),
+  KEY `idx_catalog_product_ip` (`ip_id`),
+  KEY `idx_catalog_product_brand` (`brand_id`),
+  KEY `idx_catalog_product_series` (`series_id`),
+  KEY `idx_catalog_product_sale_type` (`sale_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='商品头表';
 
 CREATE TABLE IF NOT EXISTS `catalog_ips` (
@@ -216,6 +227,47 @@ FROM (
 ) AS seed
 JOIN `catalog_brands` AS b ON b.name = seed.brand_name
 WHERE NOT EXISTS (SELECT 1 FROM `catalog_series`);
+
+-- 商品页涉及的 IP/品牌/系列（增量补齐，可重复执行）
+INSERT IGNORE INTO `catalog_ips` (`name`) VALUES ('小野');
+INSERT IGNORE INTO `catalog_brands` (`name`, `logo`) VALUES ('泡泡玛特', '');
+INSERT INTO `catalog_series` (`name`, `brand_id`, `sort_weight`)
+SELECT '泡泡玛特', b.id, 14
+FROM `catalog_brands` AS b
+WHERE b.name = '泡泡玛特'
+  AND NOT EXISTS (SELECT 1 FROM `catalog_series` AS s WHERE s.brand_id = b.id AND s.name = '泡泡玛特');
+
+-- 商品列表演示数据（倒序插入以匹配 ID 倒序展示）
+INSERT IGNORE INTO `products`
+  (`product_code`, `title`, `status`, `version`, `ip_id`, `brand_id`, `series_id`, `sale_type`, `shipped_quantity`, `cost_amount_minor`, `cover_url`)
+SELECT seed.code, seed.title, 1, 1, i.id, b.id, s.id, 'IN_STOCK', 0, seed.cost, seed.cover
+FROM (
+  SELECT 'PM-015' AS code, '泡泡玛特 Hirono小野 钢琴家 艺术潮流公仔 8cm' AS title, 32900 AS cost, '/covers/popmart-5.svg' AS cover
+  UNION ALL SELECT 'PM-014', '泡泡玛特 Hirono小野 人偶熊猫 吊卡', 29900, '/covers/popmart-4.svg'
+  UNION ALL SELECT 'PM-013', '泡泡玛特xGary Baseman贝斯曼 Hirono小野 美国拉斯维加斯联名款潮流公仔', 23900, '/covers/popmart-3.svg'
+  UNION ALL SELECT 'PM-012', '泡泡玛特xTheHundreds Hirono小野 摆件 吊卡', 20900, '/covers/popmart-2.svg'
+  UNION ALL SELECT 'PM-011', '泡泡玛特 Hirono小野 恐龙毛绒 吊卡', 17900, '/covers/popmart-1.svg'
+  UNION ALL SELECT 'PM-010', '泡泡玛特 Hirono小野 公路日志 毛绒公仔挂件 灰色砾石 拆盒拆袋', 16900, '/covers/popmart-5.svg'
+  UNION ALL SELECT 'PM-009', '泡泡玛特 Hirono小野二代 小小的使坏系列 100% 手办 庇护所 拆盒拆袋', 15900, '/covers/popmart-4.svg'
+  UNION ALL SELECT 'PM-008', '泡泡玛特 雾中人系列 Hirono小野 毛绒公仔挂件 逆光信使原盒原袋', 13900, '/covers/popmart-3.svg'
+  UNION ALL SELECT 'PM-007', '泡泡玛特 Hirono小野五代 重塑系列 盲盒类 消逝 拆盒拆袋', 12900, '/covers/popmart-2.svg'
+  UNION ALL SELECT 'PM-006', '泡泡玛 Hirono小野 特庇护所系列 盲盒类 烛台 拆盒拆袋', 11000, '/covers/popmart-1.svg'
+  UNION ALL SELECT 'PM-005', '泡泡玛 Hirono小野 特庇护所系列 盲盒类 鸟笼 原盒原袋', 9900, '/covers/popmart-5.svg'
+  UNION ALL SELECT 'PM-004', '泡泡玛特 Hirono小野 温室芒草系列 盲盒类 关注 原盒原袋', 9500, '/covers/popmart-4.svg'
+  UNION ALL SELECT 'PM-003', '泡泡玛特 Hirono小野 温室芒草系列 盲盒类 循环 原盒原袋', 9000, '/covers/popmart-3.svg'
+  UNION ALL SELECT 'PM-002', '泡泡玛特 Hirono小野 温室芒草系列 盲盒类 重缚 原盒原袋', 7500, '/covers/popmart-2.svg'
+  UNION ALL SELECT 'PM-001', '泡泡玛特 Hirono小野五代 重塑系列 盲盒类 愈合 拆盒拆袋', 6700, '/covers/popmart-1.svg'
+) AS seed
+JOIN `catalog_ips` AS i ON i.name = '小野'
+JOIN `catalog_brands` AS b ON b.name = '泡泡玛特'
+JOIN `catalog_series` AS s ON s.brand_id = b.id AND s.name = '泡泡玛特';
+
+INSERT IGNORE INTO `skus`
+  (`product_id`, `sku_code`, `title`, `status`, `fulfillment_mode`, `sale_amount_minor`, `reference_amount_minor`, `currency`, `external_code`, `version`)
+SELECT p.id, CONCAT(p.product_code, '-SKU'), p.title, 1, 1,
+       p.cost_amount_minor * 2, p.cost_amount_minor * 2, 'CNY', '', 1
+FROM `products` AS p
+WHERE p.product_code LIKE 'PM-%';
 
 SET FOREIGN_KEY_CHECKS = 1;
 

@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strings"
 	"time"
 
 	catalogpb "gacha_srv/app/catalog/catalog"
@@ -25,12 +26,13 @@ import (
 
 // 业务哨兵错误（logic 层映射 errorx 4001/4002）
 var (
-	ErrNotFound      = errors.New("product not found")
-	ErrConflict      = errors.New("product version or status conflict")
-	ErrIPExists      = errors.New("ip name already exists")
-	ErrBrandExists   = errors.New("brand name already exists")
-	ErrSeriesExists  = errors.New("series name already exists in brand")
-	ErrBrandNotFound = errors.New("brand not found")
+	ErrNotFound          = errors.New("product not found")
+	ErrConflict          = errors.New("product version or status conflict")
+	ErrIPExists          = errors.New("ip name already exists")
+	ErrBrandExists       = errors.New("brand name already exists")
+	ErrSeriesExists      = errors.New("series name already exists in brand")
+	ErrBrandNotFound     = errors.New("brand not found")
+	ErrProductCodeExists = errors.New("product code already exists")
 )
 
 // 状态取值（与 proto ProductStatus 同值）
@@ -43,16 +45,42 @@ const (
 // ── 表行（nocache，无 goctl 模型——管理侧低频读写 + 行锁/CAS 直用 GORM）──
 
 type productRow struct {
-	ID          uint64    `gorm:"column:id;primaryKey;autoIncrement"`
-	ProductCode string    `gorm:"column:product_code"`
-	Title       string    `gorm:"column:title"`
-	Status      uint8     `gorm:"column:status"`
-	Version     uint64    `gorm:"column:version"`
-	CreatedAt   time.Time `gorm:"column:created_at"`
-	UpdatedAt   time.Time `gorm:"column:updated_at"`
+	ID              uint64    `gorm:"column:id;primaryKey;autoIncrement"`
+	ProductCode     string    `gorm:"column:product_code"`
+	Title           string    `gorm:"column:title"`
+	Status          uint8     `gorm:"column:status"`
+	Version         uint64    `gorm:"column:version"`
+	IPID            uint64    `gorm:"column:ip_id"`
+	BrandID         uint64    `gorm:"column:brand_id"`
+	SeriesID        uint64    `gorm:"column:series_id"`
+	SaleType        string    `gorm:"column:sale_type;default:IN_STOCK"`
+	ShippedQuantity uint64    `gorm:"column:shipped_quantity"`
+	CostAmountMinor int64     `gorm:"column:cost_amount_minor"`
+	CoverURL        string    `gorm:"column:cover_url"`
+	CreatedAt       time.Time `gorm:"column:created_at"`
+	UpdatedAt       time.Time `gorm:"column:updated_at"`
 }
 
 func (productRow) TableName() string { return "products" }
+
+type adminProductRow struct {
+	ID              uint64 `gorm:"column:id"`
+	ProductCode     string `gorm:"column:product_code"`
+	Title           string `gorm:"column:title"`
+	Status          uint8  `gorm:"column:status"`
+	Version         uint64 `gorm:"column:version"`
+	IPID            uint64 `gorm:"column:ip_id"`
+	IPName          string `gorm:"column:ip_name"`
+	BrandID         uint64 `gorm:"column:brand_id"`
+	BrandName       string `gorm:"column:brand_name"`
+	SeriesID        uint64 `gorm:"column:series_id"`
+	SeriesName      string `gorm:"column:series_name"`
+	SaleType        string `gorm:"column:sale_type"`
+	ShippedQuantity uint64 `gorm:"column:shipped_quantity"`
+	CostAmountMinor int64  `gorm:"column:cost_amount_minor"`
+	CoverURL        string `gorm:"column:cover_url"`
+	SaleAmountMinor int64  `gorm:"column:sale_amount_minor"`
+}
 
 type ipRow struct {
 	ID         uint64    `gorm:"column:id;primaryKey;autoIncrement"`
@@ -962,4 +990,250 @@ func seriesToProto(row seriesRow, brandName string) *catalogpb.Series {
 		SeriesId: row.ID, Name: row.Name, BrandId: row.BrandID,
 		BrandName: brandName, SortWeight: row.SortWeight,
 	}
+}
+
+// ── 商品管理列表 ──
+
+const adminProductSelect = "p.id, p.product_code, p.title, p.status, p.version, " +
+	"p.ip_id, COALESCE(i.name, '') AS ip_name, " +
+	"p.brand_id, COALESCE(b.name, '') AS brand_name, " +
+	"p.series_id, COALESCE(s.name, '') AS series_name, " +
+	"p.sale_type, p.shipped_quantity, p.cost_amount_minor, p.cover_url, " +
+	"COALESCE((SELECT MIN(sk.sale_amount_minor) FROM skus AS sk WHERE sk.product_id = p.id), 0) AS sale_amount_minor"
+
+// ListAdminProducts 商品管理列表：多条件筛选 + 分页。
+func (r *Repo) ListAdminProducts(ctx context.Context, in *catalogpb.ListAdminProductsRequest, page, pageSize uint32) ([]*catalogpb.AdminProduct, uint64, error) {
+	base := func() *gorm.DB {
+		return applyAdminProductFilters(r.db.WithContext(ctx).Table("`products` AS p"), in)
+	}
+	var total int64
+	if err := base().Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	order := "p.id DESC"
+	column := ""
+	switch in.SortBy {
+	case "shippedQuantity":
+		column = "p.shipped_quantity"
+	case "costAmountMinor":
+		column = "p.cost_amount_minor"
+	}
+	if column != "" {
+		direction := "DESC"
+		if strings.EqualFold(in.SortOrder, "asc") {
+			direction = "ASC"
+		}
+		order = column + " " + direction + ", p.id DESC"
+	}
+	var rows []adminProductRow
+	offset := int64(page-1) * int64(pageSize)
+	if err := base().
+		Select(adminProductSelect).
+		Joins("LEFT JOIN catalog_ips AS i ON i.id = p.ip_id").
+		Joins("LEFT JOIN catalog_brands AS b ON b.id = p.brand_id").
+		Joins("LEFT JOIN catalog_series AS s ON s.id = p.series_id").
+		Order(order).Offset(int(offset)).Limit(int(pageSize)).
+		Find(&rows).Error; err != nil {
+		return nil, 0, err
+	}
+	out := make([]*catalogpb.AdminProduct, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, adminProductToProto(row))
+	}
+	return out, uint64(total), nil
+}
+
+func applyAdminProductFilters(q *gorm.DB, in *catalogpb.ListAdminProductsRequest) *gorm.DB {
+	if keyword := strings.TrimSpace(in.Keyword); keyword != "" {
+		like := "%" + keyword + "%"
+		q = q.Where("(p.title LIKE ? OR p.product_code LIKE ? OR CAST(p.id AS CHAR) LIKE ?)", like, like, like)
+	}
+	if in.BrandId != 0 {
+		q = q.Where("p.brand_id = ?", in.BrandId)
+	}
+	if in.SeriesId != 0 {
+		q = q.Where("p.series_id = ?", in.SeriesId)
+	}
+	if in.IpId != 0 {
+		q = q.Where("p.ip_id = ?", in.IpId)
+	}
+	if saleType := strings.TrimSpace(in.SaleType); saleType != "" {
+		q = q.Where("p.sale_type = ?", saleType)
+	}
+	if in.MinPriceMinor > 0 || in.MaxPriceMinor > 0 {
+		sub := "EXISTS (SELECT 1 FROM skus AS sk WHERE sk.product_id = p.id"
+		args := make([]any, 0, 2)
+		if in.MinPriceMinor > 0 {
+			sub += " AND sk.sale_amount_minor >= ?"
+			args = append(args, in.MinPriceMinor)
+		}
+		if in.MaxPriceMinor > 0 {
+			sub += " AND sk.sale_amount_minor <= ?"
+			args = append(args, in.MaxPriceMinor)
+		}
+		q = q.Where(sub+")", args...)
+	}
+	return q
+}
+
+// CreateAdminProduct 创建商品 + 默认 SKU（后台商品页字段）。
+func (r *Repo) CreateAdminProduct(ctx context.Context, title, productCode, saleType, coverURL string, ipID, brandID, seriesID uint64, costAmountMinor, saleAmountMinor int64) (*catalogpb.AdminProduct, error) {
+	var out *catalogpb.AdminProduct
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		row := productRow{
+			ProductCode: productCode, Title: title, Status: StatusDraft, Version: 1,
+			IPID: ipID, BrandID: brandID, SeriesID: seriesID, SaleType: saleType,
+			CostAmountMinor: costAmountMinor, CoverURL: coverURL,
+		}
+		if err := tx.Create(&row).Error; err != nil {
+			if errors.Is(err, gorm.ErrDuplicatedKey) {
+				return ErrProductCodeExists
+			}
+			return err
+		}
+		skuCode := productCode + "-SKU"
+		if len(skuCode) > 64 {
+			skuCode = truncateRunes(productCode, 59) + "-SKU"
+		}
+		sku := skuRow{
+			ProductID: row.ID, SkuCode: skuCode, Title: title, Status: StatusDraft,
+			FulfillmentMode: 1, SaleAmountMinor: saleAmountMinor, ReferenceAmountMinor: saleAmountMinor,
+			Currency: "CNY", Version: 1,
+		}
+		if err := tx.Create(&sku).Error; err != nil {
+			if errors.Is(err, gorm.ErrDuplicatedKey) {
+				return ErrProductCodeExists
+			}
+			return err
+		}
+		var err error
+		out, err = findAdminProduct(ctx, tx, row.ID)
+		return err
+	})
+	return out, err
+}
+
+// UpdateAdminProduct 编辑后台商品字段。
+func (r *Repo) UpdateAdminProduct(ctx context.Context, id uint64, title string, ipID, brandID, seriesID uint64, saleType, coverURL string, costAmountMinor, saleAmountMinor int64) (*catalogpb.AdminProduct, error) {
+	var row productRow
+	if err := r.db.WithContext(ctx).First(&row, "id = ?", id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	row.Title = title
+	row.IPID = ipID
+	row.BrandID = brandID
+	row.SeriesID = seriesID
+	row.SaleType = saleType
+	row.CoverURL = coverURL
+	row.CostAmountMinor = costAmountMinor
+	if err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Save(&row).Error; err != nil {
+			return err
+		}
+		var sku skuRow
+		if err := tx.Where("product_id = ?", id).Order("id").First(&sku).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil
+			}
+			return err
+		}
+		sku.SaleAmountMinor = saleAmountMinor
+		sku.ReferenceAmountMinor = saleAmountMinor
+		return tx.Save(&sku).Error
+	}); err != nil {
+		return nil, err
+	}
+	return findAdminProduct(ctx, r.db, id)
+}
+
+// CopyAdminProduct 复制商品与首个 SKU，生成新的编码和“副本”标题。
+func (r *Repo) CopyAdminProduct(ctx context.Context, id uint64) (*catalogpb.AdminProduct, error) {
+	var src productRow
+	if err := r.db.WithContext(ctx).First(&src, "id = ?", id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	var srcSKU skuRow
+	skuErr := r.db.WithContext(ctx).Where("product_id = ?", id).Order("id").First(&srcSKU).Error
+	if skuErr != nil && !errors.Is(skuErr, gorm.ErrRecordNotFound) {
+		return nil, skuErr
+	}
+
+	var out *catalogpb.AdminProduct
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		code := fmt.Sprintf("CP-%d", time.Now().UnixNano())
+		row := src
+		row.ID = 0
+		row.ProductCode = code
+		row.Title = truncateRunes(src.Title+" 副本", 255)
+		row.Status = StatusDraft
+		row.Version = 1
+		row.ShippedQuantity = 0
+		row.CreatedAt = time.Time{}
+		row.UpdatedAt = time.Time{}
+		if err := tx.Create(&row).Error; err != nil {
+			return err
+		}
+		sku := skuRow{
+			ProductID: row.ID, SkuCode: code + "-SKU", Title: row.Title, Status: StatusDraft,
+			FulfillmentMode: 1, SaleAmountMinor: 0, ReferenceAmountMinor: 0, Currency: "CNY", Version: 1,
+		}
+		if skuErr == nil {
+			sku.Title = srcSKU.Title
+			sku.FulfillmentMode = srcSKU.FulfillmentMode
+			sku.SaleAmountMinor = srcSKU.SaleAmountMinor
+			sku.ReferenceAmountMinor = srcSKU.ReferenceAmountMinor
+			sku.Currency = srcSKU.Currency
+		}
+		if err := tx.Create(&sku).Error; err != nil {
+			return err
+		}
+		var err error
+		out, err = findAdminProduct(ctx, tx, row.ID)
+		return err
+	})
+	return out, err
+}
+
+func findAdminProduct(ctx context.Context, q *gorm.DB, id uint64) (*catalogpb.AdminProduct, error) {
+	var row adminProductRow
+	err := q.WithContext(ctx).Table("`products` AS p").
+		Select(adminProductSelect).
+		Joins("LEFT JOIN catalog_ips AS i ON i.id = p.ip_id").
+		Joins("LEFT JOIN catalog_brands AS b ON b.id = p.brand_id").
+		Joins("LEFT JOIN catalog_series AS s ON s.id = p.series_id").
+		Where("p.id = ?", id).Take(&row).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	return adminProductToProto(row), nil
+}
+
+func adminProductToProto(row adminProductRow) *catalogpb.AdminProduct {
+	return &catalogpb.AdminProduct{
+		ProductId: row.ID, ProductCode: row.ProductCode, Title: row.Title,
+		Status: catalogpb.ProductStatus(row.Status), Version: row.Version,
+		IpId: row.IPID, IpName: row.IPName,
+		BrandId: row.BrandID, BrandName: row.BrandName,
+		SeriesId: row.SeriesID, SeriesName: row.SeriesName,
+		SaleType: row.SaleType, ShippedQuantity: row.ShippedQuantity,
+		CostAmountMinor: row.CostAmountMinor, CoverUrl: row.CoverURL,
+		SaleAmountMinor: row.SaleAmountMinor,
+	}
+}
+
+func truncateRunes(value string, max int) string {
+	runes := []rune(value)
+	if len(runes) <= max {
+		return value
+	}
+	return string(runes[:max])
 }

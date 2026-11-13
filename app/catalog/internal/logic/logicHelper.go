@@ -56,6 +56,20 @@ func mapBrandRepoErr(err error) error {
 	}
 }
 
+// mapAdminProductRepoErr 商品管理列表/编辑错误 → 业务码。
+func mapAdminProductRepoErr(err error) error {
+	switch {
+	case err == nil:
+		return nil
+	case errors.Is(err, repo.ErrNotFound):
+		return errorx.NewCodeError(errorx.CodeCatalogNotFound, "商品不存在")
+	case errors.Is(err, repo.ErrProductCodeExists):
+		return errorx.NewCodeError(errorx.CodeCatalogInvalid, "商品编码已存在")
+	default:
+		return errorx.FromError(err)
+	}
+}
+
 // mapSeriesRepoErr 系列数据访问错误 → 业务码。
 func mapSeriesRepoErr(err error) error {
 	switch {

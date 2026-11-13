@@ -100,6 +100,30 @@ func (s *CatalogServer) UpdateSeries(ctx context.Context, in *catalog.UpdateSeri
 	return l.UpdateSeries(in)
 }
 
+// 商品管理列表（搜索/厂商/系列/IP/销售类型/价格区间 + 分页）
+func (s *CatalogServer) ListAdminProducts(ctx context.Context, in *catalog.ListAdminProductsRequest) (*catalog.ListAdminProductsReply, error) {
+	l := logic.NewListAdminProductsLogic(ctx, s.svcCtx)
+	return l.ListAdminProducts(in)
+}
+
+// 创建商品（后台商品页；含 IP/品牌/系列/成本/封面字段）
+func (s *CatalogServer) CreateAdminProduct(ctx context.Context, in *catalog.CreateAdminProductRequest) (*catalog.AdminProduct, error) {
+	l := logic.NewCreateAdminProductLogic(ctx, s.svcCtx)
+	return l.CreateAdminProduct(in)
+}
+
+// 编辑商品（后台商品页展示字段）
+func (s *CatalogServer) UpdateAdminProduct(ctx context.Context, in *catalog.UpdateAdminProductRequest) (*catalog.AdminProduct, error) {
+	l := logic.NewUpdateAdminProductLogic(ctx, s.svcCtx)
+	return l.UpdateAdminProduct(in)
+}
+
+// 复制商品
+func (s *CatalogServer) CopyAdminProduct(ctx context.Context, in *catalog.CopyAdminProductRequest) (*catalog.AdminProduct, error) {
+	l := logic.NewCopyAdminProductLogic(ctx, s.svcCtx)
+	return l.CopyAdminProduct(in)
+}
+
 // 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
 func (s *CatalogServer) PublishProduct(ctx context.Context, in *catalog.PublishProductRequest) (*catalog.Product, error) {
 	l := logic.NewPublishProductLogic(ctx, s.svcCtx)

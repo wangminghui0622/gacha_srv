@@ -32,6 +32,10 @@ const (
 	Catalog_ListSeries_FullMethodName                 = "/catalog.Catalog/ListSeries"
 	Catalog_CreateSeries_FullMethodName               = "/catalog.Catalog/CreateSeries"
 	Catalog_UpdateSeries_FullMethodName               = "/catalog.Catalog/UpdateSeries"
+	Catalog_ListAdminProducts_FullMethodName          = "/catalog.Catalog/ListAdminProducts"
+	Catalog_CreateAdminProduct_FullMethodName         = "/catalog.Catalog/CreateAdminProduct"
+	Catalog_UpdateAdminProduct_FullMethodName         = "/catalog.Catalog/UpdateAdminProduct"
+	Catalog_CopyAdminProduct_FullMethodName           = "/catalog.Catalog/CopyAdminProduct"
 	Catalog_PublishProduct_FullMethodName             = "/catalog.Catalog/PublishProduct"
 	Catalog_GetPublishedProduct_FullMethodName        = "/catalog.Catalog/GetPublishedProduct"
 	Catalog_SaveProductRevision_FullMethodName        = "/catalog.Catalog/SaveProductRevision"
@@ -69,6 +73,14 @@ type CatalogClient interface {
 	CreateSeries(ctx context.Context, in *CreateSeriesRequest, opts ...grpc.CallOption) (*Series, error)
 	// 编辑系列名称/品牌/排序权重
 	UpdateSeries(ctx context.Context, in *UpdateSeriesRequest, opts ...grpc.CallOption) (*Series, error)
+	// 商品管理列表（搜索/厂商/系列/IP/销售类型/价格区间 + 分页）
+	ListAdminProducts(ctx context.Context, in *ListAdminProductsRequest, opts ...grpc.CallOption) (*ListAdminProductsReply, error)
+	// 创建商品（后台商品页；含 IP/品牌/系列/成本/封面字段）
+	CreateAdminProduct(ctx context.Context, in *CreateAdminProductRequest, opts ...grpc.CallOption) (*AdminProduct, error)
+	// 编辑商品（后台商品页展示字段）
+	UpdateAdminProduct(ctx context.Context, in *UpdateAdminProductRequest, opts ...grpc.CallOption) (*AdminProduct, error)
+	// 复制商品
+	CopyAdminProduct(ctx context.Context, in *CopyAdminProductRequest, opts ...grpc.CallOption) (*AdminProduct, error)
 	// 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
 	PublishProduct(ctx context.Context, in *PublishProductRequest, opts ...grpc.CallOption) (*Product, error)
 	// 读取已发布快照（任意历史版本）
@@ -208,6 +220,42 @@ func (c *catalogClient) UpdateSeries(ctx context.Context, in *UpdateSeriesReques
 	return out, nil
 }
 
+func (c *catalogClient) ListAdminProducts(ctx context.Context, in *ListAdminProductsRequest, opts ...grpc.CallOption) (*ListAdminProductsReply, error) {
+	out := new(ListAdminProductsReply)
+	err := c.cc.Invoke(ctx, Catalog_ListAdminProducts_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogClient) CreateAdminProduct(ctx context.Context, in *CreateAdminProductRequest, opts ...grpc.CallOption) (*AdminProduct, error) {
+	out := new(AdminProduct)
+	err := c.cc.Invoke(ctx, Catalog_CreateAdminProduct_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogClient) UpdateAdminProduct(ctx context.Context, in *UpdateAdminProductRequest, opts ...grpc.CallOption) (*AdminProduct, error) {
+	out := new(AdminProduct)
+	err := c.cc.Invoke(ctx, Catalog_UpdateAdminProduct_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *catalogClient) CopyAdminProduct(ctx context.Context, in *CopyAdminProductRequest, opts ...grpc.CallOption) (*AdminProduct, error) {
+	out := new(AdminProduct)
+	err := c.cc.Invoke(ctx, Catalog_CopyAdminProduct_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *catalogClient) PublishProduct(ctx context.Context, in *PublishProductRequest, opts ...grpc.CallOption) (*Product, error) {
 	out := new(Product)
 	err := c.cc.Invoke(ctx, Catalog_PublishProduct_FullMethodName, in, out, opts...)
@@ -291,6 +339,14 @@ type CatalogServer interface {
 	CreateSeries(context.Context, *CreateSeriesRequest) (*Series, error)
 	// 编辑系列名称/品牌/排序权重
 	UpdateSeries(context.Context, *UpdateSeriesRequest) (*Series, error)
+	// 商品管理列表（搜索/厂商/系列/IP/销售类型/价格区间 + 分页）
+	ListAdminProducts(context.Context, *ListAdminProductsRequest) (*ListAdminProductsReply, error)
+	// 创建商品（后台商品页；含 IP/品牌/系列/成本/封面字段）
+	CreateAdminProduct(context.Context, *CreateAdminProductRequest) (*AdminProduct, error)
+	// 编辑商品（后台商品页展示字段）
+	UpdateAdminProduct(context.Context, *UpdateAdminProductRequest) (*AdminProduct, error)
+	// 复制商品
+	CopyAdminProduct(context.Context, *CopyAdminProductRequest) (*AdminProduct, error)
 	// 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
 	PublishProduct(context.Context, *PublishProductRequest) (*Product, error)
 	// 读取已发布快照（任意历史版本）
@@ -348,6 +404,18 @@ func (UnimplementedCatalogServer) CreateSeries(context.Context, *CreateSeriesReq
 }
 func (UnimplementedCatalogServer) UpdateSeries(context.Context, *UpdateSeriesRequest) (*Series, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSeries not implemented")
+}
+func (UnimplementedCatalogServer) ListAdminProducts(context.Context, *ListAdminProductsRequest) (*ListAdminProductsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAdminProducts not implemented")
+}
+func (UnimplementedCatalogServer) CreateAdminProduct(context.Context, *CreateAdminProductRequest) (*AdminProduct, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAdminProduct not implemented")
+}
+func (UnimplementedCatalogServer) UpdateAdminProduct(context.Context, *UpdateAdminProductRequest) (*AdminProduct, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAdminProduct not implemented")
+}
+func (UnimplementedCatalogServer) CopyAdminProduct(context.Context, *CopyAdminProductRequest) (*AdminProduct, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CopyAdminProduct not implemented")
 }
 func (UnimplementedCatalogServer) PublishProduct(context.Context, *PublishProductRequest) (*Product, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PublishProduct not implemented")
@@ -614,6 +682,78 @@ func _Catalog_UpdateSeries_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Catalog_ListAdminProducts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAdminProductsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServer).ListAdminProducts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Catalog_ListAdminProducts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServer).ListAdminProducts(ctx, req.(*ListAdminProductsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Catalog_CreateAdminProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAdminProductRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServer).CreateAdminProduct(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Catalog_CreateAdminProduct_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServer).CreateAdminProduct(ctx, req.(*CreateAdminProductRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Catalog_UpdateAdminProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAdminProductRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServer).UpdateAdminProduct(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Catalog_UpdateAdminProduct_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServer).UpdateAdminProduct(ctx, req.(*UpdateAdminProductRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Catalog_CopyAdminProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CopyAdminProductRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServer).CopyAdminProduct(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Catalog_CopyAdminProduct_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServer).CopyAdminProduct(ctx, req.(*CopyAdminProductRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Catalog_PublishProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PublishProductRequest)
 	if err := dec(in); err != nil {
@@ -780,6 +920,22 @@ var Catalog_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateSeries",
 			Handler:    _Catalog_UpdateSeries_Handler,
+		},
+		{
+			MethodName: "ListAdminProducts",
+			Handler:    _Catalog_ListAdminProducts_Handler,
+		},
+		{
+			MethodName: "CreateAdminProduct",
+			Handler:    _Catalog_CreateAdminProduct_Handler,
+		},
+		{
+			MethodName: "UpdateAdminProduct",
+			Handler:    _Catalog_UpdateAdminProduct_Handler,
+		},
+		{
+			MethodName: "CopyAdminProduct",
+			Handler:    _Catalog_CopyAdminProduct_Handler,
 		},
 		{
 			MethodName: "PublishProduct",

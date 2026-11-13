@@ -14,7 +14,10 @@ import (
 )
 
 type (
+	AdminProduct                      = catalog.AdminProduct
 	Brand                             = catalog.Brand
+	CopyAdminProductRequest           = catalog.CopyAdminProductRequest
+	CreateAdminProductRequest         = catalog.CreateAdminProductRequest
 	CreateBrandRequest                = catalog.CreateBrandRequest
 	CreateIPRequest                   = catalog.CreateIPRequest
 	CreateOptionValueInput            = catalog.CreateOptionValueInput
@@ -28,6 +31,8 @@ type (
 	GetPublishedProductRequest        = catalog.GetPublishedProductRequest
 	GetSKURequest                     = catalog.GetSKURequest
 	IP                                = catalog.IP
+	ListAdminProductsReply            = catalog.ListAdminProductsReply
+	ListAdminProductsRequest          = catalog.ListAdminProductsRequest
 	ListBrandsReply                   = catalog.ListBrandsReply
 	ListBrandsRequest                 = catalog.ListBrandsRequest
 	ListIPsReply                      = catalog.ListIPsReply
@@ -49,6 +54,7 @@ type (
 	SaveProductRevisionRequest        = catalog.SaveProductRevisionRequest
 	SaveProductVariantRevisionRequest = catalog.SaveProductVariantRevisionRequest
 	Series                            = catalog.Series
+	UpdateAdminProductRequest         = catalog.UpdateAdminProductRequest
 	UpdateBrandRequest                = catalog.UpdateBrandRequest
 	UpdateIPRequest                   = catalog.UpdateIPRequest
 	UpdateSeriesRequest               = catalog.UpdateSeriesRequest
@@ -79,6 +85,14 @@ type (
 		CreateSeries(ctx context.Context, in *CreateSeriesRequest, opts ...grpc.CallOption) (*Series, error)
 		// 编辑系列名称/品牌/排序权重
 		UpdateSeries(ctx context.Context, in *UpdateSeriesRequest, opts ...grpc.CallOption) (*Series, error)
+		// 商品管理列表（搜索/厂商/系列/IP/销售类型/价格区间 + 分页）
+		ListAdminProducts(ctx context.Context, in *ListAdminProductsRequest, opts ...grpc.CallOption) (*ListAdminProductsReply, error)
+		// 创建商品（后台商品页；含 IP/品牌/系列/成本/封面字段）
+		CreateAdminProduct(ctx context.Context, in *CreateAdminProductRequest, opts ...grpc.CallOption) (*AdminProduct, error)
+		// 编辑商品（后台商品页展示字段）
+		UpdateAdminProduct(ctx context.Context, in *UpdateAdminProductRequest, opts ...grpc.CallOption) (*AdminProduct, error)
+		// 复制商品
+		CopyAdminProduct(ctx context.Context, in *CopyAdminProductRequest, opts ...grpc.CallOption) (*AdminProduct, error)
 		// 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）
 		PublishProduct(ctx context.Context, in *PublishProductRequest, opts ...grpc.CallOption) (*Product, error)
 		// 读取已发布快照（任意历史版本）
@@ -179,6 +193,30 @@ func (m *defaultCatalog) CreateSeries(ctx context.Context, in *CreateSeriesReque
 func (m *defaultCatalog) UpdateSeries(ctx context.Context, in *UpdateSeriesRequest, opts ...grpc.CallOption) (*Series, error) {
 	client := catalog.NewCatalogClient(m.cli.Conn())
 	return client.UpdateSeries(ctx, in, opts...)
+}
+
+// 商品管理列表（搜索/厂商/系列/IP/销售类型/价格区间 + 分页）
+func (m *defaultCatalog) ListAdminProducts(ctx context.Context, in *ListAdminProductsRequest, opts ...grpc.CallOption) (*ListAdminProductsReply, error) {
+	client := catalog.NewCatalogClient(m.cli.Conn())
+	return client.ListAdminProducts(ctx, in, opts...)
+}
+
+// 创建商品（后台商品页；含 IP/品牌/系列/成本/封面字段）
+func (m *defaultCatalog) CreateAdminProduct(ctx context.Context, in *CreateAdminProductRequest, opts ...grpc.CallOption) (*AdminProduct, error) {
+	client := catalog.NewCatalogClient(m.cli.Conn())
+	return client.CreateAdminProduct(ctx, in, opts...)
+}
+
+// 编辑商品（后台商品页展示字段）
+func (m *defaultCatalog) UpdateAdminProduct(ctx context.Context, in *UpdateAdminProductRequest, opts ...grpc.CallOption) (*AdminProduct, error) {
+	client := catalog.NewCatalogClient(m.cli.Conn())
+	return client.UpdateAdminProduct(ctx, in, opts...)
+}
+
+// 复制商品
+func (m *defaultCatalog) CopyAdminProduct(ctx context.Context, in *CopyAdminProductRequest, opts ...grpc.CallOption) (*AdminProduct, error) {
+	client := catalog.NewCatalogClient(m.cli.Conn())
+	return client.CopyAdminProduct(ctx, in, opts...)
 }
 
 // 首次发布（DRAFT→ACTIVE，激活 SKU，版本前进落快照；已发布幂等返回）

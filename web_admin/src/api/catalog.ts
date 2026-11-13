@@ -169,6 +169,71 @@ export const catalogSeriesClient = {
   },
 }
 
+export interface AdminProductItem {
+  productId?: string
+  productCode?: string
+  title?: string
+  status?: string | number
+  version?: string
+  ipId?: string
+  ipName?: string
+  brandId?: string
+  brandName?: string
+  seriesId?: string
+  seriesName?: string
+  saleType?: string
+  shippedQuantity?: string
+  costAmountMinor?: string
+  coverUrl?: string
+  saleAmountMinor?: string
+}
+
+export interface ListAdminProductsReply {
+  products?: AdminProductItem[]
+  total?: string
+  page?: number
+  pageSize?: number
+}
+
+export interface AdminProductInput {
+  productCode?: string
+  title: string
+  ipId: string
+  brandId: string
+  seriesId: string
+  saleType: string
+  costAmountMinor: number
+  saleAmountMinor: number
+  coverUrl: string
+}
+
+export const catalogAdminProductClient = {
+  List(params: {
+    keyword: string
+    brandId: string
+    seriesId: string
+    ipId: string
+    saleType: string
+    minPriceMinor: number
+    maxPriceMinor: number
+    sortBy: string
+    sortOrder: string
+    page: number
+    pageSize: number
+  }): Promise<ListAdminProductsReply> {
+    return http.get('/console/v2/api/catalog/admin/products', { params })
+  },
+  Create(payload: AdminProductInput): Promise<AdminProductItem> {
+    return http.post('/console/v2/api/catalog/admin/products', payload)
+  },
+  Update(productId: string, payload: Omit<AdminProductInput, 'productCode'>): Promise<AdminProductItem> {
+    return http.put(`/console/v2/api/catalog/admin/products/${encodeURIComponent(productId)}`, payload)
+  },
+  Copy(productId: string): Promise<AdminProductItem> {
+    return http.post(`/console/v2/api/catalog/admin/products/${encodeURIComponent(productId)}/copy`, {})
+  },
+}
+
 export const catalogClient = {
   Get({ productId }: { productId: string }): Promise<Product> {
     return http.get(`/console/v2/api/catalog/products/${encodeURIComponent(productId)}`)

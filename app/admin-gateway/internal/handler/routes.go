@@ -173,6 +173,30 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: catalog.UpdateSeriesHandler(serverCtx),
 				},
 				{
+					// 商品管理列表（catalog.product:read；多条件筛选 + 分页）
+					Method:  http.MethodGet,
+					Path:    "/catalog/admin/products",
+					Handler: catalog.ListAdminProductsHandler(serverCtx),
+				},
+				{
+					// 创建商品（catalog.product:create）
+					Method:  http.MethodPost,
+					Path:    "/catalog/admin/products",
+					Handler: catalog.CreateAdminProductHandler(serverCtx),
+				},
+				{
+					// 编辑商品（catalog.product:write）
+					Method:  http.MethodPut,
+					Path:    "/catalog/admin/products/:productId",
+					Handler: catalog.UpdateAdminProductHandler(serverCtx),
+				},
+				{
+					// 复制商品（catalog.product:create）
+					Method:  http.MethodPost,
+					Path:    "/catalog/admin/products/:productId/copy",
+					Handler: catalog.CopyAdminProductHandler(serverCtx),
+				},
+				{
 					// 商品列表（catalog.product:read；游标分页）
 					Method:  http.MethodGet,
 					Path:    "/catalog/products",
