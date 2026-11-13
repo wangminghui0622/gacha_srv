@@ -35,7 +35,7 @@
         <a-form-item label="优惠券">
           <div class="coupon-config">
             <a-space>
-              <a-input-number v-model:value="couponId" :min="0" :precision="0" style="width: 160px" />
+              <a-input-number v-model:value="couponId" :min="0" :precision="0" placeholder="优惠券id" style="width: 160px" />
               <a-button @click="addCoupon">添加</a-button>
             </a-space>
             <a-table :data-source="coupons" :pagination="false" row-key="id" size="small" :locale="{ emptyText: '暂无数据' }" class="coupon-table">
