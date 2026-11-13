@@ -476,9 +476,7 @@ function openCreate() {
   modalOpen.value = true
 }
 
-async function openEdit(record: AdminProductItem) {
-  editing.value = record
-  resetForm()
+function fillSummary(record: AdminProductItem) {
   form.title = record.title ?? ''
   form.ipId = record.ipId || undefined
   form.brandId = record.brandId || undefined
@@ -486,31 +484,39 @@ async function openEdit(record: AdminProductItem) {
   form.saleType = record.saleType || 'IN_STOCK'
   form.costYuan = Number(record.costAmountMinor ?? 0) / 100
   form.coverUrl = record.coverUrl ?? ''
-  modalOpen.value = true
+}
+
+function applyDetail(detail: Awaited<ReturnType<typeof catalogAdminProductClient.Get>>, fallback: AdminProductItem) {
+  const product = detail.product ?? fallback
+  fillSummary(product)
+  form.totalStock = Number(detail.totalStock ?? 0)
+  form.frozenStock = Number(detail.frozenStock ?? 0)
+  form.halfBodyImage = detail.halfBodyImage ?? ''
+  form.thumbUrl = detail.thumbUrl ?? ''
+  form.detailIntro = detail.detailIntro ?? ''
+  form.detailImages = [...(detail.detailImages ?? [])]
+  form.detailParams = (detail.detailParams ?? []).map((item) => ({ name: item.name ?? '', value: item.value ?? '' }))
+}
+
+async function loadFullDetail(record: AdminProductItem) {
   if (!record.productId) return
   detailLoading.value = true
   try {
     const detail = await catalogAdminProductClient.Get(record.productId)
-    const product = detail.product ?? record
-    form.title = product.title ?? form.title
-    form.ipId = product.ipId || form.ipId
-    form.brandId = product.brandId || form.brandId
-    form.seriesId = product.seriesId || form.seriesId
-    form.saleType = product.saleType || form.saleType
-    form.costYuan = Number(product.costAmountMinor ?? 0) / 100
-    form.coverUrl = product.coverUrl ?? form.coverUrl
-    form.totalStock = Number(detail.totalStock ?? 0)
-    form.frozenStock = Number(detail.frozenStock ?? 0)
-    form.halfBodyImage = detail.halfBodyImage ?? ''
-    form.thumbUrl = detail.thumbUrl ?? ''
-    form.detailIntro = detail.detailIntro ?? ''
-    form.detailImages = [...(detail.detailImages ?? [])]
-    form.detailParams = (detail.detailParams ?? []).map((item) => ({ name: item.name ?? '', value: item.value ?? '' }))
+    applyDetail(detail, record)
   } catch {
     message.error(t('catalog.detailLoadFailed'))
   } finally {
     detailLoading.value = false
   }
+}
+
+async function openEdit(record: AdminProductItem) {
+  editing.value = record
+  resetForm()
+  fillSummary(record)
+  modalOpen.value = true
+  await loadFullDetail(record)
 }
 
 function onFormBrandChange() {
@@ -615,14 +621,14 @@ async function save() {
 
 async function copy(record: AdminProductItem) {
   if (!record.productId) return
+  // 复制 = 打开创建弹框并回填源商品，不立即创建。
+  editing.value = null
+  resetForm()
+  fillSummary(record)
+  modalOpen.value = true
   copyingId.value = record.productId
   try {
-    await catalogAdminProductClient.Copy(record.productId)
-    message.success(t('catalog.productCopied'))
-    page.value = 1
-    await load()
-  } catch {
-    // 请求拦截器已展示失败信息。
+    await loadFullDetail(record)
   } finally {
     copyingId.value = undefined
   }
