@@ -11,10 +11,7 @@
       />
     </a-layout-sider>
     <aside class="secondary-sider" :class="{ open: !!activeGroup }" :style="{ width: secondaryWidth }">
-      <div v-if="activeGroup" class="secondary-inner">
-        <div class="secondary-title">{{ $t(activeGroup.title) }}</div>
-        <SubmenuList :group="activeGroup" @navigate="mobileOpen = false" />
-      </div>
+      <SubmenuList v-if="activeGroup" :group="activeGroup" @navigate="mobileOpen = false" />
     </aside>
     <a-drawer v-model:open="mobileOpen" placement="left" :width="144" :closable="false" root-class-name="console-mobile-drawer">
       <NavigationMenu
@@ -25,7 +22,6 @@
         @navigate="navigate"
       />
       <div v-if="activeGroup" class="mobile-submenu-panel">
-        <div class="secondary-title mobile">{{ $t(activeGroup.title) }}</div>
         <SubmenuList :group="activeGroup" @navigate="mobileOpen = false" />
       </div>
     </a-drawer>
@@ -170,7 +166,7 @@ async function onLogout() {
   align-self: stretch;
   width: 0;
   overflow: hidden;
-  background: transparent;
+  background: #f0f2f5;
 }
 .secondary-sider.open {
   width: 144px;
@@ -178,21 +174,7 @@ async function onLogout() {
   overflow-y: auto;
   overflow-x: hidden;
 }
-.secondary-inner { min-height: 100%; }
-.secondary-title {
-  height: 48px;
-  line-height: 48px;
-  padding: 0 16px;
-  color: #303133;
-  font-size: 14px;
-  font-weight: 600;
-  border-bottom: 1px solid #e4e7ed;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.secondary-title.mobile { background: #fff; }
-.mobile-submenu-panel { background: #fff; }
+.mobile-submenu-panel { background: #f0f2f5; }
 .header {
   height: 48px;
   line-height: normal;
