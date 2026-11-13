@@ -29,7 +29,7 @@ function isActive(path: string): boolean {
 
 <style scoped lang="scss">
 .submenu-list {
-  width: 144px;
+  width: 100%;
   padding: 8px 0;
 }
 

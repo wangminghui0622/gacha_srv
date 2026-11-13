@@ -11,7 +11,7 @@
     </a-layout-sider>
     <aside class="secondary-sider" :class="{ open: !!activeGroup }" :style="{ width: secondaryWidth }">
       <div class="secondary-body" :style="{ paddingTop: `${submenuTop}px` }">
-        <div ref="submenuMeasure">
+        <div ref="submenuMeasure" class="submenu-card">
           <SubmenuList v-if="activeGroup" :group="activeGroup" @navigate="mobileOpen = false" />
         </div>
       </div>
@@ -209,12 +209,25 @@ async function onLogout() {
 }
 .secondary-sider.open {
   width: 144px;
-  border-right: 1px solid #e4e7ed;
   overflow-y: auto;
   overflow-x: hidden;
 }
 .secondary-body { min-height: 100%; }
-.mobile-submenu-panel { background: #f0f2f5; }
+.submenu-card {
+  width: 144px;
+  background: #fff;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+.mobile-submenu-panel {
+  margin: 8px;
+  background: #fff;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  overflow: hidden;
+}
 .header {
   height: 48px;
   line-height: normal;
