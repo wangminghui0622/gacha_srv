@@ -56,6 +56,10 @@
             <CloseOutlined v-if="tabs.length > 1" class="tab-close" @click.stop="handleTabRemove(tab.path)" />
           </div>
         </div>
+        <button v-if="tabs.length > 1" type="button" class="tab-close-all" @click="closeAllTabs">
+          <CloseOutlined />
+          <span>{{ $t('layout.closeAllTabs') }}</span>
+        </button>
       </div>
       <a-layout-content class="content"><router-view /></a-layout-content>
     </a-layout>
@@ -181,6 +185,12 @@ function handleTabRemove(path: string) {
   router.push(next?.path ?? '/dashboard')
 }
 
+function closeAllTabs() {
+  tabs.value = [{ path: '/dashboard', titleKey: 'nav.dashboard' }]
+  activeGroupKey.value = null
+  if (route.path !== '/dashboard') router.push('/dashboard')
+}
+
 async function refreshPermissions() {
   try {
     await session.loadPermissions()
@@ -264,8 +274,14 @@ async function onLogout() {
   background: #fff;
   border-bottom: 1px solid #e4e7ed;
   padding: 6px 20px 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
 }
 .custom-tabs {
+  flex: 1;
+  min-width: 0;
   display: flex;
   gap: 4px;
   overflow-x: auto;
@@ -312,6 +328,22 @@ async function onLogout() {
   color: #909399;
 }
 .tab-close:hover { color: #409eff; }
+.tab-close-all {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 8px;
+  border: none;
+  background: transparent;
+  color: #909399;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  margin-bottom: 1px;
+}
+.tab-close-all:hover { color: #409eff; }
 .content { padding: 20px; background: #f0f2f5; min-width: 0; min-height: calc(100vh - 88px); }
 .mobile-trigger { display: none; }
 @media (max-width: 767px) {

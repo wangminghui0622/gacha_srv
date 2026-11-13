@@ -123,7 +123,8 @@
   "layout": {
     "refreshPermissions": "Refresh permissions",
     "permissionsUpdated": "Menu permissions updated",
-    "openMenu": "Open navigation menu"
+    "openMenu": "Open navigation menu",
+    "closeAllTabs": "Close all"
   },
   "login": {
     "title": "Lucky Box Admin Console",

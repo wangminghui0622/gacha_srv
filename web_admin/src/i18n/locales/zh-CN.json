@@ -123,7 +123,8 @@
   "layout": {
     "refreshPermissions": "刷新权限",
     "permissionsUpdated": "菜单权限已更新",
-    "openMenu": "打开导航菜单"
+    "openMenu": "打开导航菜单",
+    "closeAllTabs": "关闭全部"
   },
   "login": {
     "title": "Lucky Box 管理后台",
