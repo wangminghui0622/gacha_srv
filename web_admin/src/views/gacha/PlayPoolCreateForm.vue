@@ -499,7 +499,10 @@ onMounted(loadOptions)
 }
 
 .coupon-table {
+  width: calc(127.7778% - 3px);
+  max-width: none;
   margin-top: 10px;
+  margin-left: calc(-27.7778% + 3px);
   border: 1px solid #f0f0f0;
 }
 
