@@ -147,7 +147,7 @@
       :confirm-loading="saving"
       :mask-closable="false"
       width="820px"
-      :style="{ top: '52px' }"
+      centered
       :body-style="{ maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }"
       @ok="save"
     >
