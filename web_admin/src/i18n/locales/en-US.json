@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "Lucky Box Console",
+    "modulePending": "This module is not connected yet.",
     "back": "Back",
     "refresh": "Refresh",
     "logout": "Sign out",
@@ -45,7 +46,15 @@
     "promotion": "Promotion",
     "campaign": "Campaigns",
     "catalog": "Products",
+    "catalogIp": "IPs",
+    "catalogBrand": "Brands",
+    "catalogSeries": "Series",
+    "catalogGoods": "Product list",
     "gacha": "Pools",
+    "gachaPools": "Pools",
+    "gachaGrade": "Prize grades",
+    "gachaMatch": "Match game",
+    "gachaCodex": "Codex",
     "customers": "Customers",
     "system": "System",
     "accounts": "Accounts",

@@ -1,6 +1,7 @@
 {
   "common": {
     "appName": "Lucky Box Console",
+    "modulePending": "该模块接口待接入，接入后在此维护。",
     "back": "返回",
     "refresh": "刷新",
     "logout": "退出",
@@ -45,7 +46,15 @@
     "promotion": "营销",
     "campaign": "活动管理",
     "catalog": "商品管理",
+    "catalogIp": "IP列表",
+    "catalogBrand": "品牌列表",
+    "catalogSeries": "系列列表",
+    "catalogGoods": "商品列表",
     "gacha": "赏池管理",
+    "gachaPools": "赏池管理",
+    "gachaGrade": "赏别管理",
+    "gachaMatch": "对对碰管理",
+    "gachaCodex": "图鉴管理",
     "customers": "客户管理",
     "system": "系统管理",
     "accounts": "账户管理",

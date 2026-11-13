@@ -35,6 +35,8 @@ export interface ConsoleRouteDef {
   permissions?: ConsolePermission[]
   showInMenu: boolean
   menuGroup?: 'operations' | 'business' | 'governance'
+  /** 菜单文案（缺省用 title；子菜单需要与页面标题不同时使用） */
+  menuTitle?: string
   icon?: Component
   backFallback?: string
   component: () => Promise<unknown>
@@ -163,26 +165,82 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     component: () => import('@/views/campaign/CampaignManagementView.vue'),
   },
   {
+    name: 'catalog-ip',
+    path: 'catalog/ip',
+    title: 'nav.catalogIp',
+    permission: { resource: 'catalog.product', action: 'read' },
+    showInMenu: false,
+    backFallback: '/catalog',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'catalog-brand',
+    path: 'catalog/brand',
+    title: 'nav.catalogBrand',
+    permission: { resource: 'catalog.product', action: 'read' },
+    showInMenu: false,
+    backFallback: '/catalog',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'catalog-series',
+    path: 'catalog/series',
+    title: 'nav.catalogSeries',
+    permission: { resource: 'catalog.product', action: 'read' },
+    showInMenu: false,
+    backFallback: '/catalog',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
     name: 'catalog',
     path: 'catalog',
     title: 'nav.catalog',
+    menuTitle: 'nav.catalogGoods',
     permissions: ['read', 'create', 'write', 'publish'].map(action => ({ resource: 'catalog.product', action })),
     showInMenu: true,
     menuGroup: 'business',
     icon: ShoppingOutlined,
-    backFallback: '/dashboard',
+    backFallback: '/catalog',
     component: () => import('@/views/catalog/CatalogManagementView.vue'),
+  },
+  {
+    name: 'gacha-grade',
+    path: 'gacha/grades',
+    title: 'nav.gachaGrade',
+    permission: { resource: 'gacha.pool', action: 'read' },
+    showInMenu: false,
+    backFallback: '/gacha',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
   },
   {
     name: 'gacha',
     path: 'gacha',
     title: 'nav.gacha',
+    menuTitle: 'nav.gachaPools',
     permissions: ['read', 'create', 'request_publication', 'approve_publication', 'publish', 'assign_lucky'].map(action => ({ resource: 'gacha.pool', action })),
     showInMenu: true,
     menuGroup: 'business',
     icon: AppstoreOutlined,
-    backFallback: '/dashboard',
+    backFallback: '/gacha',
     component: () => import('@/views/gacha/PlayPoolManagementView.vue'),
+  },
+  {
+    name: 'gacha-match',
+    path: 'gacha/match',
+    title: 'nav.gachaMatch',
+    permission: { resource: 'gacha.pool', action: 'read' },
+    showInMenu: false,
+    backFallback: '/gacha',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+  },
+  {
+    name: 'gacha-codex',
+    path: 'gacha/codex',
+    title: 'nav.gachaCodex',
+    permission: { resource: 'gacha.pool', action: 'read' },
+    showInMenu: false,
+    backFallback: '/gacha',
+    component: () => import('@/views/common/ModulePlaceholderView.vue'),
   },
   {
     name: 'customers',
@@ -275,17 +333,61 @@ function granted(item: ConsoleRouteDef, nodes: PermissionNode[]): boolean {
   return allows(nodes, item.permission.resource, item.permission.action)
 }
 
-// 主菜单：与设计稿一致的一级导航（顺序即展示顺序）
-const PRIMARY_MENU = ['catalog', 'gacha', 'customers', 'campaign', 'system', 'accounts'] as const
+// 主菜单：与设计稿一致的一级导航（顺序即展示顺序）；商品管理为右侧弹出子菜单
+export interface MenuNode {
+  key: string
+  title: string
+  icon?: Component
+  path?: string
+  children?: MenuNode[]
+}
+
+const CATALOG_CHILDREN = ['catalog-ip', 'catalog-brand', 'catalog-series', 'catalog'] as const
+const GACHA_CHILDREN = ['gacha-grade', 'gacha', 'gacha-match', 'gacha-codex'] as const
+const PRIMARY_LEAVES = ['customers', 'campaign', 'system', 'accounts'] as const
 
 export function accessibleRoutes(nodes: PermissionNode[]): ConsoleRouteDef[] {
   return consoleRouteCatalog.filter((item) => !item.placeholder && granted(item, nodes))
 }
 
+function childNodes(names: readonly string[], nodes: PermissionNode[], byName: Map<string, ConsoleRouteDef>): MenuNode[] {
+  return names
+    .map((name) => byName.get(name))
+    .filter((item): item is ConsoleRouteDef => !!item && !item.placeholder && granted(item, nodes))
+    .map((item) => ({ key: item.name, title: item.menuTitle ?? item.title, path: menuPath(item) }))
+}
+
+export function menuTree(nodes: PermissionNode[]): MenuNode[] {
+  const byName = new Map(consoleRouteCatalog.map((item) => [item.name, item]))
+  const tree: MenuNode[] = []
+  const catalogChildren = childNodes(CATALOG_CHILDREN, nodes, byName)
+  if (catalogChildren.length > 0) {
+    tree.push({ key: 'catalog-group', title: 'nav.catalog', icon: ShoppingOutlined, children: catalogChildren })
+  }
+  const gachaChildren = childNodes(GACHA_CHILDREN, nodes, byName)
+  if (gachaChildren.length > 0) {
+    tree.push({ key: 'gacha-group', title: 'nav.gacha', icon: GiftOutlined, children: gachaChildren })
+  }
+  for (const name of PRIMARY_LEAVES) {
+    const item = byName.get(name)
+    if (item && !item.placeholder && granted(item, nodes)) {
+      tree.push({ key: item.name, title: item.title, icon: item.icon, path: menuPath(item) })
+    }
+  }
+  return tree
+}
+
 export function menuRoutes(nodes: PermissionNode[]): ConsoleRouteDef[] {
   const byName = new Map(consoleRouteCatalog.map((item) => [item.name, item]))
-  return PRIMARY_MENU.map((name) => byName.get(name))
-    .filter((item): item is ConsoleRouteDef => !!item && !item.placeholder && granted(item, nodes))
+  return menuTree(nodes).flatMap((node) => {
+    if (node.children) {
+      return node.children
+        .map((child) => byName.get(child.key))
+        .filter((item): item is ConsoleRouteDef => !!item)
+    }
+    const item = byName.get(node.key)
+    return item ? [item] : []
+  })
 }
 
 export const menuGroupTitles = { operations: 'menu.operations', business: 'menu.business', governance: 'menu.governance' } as const

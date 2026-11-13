@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader :title="$t('nav.catalog')" :show-back="false">
+    <PageHeader :title="$t('nav.catalogGoods')" :show-back="false">
       <template #extra>
         <a-space>
           <a-button :loading="loading" @click="load">刷新</a-button>
