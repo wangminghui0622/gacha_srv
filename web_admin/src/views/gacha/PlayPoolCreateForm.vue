@@ -130,7 +130,7 @@
                 </template>
                 <template v-else-if="prizeDraft.prizeType === 3">
                   <a-input-number v-model:value="prizeDraft.childPoolId" :min="1" :precision="0" placeholder="赏箱ID" style="width: 120px" />
-                  <a-button @click="useBoxId">使用赏箱ID</a-button>
+                  <a-button :loading="boxLoading" @click="useBoxId">使用赏箱ID</a-button>
                 </template>
                 <a-input v-else v-model:value="prizeDraft.name" placeholder="赏品名称" />
               </div>
@@ -160,7 +160,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { message } from 'ant-design-vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
 import type { Dayjs } from 'dayjs'
@@ -233,6 +233,20 @@ const prizeDraft = reactive({
 })
 const skuModalOpen = ref(false)
 const skuInput = ref<number | null>(null)
+const boxLoading = ref(false)
+
+watch(
+  () => prizeDraft.childPoolId,
+  () => {
+    if (prizeDraft.prizeType === 3) prizeDraft.name = ''
+  },
+)
+watch(
+  () => prizeDraft.prizeType,
+  (type) => {
+    if (type !== 3) prizeDraft.name = ''
+  },
+)
 
 const coupons = ref<Array<{ id: number; name: string; description: string; status: string }>>([])
 const couponId = ref<number | null>(null)
@@ -261,11 +275,11 @@ function addPrize() {
     message.warning('请输入赏箱ID')
     return
   }
-  const name = prizeDraft.prizeType === 2
-    ? `SKU ${prizeDraft.skuId}`
-    : prizeDraft.prizeType === 3
-      ? `赏箱${prizeDraft.childPoolId}`
-      : prizeDraft.name.trim()
+  if (prizeDraft.prizeType === 3 && !prizeDraft.name.trim()) {
+    message.warning('请先点击“使用赏箱ID”查询赏箱')
+    return
+  }
+  const name = prizeDraft.prizeType === 2 ? `SKU ${prizeDraft.skuId}` : prizeDraft.name.trim()
   if (!name) {
     message.warning('请输入赏品名称')
     return
@@ -302,15 +316,38 @@ function clearPrizeDraft() {
   skuInput.value = null
 }
 
-function useBoxId() {
+async function useBoxId() {
   const id = Number(prizeDraft.childPoolId ?? 0)
   if (id <= 0) {
     message.warning('请输入赏箱ID')
     return
   }
-  prizeDraft.childPoolId = id
-  prizeDraft.name = `赏箱${id}`
-  message.success(`已使用赏箱ID：${id}`)
+  boxLoading.value = true
+  try {
+    const reply = await playPoolClient.AdminList({
+      keyword: String(id),
+      mode: '',
+      ipId: '',
+      status: '',
+      tag: '',
+      sortOrder: 'desc',
+      page: 1,
+      pageSize: 50,
+    })
+    const pool = (reply.items ?? []).find((item) => String(item.poolId ?? '') === String(id))
+    if (prizeDraft.prizeType !== 3 || Number(prizeDraft.childPoolId ?? 0) !== id) return
+    if (!pool) {
+      prizeDraft.name = ''
+      message.warning(`未找到赏箱ID：${id}`)
+      return
+    }
+    prizeDraft.name = pool.name?.trim() || `赏箱${id}`
+    message.success(`已使用赏箱：${prizeDraft.name}`)
+  } catch {
+    message.error('查询赏箱失败')
+  } finally {
+    boxLoading.value = false
+  }
 }
 
 function removePrize(index: number) {
