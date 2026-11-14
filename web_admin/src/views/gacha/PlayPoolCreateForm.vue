@@ -93,7 +93,9 @@
           <div class="prize-config">
             <div ref="prizeTableWrap" class="prize-table-wrap">
             <a-table :data-source="prizes" :pagination="false" row-key="prizeIndex" size="small" :locale="{ emptyText: '暂无数据' }" :scroll="{ x: 680 }" :custom-row="prizeCustomRow">
-              <a-table-column title="序号" data-index="prizeIndex" width="50" align="center" />
+              <a-table-column title="序号" width="50" align="center">
+                <template #default="{ record }">{{ Number(record.prizeIndex ?? 0) + 1 }}</template>
+              </a-table-column>
               <a-table-column title="赏别" data-index="prizeGrade" width="80" align="center" />
               <a-table-column title="类型" width="70" align="center">
                 <template #default="{ record }">{{ record.prizeType === 2 ? '商品' : record.prizeType === 3 ? '箱子' : '虚拟' }}</template>
