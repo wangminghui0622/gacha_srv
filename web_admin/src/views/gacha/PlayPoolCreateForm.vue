@@ -1187,7 +1187,7 @@ onMounted(loadOptions)
 :global(.pool-delete-confirm .ant-modal-confirm-btns) {
   display: flex;
   flex-direction: row-reverse;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 8px;
 }
 
