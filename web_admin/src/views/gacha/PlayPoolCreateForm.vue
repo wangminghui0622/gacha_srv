@@ -584,10 +584,11 @@ function removePrize(index: number) {
   reindexPrizes()
 }
 
-function probability(prize: PlayPoolPrize): string {
+function probability(prize: DisplayPrize): string {
   const total = prizes.value.reduce((sum, item) => sum + Number(item.weight ?? 0), 0)
   if (total <= 0) return '0'
-  return ((Number(prize.weight ?? 0) / total) * 100).toFixed(2)
+  const copies = prize.__expanded ? Math.max(1, Number(prize.quantity ?? 1)) : 1
+  return ((Number(prize.weight ?? 0) / total) * 100 / copies).toFixed(2)
 }
 
 async function loadSkuOptions() {
