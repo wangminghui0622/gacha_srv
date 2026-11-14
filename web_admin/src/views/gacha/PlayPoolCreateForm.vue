@@ -100,7 +100,10 @@
               </a-table-column>
               <a-table-column title="赏品" data-index="name" align="center" />
               <a-table-column title="缩略图" width="70" align="center">
-                <template #default>—</template>
+                <template #default="{ record }">
+                  <a-image v-if="record.imageUrl" :src="record.imageUrl" :width="32" :height="32" :preview="false" />
+                  <span v-else>—</span>
+                </template>
               </a-table-column>
               <a-table-column title="成本价" width="80" align="center">
                 <template #default="{ record }">{{ Number(record.costFen ?? 0) / 100 }}</template>
@@ -699,6 +702,7 @@ function confirmSkuSelection() {
     const quantity = Math.max(1, Math.trunc(Number(skuQuantities.value[item.productId ?? ''] ?? 1)))
     prize.quantity = quantity
     prize.remaining = quantity
+    prize.imageUrl = item.coverUrl || prize.imageUrl || ''
   }
 
   // 已存在但被取消勾选的商品：无论在哪一页，都从赏品表格移除。
@@ -723,6 +727,7 @@ function confirmSkuSelection() {
       name: item.title?.trim() || `SKU ${id}`,
       skuId: id,
       childPoolId: 0,
+      imageUrl: item.coverUrl || '',
       weight: 1,
       quantity,
       remaining: quantity,
