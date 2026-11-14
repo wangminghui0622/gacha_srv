@@ -99,9 +99,9 @@
                 <template #default="{ record }">{{ record.prizeType === 2 ? '商品' : record.prizeType === 3 ? '箱子' : '虚拟' }}</template>
               </a-table-column>
               <a-table-column title="赏品" data-index="name" align="center" />
-              <a-table-column title="缩略图" width="70" align="center">
+              <a-table-column title="缩略图" :width="80" align="center">
                 <template #default="{ record }">
-                  <a-image v-if="record.imageUrl" :src="record.imageUrl" :width="32" :height="32" :preview="false" />
+                  <a-image v-if="record.imageUrl" :src="record.imageUrl" :width="40" :height="40" :preview="false" />
                   <span v-else>—</span>
                 </template>
               </a-table-column>
@@ -1001,6 +1001,11 @@ onMounted(loadOptions)
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
+}
+
+.prize-table-wrap :deep(.ant-table-tbody > tr > td) {
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 .prize-inline {
