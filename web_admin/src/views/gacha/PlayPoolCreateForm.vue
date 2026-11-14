@@ -208,7 +208,11 @@
           :custom-row="skuCustomRow"
           size="small"
         >
-          <a-table-column title="ID" data-index="productId" :width="190" align="center" />
+          <a-table-column title="ID" :width="190" align="center">
+            <template #default="{ record }">
+              <span :class="{ 'sku-located-id': String(record.productId ?? '') === locatedSkuId }">{{ record.productId }}</span>
+            </template>
+          </a-table-column>
           <a-table-column title="名称" data-index="title" align="center" />
           <a-table-column title="成本价" :width="110" align="center">
             <template #default="{ record }">{{ skuMoney(record.costAmountMinor) }}</template>
@@ -384,6 +388,7 @@ const prizeDraft = reactive({
 })
 const skuModalOpen = ref(false)
 const childParent = ref<PlayPoolPrize | null>(null)
+const locatedSkuId = ref('')
 const boxLoading = ref(false)
 const skuLoading = ref(false)
 const skuItems = ref<AdminProductItem[]>([])
@@ -688,10 +693,12 @@ interface SkuPickerOptions {
   seriesId?: string
   page?: number
   childParent?: PlayPoolPrize | null
+  locatedSkuId?: string
 }
 
 function openSkuPicker(options: SkuPickerOptions = {}) {
   childParent.value = options.childParent ?? null
+  locatedSkuId.value = options.locatedSkuId ?? ''
   skuModalOpen.value = true
   skuFilters.keyword = options.keyword ?? ''
   skuFilters.brandId = options.brandId
@@ -793,14 +800,14 @@ async function openSkuPickerForPrize(record: PlayPoolPrize) {
     if (product?.brandId || product?.seriesId) {
       const page = await findSkuPage({ brandId: product.brandId, seriesId: product.seriesId, status: null }, productId)
       if (page) {
-        openSkuPicker({ brandId: product.brandId, seriesId: product.seriesId, status: null, page })
+        openSkuPicker({ brandId: product.brandId, seriesId: product.seriesId, status: null, page, locatedSkuId: String(productId) })
         return
       }
     }
   } catch {
     // 查询商品详情或定位页码失败时回退到按商品 ID 定位。
   }
-  openSkuPicker({ keyword: String(productId), status: null })
+  openSkuPicker({ keyword: String(productId), status: null, locatedSkuId: String(productId) })
 }
 
 let skuKeywordTimer: number | undefined
@@ -1214,6 +1221,11 @@ onMounted(loadOptions)
   flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 12px;
+}
+
+.sku-located-id {
+  color: #ff4d4f;
+  font-weight: 600;
 }
 
 .sku-table-wrap {
