@@ -569,16 +569,42 @@ async function loadSkuProducts() {
   }
 }
 
-function openSkuPicker(keyword: string = '', status: string = 'PRODUCT_STATUS_ACTIVE') {
+interface SkuPickerOptions {
+  keyword?: string
+  status?: string | null
+  brandId?: string
+  seriesId?: string
+}
+
+function openSkuPicker(options: SkuPickerOptions = {}) {
   skuModalOpen.value = true
-  skuFilters.keyword = keyword
-  skuFilters.brandId = undefined
-  skuFilters.seriesId = undefined
-  skuFilters.status = status || undefined
+  skuFilters.keyword = options.keyword ?? ''
+  skuFilters.brandId = options.brandId
+  skuFilters.seriesId = options.seriesId
+  skuFilters.status = options.status === null ? undefined : options.status ?? 'PRODUCT_STATUS_ACTIVE'
   skuPage.value = 1
   resetSkuPickerState()
   if (!skuOptionsLoaded.value) void loadSkuOptions()
   void loadSkuProducts()
+}
+
+async function openSkuPickerForPrize(record: PlayPoolPrize) {
+  const productId = Number(record.skuId ?? 0)
+  if (!productId) {
+    openSkuPicker({ status: null })
+    return
+  }
+  try {
+    const detail = await catalogAdminProductClient.Get(String(productId))
+    const product = detail.product
+    if (product?.brandId || product?.seriesId) {
+      openSkuPicker({ brandId: product.brandId, seriesId: product.seriesId, status: null })
+      return
+    }
+  } catch {
+    // 查询商品详情失败时回退到按商品 ID 定位。
+  }
+  openSkuPicker({ keyword: String(productId), status: null })
 }
 
 let skuKeywordTimer: number | undefined
@@ -674,7 +700,7 @@ function prizeCustomRow(record: PlayPoolPrize) {
       if (!clickable) return
       const target = event.target as HTMLElement | null
       if (target?.closest('button, a, input, textarea, .ant-select, .ant-switch')) return
-      openSkuPicker(record.skuId ? String(record.skuId) : '', '')
+      void openSkuPickerForPrize(record)
     },
   }
 }
