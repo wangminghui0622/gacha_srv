@@ -235,7 +235,7 @@
               <span v-else>—</span>
             </template>
           </a-table-column>
-          <a-table-column title="个数" :width="80" align="center">
+          <a-table-column title="数量" :width="80" align="center">
             <template #default="{ record }">
               <a-input-number
                 v-model:value="skuQuantities[record.productId ?? '']"
@@ -694,7 +694,7 @@ function confirmSkuSelection() {
     return
   }
 
-  // 已存在商品：更新勾选后的个数，不重复添加。
+  // 已存在商品：更新勾选后的数量，不重复添加。
   for (const item of selected) {
     const id = Number(item.productId ?? 0)
     const prize = existing.get(id)
