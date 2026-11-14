@@ -96,7 +96,7 @@
               <a-table-column title="序号" data-index="prizeIndex" width="50" align="center" />
               <a-table-column title="赏别" data-index="prizeGrade" width="80" align="center" />
               <a-table-column title="类型" width="70" align="center">
-                <template #default="{ record }">{{ record.prizeType === 2 ? '商品' : '虚拟' }}</template>
+                <template #default="{ record }">{{ record.prizeType === 2 ? '商品' : record.prizeType === 3 ? '箱子' : '虚拟' }}</template>
               </a-table-column>
               <a-table-column title="赏品" data-index="name" align="center" />
               <a-table-column title="缩略图" width="70" align="center">
@@ -124,8 +124,14 @@
               <a-select v-model:value="prizeDraft.prizeGrade" :options="gradeOptions" style="width: 90px" />
               <a-select v-model:value="prizeDraft.prizeType" :options="prizeTypeOptions" style="width: 85px" />
               <div class="prize-picker">
-                <a-button v-if="prizeDraft.prizeType === 2" @click="skuModalOpen = true">选择赏品</a-button>
-                <span v-if="prizeDraft.prizeType === 2 && prizeDraft.skuId" class="picked-sku">SKU {{ prizeDraft.skuId }}</span>
+                <template v-if="prizeDraft.prizeType === 2">
+                  <a-button @click="skuModalOpen = true">选择赏品</a-button>
+                  <span v-if="prizeDraft.skuId" class="picked-sku">SKU {{ prizeDraft.skuId }}</span>
+                </template>
+                <template v-else-if="prizeDraft.prizeType === 3">
+                  <a-input-number v-model:value="prizeDraft.childPoolId" :min="1" :precision="0" placeholder="赏箱ID" style="width: 120px" />
+                  <a-button @click="useBoxId">使用赏箱ID</a-button>
+                </template>
                 <a-input v-else v-model:value="prizeDraft.name" placeholder="赏品名称" />
               </div>
               <a-switch v-model:checked="prizeDraft.isPrize" />
@@ -177,7 +183,7 @@ const modeOptions = [
 ]
 const prizeTypeOptions = [
   { label: '商品', value: 2 },
-  { label: '虚拟', value: 1 },
+  { label: '箱子', value: 3 },
 ]
 
 const form = reactive({
@@ -221,6 +227,7 @@ const prizeDraft = reactive({
   prizeType: 2,
   name: '',
   skuId: 0,
+  childPoolId: 0,
   costYuan: 1,
   isPrize: true,
 })
@@ -250,7 +257,15 @@ function addPrize() {
     message.warning('请先选择赏品')
     return
   }
-  const name = prizeDraft.prizeType === 2 ? `SKU ${prizeDraft.skuId}` : prizeDraft.name.trim()
+  if (prizeDraft.prizeType === 3 && !prizeDraft.childPoolId) {
+    message.warning('请输入赏箱ID')
+    return
+  }
+  const name = prizeDraft.prizeType === 2
+    ? `SKU ${prizeDraft.skuId}`
+    : prizeDraft.prizeType === 3
+      ? `赏箱${prizeDraft.childPoolId}`
+      : prizeDraft.name.trim()
   if (!name) {
     message.warning('请输入赏品名称')
     return
@@ -265,6 +280,7 @@ function addPrize() {
     prizeType,
     name,
     skuId: prizeType === 2 ? prizeDraft.skuId : 0,
+    childPoolId: prizeType === 3 ? prizeDraft.childPoolId : 0,
     weight: 1,
     quantity: 1,
     remaining: 1,
@@ -280,9 +296,21 @@ function clearPrizeDraft() {
   prizeDraft.prizeType = 2
   prizeDraft.name = ''
   prizeDraft.skuId = 0
+  prizeDraft.childPoolId = 0
   prizeDraft.costYuan = 1
   prizeDraft.isPrize = true
   skuInput.value = null
+}
+
+function useBoxId() {
+  const id = Number(prizeDraft.childPoolId ?? 0)
+  if (id <= 0) {
+    message.warning('请输入赏箱ID')
+    return
+  }
+  prizeDraft.childPoolId = id
+  prizeDraft.name = `赏箱${id}`
+  message.success(`已使用赏箱ID：${id}`)
 }
 
 function removePrize(index: number) {
