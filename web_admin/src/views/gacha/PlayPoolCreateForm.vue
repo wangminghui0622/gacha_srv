@@ -121,10 +121,13 @@
                     v-if="record.__expanded || Number(record.quantity ?? 0) > 1"
                     type="button"
                     class="qty-toggle"
-                    :class="{ 'qty-badge': !record.__expanded && Number(record.quantity ?? 0) > 1 }"
-                    :style="!record.__expanded && Number(record.quantity ?? 0) > 1 ? qtyBadgeStyle(record) : undefined"
+                    :class="{ 'qty-badge': isQtyBadge(record) }"
+                    :style="isQtyBadge(record) ? qtyBadgeStyle(record) : undefined"
                     @click.stop="togglePrizeExpand(record)"
-                  >{{ record.__expanded ? 1 : record.quantity }}</button>
+                  >
+                    <span v-if="isQtyBadge(record)" class="qty-badge-inner">{{ record.quantity }}</span>
+                    <template v-else>{{ record.__expanded ? 1 : record.quantity }}</template>
+                  </button>
                   <span v-else>{{ record.quantity ?? 0 }}</span>
                 </template>
               </a-table-column>
@@ -386,10 +389,14 @@ interface DisplayPrize extends PlayPoolPrize {
 }
 
 const qtyBadgePalette = [
-  { background: '#e6f4ff', color: '#0958d9', border: '#91caff' },
-  { background: '#f6ffed', color: '#389e0d', border: '#b7eb8f' },
-  { background: '#fff7e6', color: '#d46b08', border: '#ffd591' },
-  { background: '#f9f0ff', color: '#531dab', border: '#d3adf7' },
+  { background: '#f5c542', border: '#d4a017' },
+  { background: '#1677ff', border: '#0958d9' },
+  { background: '#f5222d', border: '#cf1322' },
+  { background: '#722ed1', border: '#531dab' },
+  { background: '#fa8c16', border: '#d46b08' },
+  { background: '#52c41a', border: '#389e0d' },
+  { background: '#a8071a', border: '#820014' },
+  { background: '#1f1f1f', border: '#000000' },
 ]
 
 const prizes = ref<PlayPoolPrize[]>([])
@@ -558,7 +565,11 @@ function reindexPrizes() {
 
 function qtyBadgeStyle(prize: DisplayPrize) {
   const color = qtyBadgePalette[Math.max(0, prize.__badgeIndex) % qtyBadgePalette.length]!
-  return { background: color.background, color: color.color, borderColor: color.border }
+  return { background: color.background, borderColor: color.border }
+}
+
+function isQtyBadge(prize: DisplayPrize): boolean {
+  return !prize.__expanded && Number(prize.quantity ?? 0) > 1
 }
 
 function togglePrizeExpand(prize: PlayPoolPrize) {
@@ -1218,11 +1229,26 @@ onMounted(loadOptions)
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   padding: 0;
   line-height: 1;
   border: 1px solid transparent;
+  border-radius: 50%;
+  box-shadow: inset -2px -3px 5px rgba(0, 0, 0, 0.22), inset 2px 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+.qty-badge-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: #303133;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  background: #fff;
   border-radius: 50%;
 }
 
