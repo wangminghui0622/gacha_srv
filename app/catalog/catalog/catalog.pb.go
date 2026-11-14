@@ -2577,17 +2577,18 @@ type ListAdminProductsRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Keyword       string `protobuf:"bytes,1,opt,name=keyword,proto3" json:"keyword,omitempty"`              // 商品名称/商品ID/编码
-	BrandId       uint64 `protobuf:"varint,2,opt,name=brandId,proto3" json:"brandId,omitempty"`             // 厂商筛选
-	SeriesId      uint64 `protobuf:"varint,3,opt,name=seriesId,proto3" json:"seriesId,omitempty"`           // 系列筛选
-	IpId          uint64 `protobuf:"varint,4,opt,name=ipId,proto3" json:"ipId,omitempty"`                   // IP 筛选
-	SaleType      string `protobuf:"bytes,5,opt,name=saleType,proto3" json:"saleType,omitempty"`            // 销售类型
-	MinPriceMinor int64  `protobuf:"varint,6,opt,name=minPriceMinor,proto3" json:"minPriceMinor,omitempty"` // 最低价格（分）
-	MaxPriceMinor int64  `protobuf:"varint,7,opt,name=maxPriceMinor,proto3" json:"maxPriceMinor,omitempty"` // 最高价格（分）
-	SortBy        string `protobuf:"bytes,8,opt,name=sortBy,proto3" json:"sortBy,omitempty"`                // shippedQuantity / costAmountMinor
-	SortOrder     string `protobuf:"bytes,9,opt,name=sortOrder,proto3" json:"sortOrder,omitempty"`          // asc / desc
-	Page          uint32 `protobuf:"varint,10,opt,name=page,proto3" json:"page,omitempty"`                  // 页码
-	PageSize      uint32 `protobuf:"varint,11,opt,name=pageSize,proto3" json:"pageSize,omitempty"`          // 每页条数
+	Keyword       string        `protobuf:"bytes,1,opt,name=keyword,proto3" json:"keyword,omitempty"`                            // 商品名称/商品ID/编码
+	BrandId       uint64        `protobuf:"varint,2,opt,name=brandId,proto3" json:"brandId,omitempty"`                           // 厂商筛选
+	SeriesId      uint64        `protobuf:"varint,3,opt,name=seriesId,proto3" json:"seriesId,omitempty"`                         // 系列筛选
+	IpId          uint64        `protobuf:"varint,4,opt,name=ipId,proto3" json:"ipId,omitempty"`                                 // IP 筛选
+	SaleType      string        `protobuf:"bytes,5,opt,name=saleType,proto3" json:"saleType,omitempty"`                          // 销售类型
+	MinPriceMinor int64         `protobuf:"varint,6,opt,name=minPriceMinor,proto3" json:"minPriceMinor,omitempty"`               // 最低价格（分）
+	MaxPriceMinor int64         `protobuf:"varint,7,opt,name=maxPriceMinor,proto3" json:"maxPriceMinor,omitempty"`               // 最高价格（分）
+	SortBy        string        `protobuf:"bytes,8,opt,name=sortBy,proto3" json:"sortBy,omitempty"`                              // shippedQuantity / costAmountMinor
+	SortOrder     string        `protobuf:"bytes,9,opt,name=sortOrder,proto3" json:"sortOrder,omitempty"`                        // asc / desc
+	Page          uint32        `protobuf:"varint,10,opt,name=page,proto3" json:"page,omitempty"`                                // 页码
+	PageSize      uint32        `protobuf:"varint,11,opt,name=pageSize,proto3" json:"pageSize,omitempty"`                        // 每页条数
+	Status        ProductStatus `protobuf:"varint,12,opt,name=status,proto3,enum=catalog.ProductStatus" json:"status,omitempty"` // 商品状态：DRAFT/ACTIVE/ARCHIVED（空=不过滤）
 }
 
 func (x *ListAdminProductsRequest) Reset() {
@@ -2697,6 +2698,13 @@ func (x *ListAdminProductsRequest) GetPageSize() uint32 {
 		return x.PageSize
 	}
 	return 0
+}
+
+func (x *ListAdminProductsRequest) GetStatus() ProductStatus {
+	if x != nil {
+		return x.Status
+	}
+	return ProductStatus_PRODUCT_STATUS_UNSPECIFIED
 }
 
 type ListAdminProductsReply struct {
@@ -3896,7 +3904,7 @@ var file_catalog_proto_rawDesc = []byte{
 	0x74, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x52, 0x65, 0x71,
 	0x75, 0x65, 0x73, 0x74, 0x12, 0x1c, 0x0a, 0x09, 0x70, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x49,
 	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x09, 0x70, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74,
-	0x49, 0x64, 0x22, 0xcc, 0x02, 0x0a, 0x18, 0x4c, 0x69, 0x73, 0x74, 0x41, 0x64, 0x6d, 0x69, 0x6e,
+	0x49, 0x64, 0x22, 0xfc, 0x02, 0x0a, 0x18, 0x4c, 0x69, 0x73, 0x74, 0x41, 0x64, 0x6d, 0x69, 0x6e,
 	0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
 	0x18, 0x0a, 0x07, 0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
 	0x52, 0x07, 0x6b, 0x65, 0x79, 0x77, 0x6f, 0x72, 0x64, 0x12, 0x18, 0x0a, 0x07, 0x62, 0x72, 0x61,
@@ -3917,7 +3925,10 @@ var file_catalog_proto_rawDesc = []byte{
 	0x72, 0x12, 0x12, 0x0a, 0x04, 0x70, 0x61, 0x67, 0x65, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x0d, 0x52,
 	0x04, 0x70, 0x61, 0x67, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x70, 0x61, 0x67, 0x65, 0x53, 0x69, 0x7a,
 	0x65, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x08, 0x70, 0x61, 0x67, 0x65, 0x53, 0x69, 0x7a,
-	0x65, 0x22, 0x91, 0x01, 0x0a, 0x16, 0x4c, 0x69, 0x73, 0x74, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x50,
+	0x65, 0x12, 0x2e, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x0c, 0x20, 0x01, 0x28,
+	0x0e, 0x32, 0x16, 0x2e, 0x63, 0x61, 0x74, 0x61, 0x6c, 0x6f, 0x67, 0x2e, 0x50, 0x72, 0x6f, 0x64,
+	0x75, 0x63, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75,
+	0x73, 0x22, 0x91, 0x01, 0x0a, 0x16, 0x4c, 0x69, 0x73, 0x74, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x50,
 	0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x73, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x31, 0x0a, 0x08,
 	0x70, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x15,
 	0x2e, 0x63, 0x61, 0x74, 0x61, 0x6c, 0x6f, 0x67, 0x2e, 0x41, 0x64, 0x6d, 0x69, 0x6e, 0x50, 0x72,
@@ -4276,67 +4287,68 @@ var file_catalog_proto_depIdxs = []int32{
 	0,  // 21: catalog.AdminProduct.status:type_name -> catalog.ProductStatus
 	33, // 22: catalog.AdminProductDetail.product:type_name -> catalog.AdminProduct
 	34, // 23: catalog.AdminProductDetail.detailParams:type_name -> catalog.ProductDetailParam
-	33, // 24: catalog.ListAdminProductsReply.products:type_name -> catalog.AdminProduct
-	34, // 25: catalog.CreateAdminProductRequest.detailParams:type_name -> catalog.ProductDetailParam
-	34, // 26: catalog.UpdateAdminProductRequest.detailParams:type_name -> catalog.ProductDetailParam
-	1,  // 27: catalog.ReviseSKUInput.fulfillmentMode:type_name -> catalog.FulfillmentMode
-	2,  // 28: catalog.ReviseSKUInput.salePrice:type_name -> catalog.Money
-	2,  // 29: catalog.ReviseSKUInput.referencePrice:type_name -> catalog.Money
-	44, // 30: catalog.SaveProductRevisionRequest.skus:type_name -> catalog.ReviseSKUInput
-	12, // 31: catalog.SaveProductVariantRevisionRequest.product:type_name -> catalog.CreateProductRequest
-	12, // 32: catalog.Catalog.CreateProduct:input_type -> catalog.CreateProductRequest
-	13, // 33: catalog.Catalog.GetProduct:input_type -> catalog.GetProductRequest
-	14, // 34: catalog.Catalog.GetSKU:input_type -> catalog.GetSKURequest
-	16, // 35: catalog.Catalog.ListProducts:input_type -> catalog.ListProductsRequest
-	19, // 36: catalog.Catalog.ListIPs:input_type -> catalog.ListIPsRequest
-	21, // 37: catalog.Catalog.CreateIP:input_type -> catalog.CreateIPRequest
-	22, // 38: catalog.Catalog.UpdateIP:input_type -> catalog.UpdateIPRequest
-	24, // 39: catalog.Catalog.ListBrands:input_type -> catalog.ListBrandsRequest
-	26, // 40: catalog.Catalog.CreateBrand:input_type -> catalog.CreateBrandRequest
-	27, // 41: catalog.Catalog.UpdateBrand:input_type -> catalog.UpdateBrandRequest
-	29, // 42: catalog.Catalog.ListSeries:input_type -> catalog.ListSeriesRequest
-	31, // 43: catalog.Catalog.CreateSeries:input_type -> catalog.CreateSeriesRequest
-	32, // 44: catalog.Catalog.UpdateSeries:input_type -> catalog.UpdateSeriesRequest
-	37, // 45: catalog.Catalog.ListAdminProducts:input_type -> catalog.ListAdminProductsRequest
-	36, // 46: catalog.Catalog.GetAdminProduct:input_type -> catalog.GetAdminProductRequest
-	39, // 47: catalog.Catalog.CreateAdminProduct:input_type -> catalog.CreateAdminProductRequest
-	40, // 48: catalog.Catalog.UpdateAdminProduct:input_type -> catalog.UpdateAdminProductRequest
-	41, // 49: catalog.Catalog.CopyAdminProduct:input_type -> catalog.CopyAdminProductRequest
-	43, // 50: catalog.Catalog.PublishProduct:input_type -> catalog.PublishProductRequest
-	42, // 51: catalog.Catalog.GetPublishedProduct:input_type -> catalog.GetPublishedProductRequest
-	45, // 52: catalog.Catalog.SaveProductRevision:input_type -> catalog.SaveProductRevisionRequest
-	48, // 53: catalog.Catalog.SaveProductVariantRevision:input_type -> catalog.SaveProductVariantRevisionRequest
-	46, // 54: catalog.Catalog.GetProductRevision:input_type -> catalog.GetProductRevisionRequest
-	47, // 55: catalog.Catalog.PublishProductRevision:input_type -> catalog.PublishProductRevisionRequest
-	7,  // 56: catalog.Catalog.CreateProduct:output_type -> catalog.Product
-	7,  // 57: catalog.Catalog.GetProduct:output_type -> catalog.Product
-	6,  // 58: catalog.Catalog.GetSKU:output_type -> catalog.SKU
-	17, // 59: catalog.Catalog.ListProducts:output_type -> catalog.ListProductsReply
-	20, // 60: catalog.Catalog.ListIPs:output_type -> catalog.ListIPsReply
-	18, // 61: catalog.Catalog.CreateIP:output_type -> catalog.IP
-	18, // 62: catalog.Catalog.UpdateIP:output_type -> catalog.IP
-	25, // 63: catalog.Catalog.ListBrands:output_type -> catalog.ListBrandsReply
-	23, // 64: catalog.Catalog.CreateBrand:output_type -> catalog.Brand
-	23, // 65: catalog.Catalog.UpdateBrand:output_type -> catalog.Brand
-	30, // 66: catalog.Catalog.ListSeries:output_type -> catalog.ListSeriesReply
-	28, // 67: catalog.Catalog.CreateSeries:output_type -> catalog.Series
-	28, // 68: catalog.Catalog.UpdateSeries:output_type -> catalog.Series
-	38, // 69: catalog.Catalog.ListAdminProducts:output_type -> catalog.ListAdminProductsReply
-	35, // 70: catalog.Catalog.GetAdminProduct:output_type -> catalog.AdminProductDetail
-	33, // 71: catalog.Catalog.CreateAdminProduct:output_type -> catalog.AdminProduct
-	33, // 72: catalog.Catalog.UpdateAdminProduct:output_type -> catalog.AdminProduct
-	33, // 73: catalog.Catalog.CopyAdminProduct:output_type -> catalog.AdminProduct
-	7,  // 74: catalog.Catalog.PublishProduct:output_type -> catalog.Product
-	7,  // 75: catalog.Catalog.GetPublishedProduct:output_type -> catalog.Product
-	7,  // 76: catalog.Catalog.SaveProductRevision:output_type -> catalog.Product
-	7,  // 77: catalog.Catalog.SaveProductVariantRevision:output_type -> catalog.Product
-	7,  // 78: catalog.Catalog.GetProductRevision:output_type -> catalog.Product
-	7,  // 79: catalog.Catalog.PublishProductRevision:output_type -> catalog.Product
-	56, // [56:80] is the sub-list for method output_type
-	32, // [32:56] is the sub-list for method input_type
-	32, // [32:32] is the sub-list for extension type_name
-	32, // [32:32] is the sub-list for extension extendee
-	0,  // [0:32] is the sub-list for field type_name
+	0,  // 24: catalog.ListAdminProductsRequest.status:type_name -> catalog.ProductStatus
+	33, // 25: catalog.ListAdminProductsReply.products:type_name -> catalog.AdminProduct
+	34, // 26: catalog.CreateAdminProductRequest.detailParams:type_name -> catalog.ProductDetailParam
+	34, // 27: catalog.UpdateAdminProductRequest.detailParams:type_name -> catalog.ProductDetailParam
+	1,  // 28: catalog.ReviseSKUInput.fulfillmentMode:type_name -> catalog.FulfillmentMode
+	2,  // 29: catalog.ReviseSKUInput.salePrice:type_name -> catalog.Money
+	2,  // 30: catalog.ReviseSKUInput.referencePrice:type_name -> catalog.Money
+	44, // 31: catalog.SaveProductRevisionRequest.skus:type_name -> catalog.ReviseSKUInput
+	12, // 32: catalog.SaveProductVariantRevisionRequest.product:type_name -> catalog.CreateProductRequest
+	12, // 33: catalog.Catalog.CreateProduct:input_type -> catalog.CreateProductRequest
+	13, // 34: catalog.Catalog.GetProduct:input_type -> catalog.GetProductRequest
+	14, // 35: catalog.Catalog.GetSKU:input_type -> catalog.GetSKURequest
+	16, // 36: catalog.Catalog.ListProducts:input_type -> catalog.ListProductsRequest
+	19, // 37: catalog.Catalog.ListIPs:input_type -> catalog.ListIPsRequest
+	21, // 38: catalog.Catalog.CreateIP:input_type -> catalog.CreateIPRequest
+	22, // 39: catalog.Catalog.UpdateIP:input_type -> catalog.UpdateIPRequest
+	24, // 40: catalog.Catalog.ListBrands:input_type -> catalog.ListBrandsRequest
+	26, // 41: catalog.Catalog.CreateBrand:input_type -> catalog.CreateBrandRequest
+	27, // 42: catalog.Catalog.UpdateBrand:input_type -> catalog.UpdateBrandRequest
+	29, // 43: catalog.Catalog.ListSeries:input_type -> catalog.ListSeriesRequest
+	31, // 44: catalog.Catalog.CreateSeries:input_type -> catalog.CreateSeriesRequest
+	32, // 45: catalog.Catalog.UpdateSeries:input_type -> catalog.UpdateSeriesRequest
+	37, // 46: catalog.Catalog.ListAdminProducts:input_type -> catalog.ListAdminProductsRequest
+	36, // 47: catalog.Catalog.GetAdminProduct:input_type -> catalog.GetAdminProductRequest
+	39, // 48: catalog.Catalog.CreateAdminProduct:input_type -> catalog.CreateAdminProductRequest
+	40, // 49: catalog.Catalog.UpdateAdminProduct:input_type -> catalog.UpdateAdminProductRequest
+	41, // 50: catalog.Catalog.CopyAdminProduct:input_type -> catalog.CopyAdminProductRequest
+	43, // 51: catalog.Catalog.PublishProduct:input_type -> catalog.PublishProductRequest
+	42, // 52: catalog.Catalog.GetPublishedProduct:input_type -> catalog.GetPublishedProductRequest
+	45, // 53: catalog.Catalog.SaveProductRevision:input_type -> catalog.SaveProductRevisionRequest
+	48, // 54: catalog.Catalog.SaveProductVariantRevision:input_type -> catalog.SaveProductVariantRevisionRequest
+	46, // 55: catalog.Catalog.GetProductRevision:input_type -> catalog.GetProductRevisionRequest
+	47, // 56: catalog.Catalog.PublishProductRevision:input_type -> catalog.PublishProductRevisionRequest
+	7,  // 57: catalog.Catalog.CreateProduct:output_type -> catalog.Product
+	7,  // 58: catalog.Catalog.GetProduct:output_type -> catalog.Product
+	6,  // 59: catalog.Catalog.GetSKU:output_type -> catalog.SKU
+	17, // 60: catalog.Catalog.ListProducts:output_type -> catalog.ListProductsReply
+	20, // 61: catalog.Catalog.ListIPs:output_type -> catalog.ListIPsReply
+	18, // 62: catalog.Catalog.CreateIP:output_type -> catalog.IP
+	18, // 63: catalog.Catalog.UpdateIP:output_type -> catalog.IP
+	25, // 64: catalog.Catalog.ListBrands:output_type -> catalog.ListBrandsReply
+	23, // 65: catalog.Catalog.CreateBrand:output_type -> catalog.Brand
+	23, // 66: catalog.Catalog.UpdateBrand:output_type -> catalog.Brand
+	30, // 67: catalog.Catalog.ListSeries:output_type -> catalog.ListSeriesReply
+	28, // 68: catalog.Catalog.CreateSeries:output_type -> catalog.Series
+	28, // 69: catalog.Catalog.UpdateSeries:output_type -> catalog.Series
+	38, // 70: catalog.Catalog.ListAdminProducts:output_type -> catalog.ListAdminProductsReply
+	35, // 71: catalog.Catalog.GetAdminProduct:output_type -> catalog.AdminProductDetail
+	33, // 72: catalog.Catalog.CreateAdminProduct:output_type -> catalog.AdminProduct
+	33, // 73: catalog.Catalog.UpdateAdminProduct:output_type -> catalog.AdminProduct
+	33, // 74: catalog.Catalog.CopyAdminProduct:output_type -> catalog.AdminProduct
+	7,  // 75: catalog.Catalog.PublishProduct:output_type -> catalog.Product
+	7,  // 76: catalog.Catalog.GetPublishedProduct:output_type -> catalog.Product
+	7,  // 77: catalog.Catalog.SaveProductRevision:output_type -> catalog.Product
+	7,  // 78: catalog.Catalog.SaveProductVariantRevision:output_type -> catalog.Product
+	7,  // 79: catalog.Catalog.GetProductRevision:output_type -> catalog.Product
+	7,  // 80: catalog.Catalog.PublishProductRevision:output_type -> catalog.Product
+	57, // [57:81] is the sub-list for method output_type
+	33, // [33:57] is the sub-list for method input_type
+	33, // [33:33] is the sub-list for extension type_name
+	33, // [33:33] is the sub-list for extension extendee
+	0,  // [0:33] is the sub-list for field type_name
 }
 
 func init() { file_catalog_proto_init() }

@@ -47,6 +47,11 @@ func ListAdminProductsHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			restx.Error(w, r, err)
 			return
 		}
+		status, err := restx.QueryEnum(r, "status", catalogpb.ProductStatus_value)
+		if err != nil {
+			restx.Error(w, r, err)
+			return
+		}
 		req := &catalogpb.ListAdminProductsRequest{
 			Keyword:       restx.QueryString(r, "keyword"),
 			BrandId:       brandID,
@@ -55,6 +60,7 @@ func ListAdminProductsHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			SaleType:      restx.QueryString(r, "saleType"),
 			MinPriceMinor: int64(minPrice),
 			MaxPriceMinor: int64(maxPrice),
+			Status:        catalogpb.ProductStatus(status),
 			SortBy:        restx.QueryString(r, "sortBy"),
 			SortOrder:     restx.QueryString(r, "sortOrder"),
 			Page:          page,

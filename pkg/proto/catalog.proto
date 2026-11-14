@@ -332,6 +332,7 @@ message ListAdminProductsRequest {
   string sortOrder = 9;       // asc / desc
   uint32 page = 10;           // 页码
   uint32 pageSize = 11;       // 每页条数
+  ProductStatus status = 12;  // 商品状态：DRAFT/ACTIVE/ARCHIVED（空=不过滤）
 }
 
 message ListAdminProductsReply {

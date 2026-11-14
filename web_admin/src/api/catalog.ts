@@ -243,6 +243,7 @@ export const catalogAdminProductClient = {
     sortOrder: string
     page: number
     pageSize: number
+    status?: string
   }): Promise<ListAdminProductsReply> {
     return http.get('/console/v2/api/catalog/admin/products', { params })
   },

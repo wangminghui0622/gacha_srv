@@ -1090,6 +1090,9 @@ func applyAdminProductFilters(q *gorm.DB, in *catalogpb.ListAdminProductsRequest
 	if saleType := strings.TrimSpace(in.SaleType); saleType != "" {
 		q = q.Where("p.sale_type = ?", saleType)
 	}
+	if in.Status != catalogpb.ProductStatus_PRODUCT_STATUS_UNSPECIFIED {
+		q = q.Where("p.status = ?", in.Status)
+	}
 	if in.MinPriceMinor > 0 || in.MaxPriceMinor > 0 {
 		sub := "EXISTS (SELECT 1 FROM skus AS sk WHERE sk.product_id = p.id"
 		args := make([]any, 0, 2)

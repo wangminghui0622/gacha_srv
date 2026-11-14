@@ -184,6 +184,13 @@
             option-filter-prop="label"
             style="width: 160px"
           />
+          <a-select
+            v-model:value="skuFilters.status"
+            placeholder="状态"
+            :options="skuStatusOptions"
+            allow-clear
+            style="width: 120px"
+          />
           <a-button class="sku-query-btn" type="primary" :loading="skuLoading" @click="searchSku">查询</a-button>
         </div>
 
@@ -358,7 +365,13 @@ const skuFilters = reactive({
   keyword: '',
   brandId: undefined as string | undefined,
   seriesId: undefined as string | undefined,
+  status: 'PRODUCT_STATUS_ACTIVE' as string | undefined,
 })
+const skuStatusOptions = [
+  { label: '草稿', value: 'PRODUCT_STATUS_DRAFT' },
+  { label: '生效', value: 'PRODUCT_STATUS_ACTIVE' },
+  { label: '归档', value: 'PRODUCT_STATUS_ARCHIVED' },
+]
 const selectedSkuKeys = ref<string[]>([])
 const skuQuantities = ref<Record<string, number>>({})
 const skuProductCache = new Map<string, AdminProductItem>()
@@ -534,6 +547,7 @@ async function loadSkuProducts() {
       sortOrder: '',
       page: skuPage.value,
       pageSize: skuPageSize.value,
+      status: skuFilters.status ?? '',
     })
     const products = reply.products ?? []
     skuItems.value = products
@@ -549,11 +563,12 @@ async function loadSkuProducts() {
   }
 }
 
-function openSkuPicker(keyword: string = '') {
+function openSkuPicker(keyword: string = '', status: string = 'PRODUCT_STATUS_ACTIVE') {
   skuModalOpen.value = true
   skuFilters.keyword = keyword
   skuFilters.brandId = undefined
   skuFilters.seriesId = undefined
+  skuFilters.status = status || undefined
   skuPage.value = 1
   resetSkuPickerState()
   if (!skuOptionsLoaded.value) void loadSkuOptions()
@@ -632,7 +647,7 @@ function prizeCustomRow(record: PlayPoolPrize) {
       if (!clickable) return
       const target = event.target as HTMLElement | null
       if (target?.closest('button, a, input, textarea, .ant-select, .ant-switch')) return
-      openSkuPicker(record.skuId ? String(record.skuId) : '')
+      openSkuPicker(record.skuId ? String(record.skuId) : '', '')
     },
   }
 }
