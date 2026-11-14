@@ -52,7 +52,7 @@
           </div>
         </a-form-item>
 
-        <a-form-item label="封面图">
+        <a-form-item :wrapper-col="{ span: 18, offset: 5 }">
           <div class="cover-row">
             <div class="cover-item">
               <div class="cover-label">封面大图</div>
