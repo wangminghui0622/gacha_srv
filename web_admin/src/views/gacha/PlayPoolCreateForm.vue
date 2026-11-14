@@ -819,8 +819,10 @@ onMounted(loadOptions)
 }
 
 .sku-table-wrap {
-  max-height: calc(100vh - 350px);
-  overflow: auto;
+  height: calc(100vh - 350px);
+  min-height: 240px;
+  overflow-x: auto;
+  overflow-y: scroll;
 }
 
 .sku-table-wrap :deep(.ant-table-thead th) {
