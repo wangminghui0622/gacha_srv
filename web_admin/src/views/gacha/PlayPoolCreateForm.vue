@@ -194,6 +194,7 @@
           :pagination="false"
           :row-key="(record: AdminProductItem) => record.productId ?? ''"
           :row-selection="skuRowSelection"
+          :custom-row="skuCustomRow"
           size="small"
         >
           <a-table-column title="ID" data-index="productId" :width="190" align="center" />
@@ -559,6 +560,27 @@ function onSkuQuantityChange(record: AdminProductItem) {
   if (!id) return
   if (!selectedSkuKeys.value.includes(id)) {
     selectedSkuKeys.value = [...selectedSkuKeys.value, id]
+  }
+}
+
+function toggleSkuSelection(record: AdminProductItem) {
+  const id = record.productId
+  if (!id) return
+  if (selectedSkuKeys.value.includes(id)) {
+    selectedSkuKeys.value = selectedSkuKeys.value.filter((key) => key !== id)
+  } else {
+    selectedSkuKeys.value = [...selectedSkuKeys.value, id]
+  }
+}
+
+function skuCustomRow(record: AdminProductItem) {
+  return {
+    style: { cursor: 'pointer' },
+    onClick: (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null
+      if (target?.closest('input, textarea, button, a, .ant-checkbox-wrapper, .ant-input-number, .ant-image')) return
+      toggleSkuSelection(record)
+    },
   }
 }
 
