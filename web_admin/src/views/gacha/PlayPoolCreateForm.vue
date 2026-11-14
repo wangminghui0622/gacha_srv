@@ -453,6 +453,31 @@ async function loadSkuOptions() {
   skuOptionsLoaded.value = true
 }
 
+function existingSkuPrizeMap(): Map<number, PlayPoolPrize> {
+  const map = new Map<number, PlayPoolPrize>()
+  for (const prize of prizes.value) {
+    const skuId = Number(prize.skuId ?? 0)
+    if (prize.prizeType === 2 && skuId > 0 && !map.has(skuId)) {
+      map.set(skuId, prize)
+    }
+  }
+  return map
+}
+
+function syncSkuSelection(products: AdminProductItem[]) {
+  const existing = existingSkuPrizeMap()
+  const quantities: Record<string, number> = {}
+  const selected: string[] = []
+  for (const item of products) {
+    const key = item.productId ?? ''
+    const prize = existing.get(Number(key))
+    quantities[key] = prize ? Math.max(1, Math.trunc(Number(prize.quantity ?? 1))) : 1
+    if (prize) selected.push(key)
+  }
+  skuQuantities.value = quantities
+  selectedSkuKeys.value = selected
+}
+
 async function loadSkuProducts() {
   skuLoading.value = true
   try {
@@ -471,14 +496,14 @@ async function loadSkuProducts() {
     })
     const products = reply.products ?? []
     skuItems.value = products
-    skuQuantities.value = Object.fromEntries(products.map((item) => [item.productId ?? '', 1]))
+    syncSkuSelection(products)
     skuTotal.value = Number(reply.total ?? 0)
     skuPage.value = Number(reply.page ?? skuPage.value)
     skuPageSize.value = Number(reply.pageSize ?? skuPageSize.value)
-    selectedSkuKeys.value = []
   } catch {
     skuItems.value = []
     skuTotal.value = 0
+    skuQuantities.value = {}
     selectedSkuKeys.value = []
   } finally {
     skuLoading.value = false
@@ -527,18 +552,41 @@ function skuMoney(value?: string): string {
 }
 
 function confirmSkuSelection() {
-  if (selectedSkuKeys.value.length === 0) {
-    message.warning('请先勾选赏品')
-    return
-  }
+  const pageIds = new Set(skuItems.value.map((item) => Number(item.productId ?? 0)).filter((id) => id > 0))
+  const existing = existingSkuPrizeMap()
+  const hasExistingOnPage = prizes.value.some((prize) => {
+    const skuId = Number(prize.skuId ?? 0)
+    return prize.prizeType === 2 && skuId > 0 && pageIds.has(skuId)
+  })
   const selected = skuItems.value.filter((item) => item.productId && selectedSkuKeys.value.includes(item.productId))
-  if (selected.length === 0) {
+  if (selected.length === 0 && !hasExistingOnPage) {
     message.warning('请先勾选赏品')
     return
   }
+
+  // 已存在商品：更新勾选后的个数，不重复添加。
   for (const item of selected) {
     const id = Number(item.productId ?? 0)
-    if (!id) continue
+    const prize = existing.get(id)
+    if (!prize) continue
+    const quantity = Math.max(1, Math.trunc(Number(skuQuantities.value[item.productId ?? ''] ?? 1)))
+    prize.quantity = quantity
+    prize.remaining = quantity
+  }
+
+  // 当前页已存在但被取消勾选的商品：从赏品表格移除。
+  const selectedIds = new Set(selected.map((item) => Number(item.productId ?? 0)))
+  prizes.value = prizes.value.filter((prize) => {
+    const skuId = Number(prize.skuId ?? 0)
+    if (prize.prizeType !== 2 || skuId <= 0) return true
+    if (!pageIds.has(skuId)) return true
+    return selectedIds.has(skuId)
+  })
+
+  // 新勾选的商品：追加到赏品表格。
+  for (const item of selected) {
+    const id = Number(item.productId ?? 0)
+    if (!id || existing.has(id)) continue
     const quantity = Math.max(1, Math.trunc(Number(skuQuantities.value[item.productId ?? ''] ?? 1)))
     prizes.value.push({
       prizeIndex: prizes.value.length,
@@ -555,9 +603,11 @@ function confirmSkuSelection() {
       costFen: Number(item.costAmountMinor ?? 0),
     })
   }
+
+  prizes.value = prizes.value.map((prize, index) => ({ ...prize, prizeIndex: index }))
   skuModalOpen.value = false
   selectedSkuKeys.value = []
-  message.success(`已添加 ${selected.length} 个赏品`)
+  message.success('赏品选择已更新')
   void nextTick(() => {
     window.setTimeout(() => {
       const wrap = prizeTableWrap.value
