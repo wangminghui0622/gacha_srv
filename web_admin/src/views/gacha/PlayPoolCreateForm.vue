@@ -127,7 +127,7 @@
                 </template>
               </a-table-column>
               <a-table-column title="概率(%)" width="80" align="center">
-                <template #default="{ record }">{{ probability(record) }}</template>
+                <template #default>{{ probability() }}</template>
               </a-table-column>
               <a-table-column title="操作" :width="150" align="center">
                 <template #default="{ record }">
@@ -584,11 +584,13 @@ function removePrize(index: number) {
   reindexPrizes()
 }
 
-function probability(prize: DisplayPrize): string {
-  const total = prizes.value.reduce((sum, item) => sum + Number(item.weight ?? 0), 0)
-  if (total <= 0) return '0'
-  const copies = prize.__expanded ? Math.max(1, Number(prize.quantity ?? 1)) : 1
-  return ((Number(prize.weight ?? 0) / total) * 100 / copies).toFixed(2)
+const totalPrizeUnits = computed(() =>
+  prizes.value.reduce((sum, prize) => sum + Math.max(0, Number(prize.quantity ?? 0)), 0),
+)
+
+function probability(): string {
+  if (totalPrizeUnits.value <= 0) return '0'
+  return (100 / totalPrizeUnits.value).toFixed(2)
 }
 
 async function loadSkuOptions() {
