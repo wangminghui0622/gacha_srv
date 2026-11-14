@@ -118,11 +118,11 @@
               <a-table-column title="总数" width="60" align="center">
                 <template #default="{ record }">
                   <button
-                    v-if="Number(record.quantity ?? 0) > 1"
+                    v-if="record.__expanded || Number(record.quantity ?? 0) > 1"
                     type="button"
                     class="qty-toggle"
                     @click.stop="togglePrizeExpand(record)"
-                  >{{ record.quantity }}</button>
+                  >{{ record.__expanded ? 1 : record.quantity }}</button>
                   <span v-else>{{ record.quantity ?? 0 }}</span>
                 </template>
               </a-table-column>
@@ -379,6 +379,7 @@ interface DisplayPrize extends PlayPoolPrize {
   __rowKey: string
   __copyIndex: number
   __displayIndex: number
+  __expanded: boolean
 }
 
 const prizes = ref<PlayPoolPrize[]>([])
@@ -388,7 +389,8 @@ const displayPrizes = computed<DisplayPrize[]>(() => {
   let displayIndex = 0
   for (const prize of prizes.value) {
     const total = Number(prize.quantity ?? 1)
-    const copies = total > 1 && expandedPrizeIndexes.value.has(prize.prizeIndex) ? total : 1
+    const expanded = total > 1 && expandedPrizeIndexes.value.has(prize.prizeIndex)
+    const copies = expanded ? total : 1
     for (let copy = 0; copy < copies; copy += 1) {
       displayIndex += 1
       rows.push({
@@ -396,6 +398,7 @@ const displayPrizes = computed<DisplayPrize[]>(() => {
         __rowKey: `${prize.prizeIndex}-${copy}`,
         __copyIndex: copy,
         __displayIndex: displayIndex,
+        __expanded: expanded,
       })
     }
   }
