@@ -255,6 +255,7 @@
 
         <div class="sku-confirm">
           <a-button type="primary" class="sku-confirm-btn" @click="confirmSkuSelection">确认</a-button>
+          <a-button class="sku-cancel-btn" @click="cancelSkuPicker">取消</a-button>
         </div>
       </div>
     </a-modal>
@@ -636,6 +637,11 @@ function prizeCustomRow(record: PlayPoolPrize) {
   }
 }
 
+function cancelSkuPicker() {
+  skuModalOpen.value = false
+  resetSkuPickerState()
+}
+
 function confirmSkuSelection() {
   const existing = existingSkuPrizeMap()
   const selected = selectedSkuKeys.value
@@ -934,7 +940,12 @@ onMounted(loadOptions)
 .sku-confirm {
   display: flex;
   justify-content: center;
+  gap: 10px;
   margin-top: 12px;
+}
+
+.sku-cancel-btn {
+  min-width: 96px;
 }
 
 .sku-confirm-btn {
