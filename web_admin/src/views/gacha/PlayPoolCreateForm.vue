@@ -512,6 +512,7 @@ function confirmRemove(record: PlayPoolPrize) {
     okText: '删除',
     cancelText: '取消',
     okType: 'danger',
+    wrapClassName: 'pool-delete-confirm',
     onOk: () => removePrize(record.prizeIndex),
   })
 }
@@ -1181,6 +1182,17 @@ onMounted(loadOptions)
 
 .sku-picker-title {
   text-align: center;
+}
+
+:global(.pool-delete-confirm .ant-modal-confirm-btns) {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+:global(.pool-delete-confirm .ant-modal-confirm-btns .ant-btn + .ant-btn) {
+  margin-left: 0;
 }
 
 .sku-footer {
