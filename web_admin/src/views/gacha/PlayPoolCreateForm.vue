@@ -655,14 +655,6 @@ function openChildPicker(record: PlayPoolPrize) {
     message.warning('子赏不能再添加子赏')
     return
   }
-  if (form.mode !== 'groupbuy') {
-    message.warning('仅拼团赏支持子赏')
-    return
-  }
-  if (record.specialKind) {
-    message.warning('特殊赏不能添加子赏')
-    return
-  }
   openSkuPicker({ childParent: record, status: 'PRODUCT_STATUS_ACTIVE' })
 }
 
