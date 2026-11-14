@@ -514,7 +514,7 @@ function confirmRemove(record: PlayPoolPrize) {
     okType: 'danger',
     closable: true,
     centered: true,
-    width: 380,
+    width: 320,
     wrapClassName: 'pool-delete-confirm',
     onOk: () => removePrize(record.prizeIndex),
   })
