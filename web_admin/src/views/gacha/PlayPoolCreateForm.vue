@@ -213,7 +213,11 @@
               <span :class="{ 'sku-located-id': String(record.productId ?? '') === locatedSkuId }">{{ record.productId }}</span>
             </template>
           </a-table-column>
-          <a-table-column title="名称" data-index="title" align="center" />
+          <a-table-column title="名称" align="center">
+            <template #default="{ record }">
+              <span :class="{ 'sku-located-id': String(record.productId ?? '') === locatedSkuId }">{{ record.title }}</span>
+            </template>
+          </a-table-column>
           <a-table-column title="成本价" :width="110" align="center">
             <template #default="{ record }">{{ skuMoney(record.costAmountMinor) }}</template>
           </a-table-column>
