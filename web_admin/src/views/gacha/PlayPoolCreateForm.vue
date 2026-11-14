@@ -230,6 +230,7 @@
                 v-model:value="skuQuantities[record.productId ?? '']"
                 :min="1"
                 :precision="0"
+                :controls="false"
                 size="small"
                 style="width: 72px"
               />
