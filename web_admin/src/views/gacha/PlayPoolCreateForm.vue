@@ -194,7 +194,6 @@
             style="width: 120px"
             @change="onSkuFilterChange"
           />
-          <a-button class="sku-query-btn" type="primary" :loading="skuLoading" @click="searchSku">查询</a-button>
         </div>
 
         <div class="sku-table-wrap">
@@ -959,16 +958,6 @@ onMounted(loadOptions)
 
 .sku-picker-title {
   text-align: center;
-}
-
-.sku-query-btn {
-  background: #42b983 !important;
-  border-color: #42b983 !important;
-}
-
-.sku-query-btn:hover {
-  background: #36a374 !important;
-  border-color: #36a374 !important;
 }
 
 .sku-footer {
