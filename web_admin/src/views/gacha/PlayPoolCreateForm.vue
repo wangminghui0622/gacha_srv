@@ -92,7 +92,7 @@
           <div class="prize-label">赏品配置：</div>
           <div class="prize-config">
             <div ref="prizeTableWrap" class="prize-table-wrap">
-            <a-table :data-source="prizes" :pagination="false" row-key="prizeIndex" size="small" :locale="{ emptyText: '暂无数据' }" :scroll="{ x: 680 }">
+            <a-table :data-source="prizes" :pagination="false" row-key="prizeIndex" size="small" :locale="{ emptyText: '暂无数据' }" :scroll="{ x: 680 }" :custom-row="prizeCustomRow">
               <a-table-column title="序号" data-index="prizeIndex" width="50" align="center" />
               <a-table-column title="赏别" data-index="prizeGrade" width="80" align="center" />
               <a-table-column title="类型" width="70" align="center">
@@ -580,6 +580,19 @@ function skuCustomRow(record: AdminProductItem) {
       const target = event.target as HTMLElement | null
       if (target?.closest('input, textarea, button, a, .ant-checkbox-wrapper, .ant-input-number, .ant-image')) return
       toggleSkuSelection(record)
+    },
+  }
+}
+
+function prizeCustomRow(record: PlayPoolPrize) {
+  const clickable = record.prizeType === 2
+  return {
+    style: clickable ? { cursor: 'pointer' } : undefined,
+    onClick: (event: MouseEvent) => {
+      if (!clickable) return
+      const target = event.target as HTMLElement | null
+      if (target?.closest('button, a, input, textarea, .ant-select, .ant-switch')) return
+      openSkuPicker()
     },
   }
 }
