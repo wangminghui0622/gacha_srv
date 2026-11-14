@@ -102,9 +102,6 @@
               <a-table-column title="缩略图" width="70" align="center">
                 <template #default>—</template>
               </a-table-column>
-              <a-table-column title="中奖记录" width="80" align="center">
-                <template #default="{ record }">{{ record.isPrize ? '是' : '否' }}</template>
-              </a-table-column>
               <a-table-column title="成本价" width="80" align="center">
                 <template #default="{ record }">{{ Number(record.costFen ?? 0) / 100 }}</template>
               </a-table-column>
