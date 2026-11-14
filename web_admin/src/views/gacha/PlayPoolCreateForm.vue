@@ -1136,7 +1136,7 @@ onMounted(loadOptions)
 }
 
 .prize-action-link {
-  font-size: 15px !important;
+  font-size: 17px !important;
 }
 
 .prize-inline {
