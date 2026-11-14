@@ -1215,10 +1215,15 @@ onMounted(loadOptions)
 }
 
 .qty-toggle.qty-badge {
-  padding: 1px 8px;
-  line-height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  line-height: 1;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: 50%;
 }
 
 .prize-inline {
