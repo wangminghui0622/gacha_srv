@@ -92,57 +92,23 @@
           <div class="prize-label">赏品配置：</div>
           <div class="prize-config">
             <div ref="prizeTableWrap" class="prize-table-wrap">
-            <a-table :data-source="displayPrizes" :pagination="false" :row-key="(record: DisplayPrize) => record.__rowKey" size="small" :locale="{ emptyText: '暂无数据' }" :scroll="{ x: 680 }" :custom-row="prizeCustomRow">
-              <a-table-column title="序号" width="50" align="center">
-                <template #default="{ record }">{{ record.__displayIndex }}</template>
-              </a-table-column>
-              <a-table-column title="赏别" data-index="prizeGrade" width="80" align="center" />
-              <a-table-column title="类型" width="70" align="center">
-                <template #default="{ record }">{{ record.prizeType === 2 ? '商品' : record.prizeType === 3 ? '箱子' : '虚拟' }}</template>
-              </a-table-column>
-              <a-table-column title="赏品" align="center">
-                <template #default="{ record }">
-                  <a-tag v-if="record.hasParent" color="blue" style="margin-right: 4px">子赏</a-tag>
-                  {{ record.name }}
-                </template>
-              </a-table-column>
-              <a-table-column title="缩略图" :width="80" align="center">
-                <template #default="{ record }">
-                  <a-image v-if="record.imageUrl" :src="record.imageUrl" :width="40" :height="40" :preview="false" />
-                  <span v-else>—</span>
-                </template>
-              </a-table-column>
-              <a-table-column title="成本价" width="80" align="center">
-                <template #default="{ record }">{{ Number(record.costFen ?? 0) / 100 }}</template>
-              </a-table-column>
-              <a-table-column title="总数" width="60" align="center">
-                <template #default="{ record }">
-                  <button
-                    v-if="record.__expanded || Number(record.quantity ?? 0) > 1"
-                    type="button"
-                    class="qty-toggle"
-                    :class="{ 'qty-badge': isQtyBadge(record) }"
-                    :style="isQtyBadge(record) ? qtyBadgeStyle(record) : undefined"
-                    @click.stop="togglePrizeExpand(record)"
-                  >
-                    <span v-if="isQtyBadge(record)" class="qty-badge-inner">{{ record.__expanded ? 1 : record.quantity }}</span>
-                    <template v-else>{{ record.quantity }}</template>
-                  </button>
-                  <span v-else>{{ record.quantity ?? 0 }}</span>
-                </template>
-              </a-table-column>
-              <a-table-column title="概率(%)" width="80" align="center">
-                <template #default="{ record }">{{ probability(record) }}</template>
-              </a-table-column>
-              <a-table-column title="操作" :width="150" align="center">
-                <template #default="{ record }">
-                  <template v-if="record.__copyIndex === 0">
-                    <a-button class="prize-action-link" type="link" size="small" :disabled="!!record.hasParent" @click="openChildPicker(record)">子赏</a-button>
-                    <a-button class="prize-action-link" type="link" danger size="small" @click="confirmRemove(record)">删除</a-button>
-                  </template>
-                </template>
-              </a-table-column>
-            </a-table>
+              <GroupBuyPrizeTable
+                v-if="isGroupBuy"
+                :data="displayPrizes"
+                :probability="probability"
+                :custom-row="prizeCustomRow"
+                @toggle="togglePrizeExpand"
+                @remove="confirmRemove"
+                @child="openChildPicker"
+              />
+              <DefaultPrizeTable
+                v-else
+                :data="displayPrizes"
+                :probability="probability"
+                :custom-row="prizeCustomRow"
+                @toggle="togglePrizeExpand"
+                @remove="confirmRemove"
+              />
             </div>
 
             <div class="prize-inline">
@@ -326,6 +292,9 @@ import {
 import { listPrizeGrades, type PrizeGrade } from '@/api/prizeGrade'
 import { playPoolClient, type PlayPoolPrize } from '@/api/playPool'
 import { poolClient } from '@/api/pool'
+import DefaultPrizeTable from '@/views/gacha/prize/DefaultPrizeTable.vue'
+import GroupBuyPrizeTable from '@/views/gacha/prize/GroupBuyPrizeTable.vue'
+import type { DisplayPrize } from '@/views/gacha/prize/prizeTypes'
 
 const emit = defineEmits<{ success: []; cancel: [] }>()
 const saving = ref(false)
@@ -379,25 +348,6 @@ const switchItems = [
   { key: 'excludeTask', label: '不参与任务' },
   { key: 'allowBoxInBox', label: '允许作为箱中箱' },
 ] as const
-
-interface DisplayPrize extends PlayPoolPrize {
-  __rowKey: string
-  __copyIndex: number
-  __displayIndex: number
-  __expanded: boolean
-  __badgeIndex: number
-}
-
-const qtyBadgePalette = [
-  { background: '#f5c542', border: '#d4a017' },
-  { background: '#1677ff', border: '#0958d9' },
-  { background: '#f5222d', border: '#cf1322' },
-  { background: '#722ed1', border: '#531dab' },
-  { background: '#fa8c16', border: '#d46b08' },
-  { background: '#52c41a', border: '#389e0d' },
-  { background: '#a8071a', border: '#820014' },
-  { background: '#1f1f1f', border: '#000000' },
-]
 
 const prizes = ref<PlayPoolPrize[]>([])
 const expandedPrizeIndexes = ref<Set<number>>(new Set())
@@ -471,6 +421,30 @@ watch(
   () => prizeDraft.prizeType,
   (type) => {
     if (type !== 3) prizeDraft.name = ''
+  },
+)
+
+const isGroupBuy = computed(() => form.mode === 'groupbuy')
+
+watch(
+  () => form.mode,
+  (mode, oldMode) => {
+    if (oldMode !== 'groupbuy' || mode === 'groupbuy') return
+    if (!prizes.value.some((prize) => prize.hasParent)) return
+    Modal.confirm({
+      title: '切换玩法将移除子赏',
+      content: '当前赏品中存在子赏，切换到非拼团玩法后会移除这些子赏，是否继续？',
+      okText: '继续',
+      cancelText: '取消',
+      okType: 'danger',
+      onOk: () => {
+        removeChildPrizes()
+        message.info('已移除子赏配置')
+      },
+      onCancel: () => {
+        form.mode = oldMode
+      },
+    })
   },
 )
 
@@ -552,6 +526,12 @@ async function useBoxId() {
   }
 }
 
+function removeChildPrizes() {
+  if (!prizes.value.some((prize) => prize.hasParent)) return
+  prizes.value = prizes.value.filter((prize) => !prize.hasParent)
+  reindexPrizes()
+}
+
 function reindexPrizes() {
   const indexMap = new Map<number, number>()
   prizes.value.forEach((prize, index) => indexMap.set(prize.prizeIndex, index))
@@ -561,15 +541,6 @@ function reindexPrizes() {
     parentIndex: prize.hasParent && prize.parentIndex !== undefined ? indexMap.get(prize.parentIndex) ?? -1 : prize.parentIndex,
   }))
   expandedPrizeIndexes.value = new Set()
-}
-
-function qtyBadgeStyle(prize: DisplayPrize) {
-  const color = qtyBadgePalette[Math.max(0, prize.__badgeIndex) % qtyBadgePalette.length]!
-  return { background: color.background, borderColor: color.border }
-}
-
-function isQtyBadge(prize: DisplayPrize): boolean {
-  return Number(prize.quantity ?? 0) > 1
 }
 
 function togglePrizeExpand(prize: PlayPoolPrize) {
@@ -733,6 +704,10 @@ function openSkuPicker(options: SkuPickerOptions = {}) {
 }
 
 function openChildPicker(record: PlayPoolPrize) {
+  if (form.mode !== 'groupbuy') {
+    message.warning('仅拼团赏支持子赏')
+    return
+  }
   if (record.hasParent) {
     message.warning('子赏不能再添加子赏')
     return
@@ -1209,47 +1184,6 @@ onMounted(loadOptions)
 .prize-table-wrap :deep(.ant-table-tbody > tr > td) {
   padding-top: 8px;
   padding-bottom: 8px;
-}
-
-.prize-action-link {
-  font-size: 17px !important;
-}
-
-.qty-toggle {
-  padding: 0;
-  color: inherit;
-  font: inherit;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid currentColor;
-  cursor: pointer;
-}
-
-.qty-toggle.qty-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  line-height: 1;
-  border: 1px solid transparent;
-  border-radius: 50%;
-  box-shadow: inset -2px -3px 5px rgba(0, 0, 0, 0.22), inset 2px 2px 4px rgba(255, 255, 255, 0.3);
-}
-
-.qty-badge-inner {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  color: #303133;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1;
-  background: #fff;
-  border-radius: 50%;
 }
 
 .prize-inline {
