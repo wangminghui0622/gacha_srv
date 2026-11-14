@@ -190,22 +190,22 @@
           <a-button class="sku-query-btn" type="primary" :loading="skuLoading" @click="searchSku">查询</a-button>
         </div>
 
+        <div class="sku-table-wrap">
         <a-table
           :data-source="skuItems"
           :loading="skuLoading"
           :pagination="false"
           :row-key="(record: AdminProductItem) => record.productId ?? ''"
           :row-selection="skuRowSelection"
-          :scroll="{ x: 1200, y: 'calc(100vh - 300px)' }"
           size="small"
         >
-          <a-table-column title="ID" data-index="productId" width="190" align="center" />
-          <a-table-column title="名称" data-index="title" min-width="420" align="center" />
-          <a-table-column title="成本价" width="100" align="center">
+          <a-table-column title="ID" data-index="productId" :width="190" align="center" />
+          <a-table-column title="名称" data-index="title" align="center" />
+          <a-table-column title="成本价" :width="110" align="center">
             <template #default="{ record }">{{ skuMoney(record.costAmountMinor) }}</template>
           </a-table-column>
-          <a-table-column title="IP" data-index="ipName" width="90" align="center" />
-          <a-table-column title="厂商系列" width="150" align="center">
+          <a-table-column title="IP" data-index="ipName" :width="90" align="center" />
+          <a-table-column title="厂商系列" :width="150" align="center">
             <template #default="{ record }">
               <div class="brand-series">
                 <span>{{ record.brandName || '-' }}</span>
@@ -213,23 +213,30 @@
               </div>
             </template>
           </a-table-column>
-          <a-table-column title="状态" width="100" align="center">
+          <a-table-column title="状态" :width="100" align="center">
             <template #default="{ record }">
               <a-tag :color="record.saleType === 'PREORDER' ? 'orange' : 'blue'">{{ skuSaleTypeText(record.saleType) }}</a-tag>
             </template>
           </a-table-column>
-          <a-table-column title="缩略图" width="90" align="center">
+          <a-table-column title="缩略图" :width="90" align="center">
             <template #default="{ record }">
               <a-image v-if="record.coverUrl" :src="record.coverUrl" :width="40" :height="40" :preview="false" />
               <span v-else>—</span>
             </template>
           </a-table-column>
-          <a-table-column title="操作" width="100" align="center" fixed="right">
+          <a-table-column title="个数" :width="100" align="center">
             <template #default="{ record }">
-              <a-button class="sku-pick-btn" size="small" @click="selectSku(record)">选中</a-button>
+              <a-input-number
+                v-model:value="skuQuantities[record.productId ?? '']"
+                :min="1"
+                :precision="0"
+                size="small"
+                style="width: 72px"
+              />
             </template>
           </a-table-column>
         </a-table>
+        </div>
 
         <div class="sku-footer">
           <a-pagination
@@ -243,6 +250,10 @@
             @change="onSkuPageChange"
             @show-size-change="onSkuPageSizeChange"
           />
+        </div>
+
+        <div class="sku-confirm">
+          <a-button type="primary" class="sku-confirm-btn" @click="confirmSkuSelection">确认</a-button>
         </div>
       </div>
     </a-modal>
@@ -348,6 +359,7 @@ const skuFilters = reactive({
   seriesId: undefined as string | undefined,
 })
 const selectedSkuKeys = ref<string[]>([])
+const skuQuantities = ref<Record<string, number>>({})
 
 watch(
   () => prizeDraft.childPoolId,
@@ -512,7 +524,9 @@ async function loadSkuProducts() {
       page: skuPage.value,
       pageSize: skuPageSize.value,
     })
-    skuItems.value = reply.products ?? []
+    const products = reply.products ?? []
+    skuItems.value = products
+    skuQuantities.value = Object.fromEntries(products.map((item) => [item.productId ?? '', 1]))
     skuTotal.value = Number(reply.total ?? 0)
     skuPage.value = Number(reply.page ?? skuPage.value)
     skuPageSize.value = Number(reply.pageSize ?? skuPageSize.value)
@@ -567,17 +581,38 @@ function skuMoney(value?: string): string {
   return String(Number(value ?? 0) / 100)
 }
 
-function selectSku(record: AdminProductItem) {
-  const id = Number(record.productId ?? 0)
-  if (!id) {
-    message.warning('商品ID无效')
+function confirmSkuSelection() {
+  if (selectedSkuKeys.value.length === 0) {
+    message.warning('请先勾选赏品')
     return
   }
-  prizeDraft.skuId = id
-  prizeDraft.name = record.title?.trim() || `SKU ${id}`
-  prizeDraft.costYuan = Number(record.costAmountMinor ?? 0) / 100
+  const selected = skuItems.value.filter((item) => item.productId && selectedSkuKeys.value.includes(item.productId))
+  if (selected.length === 0) {
+    message.warning('请先勾选赏品')
+    return
+  }
+  for (const item of selected) {
+    const id = Number(item.productId ?? 0)
+    if (!id) continue
+    const quantity = Math.max(1, Math.trunc(Number(skuQuantities.value[item.productId ?? ''] ?? 1)))
+    prizes.value.push({
+      prizeIndex: prizes.value.length,
+      prizeGrade: prizeDraft.prizeGrade,
+      specialKind: '',
+      prizeType: 2,
+      name: item.title?.trim() || `SKU ${id}`,
+      skuId: id,
+      childPoolId: 0,
+      weight: 1,
+      quantity,
+      remaining: quantity,
+      isPrize: prizeDraft.isPrize,
+      costFen: Number(item.costAmountMinor ?? 0),
+    })
+  }
   skuModalOpen.value = false
-  message.success(`已选择赏品：${prizeDraft.name}`)
+  selectedSkuKeys.value = []
+  message.success(`已添加 ${selected.length} 个赏品`)
 }
 
 function addCoupon() {
@@ -781,6 +816,18 @@ onMounted(loadOptions)
   margin-bottom: 12px;
 }
 
+.sku-table-wrap {
+  max-height: calc(100vh - 350px);
+  overflow: auto;
+}
+
+.sku-table-wrap :deep(.ant-table-thead th) {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #fafafa;
+}
+
 .sku-query-btn {
   background: #42b983 !important;
   border-color: #42b983 !important;
@@ -791,22 +838,27 @@ onMounted(loadOptions)
   border-color: #36a374 !important;
 }
 
-.sku-pick-btn {
-  color: #fff !important;
-  background: #f0a020 !important;
-  border-color: #f0a020 !important;
-}
-
-.sku-pick-btn:hover {
-  color: #fff !important;
-  background: #d98c0f !important;
-  border-color: #d98c0f !important;
-}
-
 .sku-footer {
   display: flex;
   justify-content: flex-end;
   margin-top: 12px;
+}
+
+.sku-confirm {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.sku-confirm-btn {
+  min-width: 96px;
+  background: #42b983 !important;
+  border-color: #42b983 !important;
+}
+
+.sku-confirm-btn:hover {
+  background: #36a374 !important;
+  border-color: #36a374 !important;
 }
 
 .brand-series {
