@@ -163,6 +163,7 @@
             placeholder="商品名称 / 商品ID"
             allow-clear
             style="width: 220px"
+            @input="onSkuKeywordInput"
             @press-enter="searchSku"
           />
           <a-select
@@ -183,6 +184,7 @@
             show-search
             option-filter-prop="label"
             style="width: 160px"
+            @change="onSkuFilterChange"
           />
           <a-select
             v-model:value="skuFilters.status"
@@ -190,6 +192,7 @@
             :options="skuStatusOptions"
             allow-clear
             style="width: 120px"
+            @change="onSkuFilterChange"
           />
           <a-button class="sku-query-btn" type="primary" :loading="skuLoading" @click="searchSku">查询</a-button>
         </div>
@@ -575,7 +578,27 @@ function openSkuPicker(keyword: string = '', status: string = 'PRODUCT_STATUS_AC
   void loadSkuProducts()
 }
 
+let skuKeywordTimer: number | undefined
+
 function searchSku() {
+  if (skuKeywordTimer) {
+    window.clearTimeout(skuKeywordTimer)
+    skuKeywordTimer = undefined
+  }
+  skuPage.value = 1
+  void loadSkuProducts()
+}
+
+function onSkuKeywordInput() {
+  if (skuKeywordTimer) window.clearTimeout(skuKeywordTimer)
+  skuKeywordTimer = window.setTimeout(() => {
+    skuKeywordTimer = undefined
+    skuPage.value = 1
+    void loadSkuProducts()
+  }, 300)
+}
+
+function onSkuFilterChange() {
   skuPage.value = 1
   void loadSkuProducts()
 }
@@ -584,6 +607,7 @@ function onSkuBrandChange() {
   if (skuFilters.seriesId && !skuSeriesOptions.value.some((item) => item.value === skuFilters.seriesId)) {
     skuFilters.seriesId = undefined
   }
+  onSkuFilterChange()
 }
 
 function onSkuPageChange(nextPage: number) {
