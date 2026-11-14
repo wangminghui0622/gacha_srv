@@ -9,6 +9,8 @@ declare module 'axios' {
   interface AxiosRequestConfig {
     // 可选资源缺失是正常空态时才开启（如 GET 任务计划审批 404 = 未提请）。
     silentNotFound?: boolean
+    // 调用方自行处理失败提示时开启（如按 ID 探测资源是否存在）。
+    silentError?: boolean
   }
 }
 
@@ -39,7 +41,7 @@ http.interceptors.response.use(
       clearSessionCookies()
       message.error(msg || '会话已失效，请重新登录')
       await router.push({ path: '/login', query: { redirect: router.currentRoute.value.fullPath } })
-    } else if (msg && !(status === 404 && error.config?.silentNotFound)) {
+    } else if (msg && !error.config?.silentError && !(status === 404 && error.config?.silentNotFound)) {
       message.error(msg)
     }
     return Promise.reject(error)

@@ -167,6 +167,7 @@ import type { Dayjs } from 'dayjs'
 import { catalogIpClient, type IpItem } from '@/api/catalog'
 import { listPrizeGrades, type PrizeGrade } from '@/api/prizeGrade'
 import { playPoolClient, type PlayPoolPrize } from '@/api/playPool'
+import { poolClient } from '@/api/pool'
 
 const emit = defineEmits<{ success: []; cancel: [] }>()
 const saving = ref(false)
@@ -324,27 +325,21 @@ async function useBoxId() {
   }
   boxLoading.value = true
   try {
-    const reply = await playPoolClient.AdminList({
-      keyword: String(id),
-      mode: '',
-      ipId: '',
-      status: '',
-      tag: '',
-      sortOrder: 'desc',
-      page: 1,
-      pageSize: 50,
-    })
-    const pool = (reply.items ?? []).find((item) => String(item.poolId ?? '') === String(id))
+    const box = await poolClient().GetBoxView({ boxId: String(id) }, { silentError: true })
     if (prizeDraft.prizeType !== 3 || Number(prizeDraft.childPoolId ?? 0) !== id) return
-    if (!pool) {
+    const name = box.boxName?.trim()
+    if (!name) {
       prizeDraft.name = ''
       message.warning(`未找到赏箱ID：${id}`)
       return
     }
-    prizeDraft.name = pool.name?.trim() || `赏箱${id}`
-    message.success(`已使用赏箱：${prizeDraft.name}`)
+    prizeDraft.name = name
+    message.success(`已使用赏箱：${name}`)
   } catch {
-    message.error('查询赏箱失败')
+    if (prizeDraft.prizeType === 3 && Number(prizeDraft.childPoolId ?? 0) === id) {
+      prizeDraft.name = ''
+    }
+    message.warning(`未找到赏箱ID：${id}`)
   } finally {
     boxLoading.value = false
   }

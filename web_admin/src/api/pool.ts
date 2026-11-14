@@ -74,8 +74,8 @@ export function poolClient(idempotencyKey?: string) {
     Publish({ poolId, version, expectedConfigHash }: { poolId: string; version: string; expectedConfigHash: string }): Promise<BoxDraft> {
       return http.post(`/console/v2/api/gacha/pools/${encodeURIComponent(poolId)}/versions/${encodeURIComponent(version)}/publish`, { expectedConfigHash })
     },
-    GetBoxView({ boxId }: { boxId: string }): Promise<BoxDetail> {
-      return http.get(`/console/v2/api/gacha/boxes/${encodeURIComponent(boxId)}/view`)
+    GetBoxView({ boxId }: { boxId: string }, options?: { silentError?: boolean }): Promise<BoxDetail> {
+      return http.get(`/console/v2/api/gacha/boxes/${encodeURIComponent(boxId)}/view`, { silentError: options?.silentError })
     },
     AssignLuckyUser({ configId, prizeIndex, userId }: { configId: string; prizeIndex: number; userId: string }): Promise<{ status?: string }> {
       return http.post(`/console/v2/api/gacha/gashapons/${encodeURIComponent(configId)}/lucky-assignment`, { prizeIndex, userId })
