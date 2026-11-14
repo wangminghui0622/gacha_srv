@@ -14,6 +14,7 @@ import (
 	"time"
 )
 
+// LYOVYER3O2KDH2TR3CWLKN2G3MHPOYTP
 func main() {
 	if len(os.Args) != 2 || os.Args[1] == "" {
 		fmt.Fprintln(os.Stderr, "用法: totp <Base32Secret>")
