@@ -127,7 +127,7 @@
                 </template>
               </a-table-column>
               <a-table-column title="概率(%)" width="80" align="center">
-                <template #default>{{ probability() }}</template>
+                <template #default="{ record }">{{ probability(record) }}</template>
               </a-table-column>
               <a-table-column title="操作" :width="150" align="center">
                 <template #default="{ record }">
@@ -588,9 +588,10 @@ const totalPrizeUnits = computed(() =>
   prizes.value.reduce((sum, prize) => sum + Math.max(0, Number(prize.quantity ?? 0)), 0),
 )
 
-function probability(): string {
+function probability(prize: DisplayPrize): string {
   if (totalPrizeUnits.value <= 0) return '0'
-  return (100 / totalPrizeUnits.value).toFixed(2)
+  const factor = prize.__expanded ? 1 : Math.max(0, Number(prize.quantity ?? 1))
+  return ((100 / totalPrizeUnits.value) * factor).toFixed(2)
 }
 
 async function loadSkuOptions() {
