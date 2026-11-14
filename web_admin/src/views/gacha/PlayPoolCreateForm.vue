@@ -574,6 +574,7 @@ interface SkuPickerOptions {
   status?: string | null
   brandId?: string
   seriesId?: string
+  page?: number
 }
 
 function openSkuPicker(options: SkuPickerOptions = {}) {
@@ -582,10 +583,70 @@ function openSkuPicker(options: SkuPickerOptions = {}) {
   skuFilters.brandId = options.brandId
   skuFilters.seriesId = options.seriesId
   skuFilters.status = options.status === null ? undefined : options.status ?? 'PRODUCT_STATUS_ACTIVE'
-  skuPage.value = 1
+  skuPage.value = options.page ?? 1
   resetSkuPickerState()
   if (!skuOptionsLoaded.value) void loadSkuOptions()
   void loadSkuProducts()
+}
+
+async function findSkuPage(
+  filters: { brandId?: string; seriesId?: string; status?: string | null },
+  productId: number,
+): Promise<number | null> {
+  const pageSize = skuPageSize.value
+  const fetchPage = (page: number) =>
+    catalogAdminProductClient.List({
+      keyword: '',
+      brandId: filters.brandId ?? '',
+      seriesId: filters.seriesId ?? '',
+      ipId: '',
+      saleType: '',
+      minPriceMinor: 0,
+      maxPriceMinor: 0,
+      sortBy: '',
+      sortOrder: '',
+      page,
+      pageSize,
+      status: filters.status ?? '',
+    })
+  const contains = (reply: Awaited<ReturnType<typeof fetchPage>>, id: number) =>
+    (reply.products ?? []).some((item) => Number(item.productId ?? 0) === id)
+
+  let first
+  try {
+    first = await fetchPage(1)
+  } catch {
+    return null
+  }
+  const total = Number(first.total ?? 0)
+  if (total <= 0) return null
+  if (contains(first, productId)) return 1
+
+  const totalPages = Math.ceil(total / pageSize)
+  let low = 2
+  let high = totalPages
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2)
+    let reply
+    try {
+      reply = await fetchPage(mid)
+    } catch {
+      return null
+    }
+    const products = reply.products ?? []
+    if (products.length === 0) return null
+    if (contains(reply, productId)) return mid
+    const firstId = Number(products[0]?.productId ?? 0)
+    const lastId = Number(products[products.length - 1]?.productId ?? 0)
+    if (productId > firstId) {
+      high = mid - 1
+    } else if (productId < lastId) {
+      low = mid + 1
+    } else {
+      return null
+    }
+  }
+  return null
 }
 
 async function openSkuPickerForPrize(record: PlayPoolPrize) {
@@ -598,11 +659,14 @@ async function openSkuPickerForPrize(record: PlayPoolPrize) {
     const detail = await catalogAdminProductClient.Get(String(productId))
     const product = detail.product
     if (product?.brandId || product?.seriesId) {
-      openSkuPicker({ brandId: product.brandId, seriesId: product.seriesId, status: null })
-      return
+      const page = await findSkuPage({ brandId: product.brandId, seriesId: product.seriesId, status: null }, productId)
+      if (page) {
+        openSkuPicker({ brandId: product.brandId, seriesId: product.seriesId, status: null, page })
+        return
+      }
     }
   } catch {
-    // 查询商品详情失败时回退到按商品 ID 定位。
+    // 查询商品详情或定位页码失败时回退到按商品 ID 定位。
   }
   openSkuPicker({ keyword: String(productId), status: null })
 }
