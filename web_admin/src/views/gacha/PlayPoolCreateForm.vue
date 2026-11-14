@@ -91,7 +91,7 @@
         <div class="prize-section">
           <div class="prize-label">赏品配置：</div>
           <div class="prize-config">
-            <div class="prize-table-wrap">
+            <div ref="prizeTableWrap" class="prize-table-wrap">
             <a-table :data-source="prizes" :pagination="false" row-key="prizeIndex" size="small" :locale="{ emptyText: '暂无数据' }" :scroll="{ x: 680 }">
               <a-table-column title="序号" data-index="prizeIndex" width="50" align="center" />
               <a-table-column title="赏别" data-index="prizeGrade" width="80" align="center" />
@@ -126,7 +126,6 @@
               <div class="prize-picker">
                 <template v-if="prizeDraft.prizeType === 2">
                   <a-button @click="openSkuPicker">选择赏品</a-button>
-                  <span v-if="prizeDraft.skuId" class="picked-sku">{{ prizeDraft.name || 'SKU ' + prizeDraft.skuId }}</span>
                 </template>
                 <template v-else-if="prizeDraft.prizeType === 3">
                   <a-input-number v-model:value="prizeDraft.childPoolId" :min="1" :precision="0" placeholder="赏箱ID" style="width: 120px" />
@@ -134,10 +133,8 @@
                 </template>
                 <a-input v-else v-model:value="prizeDraft.name" placeholder="赏品名称" />
               </div>
+              <span class="inline-label">中奖记录展示：</span>
               <a-switch v-model:checked="prizeDraft.isPrize" />
-              <a-input-number v-model:value="prizeDraft.costYuan" :min="0" :precision="2" style="width: 80px" />
-              <a-button @click="addPrize">添加</a-button>
-              <a-button @click="clearPrizeDraft">清除</a-button>
             </div>
           </div>
         </div>
@@ -150,6 +147,7 @@
       </div>
 
     <a-modal
+      v-if="skuModalOpen"
       v-model:open="skuModalOpen"
       title="选择赏品"
       :footer="null"
@@ -263,7 +261,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { message } from 'ant-design-vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
 import type { Dayjs } from 'dayjs'
@@ -335,13 +333,12 @@ const switchItems = [
 ] as const
 
 const prizes = ref<PlayPoolPrize[]>([])
+const prizeTableWrap = ref<HTMLElement | null>(null)
 const prizeDraft = reactive({
   prizeGrade: 'SP',
   prizeType: 2,
   name: '',
-  skuId: 0,
   childPoolId: 0,
-  costYuan: 1,
   isPrize: true,
 })
 const skuModalOpen = ref(false)
@@ -409,57 +406,6 @@ async function loadOptions() {
   ])
   ips.value = ipReply.ips ?? []
   grades.value = gradeReply.items ?? []
-}
-
-function addPrize() {
-  if (prizeDraft.prizeType === 2 && !prizeDraft.skuId) {
-    message.warning('请先选择赏品')
-    return
-  }
-  if (prizeDraft.prizeType === 3 && !prizeDraft.childPoolId) {
-    message.warning('请输入赏箱ID')
-    return
-  }
-  if (prizeDraft.prizeType === 3 && !prizeDraft.name.trim()) {
-    message.warning('请先点击“使用赏箱ID”查询赏箱')
-    return
-  }
-  const name = prizeDraft.prizeType === 2
-    ? prizeDraft.name.trim() || `SKU ${prizeDraft.skuId}`
-    : prizeDraft.name.trim()
-  if (!name) {
-    message.warning('请输入赏品名称')
-    return
-  }
-  const specialMap: Record<string, string> = { Last: 'LAST', Mvp: 'MVP', Lucky: 'LUCKY', Global: 'GLOBAL' }
-  const specialKind = specialMap[prizeDraft.prizeGrade] ?? ''
-  const prizeType = specialKind ? 1 : prizeDraft.prizeType
-  prizes.value.push({
-    prizeIndex: prizes.value.length,
-    prizeGrade: prizeDraft.prizeGrade,
-    specialKind,
-    prizeType,
-    name,
-    skuId: prizeType === 2 ? prizeDraft.skuId : 0,
-    childPoolId: prizeType === 3 ? prizeDraft.childPoolId : 0,
-    weight: 1,
-    quantity: 1,
-    remaining: 1,
-    isPrize: prizeDraft.isPrize,
-    costFen: Math.round((prizeDraft.costYuan || 0) * 100),
-    cashFen: specialKind ? 500 : 0,
-  })
-  clearPrizeDraft()
-}
-
-function clearPrizeDraft() {
-  prizeDraft.prizeGrade = 'SP'
-  prizeDraft.prizeType = 2
-  prizeDraft.name = ''
-  prizeDraft.skuId = 0
-  prizeDraft.childPoolId = 0
-  prizeDraft.costYuan = 1
-  prizeDraft.isPrize = true
 }
 
 async function useBoxId() {
@@ -615,6 +561,12 @@ function confirmSkuSelection() {
   skuModalOpen.value = false
   selectedSkuKeys.value = []
   message.success(`已添加 ${selected.length} 个赏品`)
+  void nextTick(() => {
+    window.setTimeout(() => {
+      const wrap = prizeTableWrap.value
+      if (wrap) wrap.scrollTop = wrap.scrollHeight
+    }, 0)
+  })
 }
 
 function addCoupon() {
@@ -743,13 +695,15 @@ onMounted(loadOptions)
 }
 
 .form-right {
+  position: relative;
   display: flex;
   flex-direction: column;
 }
 
 .prize-section {
+  position: absolute;
+  inset: 0;
   display: flex;
-  flex: 1;
   flex-direction: column;
   min-height: 0;
   margin-bottom: 0;
@@ -795,14 +749,6 @@ onMounted(loadOptions)
   flex: 1;
   align-items: center;
   gap: 8px;
-}
-
-.picked-sku {
-  max-width: 200px;
-  overflow: hidden;
-  color: #606266;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .inline-label {
