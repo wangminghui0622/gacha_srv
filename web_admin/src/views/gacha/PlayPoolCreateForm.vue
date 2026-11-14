@@ -122,7 +122,7 @@
               <a-select v-model:value="prizeDraft.prizeType" :options="prizeTypeOptions" style="width: 85px" />
               <div class="prize-picker">
                 <template v-if="prizeDraft.prizeType === 2">
-                  <a-button @click="openSkuPicker">选择赏品</a-button>
+                  <a-button @click="openSkuPicker()">选择赏品</a-button>
                 </template>
                 <template v-else-if="prizeDraft.prizeType === 3">
                   <a-input-number v-model:value="prizeDraft.childPoolId" :min="1" :precision="0" placeholder="赏箱ID" style="width: 120px" />
@@ -514,9 +514,9 @@ async function loadSkuProducts() {
   }
 }
 
-function openSkuPicker() {
+function openSkuPicker(keyword: string = '') {
   skuModalOpen.value = true
-  skuFilters.keyword = ''
+  skuFilters.keyword = keyword
   skuFilters.brandId = undefined
   skuFilters.seriesId = undefined
   skuPage.value = 1
@@ -592,7 +592,7 @@ function prizeCustomRow(record: PlayPoolPrize) {
       if (!clickable) return
       const target = event.target as HTMLElement | null
       if (target?.closest('button, a, input, textarea, .ant-select, .ant-switch')) return
-      openSkuPicker()
+      openSkuPicker(record.skuId ? String(record.skuId) : '')
     },
   }
 }
