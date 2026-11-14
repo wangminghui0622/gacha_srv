@@ -125,8 +125,8 @@
                     :style="isQtyBadge(record) ? qtyBadgeStyle(record) : undefined"
                     @click.stop="togglePrizeExpand(record)"
                   >
-                    <span v-if="isQtyBadge(record)" class="qty-badge-inner">{{ record.quantity }}</span>
-                    <template v-else>{{ record.__expanded ? 1 : record.quantity }}</template>
+                    <span v-if="isQtyBadge(record)" class="qty-badge-inner">{{ record.__expanded ? 1 : record.quantity }}</span>
+                    <template v-else>{{ record.quantity }}</template>
                   </button>
                   <span v-else>{{ record.quantity ?? 0 }}</span>
                 </template>
@@ -569,7 +569,7 @@ function qtyBadgeStyle(prize: DisplayPrize) {
 }
 
 function isQtyBadge(prize: DisplayPrize): boolean {
-  return !prize.__expanded && Number(prize.quantity ?? 0) > 1
+  return Number(prize.quantity ?? 0) > 1
 }
 
 function togglePrizeExpand(prize: PlayPoolPrize) {
