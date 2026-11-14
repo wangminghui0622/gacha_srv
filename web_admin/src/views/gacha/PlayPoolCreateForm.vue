@@ -98,7 +98,12 @@
               <a-table-column title="类型" width="70" align="center">
                 <template #default="{ record }">{{ record.prizeType === 2 ? '商品' : record.prizeType === 3 ? '箱子' : '虚拟' }}</template>
               </a-table-column>
-              <a-table-column title="赏品" data-index="name" align="center" />
+              <a-table-column title="赏品" align="center">
+                <template #default="{ record }">
+                  <a-tag v-if="record.hasParent" color="blue" style="margin-right: 4px">子赏</a-tag>
+                  {{ record.name }}
+                </template>
+              </a-table-column>
               <a-table-column title="缩略图" :width="80" align="center">
                 <template #default="{ record }">
                   <a-image v-if="record.imageUrl" :src="record.imageUrl" :width="40" :height="40" :preview="false" />
@@ -112,8 +117,9 @@
               <a-table-column title="概率(%)" width="80" align="center">
                 <template #default="{ record }">{{ probability(record) }}</template>
               </a-table-column>
-              <a-table-column title="操作" width="80" align="center">
+              <a-table-column title="操作" :width="130" align="center">
                 <template #default="{ record }">
+                  <a-button type="link" size="small" :disabled="!!record.hasParent" @click="openChildPicker(record)">子赏</a-button>
                   <a-button type="link" danger size="small" @click="removePrize(record.prizeIndex)">删除</a-button>
                 </template>
               </a-table-column>
@@ -155,11 +161,19 @@
       centered
       :body-style="{ maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' }"
       :destroy-on-close="true"
+      @cancel="onSkuPickerCancel"
     >
       <template #title>
         <div class="sku-picker-title">选择赏品</div>
       </template>
       <div class="sku-picker">
+        <a-alert
+          v-if="childParent"
+          type="info"
+          show-icon
+          :message="`父赏：${childParent.name}`"
+          style="margin-bottom: 12px"
+        />
         <div class="sku-toolbar">
           <a-input
             v-model:value="skuFilters.keyword"
@@ -357,6 +371,7 @@ const prizeDraft = reactive({
   isPrize: true,
 })
 const skuModalOpen = ref(false)
+const childParent = ref<PlayPoolPrize | null>(null)
 const boxLoading = ref(false)
 const skuLoading = ref(false)
 const skuItems = ref<AdminProductItem[]>([])
@@ -475,8 +490,27 @@ async function useBoxId() {
   }
 }
 
+function reindexPrizes() {
+  const indexMap = new Map<number, number>()
+  prizes.value.forEach((prize, index) => indexMap.set(prize.prizeIndex, index))
+  prizes.value = prizes.value.map((prize, index) => ({
+    ...prize,
+    prizeIndex: index,
+    parentIndex: prize.hasParent && prize.parentIndex !== undefined ? indexMap.get(prize.parentIndex) ?? -1 : prize.parentIndex,
+  }))
+}
+
 function removePrize(index: number) {
-  prizes.value = prizes.value.filter((item) => item.prizeIndex !== index).map((item, i) => ({ ...item, prizeIndex: i }))
+  const target = prizes.value.find((item) => item.prizeIndex === index)
+  if (!target) return
+  const removeIndexes = new Set<number>([index])
+  if (!target.hasParent) {
+    for (const item of prizes.value) {
+      if (item.hasParent && item.parentIndex === index) removeIndexes.add(item.prizeIndex)
+    }
+  }
+  prizes.value = prizes.value.filter((item) => !removeIndexes.has(item.prizeIndex))
+  reindexPrizes()
 }
 
 function probability(prize: PlayPoolPrize): string {
@@ -499,7 +533,7 @@ function existingSkuPrizeMap(): Map<number, PlayPoolPrize> {
   const map = new Map<number, PlayPoolPrize>()
   for (const prize of prizes.value) {
     const skuId = Number(prize.skuId ?? 0)
-    if (prize.prizeType === 2 && skuId > 0 && !map.has(skuId)) {
+    if (prize.prizeType === 2 && skuId > 0 && !prize.hasParent && !map.has(skuId)) {
       map.set(skuId, prize)
     }
   }
@@ -507,7 +541,9 @@ function existingSkuPrizeMap(): Map<number, PlayPoolPrize> {
 }
 
 function isExistingSku(id: string): boolean {
-  return prizes.value.some((prize) => prize.prizeType === 2 && Number(prize.skuId ?? 0) === Number(id))
+  return prizes.value.some(
+    (prize) => prize.prizeType === 2 && !prize.hasParent && Number(prize.skuId ?? 0) === Number(id),
+  )
 }
 
 function resetSkuPickerState() {
@@ -519,7 +555,8 @@ function resetSkuPickerState() {
 }
 
 function syncSkuSelection(products: AdminProductItem[]) {
-  const existing = existingSkuPrizeMap()
+  const childMode = !!childParent.value
+  const existing = childMode ? new Map<number, PlayPoolPrize>() : existingSkuPrizeMap()
   const quantities = { ...skuQuantities.value }
   const selected = new Set(selectedSkuKeys.value)
   for (const item of products) {
@@ -530,7 +567,7 @@ function syncSkuSelection(products: AdminProductItem[]) {
       const prize = existing.get(Number(key))
       quantities[key] = prize ? Math.max(1, Math.trunc(Number(prize.quantity ?? 1))) : 1
     }
-    if (!skuTouchedKeys.has(key) && existing.has(Number(key))) {
+    if (!childMode && !skuTouchedKeys.has(key) && existing.has(Number(key))) {
       selected.add(key)
     }
   }
@@ -575,9 +612,11 @@ interface SkuPickerOptions {
   brandId?: string
   seriesId?: string
   page?: number
+  childParent?: PlayPoolPrize | null
 }
 
 function openSkuPicker(options: SkuPickerOptions = {}) {
+  childParent.value = options.childParent ?? null
   skuModalOpen.value = true
   skuFilters.keyword = options.keyword ?? ''
   skuFilters.brandId = options.brandId
@@ -587,6 +626,28 @@ function openSkuPicker(options: SkuPickerOptions = {}) {
   resetSkuPickerState()
   if (!skuOptionsLoaded.value) void loadSkuOptions()
   void loadSkuProducts()
+}
+
+function openChildPicker(record: PlayPoolPrize) {
+  if (record.hasParent) {
+    message.warning('子赏不能再添加子赏')
+    return
+  }
+  if (form.mode !== 'groupbuy') {
+    message.warning('仅拼团赏支持子赏')
+    return
+  }
+  if (record.specialKind) {
+    message.warning('特殊赏不能添加子赏')
+    return
+  }
+  openSkuPicker({ childParent: record, status: 'PRODUCT_STATUS_ACTIVE' })
+}
+
+function onSkuPickerCancel() {
+  skuModalOpen.value = false
+  childParent.value = null
+  resetSkuPickerState()
 }
 
 async function findSkuPage(
@@ -757,7 +818,7 @@ function skuCustomRow(record: AdminProductItem) {
 }
 
 function prizeCustomRow(record: PlayPoolPrize) {
-  const clickable = record.prizeType === 2
+  const clickable = record.prizeType === 2 && !record.hasParent
   return {
     style: clickable ? { cursor: 'pointer' } : undefined,
     onClick: (event: MouseEvent) => {
@@ -771,10 +832,56 @@ function prizeCustomRow(record: PlayPoolPrize) {
 
 function cancelSkuPicker() {
   skuModalOpen.value = false
+  childParent.value = null
   resetSkuPickerState()
 }
 
 function confirmSkuSelection() {
+  if (childParent.value) {
+    const parent = childParent.value
+    const selected = selectedSkuKeys.value
+      .map((key) => skuProductCache.get(key))
+      .filter((item): item is AdminProductItem => !!item)
+    if (selected.length === 0) {
+      message.warning('请先勾选赏品')
+      return
+    }
+    for (const item of selected) {
+      const id = Number(item.productId ?? 0)
+      if (!id) continue
+      const quantity = Math.max(1, Math.trunc(Number(skuQuantities.value[item.productId ?? ''] ?? 1)))
+      prizes.value.push({
+        prizeIndex: prizes.value.length,
+        prizeGrade: parent.prizeGrade || prizeDraft.prizeGrade,
+        specialKind: '',
+        prizeType: 2,
+        name: item.title?.trim() || `SKU ${id}`,
+        skuId: id,
+        childPoolId: 0,
+        imageUrl: item.coverUrl || '',
+        weight: 1,
+        quantity,
+        remaining: quantity,
+        isPrize: true,
+        costFen: Number(item.costAmountMinor ?? 0),
+        hasParent: true,
+        parentIndex: parent.prizeIndex,
+      })
+    }
+    reindexPrizes()
+    skuModalOpen.value = false
+    childParent.value = null
+    resetSkuPickerState()
+    message.success(`已添加 ${selected.length} 个子赏`)
+    void nextTick(() => {
+      window.setTimeout(() => {
+        const wrap = prizeTableWrap.value
+        if (wrap) wrap.scrollTop = wrap.scrollHeight
+      }, 0)
+    })
+    return
+  }
+
   const existing = existingSkuPrizeMap()
   const selected = selectedSkuKeys.value
     .map((key) => skuProductCache.get(key))
@@ -799,7 +906,7 @@ function confirmSkuSelection() {
   if (skuRemovedIds.size > 0) {
     prizes.value = prizes.value.filter((prize) => {
       const skuId = Number(prize.skuId ?? 0)
-      if (prize.prizeType !== 2 || skuId <= 0) return true
+      if (prize.hasParent || prize.prizeType !== 2 || skuId <= 0) return true
       return !skuRemovedIds.has(String(skuId))
     })
   }
@@ -826,7 +933,7 @@ function confirmSkuSelection() {
     })
   }
 
-  prizes.value = prizes.value.map((prize, index) => ({ ...prize, prizeIndex: index }))
+  reindexPrizes()
   skuModalOpen.value = false
   resetSkuPickerState()
   message.success('赏品选择已更新')
