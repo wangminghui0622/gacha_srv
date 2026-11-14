@@ -67,6 +67,6 @@ const emit = defineEmits<{ toggle: [prize: DisplayPrize] }>()
 <style scoped>
 :deep(.ant-table-tbody > tr.ant-table-row:hover > td),
 :deep(.ant-table-tbody > tr.ant-table-row > td.ant-table-cell-row-hover) {
-  background: #dbeafe !important;
+  background: #e5e7eb !important;
 }
 </style>
