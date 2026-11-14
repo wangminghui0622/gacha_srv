@@ -92,9 +92,9 @@
           <div class="prize-label">赏品配置：</div>
           <div class="prize-config">
             <div ref="prizeTableWrap" class="prize-table-wrap">
-            <a-table :data-source="prizes" :pagination="false" row-key="prizeIndex" size="small" :locale="{ emptyText: '暂无数据' }" :scroll="{ x: 680 }" :custom-row="prizeCustomRow">
+            <a-table :data-source="displayPrizes" :pagination="false" :row-key="(record: DisplayPrize) => record.__rowKey" size="small" :locale="{ emptyText: '暂无数据' }" :scroll="{ x: 680 }" :custom-row="prizeCustomRow">
               <a-table-column title="序号" width="50" align="center">
-                <template #default="{ record }">{{ Number(record.prizeIndex ?? 0) + 1 }}</template>
+                <template #default="{ record }">{{ record.__displayIndex }}</template>
               </a-table-column>
               <a-table-column title="赏别" data-index="prizeGrade" width="80" align="center" />
               <a-table-column title="类型" width="70" align="center">
@@ -115,14 +115,26 @@
               <a-table-column title="成本价" width="80" align="center">
                 <template #default="{ record }">{{ Number(record.costFen ?? 0) / 100 }}</template>
               </a-table-column>
-              <a-table-column title="总数" data-index="quantity" width="60" align="center" />
+              <a-table-column title="总数" width="60" align="center">
+                <template #default="{ record }">
+                  <button
+                    v-if="Number(record.quantity ?? 0) > 1"
+                    type="button"
+                    class="qty-toggle"
+                    @click.stop="togglePrizeExpand(record)"
+                  >{{ record.quantity }}</button>
+                  <span v-else>{{ record.quantity ?? 0 }}</span>
+                </template>
+              </a-table-column>
               <a-table-column title="概率(%)" width="80" align="center">
                 <template #default="{ record }">{{ probability(record) }}</template>
               </a-table-column>
               <a-table-column title="操作" :width="150" align="center">
                 <template #default="{ record }">
-                  <a-button class="prize-action-link" type="link" size="small" :disabled="!!record.hasParent" @click="openChildPicker(record)">子赏</a-button>
-                  <a-button class="prize-action-link" type="link" danger size="small" @click="confirmRemove(record)">删除</a-button>
+                  <template v-if="record.__copyIndex === 0">
+                    <a-button class="prize-action-link" type="link" size="small" :disabled="!!record.hasParent" @click="openChildPicker(record)">子赏</a-button>
+                    <a-button class="prize-action-link" type="link" danger size="small" @click="confirmRemove(record)">删除</a-button>
+                  </template>
                 </template>
               </a-table-column>
             </a-table>
@@ -363,7 +375,32 @@ const switchItems = [
   { key: 'allowBoxInBox', label: '允许作为箱中箱' },
 ] as const
 
+interface DisplayPrize extends PlayPoolPrize {
+  __rowKey: string
+  __copyIndex: number
+  __displayIndex: number
+}
+
 const prizes = ref<PlayPoolPrize[]>([])
+const expandedPrizeIndexes = ref<Set<number>>(new Set())
+const displayPrizes = computed<DisplayPrize[]>(() => {
+  const rows: DisplayPrize[] = []
+  let displayIndex = 0
+  for (const prize of prizes.value) {
+    const total = Number(prize.quantity ?? 1)
+    const copies = total > 1 && expandedPrizeIndexes.value.has(prize.prizeIndex) ? total : 1
+    for (let copy = 0; copy < copies; copy += 1) {
+      displayIndex += 1
+      rows.push({
+        ...prize,
+        __rowKey: `${prize.prizeIndex}-${copy}`,
+        __copyIndex: copy,
+        __displayIndex: displayIndex,
+      })
+    }
+  }
+  return rows
+})
 const prizeTableWrap = ref<HTMLElement | null>(null)
 const prizeDraft = reactive({
   prizeGrade: 'SP',
@@ -500,6 +537,15 @@ function reindexPrizes() {
     prizeIndex: index,
     parentIndex: prize.hasParent && prize.parentIndex !== undefined ? indexMap.get(prize.parentIndex) ?? -1 : prize.parentIndex,
   }))
+  expandedPrizeIndexes.value = new Set()
+}
+
+function togglePrizeExpand(prize: PlayPoolPrize) {
+  if (Number(prize.quantity ?? 0) <= 1) return
+  const next = new Set(expandedPrizeIndexes.value)
+  if (next.has(prize.prizeIndex)) next.delete(prize.prizeIndex)
+  else next.add(prize.prizeIndex)
+  expandedPrizeIndexes.value = next
 }
 
 function deleteConfirmTitle(record: PlayPoolPrize): string {
@@ -1131,6 +1177,16 @@ onMounted(loadOptions)
 
 .prize-action-link {
   font-size: 17px !important;
+}
+
+.qty-toggle {
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid currentColor;
+  cursor: pointer;
 }
 
 .prize-inline {
