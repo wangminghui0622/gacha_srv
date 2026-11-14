@@ -121,6 +121,8 @@
                     v-if="record.__expanded || Number(record.quantity ?? 0) > 1"
                     type="button"
                     class="qty-toggle"
+                    :class="{ 'qty-badge': !record.__expanded && Number(record.quantity ?? 0) > 1 }"
+                    :style="!record.__expanded && Number(record.quantity ?? 0) > 1 ? qtyBadgeStyle(record) : undefined"
                     @click.stop="togglePrizeExpand(record)"
                   >{{ record.__expanded ? 1 : record.quantity }}</button>
                   <span v-else>{{ record.quantity ?? 0 }}</span>
@@ -380,17 +382,27 @@ interface DisplayPrize extends PlayPoolPrize {
   __copyIndex: number
   __displayIndex: number
   __expanded: boolean
+  __badgeIndex: number
 }
+
+const qtyBadgePalette = [
+  { background: '#e6f4ff', color: '#0958d9', border: '#91caff' },
+  { background: '#f6ffed', color: '#389e0d', border: '#b7eb8f' },
+  { background: '#fff7e6', color: '#d46b08', border: '#ffd591' },
+  { background: '#f9f0ff', color: '#531dab', border: '#d3adf7' },
+]
 
 const prizes = ref<PlayPoolPrize[]>([])
 const expandedPrizeIndexes = ref<Set<number>>(new Set())
 const displayPrizes = computed<DisplayPrize[]>(() => {
   const rows: DisplayPrize[] = []
   let displayIndex = 0
+  let badgeIndex = 0
   for (const prize of prizes.value) {
     const total = Number(prize.quantity ?? 1)
     const expanded = total > 1 && expandedPrizeIndexes.value.has(prize.prizeIndex)
     const copies = expanded ? total : 1
+    const prizeBadgeIndex = total > 1 ? badgeIndex++ : -1
     for (let copy = 0; copy < copies; copy += 1) {
       displayIndex += 1
       rows.push({
@@ -399,6 +411,7 @@ const displayPrizes = computed<DisplayPrize[]>(() => {
         __copyIndex: copy,
         __displayIndex: displayIndex,
         __expanded: expanded,
+        __badgeIndex: prizeBadgeIndex,
       })
     }
   }
@@ -541,6 +554,11 @@ function reindexPrizes() {
     parentIndex: prize.hasParent && prize.parentIndex !== undefined ? indexMap.get(prize.parentIndex) ?? -1 : prize.parentIndex,
   }))
   expandedPrizeIndexes.value = new Set()
+}
+
+function qtyBadgeStyle(prize: DisplayPrize) {
+  const color = qtyBadgePalette[Math.max(0, prize.__badgeIndex) % qtyBadgePalette.length]!
+  return { background: color.background, color: color.color, borderColor: color.border }
 }
 
 function togglePrizeExpand(prize: PlayPoolPrize) {
@@ -1194,6 +1212,13 @@ onMounted(loadOptions)
   border: none;
   border-bottom: 1px solid currentColor;
   cursor: pointer;
+}
+
+.qty-toggle.qty-badge {
+  padding: 1px 8px;
+  line-height: 18px;
+  border: 1px solid transparent;
+  border-radius: 4px;
 }
 
 .prize-inline {
