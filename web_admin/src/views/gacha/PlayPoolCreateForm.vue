@@ -120,7 +120,7 @@
               <a-table-column title="操作" :width="130" align="center">
                 <template #default="{ record }">
                   <a-button type="link" size="small" :disabled="!!record.hasParent" @click="openChildPicker(record)">子赏</a-button>
-                  <a-button type="link" danger size="small" @click="removePrize(record.prizeIndex)">删除</a-button>
+                  <a-button type="link" danger size="small" @click="confirmRemove(record)">删除</a-button>
                 </template>
               </a-table-column>
             </a-table>
@@ -291,7 +291,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
-import { message } from 'ant-design-vue'
+import { message, Modal } from 'ant-design-vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
 import type { Dayjs } from 'dayjs'
 import {
@@ -498,6 +498,22 @@ function reindexPrizes() {
     prizeIndex: index,
     parentIndex: prize.hasParent && prize.parentIndex !== undefined ? indexMap.get(prize.parentIndex) ?? -1 : prize.parentIndex,
   }))
+}
+
+function deleteConfirmTitle(record: PlayPoolPrize): string {
+  if (record.hasParent) return '确定删除该子赏吗？'
+  const hasChildren = prizes.value.some((item) => item.hasParent && item.parentIndex === record.prizeIndex)
+  return hasChildren ? '确定删除该赏品吗？其子赏会一并删除。' : '确定删除该赏品吗？'
+}
+
+function confirmRemove(record: PlayPoolPrize) {
+  Modal.confirm({
+    title: deleteConfirmTitle(record),
+    okText: '删除',
+    cancelText: '取消',
+    okType: 'danger',
+    onOk: () => removePrize(record.prizeIndex),
+  })
 }
 
 function removePrize(index: number) {
