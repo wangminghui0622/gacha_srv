@@ -55,22 +55,22 @@
         <a-form-item :wrapper-col="{ span: 18, offset: 5 }">
           <div class="cover-row">
             <div class="cover-item">
+              <div class="cover-label">封面大图</div>
               <a-upload :show-upload-list="false" accept="image/*" :before-upload="(file: File) => uploadImage(file, 'coverImage')">
                 <div class="image-upload-box">
                   <img v-if="form.coverImage" :src="form.coverImage" alt="" />
                   <template v-else><PlusOutlined /><span>Upload</span></template>
                 </div>
               </a-upload>
-              <div class="cover-label">封面大图</div>
             </div>
             <div class="cover-item">
+              <div class="cover-label">封面缩略图</div>
               <a-upload :show-upload-list="false" accept="image/*" :before-upload="(file: File) => uploadImage(file, 'coverThumb')">
                 <div class="image-upload-box">
                   <img v-if="form.coverThumb" :src="form.coverThumb" alt="" />
                   <template v-else><PlusOutlined /><span>Upload</span></template>
                 </div>
               </a-upload>
-              <div class="cover-label">封面缩略图</div>
             </div>
           </div>
         </a-form-item>
