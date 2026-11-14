@@ -360,6 +360,9 @@ const skuFilters = reactive({
 })
 const selectedSkuKeys = ref<string[]>([])
 const skuQuantities = ref<Record<string, number>>({})
+const skuProductCache = new Map<string, AdminProductItem>()
+const skuTouchedKeys = new Set<string>()
+const skuRemovedIds = new Set<string>()
 
 watch(
   () => prizeDraft.childPoolId,
@@ -396,7 +399,22 @@ const skuSeriesOptions = computed(() =>
 const skuRowSelection = computed(() => ({
   selectedRowKeys: selectedSkuKeys.value,
   onChange: (keys: (string | number)[]) => {
-    selectedSkuKeys.value = keys.map((key) => String(key))
+    const pageKeys = new Set(skuItems.value.map((item) => item.productId ?? ''))
+    const otherKeys = selectedSkuKeys.value.filter((key) => !pageKeys.has(key))
+    const nextKeys = [...new Set([...otherKeys, ...keys.map((key) => String(key))])]
+    const prevSet = new Set(selectedSkuKeys.value)
+    const nextSet = new Set(nextKeys)
+    for (const item of skuItems.value) {
+      const id = item.productId
+      if (!id || prevSet.has(id) === nextSet.has(id)) continue
+      skuTouchedKeys.add(id)
+      if (nextSet.has(id)) {
+        skuRemovedIds.delete(id)
+      } else if (isExistingSku(id)) {
+        skuRemovedIds.add(id)
+      }
+    }
+    selectedSkuKeys.value = nextKeys
   },
 }))
 
@@ -468,18 +486,36 @@ function existingSkuPrizeMap(): Map<number, PlayPoolPrize> {
   return map
 }
 
+function isExistingSku(id: string): boolean {
+  return prizes.value.some((prize) => prize.prizeType === 2 && Number(prize.skuId ?? 0) === Number(id))
+}
+
+function resetSkuPickerState() {
+  selectedSkuKeys.value = []
+  skuQuantities.value = {}
+  skuProductCache.clear()
+  skuTouchedKeys.clear()
+  skuRemovedIds.clear()
+}
+
 function syncSkuSelection(products: AdminProductItem[]) {
   const existing = existingSkuPrizeMap()
-  const quantities: Record<string, number> = {}
-  const selected: string[] = []
+  const quantities = { ...skuQuantities.value }
+  const selected = new Set(selectedSkuKeys.value)
   for (const item of products) {
-    const key = item.productId ?? ''
-    const prize = existing.get(Number(key))
-    quantities[key] = prize ? Math.max(1, Math.trunc(Number(prize.quantity ?? 1))) : 1
-    if (prize) selected.push(key)
+    const key = item.productId
+    if (!key) continue
+    skuProductCache.set(key, item)
+    if (quantities[key] === undefined) {
+      const prize = existing.get(Number(key))
+      quantities[key] = prize ? Math.max(1, Math.trunc(Number(prize.quantity ?? 1))) : 1
+    }
+    if (!skuTouchedKeys.has(key) && existing.has(Number(key))) {
+      selected.add(key)
+    }
   }
   skuQuantities.value = quantities
-  selectedSkuKeys.value = selected
+  selectedSkuKeys.value = [...selected]
 }
 
 async function loadSkuProducts() {
@@ -507,8 +543,6 @@ async function loadSkuProducts() {
   } catch {
     skuItems.value = []
     skuTotal.value = 0
-    skuQuantities.value = {}
-    selectedSkuKeys.value = []
   } finally {
     skuLoading.value = false
   }
@@ -520,7 +554,7 @@ function openSkuPicker(keyword: string = '') {
   skuFilters.brandId = undefined
   skuFilters.seriesId = undefined
   skuPage.value = 1
-  selectedSkuKeys.value = []
+  resetSkuPickerState()
   if (!skuOptionsLoaded.value) void loadSkuOptions()
   void loadSkuProducts()
 }
@@ -558,6 +592,8 @@ function skuMoney(value?: string): string {
 function onSkuQuantityChange(record: AdminProductItem) {
   const id = record.productId
   if (!id) return
+  skuTouchedKeys.add(id)
+  skuRemovedIds.delete(id)
   if (!selectedSkuKeys.value.includes(id)) {
     selectedSkuKeys.value = [...selectedSkuKeys.value, id]
   }
@@ -566,10 +602,13 @@ function onSkuQuantityChange(record: AdminProductItem) {
 function toggleSkuSelection(record: AdminProductItem) {
   const id = record.productId
   if (!id) return
+  skuTouchedKeys.add(id)
   if (selectedSkuKeys.value.includes(id)) {
     selectedSkuKeys.value = selectedSkuKeys.value.filter((key) => key !== id)
+    if (isExistingSku(id)) skuRemovedIds.add(id)
   } else {
     selectedSkuKeys.value = [...selectedSkuKeys.value, id]
+    skuRemovedIds.delete(id)
   }
 }
 
@@ -598,14 +637,11 @@ function prizeCustomRow(record: PlayPoolPrize) {
 }
 
 function confirmSkuSelection() {
-  const pageIds = new Set(skuItems.value.map((item) => Number(item.productId ?? 0)).filter((id) => id > 0))
   const existing = existingSkuPrizeMap()
-  const hasExistingOnPage = prizes.value.some((prize) => {
-    const skuId = Number(prize.skuId ?? 0)
-    return prize.prizeType === 2 && skuId > 0 && pageIds.has(skuId)
-  })
-  const selected = skuItems.value.filter((item) => item.productId && selectedSkuKeys.value.includes(item.productId))
-  if (selected.length === 0 && !hasExistingOnPage) {
+  const selected = selectedSkuKeys.value
+    .map((key) => skuProductCache.get(key))
+    .filter((item): item is AdminProductItem => !!item)
+  if (selected.length === 0 && skuRemovedIds.size === 0) {
     message.warning('请先勾选赏品')
     return
   }
@@ -620,14 +656,14 @@ function confirmSkuSelection() {
     prize.remaining = quantity
   }
 
-  // 当前页已存在但被取消勾选的商品：从赏品表格移除。
-  const selectedIds = new Set(selected.map((item) => Number(item.productId ?? 0)))
-  prizes.value = prizes.value.filter((prize) => {
-    const skuId = Number(prize.skuId ?? 0)
-    if (prize.prizeType !== 2 || skuId <= 0) return true
-    if (!pageIds.has(skuId)) return true
-    return selectedIds.has(skuId)
-  })
+  // 已存在但被取消勾选的商品：无论在哪一页，都从赏品表格移除。
+  if (skuRemovedIds.size > 0) {
+    prizes.value = prizes.value.filter((prize) => {
+      const skuId = Number(prize.skuId ?? 0)
+      if (prize.prizeType !== 2 || skuId <= 0) return true
+      return !skuRemovedIds.has(String(skuId))
+    })
+  }
 
   // 新勾选的商品：追加到赏品表格。
   for (const item of selected) {
@@ -652,7 +688,7 @@ function confirmSkuSelection() {
 
   prizes.value = prizes.value.map((prize, index) => ({ ...prize, prizeIndex: index }))
   skuModalOpen.value = false
-  selectedSkuKeys.value = []
+  resetSkuPickerState()
   message.success('赏品选择已更新')
   void nextTick(() => {
     window.setTimeout(() => {
