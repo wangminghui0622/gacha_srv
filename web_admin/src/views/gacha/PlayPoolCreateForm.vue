@@ -125,8 +125,8 @@
               <a-select v-model:value="prizeDraft.prizeType" :options="prizeTypeOptions" style="width: 85px" />
               <div class="prize-picker">
                 <template v-if="prizeDraft.prizeType === 2">
-                  <a-button @click="skuModalOpen = true">选择赏品</a-button>
-                  <span v-if="prizeDraft.skuId" class="picked-sku">SKU {{ prizeDraft.skuId }}</span>
+                  <a-button @click="openSkuPicker">选择赏品</a-button>
+                  <span v-if="prizeDraft.skuId" class="picked-sku">{{ prizeDraft.name || 'SKU ' + prizeDraft.skuId }}</span>
                 </template>
                 <template v-else-if="prizeDraft.prizeType === 3">
                   <a-input-number v-model:value="prizeDraft.childPoolId" :min="1" :precision="0" placeholder="赏箱ID" style="width: 120px" />
@@ -149,12 +149,102 @@
         <a-button @click="emit('cancel')">取消</a-button>
       </div>
 
-    <a-modal v-model:open="skuModalOpen" title="选择赏品" :confirm-loading="false" width="420px" @ok="confirmSku">
-      <a-form layout="vertical">
-        <a-form-item label="SKU ID" required>
-          <a-input-number v-model:value="skuInput" :min="1" :precision="0" style="width: 100%" />
-        </a-form-item>
-      </a-form>
+    <a-modal
+      v-model:open="skuModalOpen"
+      title="选择赏品"
+      :footer="null"
+      width="96vw"
+      :style="{ maxWidth: '1800px' }"
+      centered
+      :body-style="{ maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' }"
+      :destroy-on-close="true"
+    >
+      <div class="sku-picker">
+        <div class="sku-toolbar">
+          <a-input
+            v-model:value="skuFilters.keyword"
+            placeholder="商品名称 / 商品ID"
+            allow-clear
+            style="width: 220px"
+            @press-enter="searchSku"
+          />
+          <a-select
+            v-model:value="skuFilters.brandId"
+            placeholder="厂商"
+            :options="skuBrandOptions"
+            allow-clear
+            show-search
+            option-filter-prop="label"
+            style="width: 160px"
+            @change="onSkuBrandChange"
+          />
+          <a-select
+            v-model:value="skuFilters.seriesId"
+            placeholder="系列"
+            :options="skuSeriesOptions"
+            allow-clear
+            show-search
+            option-filter-prop="label"
+            style="width: 160px"
+          />
+          <a-button class="sku-query-btn" type="primary" :loading="skuLoading" @click="searchSku">查询</a-button>
+        </div>
+
+        <a-table
+          :data-source="skuItems"
+          :loading="skuLoading"
+          :pagination="false"
+          :row-key="(record: AdminProductItem) => record.productId ?? ''"
+          :row-selection="skuRowSelection"
+          :scroll="{ x: 1200, y: 'calc(100vh - 300px)' }"
+          size="small"
+        >
+          <a-table-column title="ID" data-index="productId" width="190" align="center" />
+          <a-table-column title="名称" data-index="title" min-width="420" align="center" />
+          <a-table-column title="成本价" width="100" align="center">
+            <template #default="{ record }">{{ skuMoney(record.costAmountMinor) }}</template>
+          </a-table-column>
+          <a-table-column title="IP" data-index="ipName" width="90" align="center" />
+          <a-table-column title="厂商系列" width="150" align="center">
+            <template #default="{ record }">
+              <div class="brand-series">
+                <span>{{ record.brandName || '-' }}</span>
+                <span>{{ record.seriesName || '-' }}</span>
+              </div>
+            </template>
+          </a-table-column>
+          <a-table-column title="状态" width="100" align="center">
+            <template #default="{ record }">
+              <a-tag :color="record.saleType === 'PREORDER' ? 'orange' : 'blue'">{{ skuSaleTypeText(record.saleType) }}</a-tag>
+            </template>
+          </a-table-column>
+          <a-table-column title="缩略图" width="90" align="center">
+            <template #default="{ record }">
+              <a-image v-if="record.coverUrl" :src="record.coverUrl" :width="40" :height="40" :preview="false" />
+              <span v-else>—</span>
+            </template>
+          </a-table-column>
+          <a-table-column title="操作" width="100" align="center" fixed="right">
+            <template #default="{ record }">
+              <a-button class="sku-pick-btn" size="small" @click="selectSku(record)">选中</a-button>
+            </template>
+          </a-table-column>
+        </a-table>
+
+        <div class="sku-footer">
+          <a-pagination
+            :current="skuPage"
+            :page-size="skuPageSize"
+            :total="skuTotal"
+            :page-size-options="skuPageSizeOptions"
+            :locale="{ items_per_page: '条/页' }"
+            show-size-changer
+            show-less-items
+            @change="onSkuPageChange"
+            @show-size-change="onSkuPageSizeChange"
+          />
+        </div>
+      </div>
     </a-modal>
   </div>
 </template>
@@ -164,7 +254,16 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { message } from 'ant-design-vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
 import type { Dayjs } from 'dayjs'
-import { catalogIpClient, type IpItem } from '@/api/catalog'
+import {
+  catalogAdminProductClient,
+  catalogBrandClient,
+  catalogIpClient,
+  catalogSeriesClient,
+  type AdminProductItem,
+  type BrandItem,
+  type IpItem,
+  type SeriesItem,
+} from '@/api/catalog'
 import { listPrizeGrades, type PrizeGrade } from '@/api/prizeGrade'
 import { playPoolClient, type PlayPoolPrize } from '@/api/playPool'
 import { poolClient } from '@/api/pool'
@@ -233,8 +332,22 @@ const prizeDraft = reactive({
   isPrize: true,
 })
 const skuModalOpen = ref(false)
-const skuInput = ref<number | null>(null)
 const boxLoading = ref(false)
+const skuLoading = ref(false)
+const skuItems = ref<AdminProductItem[]>([])
+const skuBrands = ref<BrandItem[]>([])
+const skuSeries = ref<SeriesItem[]>([])
+const skuOptionsLoaded = ref(false)
+const skuPage = ref(1)
+const skuPageSize = ref(15)
+const skuPageSizeOptions = ['15', '30', '50']
+const skuTotal = ref(0)
+const skuFilters = reactive({
+  keyword: '',
+  brandId: undefined as string | undefined,
+  seriesId: undefined as string | undefined,
+})
+const selectedSkuKeys = ref<string[]>([])
 
 watch(
   () => prizeDraft.childPoolId,
@@ -257,6 +370,23 @@ const gradeOptions = computed(() => {
   const source = grades.value.length > 0 ? grades.value.map((item) => item.code) : ['SP', 'SSR', 'SS', 'S', 'A', 'B', 'Last']
   return Array.from(new Set(source)).map((code) => ({ label: code, value: code }))
 })
+const skuBrandOptions = computed(() =>
+  skuBrands.value.filter((item) => item.brandId && item.name).map((item) => ({ label: item.name as string, value: item.brandId as string })),
+)
+const allSkuSeriesOptions = computed(() =>
+  skuSeries.value
+    .filter((item) => item.seriesId && item.name)
+    .map((item) => ({ label: item.name as string, value: item.seriesId as string, brandId: item.brandId ?? '' })),
+)
+const skuSeriesOptions = computed(() =>
+  skuFilters.brandId ? allSkuSeriesOptions.value.filter((item) => item.brandId === skuFilters.brandId) : allSkuSeriesOptions.value,
+)
+const skuRowSelection = computed(() => ({
+  selectedRowKeys: selectedSkuKeys.value,
+  onChange: (keys: (string | number)[]) => {
+    selectedSkuKeys.value = keys.map((key) => String(key))
+  },
+}))
 
 async function loadOptions() {
   const [ipReply, gradeReply] = await Promise.all([
@@ -280,7 +410,9 @@ function addPrize() {
     message.warning('请先点击“使用赏箱ID”查询赏箱')
     return
   }
-  const name = prizeDraft.prizeType === 2 ? `SKU ${prizeDraft.skuId}` : prizeDraft.name.trim()
+  const name = prizeDraft.prizeType === 2
+    ? prizeDraft.name.trim() || `SKU ${prizeDraft.skuId}`
+    : prizeDraft.name.trim()
   if (!name) {
     message.warning('请输入赏品名称')
     return
@@ -314,7 +446,6 @@ function clearPrizeDraft() {
   prizeDraft.childPoolId = 0
   prizeDraft.costYuan = 1
   prizeDraft.isPrize = true
-  skuInput.value = null
 }
 
 async function useBoxId() {
@@ -355,13 +486,98 @@ function probability(prize: PlayPoolPrize): string {
   return ((Number(prize.weight ?? 0) / total) * 100).toFixed(2)
 }
 
-function confirmSku() {
-  if (!skuInput.value || skuInput.value <= 0) {
-    message.warning('请输入 SKU ID')
+async function loadSkuOptions() {
+  const [brandReply, seriesReply] = await Promise.all([
+    catalogBrandClient.List({ keyword: '', page: 1, pageSize: 100 }).catch(() => ({ brands: [] })),
+    catalogSeriesClient.List({ keyword: '', brandId: '', page: 1, pageSize: 100 }).catch(() => ({ series: [] })),
+  ])
+  skuBrands.value = brandReply.brands ?? []
+  skuSeries.value = seriesReply.series ?? []
+  skuOptionsLoaded.value = true
+}
+
+async function loadSkuProducts() {
+  skuLoading.value = true
+  try {
+    const reply = await catalogAdminProductClient.List({
+      keyword: skuFilters.keyword.trim(),
+      brandId: skuFilters.brandId ?? '',
+      seriesId: skuFilters.seriesId ?? '',
+      ipId: '',
+      saleType: '',
+      minPriceMinor: 0,
+      maxPriceMinor: 0,
+      sortBy: '',
+      sortOrder: '',
+      page: skuPage.value,
+      pageSize: skuPageSize.value,
+    })
+    skuItems.value = reply.products ?? []
+    skuTotal.value = Number(reply.total ?? 0)
+    skuPage.value = Number(reply.page ?? skuPage.value)
+    skuPageSize.value = Number(reply.pageSize ?? skuPageSize.value)
+    selectedSkuKeys.value = []
+  } catch {
+    skuItems.value = []
+    skuTotal.value = 0
+    selectedSkuKeys.value = []
+  } finally {
+    skuLoading.value = false
+  }
+}
+
+function openSkuPicker() {
+  skuModalOpen.value = true
+  skuFilters.keyword = ''
+  skuFilters.brandId = undefined
+  skuFilters.seriesId = undefined
+  skuPage.value = 1
+  selectedSkuKeys.value = []
+  if (!skuOptionsLoaded.value) void loadSkuOptions()
+  void loadSkuProducts()
+}
+
+function searchSku() {
+  skuPage.value = 1
+  void loadSkuProducts()
+}
+
+function onSkuBrandChange() {
+  if (skuFilters.seriesId && !skuSeriesOptions.value.some((item) => item.value === skuFilters.seriesId)) {
+    skuFilters.seriesId = undefined
+  }
+}
+
+function onSkuPageChange(nextPage: number) {
+  skuPage.value = nextPage
+  void loadSkuProducts()
+}
+
+function onSkuPageSizeChange(_current: number, nextPageSize: number) {
+  skuPageSize.value = nextPageSize
+  skuPage.value = 1
+  void loadSkuProducts()
+}
+
+function skuSaleTypeText(value?: string): string {
+  return value === 'PREORDER' ? '预售' : '现货'
+}
+
+function skuMoney(value?: string): string {
+  return String(Number(value ?? 0) / 100)
+}
+
+function selectSku(record: AdminProductItem) {
+  const id = Number(record.productId ?? 0)
+  if (!id) {
+    message.warning('商品ID无效')
     return
   }
-  prizeDraft.skuId = skuInput.value
+  prizeDraft.skuId = id
+  prizeDraft.name = record.title?.trim() || `SKU ${id}`
+  prizeDraft.costYuan = Number(record.costAmountMinor ?? 0) / 100
   skuModalOpen.value = false
+  message.success(`已选择赏品：${prizeDraft.name}`)
 }
 
 function addCoupon() {
@@ -545,13 +761,58 @@ onMounted(loadOptions)
 }
 
 .picked-sku {
+  max-width: 200px;
+  overflow: hidden;
   color: #606266;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .inline-label {
   color: #606266;
   font-size: 13px;
   white-space: nowrap;
+}
+
+.sku-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.sku-query-btn {
+  background: #42b983 !important;
+  border-color: #42b983 !important;
+}
+
+.sku-query-btn:hover {
+  background: #36a374 !important;
+  border-color: #36a374 !important;
+}
+
+.sku-pick-btn {
+  color: #fff !important;
+  background: #f0a020 !important;
+  border-color: #f0a020 !important;
+}
+
+.sku-pick-btn:hover {
+  color: #fff !important;
+  background: #d98c0f !important;
+  border-color: #d98c0f !important;
+}
+
+.sku-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.brand-series {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.4;
 }
 
 .coupon-config {
