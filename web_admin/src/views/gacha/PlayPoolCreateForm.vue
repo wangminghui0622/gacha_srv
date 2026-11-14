@@ -509,7 +509,7 @@ function deleteConfirmTitle(record: PlayPoolPrize): string {
 function confirmRemove(record: PlayPoolPrize) {
   Modal.confirm({
     title: deleteConfirmTitle(record),
-    okText: '删除',
+    okText: '确认',
     cancelText: '取消',
     okType: 'danger',
     wrapClassName: 'pool-delete-confirm',
