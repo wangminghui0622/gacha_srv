@@ -217,7 +217,8 @@
             <template #default="{ record }">
               <div class="brand-series">
                 <span>{{ record.brandName || '-' }}</span>
-                <span>{{ record.seriesName || '-' }}</span>
+                <span v-if="record.seriesName && record.seriesName !== record.brandName">{{ record.seriesName }}</span>
+                <span v-else-if="!record.seriesName">-</span>
               </div>
             </template>
           </a-table-column>
