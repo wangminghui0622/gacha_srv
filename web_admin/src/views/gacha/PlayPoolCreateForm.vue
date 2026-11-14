@@ -146,7 +146,6 @@
     <a-modal
       v-if="skuModalOpen"
       v-model:open="skuModalOpen"
-      title="选择赏品"
       :footer="null"
       width="96vw"
       :style="{ maxWidth: '1800px' }"
@@ -154,6 +153,9 @@
       :body-style="{ maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' }"
       :destroy-on-close="true"
     >
+      <template #title>
+        <div class="sku-picker-title">选择赏品</div>
+      </template>
       <div class="sku-picker">
         <div class="sku-toolbar">
           <a-input
@@ -229,6 +231,7 @@
                 :controls="false"
                 size="small"
                 style="width: 64px"
+                @change="onSkuQuantityChange(record)"
               />
             </template>
           </a-table-column>
@@ -551,6 +554,14 @@ function skuMoney(value?: string): string {
   return String(Number(value ?? 0) / 100)
 }
 
+function onSkuQuantityChange(record: AdminProductItem) {
+  const id = record.productId
+  if (!id) return
+  if (!selectedSkuKeys.value.includes(id)) {
+    selectedSkuKeys.value = [...selectedSkuKeys.value, id]
+  }
+}
+
 function confirmSkuSelection() {
   const pageIds = new Set(skuItems.value.map((item) => Number(item.productId ?? 0)).filter((id) => id > 0))
   const existing = existingSkuPrizeMap()
@@ -826,6 +837,10 @@ onMounted(loadOptions)
 }
 
 .sku-qty-input :deep(.ant-input-number-input) {
+  text-align: center;
+}
+
+.sku-picker-title {
   text-align: center;
 }
 
