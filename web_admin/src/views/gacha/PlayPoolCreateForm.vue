@@ -224,7 +224,7 @@
               <span v-else>—</span>
             </template>
           </a-table-column>
-          <a-table-column title="个数" :width="100" align="center">
+          <a-table-column title="个数" :width="80" align="center">
             <template #default="{ record }">
               <a-input-number
                 v-model:value="skuQuantities[record.productId ?? '']"
@@ -232,7 +232,7 @@
                 :precision="0"
                 :controls="false"
                 size="small"
-                style="width: 72px"
+                style="width: 64px"
               />
             </template>
           </a-table-column>
