@@ -228,6 +228,7 @@
             <template #default="{ record }">
               <a-input-number
                 v-model:value="skuQuantities[record.productId ?? '']"
+                class="sku-qty-input"
                 :min="1"
                 :precision="0"
                 :controls="false"
@@ -827,6 +828,10 @@ onMounted(loadOptions)
   top: 0;
   z-index: 2;
   background: #fafafa;
+}
+
+.sku-qty-input :deep(.ant-input-number-input) {
+  text-align: center;
 }
 
 .sku-query-btn {
