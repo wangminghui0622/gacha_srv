@@ -117,10 +117,10 @@
               <a-table-column title="概率(%)" width="80" align="center">
                 <template #default="{ record }">{{ probability(record) }}</template>
               </a-table-column>
-              <a-table-column title="操作" :width="130" align="center">
+              <a-table-column title="操作" :width="150" align="center">
                 <template #default="{ record }">
-                  <a-button type="link" size="small" :disabled="!!record.hasParent" @click="openChildPicker(record)">子赏</a-button>
-                  <a-button type="link" danger size="small" @click="confirmRemove(record)">删除</a-button>
+                  <a-button class="prize-action-link" type="link" size="small" :disabled="!!record.hasParent" @click="openChildPicker(record)">子赏</a-button>
+                  <a-button class="prize-action-link" type="link" danger size="small" @click="confirmRemove(record)">删除</a-button>
                 </template>
               </a-table-column>
             </a-table>
@@ -1133,6 +1133,10 @@ onMounted(loadOptions)
 .prize-table-wrap :deep(.ant-table-tbody > tr > td) {
   padding-top: 8px;
   padding-bottom: 8px;
+}
+
+.prize-action-link {
+  font-size: 15px !important;
 }
 
 .prize-inline {
