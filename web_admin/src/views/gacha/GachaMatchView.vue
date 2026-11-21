@@ -674,16 +674,22 @@ onMounted(() => {
 }
 
 .rules-panel {
-  max-width: 760px;
+  max-width: 1160px;
   margin: 0 auto;
   padding: 8px 0 24px;
 }
 
 .rules-alert {
   margin-bottom: 24px;
+
+  // 全局规则说明保持单行展示（窄屏允许横向溢出，不自动折行）
+  :deep(.ant-alert-message) {
+    white-space: nowrap;
+  }
 }
 
 .rules-form {
+  max-width: 760px;
   margin: 0 auto;
 }
 
