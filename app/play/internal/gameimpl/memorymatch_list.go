@@ -31,7 +31,13 @@ func NewListMemoryMatchConfigsLogic(ctx context.Context, svcCtx *svc.ServiceCont
 // ListMemoryMatchConfigs 玩家端对对碰主题列表：只返回上架配置，最新创建的在前。
 func (l *ListMemoryMatchConfigsLogic) ListMemoryMatchConfigs(_ *play.ListMemoryMatchConfigsReq) (*play.ListMemoryMatchConfigsResp, error) {
 	var rows []gamemodel.MemoryMatchConfigs
-	if err := l.svcCtx.DB.Where("status = ?", 1).Order("id DESC").Limit(100).Find(&rows).Error; err != nil {
+	// 只返回真正有对应赏池（play_pool_heads.mode=memorymatch）的配置，
+	// 避免把仅用于联调/种子的 memory_match_configs 记录暴露给玩家。
+	if err := l.svcCtx.DB.Table("memory_match_configs AS c").
+		Select("c.*").
+		Joins("JOIN play_pool_heads AS h ON h.id = c.id").
+		Where("c.status = ? AND h.mode = ?", 1, "memorymatch").
+		Order("c.id DESC").Limit(100).Find(&rows).Error; err != nil {
 		return nil, errorx.NewCodeError(errorx.CodeDBError, "读取对对碰主题失败")
 	}
 	ids := make([]int64, 0, len(rows))
