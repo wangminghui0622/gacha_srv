@@ -434,7 +434,8 @@
     "buffText": "Super Lucky Buff is a limited virtual item provided free of charge by Lucky Box to improve the pair-match experience. It is a non-permanent event item. Its availability, schedule and usage rules are determined by Lucky Box operations.\nAfter choosing your \"lucky card\", you may enter the Super Lucky Buff interaction. Choose one of 9 cards. If it matches your current lucky card, Super Lucky Buff is activated for the current game.\nWhile Super Lucky Buff is active, completing one pair with two lucky cards grants +1 extra lucky point.\nLucky Box reserves the right to interpret these rules within the scope permitted by law.\nAugust 18, 2026",
     "prizeTiers": "Prize tiers",
     "destinyCount": "Lucky points",
-    "currentPairs": "Current pairs"
+    "currentPairs": "Current pairs",
+    "autoPairNone": "No pairs available — draw a card first"
   },
   "tasks": {
     "title": "Tasks",

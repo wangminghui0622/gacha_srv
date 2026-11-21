@@ -300,28 +300,22 @@ async function onAutoPair() {
   autoPlaying.value = true
   acting.value = true
   try {
+    let paired = 0
     for (let step = 0; step < 100; step++) {
       const current: MemoryMatchRoundResponse | null = round.value
       if (!current || current.terminal) break
       const match = findAutoMatch(current.handCardIds)
-      if (match) {
-        const res: MemoryMatchRoundActionResponse = await memoryMatchApi.applyMemoryMatchPair(
-          activeSession.sessionId,
-          current.roundNo,
-          match,
-        )
-        round.value = res.round
-        continue
-      }
-      if (current.availableDestiny > 0 && current.handCardIds.length < 9) {
-        const res: MemoryMatchRoundActionResponse = await memoryMatchApi.applyMemoryMatchDestinyDraw(
-          activeSession.sessionId,
-          current.roundNo,
-        )
-        round.value = res.round
-        continue
-      }
-      break
+      if (!match) break
+      const res: MemoryMatchRoundActionResponse = await memoryMatchApi.applyMemoryMatchPair(
+        activeSession.sessionId,
+        current.roundNo,
+        match,
+      )
+      round.value = res.round
+      paired++
+    }
+    if (paired === 0) {
+      uni.showToast({ title: t('memoryMatch.autoPairNone'), icon: 'none' })
     }
     selectedCards.value = []
   } catch (err) {
