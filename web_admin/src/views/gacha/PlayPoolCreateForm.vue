@@ -13,6 +13,16 @@
           <a-select v-model:value="form.mode" :options="modeOptions" />
         </a-form-item>
 
+        <template v-if="form.mode === 'memorymatch'">
+          <a-form-item label="回合数" required>
+            <a-input-number v-model:value="mmConfig.roundsPerPurchase" :min="1" :max="100" :precision="0" style="width: 100%" />
+          </a-form-item>
+          <a-form-item label="每回合最大碰数" required>
+            <a-input-number v-model:value="mmConfig.maxPairCount" :min="1" :max="27" :precision="0" style="width: 100%" />
+            <div class="field-hint">总碰数上限：{{ mmConfig.roundsPerPurchase * mmConfig.maxPairCount }}</div>
+          </a-form-item>
+        </template>
+
         <a-form-item label="活动开始时间">
           <a-date-picker v-model:value="form.startAt" show-time style="width: 100%" placeholder="活动开始时间" />
         </a-form-item>
@@ -329,6 +339,11 @@ const prizeTypeOptions = [
   { label: '箱子', value: 3 },
 ]
 
+const mmConfig = reactive({
+  roundsPerPurchase: 3,
+  maxPairCount: 3,
+})
+
 const form = reactive({
   name: '',
   ipId: undefined as string | undefined,
@@ -367,12 +382,31 @@ const switchItems = [
 const prizes = ref<PlayPoolPrize[]>([])
 const expandedPrizeIndexes = ref<Set<number>>(new Set())
 
+function applyMemoryMatchConfig(raw?: string | null) {
+  let rounds = 3
+  let maxPairs = 3
+  if (raw) {
+    try {
+      const cfg = JSON.parse(raw) as { roundsPerPurchase?: unknown; maxPairCount?: unknown }
+      const r = Number(cfg.roundsPerPurchase)
+      const m = Number(cfg.maxPairCount)
+      if (Number.isFinite(r) && r >= 1) rounds = Math.min(100, Math.round(r))
+      if (Number.isFinite(m) && m >= 1) maxPairs = Math.min(27, Math.round(m))
+    } catch {
+      // 配置 JSON 非法时保留默认值，提交时由后端校验
+    }
+  }
+  mmConfig.roundsPerPurchase = rounds
+  mmConfig.maxPairCount = maxPairs
+}
+
 function applyInitial(initial?: PlayPoolCreateInitial | null) {
   if (!initial) return
   initialPoolId.value = initial.poolId
   initialMode.value = initial.mode ?? 'gashapon'
   initialConfigJson.value = initial.configJson ?? null
   form.mode = initialMode.value
+  applyMemoryMatchConfig(initial.configJson)
   form.name = initial.name ?? ''
   form.priceYuan = initial.priceYuan ?? 1
   form.ipId = initial.ipId || undefined
@@ -1135,10 +1169,34 @@ async function submit() {
     groupbuy: '{"targetBetCount":3,"perBetAwardLimit":0}',
     memorymatch: '{"followGlobal":true,"roundsPerPurchase":3,"maxPairCount":3,"patternWeights":[1,1,1,1,1,1,1,1,1],"facePresets":[{"presetId":1,"name":"默认","faces":[]}],"backPresets":[{"presetId":1,"name":"默认","backImageUrl":"","faceBackgroundImageUrl":""}]}',
   }
-  const configJson =
+  if (form.mode === 'memorymatch') {
+    if (!Number.isFinite(mmConfig.roundsPerPurchase) || mmConfig.roundsPerPurchase < 1 || mmConfig.roundsPerPurchase > 100) {
+      message.warning('回合数需为 1-100')
+      return
+    }
+    if (!Number.isFinite(mmConfig.maxPairCount) || mmConfig.maxPairCount < 1 || mmConfig.maxPairCount > 27) {
+      message.warning('每回合最大碰数需为 1-27')
+      return
+    }
+  }
+  const rawConfig =
     initialConfigJson.value && form.mode === initialMode.value
       ? initialConfigJson.value
       : configs[form.mode] ?? '{}'
+  let configObject: Record<string, unknown> = {}
+  try {
+    const parsed = JSON.parse(rawConfig) as unknown
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      configObject = parsed as Record<string, unknown>
+    }
+  } catch {
+    configObject = {}
+  }
+  if (form.mode === 'memorymatch') {
+    configObject.roundsPerPurchase = Math.round(mmConfig.roundsPerPurchase)
+    configObject.maxPairCount = Math.round(mmConfig.maxPairCount)
+  }
+  const configJson = JSON.stringify(configObject)
   saving.value = true
   try {
     await playPoolClient.CreateDraft({
@@ -1170,6 +1228,13 @@ onMounted(loadOptions)
 <style scoped lang="scss">
 .create-form {
   width: 100%;
+}
+
+.field-hint {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #8a94a6;
 }
 
 .form-layout {
