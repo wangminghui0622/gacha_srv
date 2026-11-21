@@ -740,16 +740,6 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
   },
 ]
 
-// 当前后台只保留商品管理（IP/品牌/系列/商品）与仪表盘首页；
-// 赏池、客户、活动、系统、账户、报表等入口暂时关闭，代码与数据保留，后续可恢复。
-const ENABLED_ROUTE_NAMES = new Set([
-  'dashboard',
-  'catalog-ip',
-  'catalog-brand',
-  'catalog-series',
-  'catalog',
-])
-
 function granted(item: ConsoleRouteDef, nodes: PermissionNode[]): boolean {
   if (item.permissions) return item.permissions.some((permission) => allows(nodes, permission.resource, permission.action))
   if (!item.permission) {
@@ -830,9 +820,7 @@ const ACTIVITY_CHILDREN = ['activity-exchange', 'activity-points-exchange', 'act
 const PRIMARY_LEAVES: readonly string[] = []
 
 export function accessibleRoutes(nodes: PermissionNode[]): ConsoleRouteDef[] {
-  return consoleRouteCatalog.filter(
-    (item) => ENABLED_ROUTE_NAMES.has(item.name) && !item.placeholder && granted(item, nodes),
-  )
+  return consoleRouteCatalog.filter((item) => !item.placeholder && granted(item, nodes))
 }
 
 function childNodes(names: readonly string[], nodes: PermissionNode[], byName: Map<string, ConsoleRouteDef>): MenuNode[] {
@@ -843,11 +831,7 @@ function childNodes(names: readonly string[], nodes: PermissionNode[], byName: M
 }
 
 export function menuTree(nodes: PermissionNode[]): MenuNode[] {
-  const byName = new Map(
-    consoleRouteCatalog
-      .filter((item) => ENABLED_ROUTE_NAMES.has(item.name) && item.name !== 'dashboard')
-      .map((item) => [item.name, item]),
-  )
+  const byName = new Map(consoleRouteCatalog.map((item) => [item.name, item]))
   const tree: MenuNode[] = []
   const dashboard = byName.get('dashboard')
   if (dashboard && !dashboard.placeholder && granted(dashboard, nodes)) {
@@ -937,7 +921,7 @@ export function canAccessRoute(routeName: string | undefined, nodes: PermissionN
     return true
   }
   const item = consoleRouteCatalog.find((entry) => entry.name === routeName)
-  if (!item || item.placeholder || !ENABLED_ROUTE_NAMES.has(item.name)) {
+  if (!item || item.placeholder) {
     return false
   }
   return granted(item, nodes)
