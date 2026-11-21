@@ -84,7 +84,7 @@
 
     <a-modal
       v-model:open="createModalOpen"
-      :style="{ top: '80px' }"
+      centered
       :width="createModalWidth"
       :wrap-style="createModalWrapStyle"
       :footer="null"
@@ -189,7 +189,7 @@
       v-model:open="referenceOpen"
       :title="$t('poolAdmin.referenceTitle')"
       :footer="null"
-      :style="{ top: '80px' }"
+      :style="{ top: '77px' }"
       :width="createModalWidth"
       :wrap-style="createModalWrapStyle"
       :body-style="{ minHeight: 'calc(100vh - 200px)', maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }"
