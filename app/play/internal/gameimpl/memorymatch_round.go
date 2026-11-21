@@ -514,8 +514,8 @@ func mmCreateRounds(db *gorm.DB, sess *gamemodelnc.MemoryMatchSessions, rules *m
 		}
 		st := memorymatch.OpeningWithRules(roundSeed, strategy, rules.PatternWeights,
 			exactMin, exactMax, attemptLimit, mmRuleSet(rules))
-		// 初始手牌中出现命运图案的牌计入开局吉祥数（旧引擎同款语义）。
-		st.GrantInitialDestiny(int32(sess.DestinyPatternId), int32(sess.SecondDestinyPatternId), rules.SecondDestinyEnabled)
+		// 初始手牌中出现第一命运图案的牌计入开局吉祥数（server_v2 同款语义）。
+		st.GrantInitialDestiny(int32(sess.DestinyPatternId))
 		row := &gamemodelnc.MemoryMatchRounds{
 			SessionId: sess.Id,
 			RoundNo:   roundNo,

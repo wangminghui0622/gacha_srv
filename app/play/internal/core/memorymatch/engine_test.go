@@ -129,92 +129,68 @@ func TestSkipMatchesSequentialAutoResolution(t *testing.T) {
 	}
 }
 
-// TestOptionalSecondDestinyOnlyOnce 第二命运仅在启用且配对图案匹配时 +1（只增益匹配对子）
+// TestSecondDestinyOnlyBuffsMatchingDestinyPairs 对齐 server_v2：
+// 第二命运与第一命运不同时不产生收益；相同时配对命运图案额外 +double_destiny_buff（天命双倍开启）。
 func TestSecondDestinyOnlyBuffsMatchingDestinyPairs(t *testing.T) {
-	engineSeed := testEngineSeed()
-	destiny, second := int32(2), int32(8)
-
-	// 构造一手必能配对命运图案 2 的状态：直接用 ApplyPair 手打
-	st := Opening(RoundSeed(engineSeed, 9, 1), 1, nil, 0, 0, 0)
-	// 玩到终局，记录每次配对时的命运加成
-	pairPatterns := collectPairPatterns(t, st, 27, destiny, second, true)
-	hasSecond := false
-	for _, p := range pairPatterns {
-		if p == second {
-			hasSecond = true
-		}
-	}
-	_ = hasSecond // 图案 8 是否出现取决于发牌；核心断言在下方定向构造
-
-	// 定向构造：手牌放两张图案 8（第二命运）与两张图案 2（命运）
-	// 命运=7、第二命运=8：配对图案 8 → 第二命运 +1；补牌 deck[9]=10（图案 2）≠7/8 不加成
-	st2 := &RoundState{
+	// 第一命运 7、第二命运 8（不同）：配对图案 8 不产生收益；补牌 deck[9]=10（图案 2）也不是命运 7。
+	stDiff := &RoundState{
 		Deck:           NewDeck(),
-		InitialHand:    []int32{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		InitialHand:    []int32{8*6 - 1, 8 * 6, 2*6 - 1, 2 * 6, 1*6 + 1, 3*6 + 1, 4*6 + 1, 5*6 + 1, 6*6 + 1},
 		SeedCommitment: "x",
 		DrawPosition:   InitialHandSize,
+		Rules:          &RuleSet{ReplenishCount: 1, DestinyIncome: 1, DoubleDestinyBuff: 1, DestinyDoubleEnabled: true},
 	}
-	st2.InitialHand[0], st2.InitialHand[1] = 8*6-1, 8*6 // 图案 8 两张（card 47,48）
-	st2.InitialHand[2], st2.InitialHand[3] = 2*6-1, 2*6 // 图案 2 两张（card 11,12）
-	st2.InitialHand[4] = 1*6 + 1                        // 图案 1
-	st2.InitialHand[5] = 3*6 + 1                        // 图案 3
-	st2.InitialHand[6] = 4*6 + 1                        // 图案 4
-	st2.InitialHand[7] = 5*6 + 1                        // 图案 5
-	st2.InitialHand[8] = 6*6 + 1                        // 图案 6
-	destiny, second = int32(7), int32(8)
+	if err := stDiff.ApplyPair(27, 7, 8, true, 8*6-1, 8*6); err != nil {
+		t.Fatalf("ApplyPair(different second): %v", err)
+	}
+	if stDiff.AvailableDestiny != 0 {
+		t.Fatalf("different second destiny: available=%d want 0", stDiff.AvailableDestiny)
+	}
 
-	// 开第二命运：配对图案 8 → available_destiny +1
-	if err := st2.ApplyPair(27, destiny, second, true, 8*6-1, 8*6); err != nil {
-		t.Fatalf("ApplyPair(second destiny): %v", err)
-	}
-	if st2.AvailableDestiny != 1 {
-		t.Fatalf("second destiny buff: available=%d want 1", st2.AvailableDestiny)
-	}
-	// 第二命运关闭：同配对不加成
-	st2b := &RoundState{
+	// 第一/第二命运同为 7：配对图案 7 → +buff 1；补牌 deck[9]=10（图案 2）不加。
+	stSame := &RoundState{
 		Deck:           NewDeck(),
-		InitialHand:    append([]int32(nil), []int32{8*6 - 1, 8 * 6, 2*6 - 1, 2 * 6, 1*6 + 1, 3*6 + 1, 4*6 + 1, 5*6 + 1, 6*6 + 1}...),
+		InitialHand:    []int32{7*6 - 1, 7 * 6, 2*6 - 1, 2 * 6, 1*6 + 1, 3*6 + 1, 4*6 + 1, 5*6 + 1, 6*6 + 1},
 		SeedCommitment: "x",
 		DrawPosition:   InitialHandSize,
+		Rules:          &RuleSet{ReplenishCount: 1, DestinyIncome: 1, DoubleDestinyBuff: 1, DestinyDoubleEnabled: true},
 	}
-	if err := st2b.ApplyPair(27, destiny, second, false, 8*6-1, 8*6); err != nil {
-		t.Fatalf("ApplyPair(second off): %v", err)
+	if err := stSame.ApplyPair(27, 7, 7, true, 7*6-1, 7*6); err != nil {
+		t.Fatalf("ApplyPair(same second): %v", err)
 	}
-	if st2b.AvailableDestiny != 0 {
-		t.Fatalf("second destiny off buff: available=%d want 0", st2b.AvailableDestiny)
+	if stSame.AvailableDestiny != 1 {
+		t.Fatalf("same second destiny: available=%d want 1", stSame.AvailableDestiny)
 	}
-	// 第一命运配对加成：命运=2 配对图案 2 → 配对 +1、补牌 deck[9]=10（图案 2）再 +1 = 2
-	st2c := &RoundState{
+
+	// 天命双倍关闭：同配对不加成。
+	stOff := &RoundState{
 		Deck:           NewDeck(),
-		InitialHand:    append([]int32(nil), []int32{11, 12, 1, 13, 19, 25, 31, 37, 43}...),
+		InitialHand:    []int32{7*6 - 1, 7 * 6, 2*6 - 1, 2 * 6, 1*6 + 1, 3*6 + 1, 4*6 + 1, 5*6 + 1, 6*6 + 1},
 		SeedCommitment: "x",
 		DrawPosition:   InitialHandSize,
+		Rules:          &RuleSet{ReplenishCount: 1, DestinyIncome: 1, DoubleDestinyBuff: 1, DestinyDoubleEnabled: false},
 	}
-	if err := st2c.ApplyPair(27, 2, 0, false, 11, 12); err != nil {
+	if err := stOff.ApplyPair(27, 7, 7, true, 7*6-1, 7*6); err != nil {
+		t.Fatalf("ApplyPair(double off): %v", err)
+	}
+	if stOff.AvailableDestiny != 0 {
+		t.Fatalf("double off: available=%d want 0", stOff.AvailableDestiny)
+	}
+
+	// 第一命运配对本身不加基础收益；补牌 deck[9]=10（图案 2）是第一命运 → +DestinyIncome 2。
+	stFirst := &RoundState{
+		Deck:           NewDeck(),
+		InitialHand:    []int32{11, 12, 1, 13, 19, 25, 31, 37, 43},
+		SeedCommitment: "x",
+		DrawPosition:   InitialHandSize,
+		Rules:          &RuleSet{ReplenishCount: 1, DestinyIncome: 2, DestinyDoubleEnabled: false},
+	}
+	if err := stFirst.ApplyPair(27, 2, 0, false, 11, 12); err != nil {
 		t.Fatalf("ApplyPair(first destiny): %v", err)
 	}
-	if st2c.AvailableDestiny != 2 {
-		t.Fatalf("first destiny buff: available=%d want 2（配对 +1 补牌 +1）", st2c.AvailableDestiny)
+	if stFirst.AvailableDestiny != 2 {
+		t.Fatalf("first destiny replenish: available=%d want 2", stFirst.AvailableDestiny)
 	}
-}
-
-func collectPairPatterns(t *testing.T, st *RoundState, maxPairs int, destiny, second int32, secondOn bool) []int32 {
-	t.Helper()
-	var out []int32
-	for !st.IsTerminal(maxPairs) {
-		a, b, ok := st.FirstPair()
-		if !ok {
-			if err := st.ApplyDestinyDraw(maxPairs, destiny, second, secondOn); err != nil {
-				t.Fatalf("ApplyDestinyDraw: %v", err)
-			}
-			continue
-		}
-		if err := st.ApplyPair(maxPairs, destiny, second, secondOn, a, b); err != nil {
-			t.Fatalf("ApplyPair: %v", err)
-		}
-		out = append(out, PatternOfCard(a))
-	}
-	return out
 }
 
 // TestRoundReplayAndLimits 手牌重放一致 + 上限校验（actions≤108、destiny≤81、手牌≤9）

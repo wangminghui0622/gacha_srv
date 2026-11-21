@@ -501,30 +501,42 @@ func (s *RoundState) IsTerminal(maxPairs int) bool {
 	return s.AvailableDestiny <= 0 || s.DrawPosition >= DeckSize || len(hand) >= s.handLimit()
 }
 
-func (s *RoundState) addDestinyForPattern(pattern, destinyPattern, secondDestinyPattern int32, secondDestinyEnabled bool) {
-	if destinyPattern > 0 && pattern == destinyPattern {
-		s.AvailableDestiny += s.destinyIncome()
+// addDestinyIncome 出天命收益：初始手牌/碰后补牌/命运抽牌出现第一命运图案时增加。
+func (s *RoundState) addDestinyIncome(pattern, destinyPattern int32) {
+	if destinyPattern <= 0 || pattern != destinyPattern {
+		return
 	}
-	if secondDestinyEnabled && secondDestinyPattern > 0 && pattern == secondDestinyPattern {
-		s.AvailableDestiny++
-		if s.destinyDoubleEnabled() {
-			s.AvailableDestiny += s.doubleDestinyBuff()
-		}
+	s.AvailableDestiny += s.destinyIncome()
+	s.capDestiny()
+}
+
+// addDestinyPairBonus 第二次天命与第一命运相同且开启天命双倍时，配对命运图案额外增加 buff。
+// 对齐 server_v2：第二命运与第一命运不同则不产生任何收益；配对本身不产生基础天命收益。
+func (s *RoundState) addDestinyPairBonus(pattern, destinyPattern, secondDestinyPattern int32, secondDestinyEnabled bool) {
+	if !secondDestinyEnabled || destinyPattern <= 0 || secondDestinyPattern != destinyPattern || pattern != destinyPattern {
+		return
 	}
+	if !s.destinyDoubleEnabled() {
+		return
+	}
+	s.AvailableDestiny += s.doubleDestinyBuff()
+	s.capDestiny()
+}
+
+func (s *RoundState) capDestiny() {
 	if s.AvailableDestiny > MaxAvailableDestiny {
 		s.AvailableDestiny = MaxAvailableDestiny
 	}
 }
 
-// GrantInitialDestiny 统计开局手牌中与命运图案一致的牌，补入开局吉祥数。
-// 语义与旧引擎 newMemoryMatchProgress 一致：初始手牌中出现命运图案即计入收益；
-// 第二命运按 +1（天命双倍开启时再叠加 double_destiny_buff）。
-func (s *RoundState) GrantInitialDestiny(destinyPattern, secondDestinyPattern int32, secondDestinyEnabled bool) {
+// GrantInitialDestiny 统计开局手牌中与第一命运图案一致的牌，按出天命收益补入开局吉祥数。
+// 语义对齐 server_v2 newMemoryMatchProgress：只统计第一命运，第二命运不参与初始手牌计数。
+func (s *RoundState) GrantInitialDestiny(destinyPattern int32) {
 	if s == nil {
 		return
 	}
 	for _, card := range s.InitialHand {
-		s.addDestinyForPattern(PatternOfCard(card), destinyPattern, secondDestinyPattern, secondDestinyEnabled)
+		s.addDestinyIncome(PatternOfCard(card), destinyPattern)
 	}
 }
 
@@ -566,7 +578,7 @@ func (s *RoundState) ApplyMatch(maxPairs int, destinyPattern, secondDestinyPatte
 	}
 	s.Actions = append(s.Actions, strings.Join(parts, ":"))
 	s.PairCount++
-	s.addDestinyForPattern(pattern, destinyPattern, secondDestinyPattern, secondDestinyEnabled)
+	s.addDestinyPairBonus(pattern, destinyPattern, secondDestinyPattern, secondDestinyEnabled)
 
 	handLimit := s.handLimit()
 	for i := 0; i < s.replenishCount(); i++ {
@@ -576,7 +588,7 @@ func (s *RoundState) ApplyMatch(maxPairs int, destinyPattern, secondDestinyPatte
 		c := s.Deck[s.DrawPosition]
 		s.DrawPosition++
 		s.Actions = append(s.Actions, fmt.Sprintf("replenish:%d", c))
-		s.addDestinyForPattern(PatternOfCard(c), destinyPattern, secondDestinyPattern, secondDestinyEnabled)
+		s.addDestinyIncome(PatternOfCard(c), destinyPattern)
 	}
 	return nil
 }
@@ -620,7 +632,7 @@ func (s *RoundState) ApplyDestinyDraw(maxPairs int, destinyPattern, secondDestin
 	s.AvailableDestiny -= cost
 	s.DestinyDraws++
 	s.Actions = append(s.Actions, fmt.Sprintf("destinyDraw:%d", c))
-	s.addDestinyForPattern(PatternOfCard(c), destinyPattern, secondDestinyPattern, secondDestinyEnabled)
+	s.addDestinyIncome(PatternOfCard(c), destinyPattern)
 	return nil
 }
 

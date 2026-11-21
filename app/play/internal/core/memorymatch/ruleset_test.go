@@ -40,10 +40,10 @@ func TestGrantInitialDestiny(t *testing.T) {
 		},
 	}
 	// 初始手牌：图案 1 两张、图案 2 两张。
-	// 第一命运 1：每张 +2 → 4；第二命运 2：每张 +1、天命双倍再 +1 → 4。合计 8。
-	st.GrantInitialDestiny(1, 2, true)
-	if st.AvailableDestiny != 8 {
-		t.Fatalf("initial destiny=%d want 8", st.AvailableDestiny)
+	// 只统计第一命运 1：每张 +2 → 4；第二命运不参与初始手牌计数。
+	st.GrantInitialDestiny(1)
+	if st.AvailableDestiny != 4 {
+		t.Fatalf("initial destiny=%d want 4", st.AvailableDestiny)
 	}
 }
 
@@ -64,15 +64,16 @@ func TestApplyMatchWithThreeCards(t *testing.T) {
 			DestinyDoubleEnabled: true,
 		},
 	}
-	if err := st.ApplyMatch(27, 1, 2, true, []int32{1, 2, 3}); err != nil {
+	if err := st.ApplyMatch(27, 1, 1, true, []int32{1, 2, 3}); err != nil {
 		t.Fatalf("apply match: %v", err)
 	}
 	if st.PairCount != 1 {
 		t.Fatalf("pair count=%d", st.PairCount)
 	}
-	// 图案 1 是命运 -> +2；补入牌堆第 7 张（图案 2）是第二命运 -> +1 +buff 1。
-	if st.AvailableDestiny != 6 {
-		t.Fatalf("available destiny=%d, want 6", st.AvailableDestiny)
+	// 配对图案 1 与第一命运相同、第二命运也选 1 -> 天命双倍 buff +1；
+	// 补入牌堆第 7 张（图案 2）不是命运 -> 不加。初始 2 + 1 = 3。
+	if st.AvailableDestiny != 3 {
+		t.Fatalf("available destiny=%d, want 3", st.AvailableDestiny)
 	}
 	hand, err := st.Hand()
 	if err != nil {
