@@ -189,11 +189,10 @@
       v-model:open="referenceOpen"
       :title="$t('poolAdmin.referenceTitle')"
       :footer="null"
-      :centered="createModalTop === null"
-      :style="createModalTop !== null ? { top: `${createModalTop}px` } : undefined"
+      centered
       :width="createModalWidth"
       :wrap-style="createModalWrapStyle"
-      :body-style="{ minHeight: 'calc(100vh - 200px)', maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }"
+      :body-style="{ height: '1019px', maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }"
     >
       <div class="reference-toolbar">
         <a-input
