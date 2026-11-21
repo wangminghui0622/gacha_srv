@@ -253,7 +253,9 @@
     "cancel": "取消",
     "referenceTitle": "引用查询",
     "referencePlaceholder": "输入赏池 ID",
-    "referenceEmpty": "暂无数据"
+    "referenceEmpty": "暂无数据",
+    "referenceAutoHint": "输入ID后自动查询",
+    "referenceNotFound": "ID {id} 未被任何奖池引用"
   },
   "gachaMatch": {
     "subtitle": "全局玩法规则、牌堆与外观池；赏池默认跟随全局玩法规则，也可单独覆盖",

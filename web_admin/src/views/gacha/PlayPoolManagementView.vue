@@ -235,7 +235,7 @@
           </template>
         </template>
         <template #emptyText>
-          <a-empty :description="$t('poolAdmin.referenceEmpty')" />
+          <a-empty :description="referenceEmptyText" />
         </template>
       </a-table>
     </a-modal>
@@ -353,6 +353,11 @@ const referenceId = ref('')
 const referenceResults = ref<PlayPoolReferenceItem[]>([])
 let referenceTimer: ReturnType<typeof setTimeout> | undefined
 let referenceSeq = 0
+
+const referenceEmptyText = computed(() => {
+  const id = referenceId.value.trim()
+  return id ? t('poolAdmin.referenceNotFound', { id }) : t('poolAdmin.referenceAutoHint')
+})
 
 const referenceColumns = [
   { title: '池子ID', dataIndex: 'poolId', key: 'poolId', width: 90 },

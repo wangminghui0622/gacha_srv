@@ -253,7 +253,9 @@
     "cancel": "Cancel",
     "referenceTitle": "Reference lookup",
     "referencePlaceholder": "Enter pool ID",
-    "referenceEmpty": "No data"
+    "referenceEmpty": "No data",
+    "referenceAutoHint": "Results update automatically after you enter an ID",
+    "referenceNotFound": "ID {id} is not referenced by any pool"
   },
   "gachaMatch": {
     "subtitle": "Global gameplay rules, decks and appearance pool; pools follow global rules by default and can override them",
