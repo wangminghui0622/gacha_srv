@@ -241,6 +241,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: groupbuy.ListGroupBuyRecordsHandler(serverCtx),
 				},
 				{
+					// 对对碰主题列表（玩家端）
+					Method:  http.MethodGet,
+					Path:    "/memory-match/configs",
+					Handler: memorymatch.ListMemoryMatchConfigsHandler(serverCtx),
+				},
+				{
 					// 记忆翻牌玩法详情（M15b：配置+奖档+擂主+外观）
 					Method:  http.MethodGet,
 					Path:    "/memory-match/configs/:configId",

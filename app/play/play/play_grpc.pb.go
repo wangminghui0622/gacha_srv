@@ -43,6 +43,7 @@ const (
 	Play_GetComboChain_FullMethodName                  = "/play.Play/GetComboChain"
 	Play_GetGroupBuy_FullMethodName                    = "/play.Play/GetGroupBuy"
 	Play_GetMemoryMatchConfig_FullMethodName           = "/play.Play/GetMemoryMatchConfig"
+	Play_ListMemoryMatchConfigs_FullMethodName         = "/play.Play/ListMemoryMatchConfigs"
 	Play_GetMemoryMatchGlobalRules_FullMethodName      = "/play.Play/GetMemoryMatchGlobalRules"
 	Play_SaveMemoryMatchGlobalRules_FullMethodName     = "/play.Play/SaveMemoryMatchGlobalRules"
 	Play_ListMemoryMatchDeckTemplates_FullMethodName   = "/play.Play/ListMemoryMatchDeckTemplates"
@@ -104,6 +105,7 @@ type PlayClient interface {
 	GetGroupBuy(ctx context.Context, in *GetGroupBuyReq, opts ...grpc.CallOption) (*GetGroupBuyResp, error)
 	// ---- 记忆翻牌（玩法接口）----
 	GetMemoryMatchConfig(ctx context.Context, in *GetMemoryMatchConfigReq, opts ...grpc.CallOption) (*GetMemoryMatchConfigResp, error)
+	ListMemoryMatchConfigs(ctx context.Context, in *ListMemoryMatchConfigsReq, opts ...grpc.CallOption) (*ListMemoryMatchConfigsResp, error)
 	// ---- 对对碰管理后台（全局规则/牌堆模板/外观池）----
 	GetMemoryMatchGlobalRules(ctx context.Context, in *GetMemoryMatchGlobalRulesReq, opts ...grpc.CallOption) (*GetMemoryMatchGlobalRulesResp, error)
 	SaveMemoryMatchGlobalRules(ctx context.Context, in *SaveMemoryMatchGlobalRulesReq, opts ...grpc.CallOption) (*SaveMemoryMatchGlobalRulesResp, error)
@@ -352,6 +354,15 @@ func (c *playClient) GetMemoryMatchConfig(ctx context.Context, in *GetMemoryMatc
 	return out, nil
 }
 
+func (c *playClient) ListMemoryMatchConfigs(ctx context.Context, in *ListMemoryMatchConfigsReq, opts ...grpc.CallOption) (*ListMemoryMatchConfigsResp, error) {
+	out := new(ListMemoryMatchConfigsResp)
+	err := c.cc.Invoke(ctx, Play_ListMemoryMatchConfigs_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *playClient) GetMemoryMatchGlobalRules(ctx context.Context, in *GetMemoryMatchGlobalRulesReq, opts ...grpc.CallOption) (*GetMemoryMatchGlobalRulesResp, error) {
 	out := new(GetMemoryMatchGlobalRulesResp)
 	err := c.cc.Invoke(ctx, Play_GetMemoryMatchGlobalRules_FullMethodName, in, out, opts...)
@@ -571,6 +582,7 @@ type PlayServer interface {
 	GetGroupBuy(context.Context, *GetGroupBuyReq) (*GetGroupBuyResp, error)
 	// ---- 记忆翻牌（玩法接口）----
 	GetMemoryMatchConfig(context.Context, *GetMemoryMatchConfigReq) (*GetMemoryMatchConfigResp, error)
+	ListMemoryMatchConfigs(context.Context, *ListMemoryMatchConfigsReq) (*ListMemoryMatchConfigsResp, error)
 	// ---- 对对碰管理后台（全局规则/牌堆模板/外观池）----
 	GetMemoryMatchGlobalRules(context.Context, *GetMemoryMatchGlobalRulesReq) (*GetMemoryMatchGlobalRulesResp, error)
 	SaveMemoryMatchGlobalRules(context.Context, *SaveMemoryMatchGlobalRulesReq) (*SaveMemoryMatchGlobalRulesResp, error)
@@ -671,6 +683,9 @@ func (UnimplementedPlayServer) GetGroupBuy(context.Context, *GetGroupBuyReq) (*G
 }
 func (UnimplementedPlayServer) GetMemoryMatchConfig(context.Context, *GetMemoryMatchConfigReq) (*GetMemoryMatchConfigResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMemoryMatchConfig not implemented")
+}
+func (UnimplementedPlayServer) ListMemoryMatchConfigs(context.Context, *ListMemoryMatchConfigsReq) (*ListMemoryMatchConfigsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListMemoryMatchConfigs not implemented")
 }
 func (UnimplementedPlayServer) GetMemoryMatchGlobalRules(context.Context, *GetMemoryMatchGlobalRulesReq) (*GetMemoryMatchGlobalRulesResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMemoryMatchGlobalRules not implemented")
@@ -1177,6 +1192,24 @@ func _Play_GetMemoryMatchConfig_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Play_ListMemoryMatchConfigs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMemoryMatchConfigsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).ListMemoryMatchConfigs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_ListMemoryMatchConfigs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).ListMemoryMatchConfigs(ctx, req.(*ListMemoryMatchConfigsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Play_GetMemoryMatchGlobalRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetMemoryMatchGlobalRulesReq)
 	if err := dec(in); err != nil {
@@ -1639,6 +1672,10 @@ var Play_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMemoryMatchConfig",
 			Handler:    _Play_GetMemoryMatchConfig_Handler,
+		},
+		{
+			MethodName: "ListMemoryMatchConfigs",
+			Handler:    _Play_ListMemoryMatchConfigs_Handler,
 		},
 		{
 			MethodName: "GetMemoryMatchGlobalRules",

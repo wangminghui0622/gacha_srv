@@ -154,6 +154,11 @@ func (s *PlayServer) GetMemoryMatchConfig(ctx context.Context, in *play.GetMemor
 	return l.GetMemoryMatchConfig(in)
 }
 
+func (s *PlayServer) ListMemoryMatchConfigs(ctx context.Context, in *play.ListMemoryMatchConfigsReq) (*play.ListMemoryMatchConfigsResp, error) {
+	l := logic.NewListMemoryMatchConfigsLogic(ctx, s.svcCtx)
+	return l.ListMemoryMatchConfigs(in)
+}
+
 // ---- 对对碰管理后台（全局规则/牌堆模板/外观池）----
 func (s *PlayServer) GetMemoryMatchGlobalRules(ctx context.Context, in *play.GetMemoryMatchGlobalRulesReq) (*play.GetMemoryMatchGlobalRulesResp, error) {
 	l := logic.NewGetMemoryMatchGlobalRulesLogic(ctx, s.svcCtx)

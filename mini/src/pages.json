@@ -81,6 +81,15 @@
 			}
 		},
 		{
+			"path": "pages/memory-match/list",
+			"style": {
+				"navigationBarTitleText": "对对碰",
+				"navigationBarBackgroundColor": "#080b09",
+				"navigationBarTextStyle": "white",
+				"backgroundColor": "#080b09"
+			}
+		},
+		{
 			"path": "pages/memory-match/index",
 			"style": {
 				"navigationBarTitleText": "对对碰",

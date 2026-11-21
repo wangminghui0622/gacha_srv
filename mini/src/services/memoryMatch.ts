@@ -4,6 +4,7 @@ import type {
   MemoryMatchActionResponse,
   MemoryMatchAppearanceView,
   MemoryMatchCompleteResponse,
+  MemoryMatchConfigListResponse,
   MemoryMatchConfigResponse,
   MemoryMatchPurchaseResponse,
   MemoryMatchRoundActionResponse,
@@ -13,6 +14,10 @@ import type {
 } from './types'
 
 // M15b 记忆翻牌：services/ 唯一 API 层（规范 05-api-layer）
+
+export function listMemoryMatchConfigs(): Promise<MemoryMatchConfigListResponse> {
+  return get('/memory-match/configs')
+}
 
 export function getMemoryMatchConfig(configId: number): Promise<MemoryMatchConfigResponse> {
   return get(`/memory-match/configs/${configId}`)

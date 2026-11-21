@@ -41,7 +41,7 @@ const playRoutes: Record<string, string> = {
   gashapon: '/pages/gashapon/index',
   comboChain: '/pages/combo-chain/index',
   groupBuy: '/pages/group-buy/index',
-  memoryMatch: '/pages/memory-match/index',
+  memoryMatch: '/pages/memory-match/list',
   tasks: '/pages/tasks/index',
 }
 

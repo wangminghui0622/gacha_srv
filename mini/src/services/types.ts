@@ -661,6 +661,20 @@ export interface MemoryMatchConfigResponse {
   appearance: MemoryMatchAppearanceView
 }
 
+// 对对碰主题摘要（玩家端主题列表）
+export interface MemoryMatchConfigSummary {
+  configId: number
+  name: string
+  purchasePrice: string
+  roundsPerPurchase: number
+  maxPairCount: number
+  status: number
+}
+
+export interface MemoryMatchConfigListResponse {
+  configs: MemoryMatchConfigSummary[]
+}
+
 // 购买响应（网关轮询 SAGA 至会话建立后返回；state 2=待选命运 3=待选第二命运 4=游玩中 6=已完成）
 export interface MemoryMatchPurchaseResponse {
   sessionId: number

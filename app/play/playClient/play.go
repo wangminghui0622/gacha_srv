@@ -98,6 +98,8 @@ type (
 	ListGroupBuyRecordsResp            = play.ListGroupBuyRecordsResp
 	ListMemoryMatchAppearancesReq      = play.ListMemoryMatchAppearancesReq
 	ListMemoryMatchAppearancesResp     = play.ListMemoryMatchAppearancesResp
+	ListMemoryMatchConfigsReq          = play.ListMemoryMatchConfigsReq
+	ListMemoryMatchConfigsResp         = play.ListMemoryMatchConfigsResp
 	ListMemoryMatchDeckTemplatesReq    = play.ListMemoryMatchDeckTemplatesReq
 	ListMemoryMatchDeckTemplatesResp   = play.ListMemoryMatchDeckTemplatesResp
 	ListPlayPoolsReq                   = play.ListPlayPoolsReq
@@ -121,6 +123,7 @@ type (
 	MemoryMatchBackPreset              = play.MemoryMatchBackPreset
 	MemoryMatchChampionInfo            = play.MemoryMatchChampionInfo
 	MemoryMatchConfigItem              = play.MemoryMatchConfigItem
+	MemoryMatchConfigSummary           = play.MemoryMatchConfigSummary
 	MemoryMatchDeckTemplate            = play.MemoryMatchDeckTemplate
 	MemoryMatchEntryItem               = play.MemoryMatchEntryItem
 	MemoryMatchFaceItem                = play.MemoryMatchFaceItem
@@ -219,6 +222,7 @@ type (
 		GetGroupBuy(ctx context.Context, in *GetGroupBuyReq, opts ...grpc.CallOption) (*GetGroupBuyResp, error)
 		// ---- 记忆翻牌（玩法接口）----
 		GetMemoryMatchConfig(ctx context.Context, in *GetMemoryMatchConfigReq, opts ...grpc.CallOption) (*GetMemoryMatchConfigResp, error)
+		ListMemoryMatchConfigs(ctx context.Context, in *ListMemoryMatchConfigsReq, opts ...grpc.CallOption) (*ListMemoryMatchConfigsResp, error)
 		// ---- 对对碰管理后台（全局规则/牌堆模板/外观池）----
 		GetMemoryMatchGlobalRules(ctx context.Context, in *GetMemoryMatchGlobalRulesReq, opts ...grpc.CallOption) (*GetMemoryMatchGlobalRulesResp, error)
 		SaveMemoryMatchGlobalRules(ctx context.Context, in *SaveMemoryMatchGlobalRulesReq, opts ...grpc.CallOption) (*SaveMemoryMatchGlobalRulesResp, error)
@@ -383,6 +387,11 @@ func (m *defaultPlay) GetGroupBuy(ctx context.Context, in *GetGroupBuyReq, opts 
 func (m *defaultPlay) GetMemoryMatchConfig(ctx context.Context, in *GetMemoryMatchConfigReq, opts ...grpc.CallOption) (*GetMemoryMatchConfigResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.GetMemoryMatchConfig(ctx, in, opts...)
+}
+
+func (m *defaultPlay) ListMemoryMatchConfigs(ctx context.Context, in *ListMemoryMatchConfigsReq, opts ...grpc.CallOption) (*ListMemoryMatchConfigsResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.ListMemoryMatchConfigs(ctx, in, opts...)
 }
 
 // ---- 对对碰管理后台（全局规则/牌堆模板/外观池）----

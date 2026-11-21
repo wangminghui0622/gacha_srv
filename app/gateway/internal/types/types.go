@@ -825,6 +825,21 @@ type MemoryMatchConfigResp struct {
 	Appearance MemoryMatchAppearanceResp `json:"appearance"`
 }
 
+// MemoryMatchConfigSummary 主题摘要（GET /memory-match/configs）
+type MemoryMatchConfigSummary struct {
+	ConfigId          int64  `json:"configId"`
+	Name              string `json:"name"`
+	PurchasePrice     string `json:"purchasePrice"`
+	RoundsPerPurchase int64  `json:"roundsPerPurchase"`
+	MaxPairCount      int64  `json:"maxPairCount"`
+	Status            int64  `json:"status"`
+}
+
+// MemoryMatchConfigListResp 主题列表（GET /memory-match/configs）
+type MemoryMatchConfigListResp struct {
+	Configs []MemoryMatchConfigSummary `json:"configs"`
+}
+
 // MemoryMatchSessionPathReq 会话路径参数
 type MemoryMatchSessionPathReq struct {
 	SessionId int64 `path:"sessionId" validate:"gte=1"`

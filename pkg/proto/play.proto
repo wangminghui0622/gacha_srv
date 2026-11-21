@@ -248,6 +248,7 @@ service Play {
 
   // ---- 记忆翻牌（玩法接口）----
   rpc GetMemoryMatchConfig(GetMemoryMatchConfigReq) returns (GetMemoryMatchConfigResp);
+  rpc ListMemoryMatchConfigs(ListMemoryMatchConfigsReq) returns (ListMemoryMatchConfigsResp);
   // ---- 对对碰管理后台（全局规则/牌堆模板/外观池）----
   rpc GetMemoryMatchGlobalRules(GetMemoryMatchGlobalRulesReq) returns (GetMemoryMatchGlobalRulesResp);
   rpc SaveMemoryMatchGlobalRules(SaveMemoryMatchGlobalRulesReq) returns (SaveMemoryMatchGlobalRulesResp);
@@ -944,6 +945,22 @@ message MemoryMatchConfigItem {
     int64  destinyReplenishCost = 27;
     bool   resumeEnabled = 28;
     bool   hostModeEnabled = 29;
+}
+
+// 对对碰主题摘要（玩家端主题列表）
+message MemoryMatchConfigSummary {
+    int64  configId = 1;
+    string name = 2;
+    string purchasePrice = 3;       // 元字符串
+    int64  roundsPerPurchase = 4;
+    int64  maxPairCount = 5;
+    int64  status = 6;
+}
+
+message ListMemoryMatchConfigsReq {}
+
+message ListMemoryMatchConfigsResp {
+    repeated MemoryMatchConfigSummary configs = 1;
 }
 
 message GetMemoryMatchConfigReq {

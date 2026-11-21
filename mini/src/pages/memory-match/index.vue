@@ -24,9 +24,13 @@ import type {
 const { t } = useI18n()
 const auth = useAuthStore()
 
-// 记忆翻牌无列表端点（与后端一致），种子仅 1 号命运牌局，前端固定取之
-const CONFIG_ID = 1
-const STORAGE_KEY = `mm_session_${CONFIG_ID}`
+// 默认兼容 1 号命运牌局；从主题列表进入时通过 ?configId= 指定后台配置的奖池。
+const DEFAULT_CONFIG_ID = 1
+const configId = ref(DEFAULT_CONFIG_ID)
+
+function storageKey(): string {
+  return `mm_session_${configId.value}`
+}
 
 // 会话状态：2 待选命运 / 3 待选第二命运 / 4 游玩中 / 6 已完成 / 7 已过期
 const STATE_AWAITING_DESTINY = 2
@@ -119,7 +123,7 @@ function championText(): string {
 
 async function loadConfig() {
   try {
-    config.value = await memoryMatchApi.getMemoryMatchConfig(CONFIG_ID)
+    config.value = await memoryMatchApi.getMemoryMatchConfig(configId.value)
     const app = config.value.appearance
     facePresetId.value = app.facePresetId
     backPresetId.value = app.backPresetId
@@ -145,7 +149,7 @@ function resumeAllowed(): boolean {
 function saveSessionId(sessionId: number) {
   if (!resumeAllowed()) return
   try {
-    uni.setStorageSync(STORAGE_KEY, String(sessionId))
+    uni.setStorageSync(storageKey(), String(sessionId))
   } catch {
     // 存储不可用：忽略，仅失去断点续玩
   }
@@ -153,7 +157,7 @@ function saveSessionId(sessionId: number) {
 
 function clearSessionId() {
   try {
-    uni.removeStorageSync(STORAGE_KEY)
+    uni.removeStorageSync(storageKey())
   } catch {
     // 同上
   }
@@ -234,11 +238,11 @@ async function buy() {
   buying.value = true
   try {
     // 先持久化外观选择，再携带同值购买（后端 Lock 分支校验）
-    await memoryMatchApi.setMemoryMatchAppearance(CONFIG_ID, facePresetId.value, backPresetId.value)
+    await memoryMatchApi.setMemoryMatchAppearance(configId.value, facePresetId.value, backPresetId.value)
     // 每次购买生成新幂等键：同一次购买重试复用、再次购买是新事务
     const key = randomUUID()
     const res = await memoryMatchApi.purchaseMemoryMatch(
-      { configId: CONFIG_ID, facePresetId: facePresetId.value, backPresetId: backPresetId.value },
+      { configId: configId.value, facePresetId: facePresetId.value, backPresetId: backPresetId.value },
       key,
     )
     await loadSession(res.sessionId)
@@ -445,7 +449,11 @@ function onSettlementMask() {
 
 // ── 生命周期 ──
 
-onLoad(async () => {
+onLoad(async (query?: Record<string, string | undefined>) => {
+  const queryId = Number(query?.configId)
+  if (Number.isFinite(queryId) && queryId > 0) {
+    configId.value = queryId
+  }
   await loadConfig()
   await refreshProfile()
   if (!resumeAllowed()) {
@@ -454,7 +462,7 @@ onLoad(async () => {
   }
   // 断点续玩：上次会话未完成则直接回到牌局
   try {
-    const saved = uni.getStorageSync(STORAGE_KEY)
+    const saved = uni.getStorageSync(storageKey())
     if (saved) {
       await loadSession(Number(saved))
     }
