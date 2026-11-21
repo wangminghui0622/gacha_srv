@@ -1106,6 +1106,9 @@ $muted: #8fb39d;
 }
 
 .card-img {
+  position: relative;
+  z-index: 0;
+  display: block;
   width: 100%;
   height: 100%;
 }
@@ -1130,17 +1133,21 @@ $muted: #8fb39d;
 
 .pattern-badge {
   position: absolute;
-  top: 6rpx;
-  right: 6rpx;
-  min-width: 28rpx;
-  height: 28rpx;
-  padding: 0 4rpx;
-  border-radius: 6rpx;
-  background: rgba(2, 10, 6, 0.8);
-  border: 1rpx solid rgba(243, 210, 122, 0.45);
+  top: 8rpx;
+  right: 8rpx;
+  z-index: 5;
+  box-sizing: border-box;
+  display: block;
+  min-width: 34rpx;
+  height: 34rpx;
+  padding: 0 6rpx;
+  border-radius: 8rpx;
+  background: rgba(2, 10, 6, 0.88);
+  border: 1rpx solid rgba(243, 210, 122, 0.65);
   color: $gold;
-  font-size: 17rpx;
-  line-height: 28rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+  line-height: 34rpx;
   text-align: center;
 }
 
