@@ -43,6 +43,9 @@
         <template v-else-if="column.key === 'cycle'">
           <a-tag :color="cycleColor(record.cycleType)">{{ cycleText(record.cycleType) }}</a-tag>
         </template>
+        <template v-else-if="column.key === 'sort'">
+          {{ Number(record.sort ?? 0) }}
+        </template>
         <template v-else-if="column.key === 'action'">
           <a-space :size="4">
             <a-button v-if="canWrite" size="small" @click="openEdit(record)">配置</a-button>
@@ -183,8 +186,8 @@ const columns = [
   { title: '操作', key: 'action', width: 190, align: 'center' as const, fixed: 'right' as const },
 ]
 
-function statusText(status: number): string {
-  switch (status) {
+function statusText(status: number | string): string {
+  switch (Number(status)) {
     case 1: return '进行中'
     case 2: return '已结束'
     case 3: return '已下线'
@@ -192,27 +195,29 @@ function statusText(status: number): string {
   }
 }
 
-function statusColor(status: number): string {
-  switch (status) {
+function statusColor(status: number | string): string {
+  switch (Number(status)) {
     case 1: return 'green'
     case 2: return 'orange'
     default: return 'default'
   }
 }
 
-function accumulateText(type: number): string {
-  return type === 2 ? '限时累计' : '永久累计'
+function accumulateText(type: number | string): string {
+  return Number(type) === 2 ? '限时累计' : '永久累计'
 }
 
-function cycleText(cycle: number): string {
-  if (cycle < 0) return '循环领取·无限轮'
-  if (cycle === 0) return '单轮'
-  return `循环领取·${cycle}轮`
+function cycleText(cycle?: number | string): string {
+  const value = Number(cycle ?? 0)
+  if (value < 0) return '循环领取·无限轮'
+  if (value === 0) return '单轮'
+  return `循环领取·${value}轮`
 }
 
-function cycleColor(cycle: number): string {
-  if (cycle < 0) return 'green'
-  if (cycle === 0) return 'default'
+function cycleColor(cycle?: number | string): string {
+  const value = Number(cycle ?? 0)
+  if (value < 0) return 'green'
+  if (value === 0) return 'default'
   return 'blue'
 }
 
@@ -289,16 +294,16 @@ function openEdit(record: CollectionSetItem) {
   editingId.value = record.id
   form.code = record.code
   form.name = record.name
-  form.accumulateType = record.accumulateType
-  form.cycleType = record.cycleType
-  form.sort = record.sort
-  form.status = record.status
+  form.accumulateType = Number(record.accumulateType ?? 1)
+  form.cycleType = Number(record.cycleType ?? 0)
+  form.sort = Number(record.sort ?? 0)
+  form.status = Number(record.status ?? 1)
   form.startAt = record.startAt ?? ''
   form.endAt = record.endAt ?? ''
   form.configJson = record.configJson || '{}'
-  cycleOptions.value = baseCycleOptions.some((option) => option.value === record.cycleType)
+  cycleOptions.value = baseCycleOptions.some((option) => option.value === form.cycleType)
     ? [...baseCycleOptions]
-    : [...baseCycleOptions, { value: record.cycleType, label: cycleText(record.cycleType) }]
+    : [...baseCycleOptions, { value: form.cycleType, label: cycleText(form.cycleType) }]
   editOpen.value = true
 }
 
@@ -384,7 +389,7 @@ const statusTarget = ref<CollectionSetItem | null>(null)
 
 function openStatus(record: CollectionSetItem) {
   statusTarget.value = record
-  statusValue.value = record.status
+  statusValue.value = Number(record.status ?? 1)
   statusOpen.value = true
 }
 
