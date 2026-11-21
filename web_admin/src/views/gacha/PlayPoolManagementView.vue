@@ -200,7 +200,6 @@
           allow-clear
           @press-enter="queryReference"
         />
-        <a-button type="primary" :loading="referenceLoading" @click="queryReference">{{ $t('poolAdmin.query') }}</a-button>
       </div>
 
       <a-table
@@ -242,7 +241,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
 
@@ -348,6 +347,8 @@ const referenceOpen = ref(false)
 const referenceLoading = ref(false)
 const referenceId = ref('')
 const referenceResults = ref<PlayPoolReferenceItem[]>([])
+let referenceTimer: ReturnType<typeof setTimeout> | undefined
+let referenceSeq = 0
 
 const referenceColumns = [
   { title: '池子ID', dataIndex: 'poolId', key: 'poolId', width: 90 },
@@ -648,8 +649,11 @@ function deleteSelected() {
 }
 
 function openReference() {
+  clearTimeout(referenceTimer)
+  referenceSeq++
   referenceId.value = ''
   referenceResults.value = []
+  referenceLoading.value = false
   referenceOpen.value = true
 }
 
@@ -675,26 +679,40 @@ function referenceStatusColor(status?: string | number): string {
   }
 }
 
-async function queryReference() {
-  const id = Number(referenceId.value.trim())
+// 输入即查询：300ms 防抖，自动同时匹配商品ID和池子ID。
+watch(referenceId, (value) => {
+  clearTimeout(referenceTimer)
+  const id = Number(value.trim())
   if (!Number.isFinite(id) || id <= 0) {
-    message.warning('请输入有效的商品ID或池子ID')
+    referenceSeq++
+    referenceResults.value = []
+    referenceLoading.value = false
     return
   }
+  referenceTimer = setTimeout(() => {
+    void queryReference()
+  }, 300)
+})
+
+async function queryReference() {
+  const id = Number(referenceId.value.trim())
+  if (!Number.isFinite(id) || id <= 0) return
+  const seq = ++referenceSeq
   referenceLoading.value = true
   try {
     const [productReply, poolReply] = await Promise.allSettled([
       playPoolClient.QueryReferences({ refType: 1, refId: id, page: 1, pageSize: 50 }),
       playPoolClient.QueryReferences({ refType: 2, refId: id, page: 1, pageSize: 50 }),
     ])
+    if (seq !== referenceSeq) return
     const items: PlayPoolReferenceItem[] = []
     if (productReply.status === 'fulfilled') items.push(...(productReply.value.items ?? []))
     if (poolReply.status === 'fulfilled') items.push(...(poolReply.value.items ?? []))
     referenceResults.value = items
   } catch {
-    referenceResults.value = []
+    if (seq === referenceSeq) referenceResults.value = []
   } finally {
-    referenceLoading.value = false
+    if (seq === referenceSeq) referenceLoading.value = false
   }
 }
 
@@ -739,6 +757,7 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  clearTimeout(referenceTimer)
   window.removeEventListener('resize', onWindowResize)
 })
 </script>
