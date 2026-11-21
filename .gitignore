@@ -11,6 +11,10 @@ dist/
 .env.local
 .env.*.local
 
+# ===== 本地私有配置（含 OSS 等真实密钥，禁止入库/提交 GitHub） =====
+deploy/dev/conf/*.local.yaml
+deploy/dev/conf/*.local.env
+
 # ===== 日志 =====
 logs/
 *.log

@@ -40,6 +40,11 @@ ALL=(
 # 构建 + 推送（<version> 与 prod 两个 tag）+ 记录 digest
 push_and_record() { # $1 二进制 $2 镜像名 $3 配置文件名（默认 $1.yaml）
   local conf="${3:-$1.yaml}"
+  # 本地私有配置优先：conf/<name>.local.yaml 已在 .gitignore，可放 OSS 等环境差异，不提交 GitHub。
+  if [ -f "conf/${conf%.yaml}.local.yaml" ]; then
+    conf="${conf%.yaml}.local.yaml"
+    echo "   (使用本地配置 conf/$conf)"
+  fi
   echo ">> 构建 gacha/$2:$VERSION"
   docker build -q -f common/images/go.Dockerfile \
     --build-arg BINARY="$1" --build-arg CONFIG="conf/$conf" \
