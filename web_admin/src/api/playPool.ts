@@ -23,6 +23,19 @@ export interface PlayPoolPrize {
   extraJson?: string
 }
 
+export interface PlayPoolCreateInitial {
+  poolId?: string
+  mode?: string
+  name?: string
+  priceYuan?: number
+  ipId?: string
+  tags?: string[]
+  periods?: number
+  weight?: number
+  configJson?: string
+  prizes?: PlayPoolPrize[]
+}
+
 export interface PlayPoolSummary {
   poolId?: string
   latestVersion?: string

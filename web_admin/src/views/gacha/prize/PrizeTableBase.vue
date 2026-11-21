@@ -15,6 +15,17 @@
     <a-table-column title="类型" width="70" align="center">
       <template #default="{ record }">{{ record.prizeType === 2 ? '商品' : record.prizeType === 3 ? '箱子' : '虚拟' }}</template>
     </a-table-column>
+    <a-table-column v-if="showTarget" title="目标碰数" width="110" align="center">
+      <template #default="{ record }">
+        <a-input-number
+          :value="record.targetValue ?? 0"
+          :min="0"
+          size="small"
+          style="width: 88px"
+          @change="(value: number | null) => emit('targetChange', record, value)"
+        />
+      </template>
+    </a-table-column>
     <a-table-column title="赏品" align="center">
       <template #default="{ record }">
         <slot name="name" :record="record">{{ record.name }}</slot>
@@ -57,11 +68,15 @@ withDefaults(
     probability: (prize: DisplayPrize) => string
     customRow: (record: DisplayPrize) => Record<string, unknown>
     actionsWidth?: number
+    showTarget?: boolean
   }>(),
-  { actionsWidth: 100 },
+  { actionsWidth: 100, showTarget: false },
 )
 
-const emit = defineEmits<{ toggle: [prize: DisplayPrize] }>()
+const emit = defineEmits<{
+  toggle: [prize: DisplayPrize]
+  targetChange: [record: DisplayPrize, value: number | null]
+}>()
 </script>
 
 <style scoped>

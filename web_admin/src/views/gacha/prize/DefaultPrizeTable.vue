@@ -3,8 +3,10 @@
     :data="data"
     :probability="probability"
     :custom-row="customRow"
+    :show-target="showTarget"
     :actions-width="100"
     @toggle="emit('toggle', $event)"
+    @target-change="(record, value) => emit('targetChange', record, value)"
   >
     <template #actions="{ record }">
       <a-button class="prize-action-link" type="link" danger size="small" @click.stop="emit('remove', record)">删除</a-button>
@@ -20,11 +22,13 @@ defineProps<{
   data: DisplayPrize[]
   probability: (prize: DisplayPrize) => string
   customRow: (record: DisplayPrize) => Record<string, unknown>
+  showTarget?: boolean
 }>()
 
 const emit = defineEmits<{
   toggle: [prize: DisplayPrize]
   remove: [prize: DisplayPrize]
+  targetChange: [record: DisplayPrize, value: number | null]
 }>()
 </script>
 

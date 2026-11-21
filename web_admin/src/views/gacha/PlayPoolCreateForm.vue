@@ -6,7 +6,7 @@
         <a-form-item label="主题名称" required>
           <a-input v-model:value="form.name" placeholder="主题名称" />
         </a-form-item>
-        <a-form-item label="IP" required>
+        <a-form-item label="IP">
           <a-select v-model:value="form.ipId" :options="ipOptions" placeholder="IP" show-search option-filter-prop="label" />
         </a-form-item>
         <a-form-item label="玩法类型" required>
@@ -106,8 +106,10 @@
                 :data="displayPrizes"
                 :probability="probability"
                 :custom-row="prizeCustomRow"
+                :show-target="form.mode === 'memorymatch'"
                 @toggle="togglePrizeExpand"
                 @remove="confirmRemove"
+                @target-change="setPrizeTarget"
               />
             </div>
 
@@ -298,15 +300,19 @@ import {
   type SeriesItem,
 } from '@/api/catalog'
 import { listPrizeGrades, type PrizeGrade } from '@/api/prizeGrade'
-import { playPoolClient, type PlayPoolPrize } from '@/api/playPool'
+import { playPoolClient, type PlayPoolCreateInitial, type PlayPoolPrize } from '@/api/playPool'
 import { poolClient } from '@/api/pool'
 import { uploadFileToOss } from '@/api/upload'
 import DefaultPrizeTable from '@/views/gacha/prize/DefaultPrizeTable.vue'
 import GroupBuyPrizeTable from '@/views/gacha/prize/GroupBuyPrizeTable.vue'
 import type { DisplayPrize } from '@/views/gacha/prize/prizeTypes'
 
+const props = defineProps<{ initial?: PlayPoolCreateInitial | null }>()
 const emit = defineEmits<{ success: []; cancel: [] }>()
 const saving = ref(false)
+const initialPoolId = ref<string | undefined>(undefined)
+const initialMode = ref('')
+const initialConfigJson = ref<string | null>(null)
 const ips = ref<IpItem[]>([])
 const grades = ref<PrizeGrade[]>([])
 
@@ -360,6 +366,31 @@ const switchItems = [
 
 const prizes = ref<PlayPoolPrize[]>([])
 const expandedPrizeIndexes = ref<Set<number>>(new Set())
+
+function applyInitial(initial?: PlayPoolCreateInitial | null) {
+  if (!initial) return
+  initialPoolId.value = initial.poolId
+  initialMode.value = initial.mode ?? 'gashapon'
+  initialConfigJson.value = initial.configJson ?? null
+  form.mode = initialMode.value
+  form.name = initial.name ?? ''
+  form.priceYuan = initial.priceYuan ?? 1
+  form.ipId = initial.ipId || undefined
+  form.boxCount = initial.periods ?? 1
+  form.sortWeight = initial.weight ?? 0
+  const tags = new Set(initial.tags ?? [])
+  form.isOnSale = tags.has('展示')
+  form.isNew = tags.has('新品')
+  form.isRecommended = tags.has('推荐')
+  form.isBargain = tags.has('捡漏')
+  form.isPresale = tags.has('预售')
+  if (initial.prizes?.length) {
+    prizes.value = initial.prizes.map((prize, index) => ({ ...prize, prizeIndex: index }))
+  }
+}
+
+watch(() => props.initial, applyInitial, { immediate: true })
+
 const displayPrizes = computed<DisplayPrize[]>(() => {
   const rows: DisplayPrize[] = []
   let displayIndex = 0
@@ -900,6 +931,11 @@ function skuCustomRow(record: AdminProductItem) {
   }
 }
 
+function setPrizeTarget(record: DisplayPrize, value: number | null) {
+  const prize = prizes.value.find((item) => item.prizeIndex === record.prizeIndex)
+  if (prize) prize.targetValue = value ?? 0
+}
+
 function prizeCustomRow(record: PlayPoolPrize) {
   const clickable = record.prizeType === 2 && !record.hasParent
   return {
@@ -1062,10 +1098,6 @@ async function submit() {
     message.warning('请输入主题名称')
     return
   }
-  if (!form.ipId) {
-    message.warning('请选择 IP')
-    return
-  }
   if (prizes.value.length === 0) {
     message.warning('请至少添加一个赏品')
     return
@@ -1101,14 +1133,19 @@ async function submit() {
     groupbuy: '{"targetBetCount":3,"perBetAwardLimit":0}',
     memorymatch: '{"followGlobal":true,"roundsPerPurchase":3,"maxPairCount":3,"patternWeights":[1,1,1,1,1,1,1,1,1],"facePresets":[{"presetId":1,"name":"默认","faces":[]}],"backPresets":[{"presetId":1,"name":"默认","backImageUrl":"","faceBackgroundImageUrl":""}]}',
   }
+  const configJson =
+    initialConfigJson.value && form.mode === initialMode.value
+      ? initialConfigJson.value
+      : configs[form.mode] ?? '{}'
   saving.value = true
   try {
     await playPoolClient.CreateDraft({
       idempotencyKey: crypto.randomUUID(),
+      poolId: initialPoolId.value,
       mode: form.mode,
       name: form.name.trim(),
       priceFen: Math.round((form.priceYuan || 0) * 100),
-      configJson: configs[form.mode] ?? '{}',
+      configJson,
       prizes: prizes.value,
       ipId: form.ipId,
       tags,

@@ -92,9 +92,16 @@
       :body-style="{ maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }"
     >
       <template #title>
-        <div class="create-pool-title">{{ $t('poolAdmin.createTitle') }}</div>
+        <div class="create-pool-title">
+          {{ createInitial?.poolId ? $t('poolAdmin.editTitle') : $t('poolAdmin.createTitle') }}
+        </div>
       </template>
-      <PlayPoolCreateForm @success="onCreateSuccess" @cancel="createModalOpen = false" />
+      <PlayPoolCreateForm
+        :key="createFormKey"
+        :initial="createInitial"
+        @success="onCreateSuccess"
+        @cancel="createModalOpen = false"
+      />
     </a-modal>
 
     <a-modal v-model:open="createOpen" :title="$t('poolAdmin.createTitle')" :confirm-loading="creating" width="760px" @ok="submitCreate">
@@ -197,15 +204,15 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+
 import { allows } from '@/access/grants'
 import { useSessionStore } from '@/stores/session'
 import { catalogIpClient, type IpItem } from '@/api/catalog'
-import { playPoolClient, type AdminPlayPool, type PlayPoolPrize, type PlayPoolVersion } from '@/api/playPool'
+import { playPoolClient, type AdminPlayPool, type PlayPoolCreateInitial, type PlayPoolPrize, type PlayPoolVersion } from '@/api/playPool'
 import PlayPoolCreateForm from '@/views/gacha/PlayPoolCreateForm.vue'
 
 const session = useSessionStore()
-const router = useRouter()
+
 const { t } = useI18n()
 const canCreate = computed(() => allows(session.permissionNodes, 'gacha.pool', 'create'))
 const canWrite = computed(() => allows(session.permissionNodes, 'gacha.pool', 'write'))
@@ -257,6 +264,8 @@ const rowSelection = computed(() => ({
 }))
 
 const createModalOpen = ref(false)
+const createInitial = ref<PlayPoolCreateInitial | null>(null)
+const createFormKey = ref(0)
 const createModalWidth = ref('96vw')
 const createModalWrapStyle = ref<Record<string, string>>({})
 const createOpen = ref(false)
@@ -415,6 +424,8 @@ function onWindowResize() {
 }
 
 function openCreate() {
+  createInitial.value = null
+  createFormKey.value += 1
   syncCreateModalLayout()
   createModalOpen.value = true
   void nextTick(() => {
@@ -429,28 +440,45 @@ function onCreateSuccess() {
   void load()
 }
 
-async function copyPool(record: AdminPlayPool) {
+type PoolFormKind = 'copy' | 'edit' | 'match'
+
+async function openPoolForm(record: AdminPlayPool, kind: PoolFormKind) {
   if (!record.poolId) return
   copyingId.value = record.poolId
   try {
     const detail = record.latestVersion
       ? await playPoolClient.Get({ poolId: record.poolId, version: record.latestVersion })
       : null
-    createForm.mode = record.mode ?? detail?.mode ?? 'gashapon'
-    createForm.name = `${record.name ?? ''}${t('poolAdmin.copySuffix')}`
-    createForm.priceYuan = Number(detail?.priceFen ?? record.priceFen ?? 0) / 100
-    createForm.ipId = record.ipId || undefined
-    createForm.tags = [...(record.tags ?? [])]
-    createForm.periods = Number(record.periods ?? 0)
-    createForm.weight = Number(record.weight ?? 0)
-    createForm.configJson = detail?.configJson ?? configSkeleton[createForm.mode] ?? '{}'
-    createForm.prizesJson = JSON.stringify(detail?.prizes ?? prizeSkeleton[createForm.mode] ?? [], null, 2)
-    createOpen.value = true
+    const mode = record.mode ?? detail?.mode ?? 'gashapon'
+    const suffix = kind === 'copy' ? t('poolAdmin.copySuffix') : ''
+    createInitial.value = {
+      poolId: kind === 'copy' ? undefined : record.poolId,
+      mode,
+      name: `${record.name ?? ''}${suffix}`,
+      priceYuan: Number(detail?.priceFen ?? record.priceFen ?? 0) / 100,
+      ipId: record.ipId || undefined,
+      tags: [...(record.tags ?? [])],
+      periods: Number(record.periods ?? 0),
+      weight: Number(record.weight ?? 0),
+      configJson: detail?.configJson ?? configSkeleton[mode] ?? '{}',
+      prizes: detail?.prizes ?? (prizeSkeleton[mode] as PlayPoolPrize[] | undefined) ?? [],
+    }
+    createFormKey.value += 1
+    syncCreateModalLayout()
+    createModalOpen.value = true
+    void nextTick(() => {
+      syncCreateModalLayout()
+      requestAnimationFrame(syncCreateModalLayout)
+    })
   } catch {
     message.error(t('poolAdmin.detailLoadFailed'))
   } finally {
     copyingId.value = undefined
   }
+}
+
+function copyPool(record: AdminPlayPool) {
+  void openPoolForm(record, 'copy')
 }
 
 async function submitCreate() {
@@ -493,14 +521,7 @@ async function submitCreate() {
 }
 
 function openEdit(record: AdminPlayPool) {
-  editing.value = record
-  editForm.name = record.name ?? ''
-  editForm.priceYuan = Number(record.priceFen ?? 0) / 100
-  editForm.ipId = record.ipId || undefined
-  editForm.tags = [...(record.tags ?? [])]
-  editForm.periods = Number(record.periods ?? 0)
-  editForm.weight = Number(record.weight ?? 0)
-  editOpen.value = true
+  void openPoolForm(record, 'edit')
 }
 
 async function submitEdit() {
@@ -591,7 +612,7 @@ async function queryReference() {
 }
 
 function openMatch(record: AdminPlayPool) {
-  if (record.poolId) router.push({ path: '/gacha/match', query: { poolId: record.poolId } })
+  void openPoolForm(record, 'match')
 }
 
 function modeText(mode?: string): string {
