@@ -192,7 +192,7 @@
       centered
       :width="createModalWidth"
       :wrap-style="createModalWrapStyle"
-      :body-style="{ maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }"
+      :body-style="{ minHeight: 'calc(100vh - 200px)', maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }"
     >
       <div class="reference-toolbar">
         <a-input
