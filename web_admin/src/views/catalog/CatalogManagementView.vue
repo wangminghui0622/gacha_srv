@@ -259,6 +259,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { allows } from '@/access/grants'
 import { useSessionStore } from '@/stores/session'
+import { uploadFileToOss } from '@/api/upload'
 import {
   catalogAdminProductClient,
   catalogBrandClient,
@@ -526,28 +527,20 @@ function onFormBrandChange() {
   }
 }
 
-function readImage(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result ?? ''))
-    reader.onerror = () => reject(reader.error)
-    reader.readAsDataURL(file)
-  })
-}
-
 async function uploadImage(file: File, field: 'halfBodyImage' | 'coverUrl' | 'thumbUrl'): Promise<boolean> {
   if (!file.type.startsWith('image/')) {
     message.warning(t('catalog.imageTypeInvalid'))
     return false
   }
-  if (file.size > 2 * 1024 * 1024) {
+  if (file.size > 10 * 1024 * 1024) {
     message.warning(t('catalog.imageTooLarge'))
     return false
   }
   try {
-    form[field] = await readImage(file)
+    const reply = await uploadFileToOss(file, 'catalog/product')
+    if (reply.url) form[field] = reply.url
   } catch {
-    // 读取失败时保持原图。
+    // 错误提示由请求拦截器统一处理
   }
   return false
 }
@@ -557,14 +550,15 @@ async function uploadDetailImage(file: File): Promise<boolean> {
     message.warning(t('catalog.imageTypeInvalid'))
     return false
   }
-  if (file.size > 2 * 1024 * 1024) {
+  if (file.size > 10 * 1024 * 1024) {
     message.warning(t('catalog.imageTooLarge'))
     return false
   }
   try {
-    form.detailImages.push(await readImage(file))
+    const reply = await uploadFileToOss(file, 'catalog/product')
+    if (reply.url) form.detailImages.push(reply.url)
   } catch {
-    // 读取失败时忽略该文件。
+    // 错误提示由请求拦截器统一处理
   }
   return false
 }

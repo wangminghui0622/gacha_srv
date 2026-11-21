@@ -83,7 +83,19 @@
 		{
 			"path": "pages/memory-match/index",
 			"style": {
-				"navigationBarTitleText": "记忆翻牌"
+				"navigationBarTitleText": "对对碰"
+			}
+		},
+		{
+			"path": "pages/memory-match/rules",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/memory-match/buff",
+			"style": {
+				"navigationStyle": "custom"
 			}
 		},
 		{

@@ -581,7 +581,7 @@
     "detailImages": "Detail images",
     "upload": "Upload",
     "requiredRefs": "Select IP, brand and series",
-    "imageTooLarge": "Image cannot exceed 2MB",
+    "imageTooLarge": "Image cannot exceed 10MB",
     "imageTypeInvalid": "Select an image file",
     "detailLoadFailed": "Failed to load product detail",
     "nameRequired": "Enter product name",

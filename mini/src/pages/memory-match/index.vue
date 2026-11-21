@@ -13,6 +13,7 @@ import type {
   DigPrizeItem,
   MemoryMatchConfigResponse,
   MemoryMatchFacePreset,
+  MemoryMatchRoundActionResponse,
   MemoryMatchRoundResponse,
   MemoryMatchSessionResponse,
   MemoryMatchSettlementView,
@@ -38,6 +39,7 @@ const session = ref<MemoryMatchSessionResponse | null>(null)
 const round = ref<MemoryMatchRoundResponse | null>(null)
 const buying = ref(false)
 const acting = ref(false)
+const autoPlaying = ref(false)
 // 手牌选中（最多 pairSize 张）
 const selectedCards = ref<number[]>([])
 const settlement = ref<MemoryMatchSettlementView | null>(null)
@@ -255,7 +257,74 @@ async function pickDestiny(patternId: number, second: boolean) {
   }
 }
 
+// ── 页面跳转 ──
+
+function openRules() {
+  uni.navigateTo({ url: '/pages/memory-match/rules' })
+}
+
+function openBuff() {
+  uni.navigateTo({ url: '/pages/memory-match/buff' })
+}
+
+function openRecords() {
+  uni.navigateTo({ url: '/pages/records/index' })
+}
+
 // ── 牌局 ──
+
+function findAutoMatch(hand: number[]): number[] | null {
+  const size = pairSize.value
+  const groups = new Map<number, number[]>()
+  for (const card of hand) {
+    const pattern = patternOfCard(card)
+    const group = groups.get(pattern) ?? []
+    group.push(card)
+    if (group.length >= size) {
+      return group.slice(0, size)
+    }
+    groups.set(pattern, group)
+  }
+  return null
+}
+
+async function onAutoPair() {
+  if (acting.value || autoPlaying.value || !session.value || !round.value || round.value.terminal) return
+  const activeSession = session.value
+  autoPlaying.value = true
+  acting.value = true
+  try {
+    for (let step = 0; step < 100; step++) {
+      const current: MemoryMatchRoundResponse | null = round.value
+      if (!current || current.terminal) break
+      const match = findAutoMatch(current.handCardIds)
+      if (match) {
+        const res: MemoryMatchRoundActionResponse = await memoryMatchApi.applyMemoryMatchPair(
+          activeSession.sessionId,
+          current.roundNo,
+          match,
+        )
+        round.value = res.round
+        continue
+      }
+      if (current.availableDestiny > 0 && current.handCardIds.length < 9) {
+        const res: MemoryMatchRoundActionResponse = await memoryMatchApi.applyMemoryMatchDestinyDraw(
+          activeSession.sessionId,
+          current.roundNo,
+        )
+        round.value = res.round
+        continue
+      }
+      break
+    }
+    selectedCards.value = []
+  } catch (err) {
+    uni.showToast({ title: (err as Error).message, icon: 'none' })
+  } finally {
+    acting.value = false
+    autoPlaying.value = false
+  }
+}
 
 function onCardClick(card: number) {
   if (acting.value || !round.value || round.value.terminal) return
@@ -393,6 +462,11 @@ onLoad(async () => {
               {{ t('memoryMatch.roundProgress', { cur: session.completedRounds, total: session.purchasedRounds }) }}
             </text>
           </view>
+          <view class="quick-links">
+            <view class="quick-link" @click="openRules">{{ t('memoryMatch.ruleLink') }}</view>
+            <view class="quick-link buff" @click="openBuff">{{ t('memoryMatch.buffLink') }}</view>
+            <view class="quick-link" @click="openRecords">{{ t('memoryMatch.recordsLink') }}</view>
+          </view>
           <view class="mm-champion">{{ championText() }}</view>
 
           <!-- 命运选择（会话状态 2） -->
@@ -431,6 +505,17 @@ onLoad(async () => {
 
           <!-- 牌局（会话状态 4） -->
           <view v-else-if="round" class="board-panel">
+            <view class="stat-grid">
+              <view class="stat-box">
+                <text class="stat-label">{{ t('memoryMatch.destinyCount') }}</text>
+                <text class="stat-value">{{ round.availableDestiny }}</text>
+              </view>
+              <view class="stat-box">
+                <text class="stat-label">{{ t('memoryMatch.currentPairs') }}</text>
+                <text class="stat-value">{{ round.pairCount }}</text>
+              </view>
+            </view>
+
             <view class="board-meta">
               <text>{{ t('memoryMatch.roundNo', { n: round.roundNo }) }}</text>
               <text>{{ t('memoryMatch.pairProgress', { n: round.pairCount, max: round.maxPairCount }) }}</text>
@@ -462,6 +547,13 @@ onLoad(async () => {
 
             <!-- 回合操作 -->
             <view class="board-actions">
+              <view
+                class="btn-primary act-btn"
+                :class="{ disabled: acting || autoPlaying || round.terminal }"
+                @click="onAutoPair"
+              >
+                {{ autoPlaying ? t('memoryMatch.autoPairing') : t('memoryMatch.autoPair') }}
+              </view>
               <view class="btn-plain act-btn" :class="{ disabled: acting || round.availableDestiny <= 0 }" @click="onDestinyDraw">
                 ✨ {{ t('memoryMatch.destinyDraw') }}
               </view>
@@ -502,6 +594,11 @@ onLoad(async () => {
           <view class="mm-head">
             <text class="mm-name">{{ config.config.name }}</text>
             <text class="mm-price money">{{ formatMoney(config.config.purchasePrice) }}</text>
+          </view>
+          <view class="quick-links">
+            <view class="quick-link" @click="openRules">{{ t('memoryMatch.ruleLink') }}</view>
+            <view class="quick-link buff" @click="openBuff">{{ t('memoryMatch.buffLink') }}</view>
+            <view class="quick-link" @click="openRecords">{{ t('memoryMatch.recordsLink') }}</view>
           </view>
           <view class="mm-line">
             {{ t('memoryMatch.roundsPerPurchase', { n: config.config.roundsPerPurchase }) }}
@@ -560,8 +657,8 @@ onLoad(async () => {
               <text class="money">{{ formatMoney(config.config.purchasePrice) }}</text>
             </view>
           </view>
-          <view class="btn-primary" :class="{ disabled: buying }" @click="onBuyClick">
-            {{ t('memoryMatch.buy') }}
+          <view class="btn-primary start-btn" :class="{ disabled: buying }" @click="onBuyClick">
+            {{ t('memoryMatch.startGame') }}
           </view>
           <view class="wallet-tip">{{ t('memoryMatch.walletOnly') }}</view>
         </view>
@@ -600,6 +697,64 @@ onLoad(async () => {
 </template>
 
 <style scoped lang="scss">
+.quick-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin: 8rpx 0 18rpx;
+}
+
+.quick-link {
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(120, 255, 180, 0.35);
+  background: rgba(32, 92, 60, 0.35);
+  color: #9ff0c3;
+  font-size: 24rpx;
+}
+
+.quick-link.buff {
+  border-color: rgba(255, 210, 90, 0.4);
+  background: rgba(120, 92, 20, 0.35);
+  color: #ffe08a;
+}
+
+.stat-grid {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 18rpx;
+}
+
+.stat-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 18rpx 12rpx;
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(120, 255, 180, 0.25);
+  background: linear-gradient(180deg, rgba(15, 42, 28, 0.9), rgba(8, 22, 15, 0.9));
+
+  .stat-label {
+    font-size: 24rpx;
+    color: #8fd9b1;
+  }
+
+  .stat-value {
+    margin-top: 6rpx;
+    font-size: 52rpx;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.1;
+  }
+}
+
+.start-btn {
+  margin-top: 20rpx;
+  font-size: 34rpx;
+  letter-spacing: 6rpx;
+}
+
 .mm-card {
   text-align: left;
 

@@ -421,7 +421,17 @@
     "totalPairs": "Total pairs",
     "settlePrize": "Settlement prize",
     "finalHash": "Final hash",
-    "playAgain": "Play Again"
+    "playAgain": "Play Again",
+    "ruleLink": "Draw rules",
+    "buffLink": "Super Lucky Buff",
+    "recordsLink": "Draw history",
+    "autoPair": "Auto match",
+    "autoPairing": "Auto matching…",
+    "startGame": "Start game",
+    "rulesTitle": "Pair-match rules",
+    "buffTitle": "Super Lucky Buff",
+    "rulesText": "Warm tips\nAccording to Article 25 of the Consumer Rights Protection Law, game products cannot be resold under the sale rules and are not eligible for the 7-day no-reason return policy. Please purchase carefully and rationally.\nMinors are not allowed to purchase this product. Please understand.\nIf you encounter any problem, please contact customer service.\n\nAbout the pair-match game\nEach theme has its own prize configuration. Players earn \"pair counts\" by matching cards and receive the prize tier corresponding to the total pair count. Prize tiers may differ by theme. Please review the details before purchasing. Tiers are not always proportional to the actual value of the prize.\n\nHow to play\n1. Choose a theme and review the prize details and conditions.\n2. Choose a payment method, confirm the price, and pay.\n3. There are 9 patterns, 6 cards each, 54 cards in total.\n4. At the start of each round, choose one pattern as your \"lucky card\". Nine cards are dealt to the table. Each card matching the lucky pattern grants +1 lucky point. Select matching cards on the table to remove them and increase your pair count; a new card is drawn from the deck. A drawn lucky card also grants +1 lucky point.\n5. When no pair is available and there is still space on the table (maximum 9 cards), you may spend lucky points to draw a card. Each draw costs 1 lucky point.\n6. The round ends when no pair is available and no more cards can be drawn (lucky points exhausted or the table is full). Prizes are awarded according to the final pair count.\n7. Prizes are awarded immediately and shown to the user. You can also review your draw history. Prizes are automatically stored in your warehouse.\n\nSpecial notes\nPlease ensure you have full civil capacity or have guardian consent. We may restrict or freeze accounts if participation is not properly authorized.\nPlease consume rationally and make purchase decisions carefully.\nVerified purchases are deemed legally compliant and authorized.\nDue to the nature of the service and fairness principles, we cannot accept after-sales requests based on appearance preferences or repeated game results. Please keep your account secure.\nAll box items and activities on this platform are not affiliated with Apple.\nJuly 17, 2026",
+    "buffText": "Super Lucky Buff is a limited virtual item provided free of charge by Lucky Box to improve the pair-match experience. It is a non-permanent event item. Its availability, schedule and usage rules are determined by Lucky Box operations.\nAfter choosing your \"lucky card\", you may enter the Super Lucky Buff interaction. Choose one of 9 cards. If it matches your current lucky card, Super Lucky Buff is activated for the current game.\nWhile Super Lucky Buff is active, completing one pair with two lucky cards grants +1 extra lucky point.\nLucky Box reserves the right to interpret these rules within the scope permitted by law.\nAugust 18, 2026"
   },
   "tasks": {
     "title": "Tasks",

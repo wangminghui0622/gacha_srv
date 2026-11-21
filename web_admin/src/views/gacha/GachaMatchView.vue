@@ -296,10 +296,10 @@ import { useI18n } from 'vue-i18n'
 import PageHeader from '@/components/PageHeader.vue'
 import {
   gachaMatchClient,
-  uploadImageFile,
   type MemoryMatchAppearance,
   type MemoryMatchDeckTemplate,
 } from '@/api/gachaMatch'
+import { uploadFileToOss } from '@/api/upload'
 
 const { t } = useI18n()
 const activeTab = ref('rules')
@@ -592,7 +592,7 @@ async function uploadAppearanceImage(
   }
   uploadingField.value = field
   try {
-    const reply = await uploadImageFile(file, 'gacha/match')
+    const reply = await uploadFileToOss(file, 'gacha/match')
     if (reply.url) {
       appearanceForm[field] = reply.url
       message.success(t('gachaMatch.uploadSuccess'))

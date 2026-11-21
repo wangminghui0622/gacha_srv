@@ -300,6 +300,7 @@ import {
 import { listPrizeGrades, type PrizeGrade } from '@/api/prizeGrade'
 import { playPoolClient, type PlayPoolPrize } from '@/api/playPool'
 import { poolClient } from '@/api/pool'
+import { uploadFileToOss } from '@/api/upload'
 import DefaultPrizeTable from '@/views/gacha/prize/DefaultPrizeTable.vue'
 import GroupBuyPrizeTable from '@/views/gacha/prize/GroupBuyPrizeTable.vue'
 import type { DisplayPrize } from '@/views/gacha/prize/prizeTypes'
@@ -1038,28 +1039,20 @@ function removeCoupon(id: number) {
   coupons.value = coupons.value.filter((item) => item.id !== id)
 }
 
-function readImage(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result ?? ''))
-    reader.onerror = () => reject(reader.error)
-    reader.readAsDataURL(file)
-  })
-}
-
 async function uploadImage(file: File, field: 'coverImage' | 'coverThumb'): Promise<boolean> {
   if (!file.type.startsWith('image/')) {
     message.warning('请选择图片文件')
     return false
   }
-  if (file.size > 2 * 1024 * 1024) {
-    message.warning('图片不能超过 2MB')
+  if (file.size > 10 * 1024 * 1024) {
+    message.warning('图片不能超过 10MB')
     return false
   }
   try {
-    form[field] = await readImage(file)
+    const reply = await uploadFileToOss(file, 'gacha/pool')
+    if (reply.url) form[field] = reply.url
   } catch {
-    // 忽略读取失败
+    // 错误提示由请求拦截器统一处理
   }
   return false
 }
