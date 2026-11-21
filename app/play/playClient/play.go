@@ -32,6 +32,10 @@ type (
 	CreatePlayPoolDraftResp            = play.CreatePlayPoolDraftResp
 	DeleteAdminPlayPoolsReq            = play.DeleteAdminPlayPoolsReq
 	DeleteAdminPlayPoolsResp           = play.DeleteAdminPlayPoolsResp
+	DeleteMemoryMatchAppearanceReq     = play.DeleteMemoryMatchAppearanceReq
+	DeleteMemoryMatchAppearanceResp    = play.DeleteMemoryMatchAppearanceResp
+	DeleteMemoryMatchDeckTemplateReq   = play.DeleteMemoryMatchDeckTemplateReq
+	DeleteMemoryMatchDeckTemplateResp  = play.DeleteMemoryMatchDeckTemplateResp
 	DigBoxItem                         = play.DigBoxItem
 	DigRecordItem                      = play.DigRecordItem
 	FullCarAwardItem                   = play.FullCarAwardItem
@@ -54,6 +58,8 @@ type (
 	GetMemoryMatchAppearanceResp       = play.GetMemoryMatchAppearanceResp
 	GetMemoryMatchConfigReq            = play.GetMemoryMatchConfigReq
 	GetMemoryMatchConfigResp           = play.GetMemoryMatchConfigResp
+	GetMemoryMatchGlobalRulesReq       = play.GetMemoryMatchGlobalRulesReq
+	GetMemoryMatchGlobalRulesResp      = play.GetMemoryMatchGlobalRulesResp
 	GetMemoryMatchRoundReq             = play.GetMemoryMatchRoundReq
 	GetMemoryMatchRoundResp            = play.GetMemoryMatchRoundResp
 	GetMemoryMatchSessionByRequestReq  = play.GetMemoryMatchSessionByRequestReq
@@ -90,6 +96,10 @@ type (
 	ListGashaponRecordsResp            = play.ListGashaponRecordsResp
 	ListGroupBuyRecordsReq             = play.ListGroupBuyRecordsReq
 	ListGroupBuyRecordsResp            = play.ListGroupBuyRecordsResp
+	ListMemoryMatchAppearancesReq      = play.ListMemoryMatchAppearancesReq
+	ListMemoryMatchAppearancesResp     = play.ListMemoryMatchAppearancesResp
+	ListMemoryMatchDeckTemplatesReq    = play.ListMemoryMatchDeckTemplatesReq
+	ListMemoryMatchDeckTemplatesResp   = play.ListMemoryMatchDeckTemplatesResp
 	ListPlayPoolsReq                   = play.ListPlayPoolsReq
 	ListPlayPoolsResp                  = play.ListPlayPoolsResp
 	ListPrizeGradesReq                 = play.ListPrizeGradesReq
@@ -106,13 +116,16 @@ type (
 	LockGroupBuyResp                   = play.LockGroupBuyResp
 	LockMemoryMatchReq                 = play.LockMemoryMatchReq
 	LockMemoryMatchResp                = play.LockMemoryMatchResp
+	MemoryMatchAppearanceItem          = play.MemoryMatchAppearanceItem
 	MemoryMatchAppearanceView          = play.MemoryMatchAppearanceView
 	MemoryMatchBackPreset              = play.MemoryMatchBackPreset
 	MemoryMatchChampionInfo            = play.MemoryMatchChampionInfo
 	MemoryMatchConfigItem              = play.MemoryMatchConfigItem
+	MemoryMatchDeckTemplate            = play.MemoryMatchDeckTemplate
 	MemoryMatchEntryItem               = play.MemoryMatchEntryItem
 	MemoryMatchFaceItem                = play.MemoryMatchFaceItem
 	MemoryMatchFacePreset              = play.MemoryMatchFacePreset
+	MemoryMatchGlobalRules             = play.MemoryMatchGlobalRules
 	MemoryMatchRoundBrief              = play.MemoryMatchRoundBrief
 	MemoryMatchSettlementView          = play.MemoryMatchSettlementView
 	PlayGrantReq                       = play.PlayGrantReq
@@ -142,6 +155,12 @@ type (
 	ReleaseGroupBuyResp                = play.ReleaseGroupBuyResp
 	SaveAdminPlayPoolWeightsReq        = play.SaveAdminPlayPoolWeightsReq
 	SaveAdminPlayPoolWeightsResp       = play.SaveAdminPlayPoolWeightsResp
+	SaveMemoryMatchAppearanceReq       = play.SaveMemoryMatchAppearanceReq
+	SaveMemoryMatchAppearanceResp      = play.SaveMemoryMatchAppearanceResp
+	SaveMemoryMatchDeckTemplateReq     = play.SaveMemoryMatchDeckTemplateReq
+	SaveMemoryMatchDeckTemplateResp    = play.SaveMemoryMatchDeckTemplateResp
+	SaveMemoryMatchGlobalRulesReq      = play.SaveMemoryMatchGlobalRulesReq
+	SaveMemoryMatchGlobalRulesResp     = play.SaveMemoryMatchGlobalRulesResp
 	SelectMemoryMatchDestinyReq        = play.SelectMemoryMatchDestinyReq
 	SelectMemoryMatchDestinyResp       = play.SelectMemoryMatchDestinyResp
 	SelectMemoryMatchSecondDestinyReq  = play.SelectMemoryMatchSecondDestinyReq
@@ -200,6 +219,15 @@ type (
 		GetGroupBuy(ctx context.Context, in *GetGroupBuyReq, opts ...grpc.CallOption) (*GetGroupBuyResp, error)
 		// ---- 记忆翻牌（玩法接口）----
 		GetMemoryMatchConfig(ctx context.Context, in *GetMemoryMatchConfigReq, opts ...grpc.CallOption) (*GetMemoryMatchConfigResp, error)
+		// ---- 对对碰管理后台（全局规则/牌堆模板/外观池）----
+		GetMemoryMatchGlobalRules(ctx context.Context, in *GetMemoryMatchGlobalRulesReq, opts ...grpc.CallOption) (*GetMemoryMatchGlobalRulesResp, error)
+		SaveMemoryMatchGlobalRules(ctx context.Context, in *SaveMemoryMatchGlobalRulesReq, opts ...grpc.CallOption) (*SaveMemoryMatchGlobalRulesResp, error)
+		ListMemoryMatchDeckTemplates(ctx context.Context, in *ListMemoryMatchDeckTemplatesReq, opts ...grpc.CallOption) (*ListMemoryMatchDeckTemplatesResp, error)
+		SaveMemoryMatchDeckTemplate(ctx context.Context, in *SaveMemoryMatchDeckTemplateReq, opts ...grpc.CallOption) (*SaveMemoryMatchDeckTemplateResp, error)
+		DeleteMemoryMatchDeckTemplate(ctx context.Context, in *DeleteMemoryMatchDeckTemplateReq, opts ...grpc.CallOption) (*DeleteMemoryMatchDeckTemplateResp, error)
+		ListMemoryMatchAppearances(ctx context.Context, in *ListMemoryMatchAppearancesReq, opts ...grpc.CallOption) (*ListMemoryMatchAppearancesResp, error)
+		SaveMemoryMatchAppearance(ctx context.Context, in *SaveMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*SaveMemoryMatchAppearanceResp, error)
+		DeleteMemoryMatchAppearance(ctx context.Context, in *DeleteMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*DeleteMemoryMatchAppearanceResp, error)
 		GetMemoryMatchAppearance(ctx context.Context, in *GetMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*GetMemoryMatchAppearanceResp, error)
 		SetMemoryMatchAppearance(ctx context.Context, in *SetMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*SetMemoryMatchAppearanceResp, error)
 		SelectMemoryMatchDestiny(ctx context.Context, in *SelectMemoryMatchDestinyReq, opts ...grpc.CallOption) (*SelectMemoryMatchDestinyResp, error)
@@ -355,6 +383,47 @@ func (m *defaultPlay) GetGroupBuy(ctx context.Context, in *GetGroupBuyReq, opts 
 func (m *defaultPlay) GetMemoryMatchConfig(ctx context.Context, in *GetMemoryMatchConfigReq, opts ...grpc.CallOption) (*GetMemoryMatchConfigResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.GetMemoryMatchConfig(ctx, in, opts...)
+}
+
+// ---- 对对碰管理后台（全局规则/牌堆模板/外观池）----
+func (m *defaultPlay) GetMemoryMatchGlobalRules(ctx context.Context, in *GetMemoryMatchGlobalRulesReq, opts ...grpc.CallOption) (*GetMemoryMatchGlobalRulesResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.GetMemoryMatchGlobalRules(ctx, in, opts...)
+}
+
+func (m *defaultPlay) SaveMemoryMatchGlobalRules(ctx context.Context, in *SaveMemoryMatchGlobalRulesReq, opts ...grpc.CallOption) (*SaveMemoryMatchGlobalRulesResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.SaveMemoryMatchGlobalRules(ctx, in, opts...)
+}
+
+func (m *defaultPlay) ListMemoryMatchDeckTemplates(ctx context.Context, in *ListMemoryMatchDeckTemplatesReq, opts ...grpc.CallOption) (*ListMemoryMatchDeckTemplatesResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.ListMemoryMatchDeckTemplates(ctx, in, opts...)
+}
+
+func (m *defaultPlay) SaveMemoryMatchDeckTemplate(ctx context.Context, in *SaveMemoryMatchDeckTemplateReq, opts ...grpc.CallOption) (*SaveMemoryMatchDeckTemplateResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.SaveMemoryMatchDeckTemplate(ctx, in, opts...)
+}
+
+func (m *defaultPlay) DeleteMemoryMatchDeckTemplate(ctx context.Context, in *DeleteMemoryMatchDeckTemplateReq, opts ...grpc.CallOption) (*DeleteMemoryMatchDeckTemplateResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.DeleteMemoryMatchDeckTemplate(ctx, in, opts...)
+}
+
+func (m *defaultPlay) ListMemoryMatchAppearances(ctx context.Context, in *ListMemoryMatchAppearancesReq, opts ...grpc.CallOption) (*ListMemoryMatchAppearancesResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.ListMemoryMatchAppearances(ctx, in, opts...)
+}
+
+func (m *defaultPlay) SaveMemoryMatchAppearance(ctx context.Context, in *SaveMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*SaveMemoryMatchAppearanceResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.SaveMemoryMatchAppearance(ctx, in, opts...)
+}
+
+func (m *defaultPlay) DeleteMemoryMatchAppearance(ctx context.Context, in *DeleteMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*DeleteMemoryMatchAppearanceResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.DeleteMemoryMatchAppearance(ctx, in, opts...)
 }
 
 func (m *defaultPlay) GetMemoryMatchAppearance(ctx context.Context, in *GetMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*GetMemoryMatchAppearanceResp, error) {

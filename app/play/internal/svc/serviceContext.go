@@ -109,6 +109,11 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		}
 	})
 
+	// 对对碰管理后台：确保全局规则/牌堆模板/外观池表可用并写入默认数据。
+	if err := repo.EnsureMemoryMatchAdminSeed(db); err != nil {
+		logx.Errorf("初始化对对碰管理数据失败: %v", err)
+	}
+
 	// ClientErrorInterceptor：下游业务码还原为 CodeError，跨服务不失真
 	moneyRpc := moneyClient.NewMoney(zrpc.MustNewClient(c.MoneyRpc,
 		zrpc.WithUnaryClientInterceptor(errorx.ClientErrorInterceptor)))

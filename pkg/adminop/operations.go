@@ -64,6 +64,15 @@ func All() []Operation {
 		{ID: "console.playpool.get", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/play-pools/:poolId/versions/:version", Title: "读取统一玩赏池版本"},
 		{ID: "console.playpool.create", Resource: "gacha.pool", Action: "create", Method: "POST", Path: "/gacha/play-pools/drafts", Title: "创建统一玩赏池草稿"},
 		{ID: "console.playpool.publish", Resource: "gacha.pool", Action: "publish", Method: "POST", Path: "/gacha/play-pools/:poolId/versions/:version/publish", Title: "发布统一玩赏池"},
+		// ── 对对碰管理（全局规则/牌堆模板/外观池）──
+		{ID: "console.match.rules.get", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/match/rules", Title: "读取对对碰全局规则"},
+		{ID: "console.match.rules.save", Resource: "gacha.pool", Action: "write", Method: "PUT", Path: "/gacha/match/rules", Title: "保存对对碰全局规则"},
+		{ID: "console.match.deck.list", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/match/deck-templates", Title: "对对碰牌堆模板列表"},
+		{ID: "console.match.deck.save", Resource: "gacha.pool", Action: "write", Method: "POST", Path: "/gacha/match/deck-templates", Title: "保存对对碰牌堆模板"},
+		{ID: "console.match.deck.delete", Resource: "gacha.pool", Action: "write", Method: "DELETE", Path: "/gacha/match/deck-templates/:id", Title: "删除对对碰牌堆模板"},
+		{ID: "console.match.appearance.list", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/match/appearances", Title: "对对碰外观池列表"},
+		{ID: "console.match.appearance.save", Resource: "gacha.pool", Action: "write", Method: "POST", Path: "/gacha/match/appearances", Title: "保存对对碰外观"},
+		{ID: "console.match.appearance.delete", Resource: "gacha.pool", Action: "write", Method: "DELETE", Path: "/gacha/match/appearances/:id", Title: "删除对对碰外观"},
 		// assign_lucky 路径适配：server_v2 是 /gacha/boxes/:boxId/lucky-assignment，
 		// 本仓幸运指派实体是扭蛋配置（gashapon_configs），不是箱子
 		{ID: "console.pool.assignluckyuser", Resource: "gacha.pool", Action: "assign_lucky", Method: "POST", Path: "/gacha/gashapons/:configId/lucky-assignment", Title: "指定幸运用户"},

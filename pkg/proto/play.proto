@@ -248,6 +248,15 @@ service Play {
 
   // ---- 记忆翻牌（玩法接口）----
   rpc GetMemoryMatchConfig(GetMemoryMatchConfigReq) returns (GetMemoryMatchConfigResp);
+  // ---- 对对碰管理后台（全局规则/牌堆模板/外观池）----
+  rpc GetMemoryMatchGlobalRules(GetMemoryMatchGlobalRulesReq) returns (GetMemoryMatchGlobalRulesResp);
+  rpc SaveMemoryMatchGlobalRules(SaveMemoryMatchGlobalRulesReq) returns (SaveMemoryMatchGlobalRulesResp);
+  rpc ListMemoryMatchDeckTemplates(ListMemoryMatchDeckTemplatesReq) returns (ListMemoryMatchDeckTemplatesResp);
+  rpc SaveMemoryMatchDeckTemplate(SaveMemoryMatchDeckTemplateReq) returns (SaveMemoryMatchDeckTemplateResp);
+  rpc DeleteMemoryMatchDeckTemplate(DeleteMemoryMatchDeckTemplateReq) returns (DeleteMemoryMatchDeckTemplateResp);
+  rpc ListMemoryMatchAppearances(ListMemoryMatchAppearancesReq) returns (ListMemoryMatchAppearancesResp);
+  rpc SaveMemoryMatchAppearance(SaveMemoryMatchAppearanceReq) returns (SaveMemoryMatchAppearanceResp);
+  rpc DeleteMemoryMatchAppearance(DeleteMemoryMatchAppearanceReq) returns (DeleteMemoryMatchAppearanceResp);
   rpc GetMemoryMatchAppearance(GetMemoryMatchAppearanceReq) returns (GetMemoryMatchAppearanceResp);
   rpc SetMemoryMatchAppearance(SetMemoryMatchAppearanceReq) returns (SetMemoryMatchAppearanceResp);
   rpc SelectMemoryMatchDestiny(SelectMemoryMatchDestinyReq) returns (SelectMemoryMatchDestinyResp);
@@ -937,6 +946,98 @@ message GetMemoryMatchConfigResp {
     MemoryMatchChampionInfo champion = 2;
     MemoryMatchAppearanceView appearance = 3;
 }
+
+// ---- 对对碰管理后台：全局规则 ----
+
+message MemoryMatchGlobalRules {
+    int64  id = 1;
+    string name = 2;
+    int64  pairProbabilityMode = 3;  // 0=自然发牌（兼容旧模式）
+    int64  initialHandCount = 4;
+    int64  pairSize = 5;
+    int64  replenishCount = 6;
+    int64  secondDestinyEnabled = 7;
+    int64  destinyDoubleEnabled = 8;
+    int64  destinyIncome = 9;
+    int64  doubleDestinyBuff = 10;
+    int64  destinyReplenishCost = 11;
+    int64  resumeEnabled = 12;
+    int64  hostModeEnabled = 13;
+    int64  hostMinPairs = 14;
+    int64  hostShareBps = 15;
+    int64  revenueBase = 16;        // 1=实付金额
+    int64  ledgerType = 17;
+    int64  status = 18;
+    string createdAt = 19;
+    string updatedAt = 20;
+}
+
+message GetMemoryMatchGlobalRulesReq {}
+message GetMemoryMatchGlobalRulesResp { MemoryMatchGlobalRules rules = 1; }
+message SaveMemoryMatchGlobalRulesReq { MemoryMatchGlobalRules rules = 1; }
+message SaveMemoryMatchGlobalRulesResp { MemoryMatchGlobalRules rules = 1; }
+
+// ---- 对对碰管理后台：牌堆模板 ----
+
+message MemoryMatchDeckTemplate {
+    int64  id = 1;
+    string name = 2;
+    int64  status = 3;
+    int64  totalCards = 4;
+    int64  weight = 5;
+    string configJson = 6;
+    string createdAt = 7;
+    string updatedAt = 8;
+}
+
+message ListMemoryMatchDeckTemplatesReq {
+    string keyword = 1;
+    int64  status = 2;  // -1=全部
+    int64  page = 3;
+    int64  pageSize = 4;
+}
+message ListMemoryMatchDeckTemplatesResp {
+    repeated MemoryMatchDeckTemplate items = 1;
+    int64 total = 2;
+}
+message SaveMemoryMatchDeckTemplateReq { MemoryMatchDeckTemplate template = 1; }
+message SaveMemoryMatchDeckTemplateResp { MemoryMatchDeckTemplate template = 1; }
+message DeleteMemoryMatchDeckTemplateReq { int64 id = 1; }
+message DeleteMemoryMatchDeckTemplateResp { bool deleted = 1; }
+
+// ---- 对对碰管理后台：外观池 ----
+
+message MemoryMatchAppearanceItem {
+    int64  id = 1;
+    int64  type = 2;  // 1=卡面 2=卡背
+    string name = 3;
+    string imageUrl = 4;
+    string backImageUrl = 5;
+    int64  status = 6;
+    int64  free = 7;
+    string exchangePoints = 8;
+    string functionType = 9;
+    string functionConfig = 10;
+    int64  weight = 11;
+    string createdAt = 12;
+    string updatedAt = 13;
+}
+
+message ListMemoryMatchAppearancesReq {
+    int64  type = 1;    // -1=全部
+    int64  status = 2;  // -1=全部
+    string keyword = 3;
+    int64  page = 4;
+    int64  pageSize = 5;
+}
+message ListMemoryMatchAppearancesResp {
+    repeated MemoryMatchAppearanceItem items = 1;
+    int64 total = 2;
+}
+message SaveMemoryMatchAppearanceReq { MemoryMatchAppearanceItem item = 1; }
+message SaveMemoryMatchAppearanceResp { MemoryMatchAppearanceItem item = 1; }
+message DeleteMemoryMatchAppearanceReq { int64 id = 1; }
+message DeleteMemoryMatchAppearanceResp { bool deleted = 1; }
 
 // MemoryMatchAppearanceView 外观视图：当前选择（已存或默认）+ 已拥有权益正面预设
 message MemoryMatchAppearanceView {

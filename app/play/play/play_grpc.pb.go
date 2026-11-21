@@ -43,6 +43,14 @@ const (
 	Play_GetComboChain_FullMethodName                  = "/play.Play/GetComboChain"
 	Play_GetGroupBuy_FullMethodName                    = "/play.Play/GetGroupBuy"
 	Play_GetMemoryMatchConfig_FullMethodName           = "/play.Play/GetMemoryMatchConfig"
+	Play_GetMemoryMatchGlobalRules_FullMethodName      = "/play.Play/GetMemoryMatchGlobalRules"
+	Play_SaveMemoryMatchGlobalRules_FullMethodName     = "/play.Play/SaveMemoryMatchGlobalRules"
+	Play_ListMemoryMatchDeckTemplates_FullMethodName   = "/play.Play/ListMemoryMatchDeckTemplates"
+	Play_SaveMemoryMatchDeckTemplate_FullMethodName    = "/play.Play/SaveMemoryMatchDeckTemplate"
+	Play_DeleteMemoryMatchDeckTemplate_FullMethodName  = "/play.Play/DeleteMemoryMatchDeckTemplate"
+	Play_ListMemoryMatchAppearances_FullMethodName     = "/play.Play/ListMemoryMatchAppearances"
+	Play_SaveMemoryMatchAppearance_FullMethodName      = "/play.Play/SaveMemoryMatchAppearance"
+	Play_DeleteMemoryMatchAppearance_FullMethodName    = "/play.Play/DeleteMemoryMatchAppearance"
 	Play_GetMemoryMatchAppearance_FullMethodName       = "/play.Play/GetMemoryMatchAppearance"
 	Play_SetMemoryMatchAppearance_FullMethodName       = "/play.Play/SetMemoryMatchAppearance"
 	Play_SelectMemoryMatchDestiny_FullMethodName       = "/play.Play/SelectMemoryMatchDestiny"
@@ -96,6 +104,15 @@ type PlayClient interface {
 	GetGroupBuy(ctx context.Context, in *GetGroupBuyReq, opts ...grpc.CallOption) (*GetGroupBuyResp, error)
 	// ---- 记忆翻牌（玩法接口）----
 	GetMemoryMatchConfig(ctx context.Context, in *GetMemoryMatchConfigReq, opts ...grpc.CallOption) (*GetMemoryMatchConfigResp, error)
+	// ---- 对对碰管理后台（全局规则/牌堆模板/外观池）----
+	GetMemoryMatchGlobalRules(ctx context.Context, in *GetMemoryMatchGlobalRulesReq, opts ...grpc.CallOption) (*GetMemoryMatchGlobalRulesResp, error)
+	SaveMemoryMatchGlobalRules(ctx context.Context, in *SaveMemoryMatchGlobalRulesReq, opts ...grpc.CallOption) (*SaveMemoryMatchGlobalRulesResp, error)
+	ListMemoryMatchDeckTemplates(ctx context.Context, in *ListMemoryMatchDeckTemplatesReq, opts ...grpc.CallOption) (*ListMemoryMatchDeckTemplatesResp, error)
+	SaveMemoryMatchDeckTemplate(ctx context.Context, in *SaveMemoryMatchDeckTemplateReq, opts ...grpc.CallOption) (*SaveMemoryMatchDeckTemplateResp, error)
+	DeleteMemoryMatchDeckTemplate(ctx context.Context, in *DeleteMemoryMatchDeckTemplateReq, opts ...grpc.CallOption) (*DeleteMemoryMatchDeckTemplateResp, error)
+	ListMemoryMatchAppearances(ctx context.Context, in *ListMemoryMatchAppearancesReq, opts ...grpc.CallOption) (*ListMemoryMatchAppearancesResp, error)
+	SaveMemoryMatchAppearance(ctx context.Context, in *SaveMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*SaveMemoryMatchAppearanceResp, error)
+	DeleteMemoryMatchAppearance(ctx context.Context, in *DeleteMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*DeleteMemoryMatchAppearanceResp, error)
 	GetMemoryMatchAppearance(ctx context.Context, in *GetMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*GetMemoryMatchAppearanceResp, error)
 	SetMemoryMatchAppearance(ctx context.Context, in *SetMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*SetMemoryMatchAppearanceResp, error)
 	SelectMemoryMatchDestiny(ctx context.Context, in *SelectMemoryMatchDestinyReq, opts ...grpc.CallOption) (*SelectMemoryMatchDestinyResp, error)
@@ -335,6 +352,78 @@ func (c *playClient) GetMemoryMatchConfig(ctx context.Context, in *GetMemoryMatc
 	return out, nil
 }
 
+func (c *playClient) GetMemoryMatchGlobalRules(ctx context.Context, in *GetMemoryMatchGlobalRulesReq, opts ...grpc.CallOption) (*GetMemoryMatchGlobalRulesResp, error) {
+	out := new(GetMemoryMatchGlobalRulesResp)
+	err := c.cc.Invoke(ctx, Play_GetMemoryMatchGlobalRules_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) SaveMemoryMatchGlobalRules(ctx context.Context, in *SaveMemoryMatchGlobalRulesReq, opts ...grpc.CallOption) (*SaveMemoryMatchGlobalRulesResp, error) {
+	out := new(SaveMemoryMatchGlobalRulesResp)
+	err := c.cc.Invoke(ctx, Play_SaveMemoryMatchGlobalRules_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) ListMemoryMatchDeckTemplates(ctx context.Context, in *ListMemoryMatchDeckTemplatesReq, opts ...grpc.CallOption) (*ListMemoryMatchDeckTemplatesResp, error) {
+	out := new(ListMemoryMatchDeckTemplatesResp)
+	err := c.cc.Invoke(ctx, Play_ListMemoryMatchDeckTemplates_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) SaveMemoryMatchDeckTemplate(ctx context.Context, in *SaveMemoryMatchDeckTemplateReq, opts ...grpc.CallOption) (*SaveMemoryMatchDeckTemplateResp, error) {
+	out := new(SaveMemoryMatchDeckTemplateResp)
+	err := c.cc.Invoke(ctx, Play_SaveMemoryMatchDeckTemplate_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) DeleteMemoryMatchDeckTemplate(ctx context.Context, in *DeleteMemoryMatchDeckTemplateReq, opts ...grpc.CallOption) (*DeleteMemoryMatchDeckTemplateResp, error) {
+	out := new(DeleteMemoryMatchDeckTemplateResp)
+	err := c.cc.Invoke(ctx, Play_DeleteMemoryMatchDeckTemplate_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) ListMemoryMatchAppearances(ctx context.Context, in *ListMemoryMatchAppearancesReq, opts ...grpc.CallOption) (*ListMemoryMatchAppearancesResp, error) {
+	out := new(ListMemoryMatchAppearancesResp)
+	err := c.cc.Invoke(ctx, Play_ListMemoryMatchAppearances_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) SaveMemoryMatchAppearance(ctx context.Context, in *SaveMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*SaveMemoryMatchAppearanceResp, error) {
+	out := new(SaveMemoryMatchAppearanceResp)
+	err := c.cc.Invoke(ctx, Play_SaveMemoryMatchAppearance_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) DeleteMemoryMatchAppearance(ctx context.Context, in *DeleteMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*DeleteMemoryMatchAppearanceResp, error) {
+	out := new(DeleteMemoryMatchAppearanceResp)
+	err := c.cc.Invoke(ctx, Play_DeleteMemoryMatchAppearance_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *playClient) GetMemoryMatchAppearance(ctx context.Context, in *GetMemoryMatchAppearanceReq, opts ...grpc.CallOption) (*GetMemoryMatchAppearanceResp, error) {
 	out := new(GetMemoryMatchAppearanceResp)
 	err := c.cc.Invoke(ctx, Play_GetMemoryMatchAppearance_FullMethodName, in, out, opts...)
@@ -482,6 +571,15 @@ type PlayServer interface {
 	GetGroupBuy(context.Context, *GetGroupBuyReq) (*GetGroupBuyResp, error)
 	// ---- 记忆翻牌（玩法接口）----
 	GetMemoryMatchConfig(context.Context, *GetMemoryMatchConfigReq) (*GetMemoryMatchConfigResp, error)
+	// ---- 对对碰管理后台（全局规则/牌堆模板/外观池）----
+	GetMemoryMatchGlobalRules(context.Context, *GetMemoryMatchGlobalRulesReq) (*GetMemoryMatchGlobalRulesResp, error)
+	SaveMemoryMatchGlobalRules(context.Context, *SaveMemoryMatchGlobalRulesReq) (*SaveMemoryMatchGlobalRulesResp, error)
+	ListMemoryMatchDeckTemplates(context.Context, *ListMemoryMatchDeckTemplatesReq) (*ListMemoryMatchDeckTemplatesResp, error)
+	SaveMemoryMatchDeckTemplate(context.Context, *SaveMemoryMatchDeckTemplateReq) (*SaveMemoryMatchDeckTemplateResp, error)
+	DeleteMemoryMatchDeckTemplate(context.Context, *DeleteMemoryMatchDeckTemplateReq) (*DeleteMemoryMatchDeckTemplateResp, error)
+	ListMemoryMatchAppearances(context.Context, *ListMemoryMatchAppearancesReq) (*ListMemoryMatchAppearancesResp, error)
+	SaveMemoryMatchAppearance(context.Context, *SaveMemoryMatchAppearanceReq) (*SaveMemoryMatchAppearanceResp, error)
+	DeleteMemoryMatchAppearance(context.Context, *DeleteMemoryMatchAppearanceReq) (*DeleteMemoryMatchAppearanceResp, error)
 	GetMemoryMatchAppearance(context.Context, *GetMemoryMatchAppearanceReq) (*GetMemoryMatchAppearanceResp, error)
 	SetMemoryMatchAppearance(context.Context, *SetMemoryMatchAppearanceReq) (*SetMemoryMatchAppearanceResp, error)
 	SelectMemoryMatchDestiny(context.Context, *SelectMemoryMatchDestinyReq) (*SelectMemoryMatchDestinyResp, error)
@@ -573,6 +671,30 @@ func (UnimplementedPlayServer) GetGroupBuy(context.Context, *GetGroupBuyReq) (*G
 }
 func (UnimplementedPlayServer) GetMemoryMatchConfig(context.Context, *GetMemoryMatchConfigReq) (*GetMemoryMatchConfigResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMemoryMatchConfig not implemented")
+}
+func (UnimplementedPlayServer) GetMemoryMatchGlobalRules(context.Context, *GetMemoryMatchGlobalRulesReq) (*GetMemoryMatchGlobalRulesResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMemoryMatchGlobalRules not implemented")
+}
+func (UnimplementedPlayServer) SaveMemoryMatchGlobalRules(context.Context, *SaveMemoryMatchGlobalRulesReq) (*SaveMemoryMatchGlobalRulesResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SaveMemoryMatchGlobalRules not implemented")
+}
+func (UnimplementedPlayServer) ListMemoryMatchDeckTemplates(context.Context, *ListMemoryMatchDeckTemplatesReq) (*ListMemoryMatchDeckTemplatesResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListMemoryMatchDeckTemplates not implemented")
+}
+func (UnimplementedPlayServer) SaveMemoryMatchDeckTemplate(context.Context, *SaveMemoryMatchDeckTemplateReq) (*SaveMemoryMatchDeckTemplateResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SaveMemoryMatchDeckTemplate not implemented")
+}
+func (UnimplementedPlayServer) DeleteMemoryMatchDeckTemplate(context.Context, *DeleteMemoryMatchDeckTemplateReq) (*DeleteMemoryMatchDeckTemplateResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteMemoryMatchDeckTemplate not implemented")
+}
+func (UnimplementedPlayServer) ListMemoryMatchAppearances(context.Context, *ListMemoryMatchAppearancesReq) (*ListMemoryMatchAppearancesResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListMemoryMatchAppearances not implemented")
+}
+func (UnimplementedPlayServer) SaveMemoryMatchAppearance(context.Context, *SaveMemoryMatchAppearanceReq) (*SaveMemoryMatchAppearanceResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SaveMemoryMatchAppearance not implemented")
+}
+func (UnimplementedPlayServer) DeleteMemoryMatchAppearance(context.Context, *DeleteMemoryMatchAppearanceReq) (*DeleteMemoryMatchAppearanceResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteMemoryMatchAppearance not implemented")
 }
 func (UnimplementedPlayServer) GetMemoryMatchAppearance(context.Context, *GetMemoryMatchAppearanceReq) (*GetMemoryMatchAppearanceResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMemoryMatchAppearance not implemented")
@@ -1055,6 +1177,150 @@ func _Play_GetMemoryMatchConfig_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Play_GetMemoryMatchGlobalRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMemoryMatchGlobalRulesReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).GetMemoryMatchGlobalRules(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_GetMemoryMatchGlobalRules_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).GetMemoryMatchGlobalRules(ctx, req.(*GetMemoryMatchGlobalRulesReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_SaveMemoryMatchGlobalRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveMemoryMatchGlobalRulesReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).SaveMemoryMatchGlobalRules(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_SaveMemoryMatchGlobalRules_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).SaveMemoryMatchGlobalRules(ctx, req.(*SaveMemoryMatchGlobalRulesReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_ListMemoryMatchDeckTemplates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMemoryMatchDeckTemplatesReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).ListMemoryMatchDeckTemplates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_ListMemoryMatchDeckTemplates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).ListMemoryMatchDeckTemplates(ctx, req.(*ListMemoryMatchDeckTemplatesReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_SaveMemoryMatchDeckTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveMemoryMatchDeckTemplateReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).SaveMemoryMatchDeckTemplate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_SaveMemoryMatchDeckTemplate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).SaveMemoryMatchDeckTemplate(ctx, req.(*SaveMemoryMatchDeckTemplateReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_DeleteMemoryMatchDeckTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteMemoryMatchDeckTemplateReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).DeleteMemoryMatchDeckTemplate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_DeleteMemoryMatchDeckTemplate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).DeleteMemoryMatchDeckTemplate(ctx, req.(*DeleteMemoryMatchDeckTemplateReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_ListMemoryMatchAppearances_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMemoryMatchAppearancesReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).ListMemoryMatchAppearances(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_ListMemoryMatchAppearances_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).ListMemoryMatchAppearances(ctx, req.(*ListMemoryMatchAppearancesReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_SaveMemoryMatchAppearance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveMemoryMatchAppearanceReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).SaveMemoryMatchAppearance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_SaveMemoryMatchAppearance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).SaveMemoryMatchAppearance(ctx, req.(*SaveMemoryMatchAppearanceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_DeleteMemoryMatchAppearance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteMemoryMatchAppearanceReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).DeleteMemoryMatchAppearance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_DeleteMemoryMatchAppearance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).DeleteMemoryMatchAppearance(ctx, req.(*DeleteMemoryMatchAppearanceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Play_GetMemoryMatchAppearance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetMemoryMatchAppearanceReq)
 	if err := dec(in); err != nil {
@@ -1373,6 +1639,38 @@ var Play_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMemoryMatchConfig",
 			Handler:    _Play_GetMemoryMatchConfig_Handler,
+		},
+		{
+			MethodName: "GetMemoryMatchGlobalRules",
+			Handler:    _Play_GetMemoryMatchGlobalRules_Handler,
+		},
+		{
+			MethodName: "SaveMemoryMatchGlobalRules",
+			Handler:    _Play_SaveMemoryMatchGlobalRules_Handler,
+		},
+		{
+			MethodName: "ListMemoryMatchDeckTemplates",
+			Handler:    _Play_ListMemoryMatchDeckTemplates_Handler,
+		},
+		{
+			MethodName: "SaveMemoryMatchDeckTemplate",
+			Handler:    _Play_SaveMemoryMatchDeckTemplate_Handler,
+		},
+		{
+			MethodName: "DeleteMemoryMatchDeckTemplate",
+			Handler:    _Play_DeleteMemoryMatchDeckTemplate_Handler,
+		},
+		{
+			MethodName: "ListMemoryMatchAppearances",
+			Handler:    _Play_ListMemoryMatchAppearances_Handler,
+		},
+		{
+			MethodName: "SaveMemoryMatchAppearance",
+			Handler:    _Play_SaveMemoryMatchAppearance_Handler,
+		},
+		{
+			MethodName: "DeleteMemoryMatchAppearance",
+			Handler:    _Play_DeleteMemoryMatchAppearance_Handler,
 		},
 		{
 			MethodName: "GetMemoryMatchAppearance",

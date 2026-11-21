@@ -154,6 +154,47 @@ func (s *PlayServer) GetMemoryMatchConfig(ctx context.Context, in *play.GetMemor
 	return l.GetMemoryMatchConfig(in)
 }
 
+// ---- 对对碰管理后台（全局规则/牌堆模板/外观池）----
+func (s *PlayServer) GetMemoryMatchGlobalRules(ctx context.Context, in *play.GetMemoryMatchGlobalRulesReq) (*play.GetMemoryMatchGlobalRulesResp, error) {
+	l := logic.NewGetMemoryMatchGlobalRulesLogic(ctx, s.svcCtx)
+	return l.GetMemoryMatchGlobalRules(in)
+}
+
+func (s *PlayServer) SaveMemoryMatchGlobalRules(ctx context.Context, in *play.SaveMemoryMatchGlobalRulesReq) (*play.SaveMemoryMatchGlobalRulesResp, error) {
+	l := logic.NewSaveMemoryMatchGlobalRulesLogic(ctx, s.svcCtx)
+	return l.SaveMemoryMatchGlobalRules(in)
+}
+
+func (s *PlayServer) ListMemoryMatchDeckTemplates(ctx context.Context, in *play.ListMemoryMatchDeckTemplatesReq) (*play.ListMemoryMatchDeckTemplatesResp, error) {
+	l := logic.NewListMemoryMatchDeckTemplatesLogic(ctx, s.svcCtx)
+	return l.ListMemoryMatchDeckTemplates(in)
+}
+
+func (s *PlayServer) SaveMemoryMatchDeckTemplate(ctx context.Context, in *play.SaveMemoryMatchDeckTemplateReq) (*play.SaveMemoryMatchDeckTemplateResp, error) {
+	l := logic.NewSaveMemoryMatchDeckTemplateLogic(ctx, s.svcCtx)
+	return l.SaveMemoryMatchDeckTemplate(in)
+}
+
+func (s *PlayServer) DeleteMemoryMatchDeckTemplate(ctx context.Context, in *play.DeleteMemoryMatchDeckTemplateReq) (*play.DeleteMemoryMatchDeckTemplateResp, error) {
+	l := logic.NewDeleteMemoryMatchDeckTemplateLogic(ctx, s.svcCtx)
+	return l.DeleteMemoryMatchDeckTemplate(in)
+}
+
+func (s *PlayServer) ListMemoryMatchAppearances(ctx context.Context, in *play.ListMemoryMatchAppearancesReq) (*play.ListMemoryMatchAppearancesResp, error) {
+	l := logic.NewListMemoryMatchAppearancesLogic(ctx, s.svcCtx)
+	return l.ListMemoryMatchAppearances(in)
+}
+
+func (s *PlayServer) SaveMemoryMatchAppearance(ctx context.Context, in *play.SaveMemoryMatchAppearanceReq) (*play.SaveMemoryMatchAppearanceResp, error) {
+	l := logic.NewSaveMemoryMatchAppearanceLogic(ctx, s.svcCtx)
+	return l.SaveMemoryMatchAppearance(in)
+}
+
+func (s *PlayServer) DeleteMemoryMatchAppearance(ctx context.Context, in *play.DeleteMemoryMatchAppearanceReq) (*play.DeleteMemoryMatchAppearanceResp, error) {
+	l := logic.NewDeleteMemoryMatchAppearanceLogic(ctx, s.svcCtx)
+	return l.DeleteMemoryMatchAppearance(in)
+}
+
 func (s *PlayServer) GetMemoryMatchAppearance(ctx context.Context, in *play.GetMemoryMatchAppearanceReq) (*play.GetMemoryMatchAppearanceResp, error) {
 	l := logic.NewGetMemoryMatchAppearanceLogic(ctx, s.svcCtx)
 	return l.GetMemoryMatchAppearance(in)

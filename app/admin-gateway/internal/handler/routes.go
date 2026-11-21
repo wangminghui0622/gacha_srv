@@ -10,6 +10,7 @@ import (
 	campaign "gacha_srv/app/admin-gateway/internal/handler/campaign"
 	catalog "gacha_srv/app/admin-gateway/internal/handler/catalog"
 	eligibility "gacha_srv/app/admin-gateway/internal/handler/eligibility"
+	match "gacha_srv/app/admin-gateway/internal/handler/match"
 	money "gacha_srv/app/admin-gateway/internal/handler/money"
 	pool "gacha_srv/app/admin-gateway/internal/handler/pool"
 	promotion "gacha_srv/app/admin-gateway/internal/handler/promotion"
@@ -426,6 +427,54 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Method:  http.MethodPost,
 					Path:    "/gacha/play-pools/drafts",
 					Handler: pool.CreatePlayPoolDraftHandler(serverCtx),
+				},
+				{
+					// 对对碰全局玩法规则（gacha.pool:read）
+					Method:  http.MethodGet,
+					Path:    "/gacha/match/rules",
+					Handler: match.GetMemoryMatchGlobalRulesHandler(serverCtx),
+				},
+				{
+					// 保存对对碰全局玩法规则（gacha.pool:write）
+					Method:  http.MethodPut,
+					Path:    "/gacha/match/rules",
+					Handler: match.SaveMemoryMatchGlobalRulesHandler(serverCtx),
+				},
+				{
+					// 对对碰牌堆模板列表（gacha.pool:read）
+					Method:  http.MethodGet,
+					Path:    "/gacha/match/deck-templates",
+					Handler: match.ListMemoryMatchDeckTemplatesHandler(serverCtx),
+				},
+				{
+					// 保存对对碰牌堆模板（gacha.pool:write）
+					Method:  http.MethodPost,
+					Path:    "/gacha/match/deck-templates",
+					Handler: match.SaveMemoryMatchDeckTemplateHandler(serverCtx),
+				},
+				{
+					// 删除对对碰牌堆模板（gacha.pool:write）
+					Method:  http.MethodDelete,
+					Path:    "/gacha/match/deck-templates/:id",
+					Handler: match.DeleteMemoryMatchDeckTemplateHandler(serverCtx),
+				},
+				{
+					// 对对碰外观池列表（gacha.pool:read）
+					Method:  http.MethodGet,
+					Path:    "/gacha/match/appearances",
+					Handler: match.ListMemoryMatchAppearancesHandler(serverCtx),
+				},
+				{
+					// 保存对对碰外观（gacha.pool:write）
+					Method:  http.MethodPost,
+					Path:    "/gacha/match/appearances",
+					Handler: match.SaveMemoryMatchAppearanceHandler(serverCtx),
+				},
+				{
+					// 删除对对碰外观（gacha.pool:write）
+					Method:  http.MethodDelete,
+					Path:    "/gacha/match/appearances/:id",
+					Handler: match.DeleteMemoryMatchAppearanceHandler(serverCtx),
 				},
 			}...,
 		),

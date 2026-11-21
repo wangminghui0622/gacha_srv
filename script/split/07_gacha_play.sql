@@ -793,4 +793,87 @@ INSERT IGNORE INTO `prize_grades` (`sort`, `code`, `category`) VALUES
   (26, 'A', '普通赏'),
   (25, 'B', '普通赏');
 
+-- ============================================================
+-- 对对碰（记忆翻牌）全局玩法规则 / 牌堆模板 / 外观池
+-- 说明：赏池默认跟随全局规则；单池 memory_match_configs 仍可单独覆盖。
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS `memory_match_global_rules` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键（固定 1）',
+  `name` varchar(64) NOT NULL DEFAULT '' COMMENT '规则名称',
+  `pair_probability_mode` int NOT NULL DEFAULT '0' COMMENT '碰数概率模式：0=自然发牌（兼容旧模式）',
+  `initial_hand_count` int NOT NULL DEFAULT '9' COMMENT '初始手牌数',
+  `pair_size` int NOT NULL DEFAULT '2' COMMENT '几张成碰',
+  `replenish_count` int NOT NULL DEFAULT '1' COMMENT '碰后补牌数',
+  `second_destiny_enabled` tinyint NOT NULL DEFAULT '1' COMMENT '第二次天命：1=开 0=关',
+  `destiny_double_enabled` tinyint NOT NULL DEFAULT '1' COMMENT '天命双倍：1=开 0=关',
+  `destiny_income` int NOT NULL DEFAULT '1' COMMENT '出天命收益',
+  `double_destiny_buff` int NOT NULL DEFAULT '1' COMMENT '双倍碰天命 buff',
+  `destiny_replenish_cost` int NOT NULL DEFAULT '1' COMMENT '天命补牌消耗',
+  `resume_enabled` tinyint NOT NULL DEFAULT '1' COMMENT '中断续玩：1=开 0=关',
+  `host_mode_enabled` tinyint NOT NULL DEFAULT '1' COMMENT '播主模式：1=开 0=关',
+  `host_min_pairs` int NOT NULL DEFAULT '6' COMMENT '上播碰数',
+  `host_share_bps` int NOT NULL DEFAULT '50' COMMENT '播主收益万分比',
+  `revenue_base` int NOT NULL DEFAULT '1' COMMENT '收益基准：1=实付金额',
+  `ledger_type` int NOT NULL DEFAULT '0' COMMENT '流水类型',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态：1=启用 0=停用',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='对对碰全局玩法规则';
+
+CREATE TABLE IF NOT EXISTS `memory_match_deck_templates` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `name` varchar(64) NOT NULL COMMENT '牌堆名称',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态：1=启用 0=停用',
+  `total_cards` int NOT NULL DEFAULT '54' COMMENT '总牌数',
+  `weight` bigint NOT NULL DEFAULT '0' COMMENT '权重',
+  `config_json` json NOT NULL DEFAULT (JSON_OBJECT()) COMMENT '牌堆扩展配置 JSON',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='对对碰牌堆模板';
+
+CREATE TABLE IF NOT EXISTS `memory_match_appearances` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `appearance_type` tinyint NOT NULL DEFAULT '1' COMMENT '类型：1=卡面 2=卡背',
+  `name` varchar(64) NOT NULL COMMENT '名称',
+  `image_url` varchar(512) NOT NULL DEFAULT '' COMMENT '图片',
+  `back_image_url` varchar(512) NOT NULL DEFAULT '' COMMENT '卡面背景',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态：1=启用 0=停用',
+  `free` tinyint NOT NULL DEFAULT '1' COMMENT '是否免费：1=是 0=否',
+  `exchange_points` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT '兑换积分',
+  `function_type` varchar(64) NOT NULL DEFAULT '' COMMENT '功能类型',
+  `function_config` varchar(1024) NOT NULL DEFAULT '' COMMENT '功能配置',
+  `weight` bigint NOT NULL DEFAULT '0' COMMENT '权重',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='对对碰外观池';
+
+INSERT IGNORE INTO `memory_match_global_rules`
+  (`id`, `name`, `pair_probability_mode`, `initial_hand_count`, `pair_size`, `replenish_count`,
+   `second_destiny_enabled`, `destiny_double_enabled`, `destiny_income`, `double_destiny_buff`,
+   `destiny_replenish_cost`, `resume_enabled`, `host_mode_enabled`, `host_min_pairs`, `host_share_bps`,
+   `revenue_base`, `ledger_type`, `status`)
+VALUES
+  (1, '默认全局规则', 0, 9, 2, 1, 1, 1, 1, 1, 1, 1, 1, 6, 50, 1, 0, 1);
+
+INSERT IGNORE INTO `memory_match_deck_templates` (`id`, `name`, `status`, `total_cards`, `weight`, `config_json`)
+VALUES (1, '默认卡组', 1, 54, 0, JSON_OBJECT());
+
+INSERT IGNORE INTO `memory_match_appearances`
+  (`id`, `appearance_type`, `name`, `image_url`, `back_image_url`, `status`, `free`, `exchange_points`, `function_type`, `function_config`, `weight`)
+VALUES
+  (1, 2, '默认卡背', '', '', 1, 1, 0.00, '', '', 0),
+  (2, 1, '1', '', '', 1, 1, 0.00, '', '', 0),
+  (3, 1, '2', '', '', 1, 1, 0.00, '', '', 0),
+  (4, 1, '3', '', '', 1, 1, 0.00, '', '', 0),
+  (5, 1, '4', '', '', 1, 1, 0.00, '', '', 0),
+  (6, 1, '5', '', '', 1, 1, 0.00, '', '', 0),
+  (7, 1, '6', '', '', 1, 1, 0.00, '', '', 0),
+  (8, 1, '7', '', '', 1, 1, 0.00, '', '', 0),
+  (9, 1, '8', '', '', 1, 1, 0.00, '', '', 0),
+  (10, 1, '9', '', '', 1, 1, 0.00, '', '', 0);
+
 SET FOREIGN_KEY_CHECKS = 1;
