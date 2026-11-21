@@ -418,6 +418,36 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: pool.GetPlayPoolVersionHandler(serverCtx),
 				},
 				{
+					// 图鉴集合列表（gacha.pool:read）
+					Method:  http.MethodGet,
+					Path:    "/gacha/collection-sets",
+					Handler: pool.ListCollectionSetsHandler(serverCtx),
+				},
+				{
+					// 新建图鉴集合（gacha.pool:create）
+					Method:  http.MethodPost,
+					Path:    "/gacha/collection-sets",
+					Handler: pool.CreateCollectionSetHandler(serverCtx),
+				},
+				{
+					// 编辑图鉴集合（gacha.pool:write）
+					Method:  http.MethodPut,
+					Path:    "/gacha/collection-sets/:id",
+					Handler: pool.UpdateCollectionSetHandler(serverCtx),
+				},
+				{
+					// 图鉴集合状态（gacha.pool:write）
+					Method:  http.MethodPut,
+					Path:    "/gacha/collection-sets/:id/status",
+					Handler: pool.SetCollectionSetStatusHandler(serverCtx),
+				},
+				{
+					// 图鉴集合数据概览（gacha.pool:read）
+					Method:  http.MethodGet,
+					Path:    "/gacha/collection-sets/:id/data",
+					Handler: pool.GetCollectionSetDataHandler(serverCtx),
+				},
+				{
 					// 发布统一玩赏池版本（gacha.pool:publish）
 					Method:  http.MethodPost,
 					Path:    "/gacha/play-pools/:poolId/versions/:version/publish",

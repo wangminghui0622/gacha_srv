@@ -26,6 +26,15 @@ type (
 	CheckPrizesGrantedResp             = play.CheckPrizesGrantedResp
 	ComboChainRecordItem               = play.ComboChainRecordItem
 	ComboChainSharedPrizeItem          = play.ComboChainSharedPrizeItem
+	CollectionRewardStat               = play.CollectionRewardStat
+	CollectionSet                      = play.CollectionSet
+	CreateCollectionSetReq             = play.CreateCollectionSetReq
+	GetCollectionSetDataReq            = play.GetCollectionSetDataReq
+	GetCollectionSetDataResp           = play.GetCollectionSetDataResp
+	ListCollectionSetsReq              = play.ListCollectionSetsReq
+	ListCollectionSetsResp             = play.ListCollectionSetsResp
+	SetCollectionSetStatusReq          = play.SetCollectionSetStatusReq
+	UpdateCollectionSetReq             = play.UpdateCollectionSetReq
 	CompleteMemoryMatchRoundReq        = play.CompleteMemoryMatchRoundReq
 	CompleteMemoryMatchRoundResp       = play.CompleteMemoryMatchRoundResp
 	CreatePlayPoolDraftReq             = play.CreatePlayPoolDraftReq
@@ -223,6 +232,12 @@ type (
 		// ---- 记忆翻牌（玩法接口）----
 		GetMemoryMatchConfig(ctx context.Context, in *GetMemoryMatchConfigReq, opts ...grpc.CallOption) (*GetMemoryMatchConfigResp, error)
 		ListMemoryMatchConfigs(ctx context.Context, in *ListMemoryMatchConfigsReq, opts ...grpc.CallOption) (*ListMemoryMatchConfigsResp, error)
+		// ---- 图鉴集合（管理端）----
+		ListCollectionSets(ctx context.Context, in *ListCollectionSetsReq, opts ...grpc.CallOption) (*ListCollectionSetsResp, error)
+		CreateCollectionSet(ctx context.Context, in *CreateCollectionSetReq, opts ...grpc.CallOption) (*CollectionSet, error)
+		UpdateCollectionSet(ctx context.Context, in *UpdateCollectionSetReq, opts ...grpc.CallOption) (*CollectionSet, error)
+		SetCollectionSetStatus(ctx context.Context, in *SetCollectionSetStatusReq, opts ...grpc.CallOption) (*CollectionSet, error)
+		GetCollectionSetData(ctx context.Context, in *GetCollectionSetDataReq, opts ...grpc.CallOption) (*GetCollectionSetDataResp, error)
 		// ---- 对对碰管理后台（全局规则/牌堆模板/外观池）----
 		GetMemoryMatchGlobalRules(ctx context.Context, in *GetMemoryMatchGlobalRulesReq, opts ...grpc.CallOption) (*GetMemoryMatchGlobalRulesResp, error)
 		SaveMemoryMatchGlobalRules(ctx context.Context, in *SaveMemoryMatchGlobalRulesReq, opts ...grpc.CallOption) (*SaveMemoryMatchGlobalRulesResp, error)
@@ -392,6 +407,33 @@ func (m *defaultPlay) GetMemoryMatchConfig(ctx context.Context, in *GetMemoryMat
 func (m *defaultPlay) ListMemoryMatchConfigs(ctx context.Context, in *ListMemoryMatchConfigsReq, opts ...grpc.CallOption) (*ListMemoryMatchConfigsResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.ListMemoryMatchConfigs(ctx, in, opts...)
+}
+
+// ---- 图鉴集合（管理端）----
+
+func (m *defaultPlay) ListCollectionSets(ctx context.Context, in *ListCollectionSetsReq, opts ...grpc.CallOption) (*ListCollectionSetsResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.ListCollectionSets(ctx, in, opts...)
+}
+
+func (m *defaultPlay) CreateCollectionSet(ctx context.Context, in *CreateCollectionSetReq, opts ...grpc.CallOption) (*CollectionSet, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.CreateCollectionSet(ctx, in, opts...)
+}
+
+func (m *defaultPlay) UpdateCollectionSet(ctx context.Context, in *UpdateCollectionSetReq, opts ...grpc.CallOption) (*CollectionSet, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.UpdateCollectionSet(ctx, in, opts...)
+}
+
+func (m *defaultPlay) SetCollectionSetStatus(ctx context.Context, in *SetCollectionSetStatusReq, opts ...grpc.CallOption) (*CollectionSet, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.SetCollectionSetStatus(ctx, in, opts...)
+}
+
+func (m *defaultPlay) GetCollectionSetData(ctx context.Context, in *GetCollectionSetDataReq, opts ...grpc.CallOption) (*GetCollectionSetDataResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.GetCollectionSetData(ctx, in, opts...)
 }
 
 // ---- 对对碰管理后台（全局规则/牌堆模板/外观池）----

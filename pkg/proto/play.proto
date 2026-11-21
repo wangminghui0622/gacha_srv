@@ -249,6 +249,12 @@ service Play {
   // ---- 记忆翻牌（玩法接口）----
   rpc GetMemoryMatchConfig(GetMemoryMatchConfigReq) returns (GetMemoryMatchConfigResp);
   rpc ListMemoryMatchConfigs(ListMemoryMatchConfigsReq) returns (ListMemoryMatchConfigsResp);
+  // ---- 图鉴集合（管理端）----
+  rpc ListCollectionSets(ListCollectionSetsReq) returns (ListCollectionSetsResp);
+  rpc CreateCollectionSet(CreateCollectionSetReq) returns (CollectionSet);
+  rpc UpdateCollectionSet(UpdateCollectionSetReq) returns (CollectionSet);
+  rpc SetCollectionSetStatus(SetCollectionSetStatusReq) returns (CollectionSet);
+  rpc GetCollectionSetData(GetCollectionSetDataReq) returns (GetCollectionSetDataResp);
   // ---- 对对碰管理后台（全局规则/牌堆模板/外观池）----
   rpc GetMemoryMatchGlobalRules(GetMemoryMatchGlobalRulesReq) returns (GetMemoryMatchGlobalRulesResp);
   rpc SaveMemoryMatchGlobalRules(SaveMemoryMatchGlobalRulesReq) returns (SaveMemoryMatchGlobalRulesResp);
@@ -961,6 +967,85 @@ message ListMemoryMatchConfigsReq {}
 
 message ListMemoryMatchConfigsResp {
     repeated MemoryMatchConfigSummary configs = 1;
+}
+
+// ---- 图鉴集合（管理端）----
+
+message CollectionSet {
+    int64  id = 1;
+    string code = 2;
+    string name = 3;
+    int64  version = 4;
+    int64  status = 5;          // 1 进行中 2 已结束 3 已下线
+    int64  accumulateType = 6;  // 1 永久累计 2 限时累计
+    int64  cycleType = 7;       // 0 单轮 N=轮数 -1=无限轮
+    int64  sort = 8;
+    string configJson = 9;
+    string startAt = 10;
+    string endAt = 11;
+    string createdAt = 12;
+    string updatedAt = 13;
+}
+
+message CollectionRewardStat {
+    string name = 1;
+    int64  claimed = 2;
+    int64  stock = 3;
+}
+
+message ListCollectionSetsReq {
+    string keyword = 1;
+    int64  status = 2; // 0=全部
+    int64  page = 3;
+    int64  pageSize = 4;
+}
+
+message ListCollectionSetsResp {
+    repeated CollectionSet items = 1;
+    int64 total = 2;
+    int64 page = 3;
+    int64 pageSize = 4;
+}
+
+message CreateCollectionSetReq {
+    string code = 1;
+    string name = 2;
+    int64  accumulateType = 3;
+    int64  cycleType = 4;
+    int64  sort = 5;
+    int64  status = 6;
+    string configJson = 7;
+    string startAt = 8;
+    string endAt = 9;
+}
+
+message UpdateCollectionSetReq {
+    int64  id = 1;
+    string name = 2;
+    int64  accumulateType = 3;
+    int64  cycleType = 4;
+    int64  sort = 5;
+    int64  status = 6;
+    string configJson = 7;
+    string startAt = 8;
+    string endAt = 9;
+}
+
+message SetCollectionSetStatusReq {
+    int64 id = 1;
+    int64 status = 2;
+}
+
+message GetCollectionSetDataReq {
+    int64 id = 1;
+}
+
+message GetCollectionSetDataResp {
+    int64 participants = 1;
+    int64 completed = 2;
+    int64 claims = 3;
+    int64 pendingClaims = 4;
+    repeated CollectionRewardStat rewards = 5;
 }
 
 message GetMemoryMatchConfigReq {

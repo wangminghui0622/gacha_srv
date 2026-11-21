@@ -159,6 +159,33 @@ func (s *PlayServer) ListMemoryMatchConfigs(ctx context.Context, in *play.ListMe
 	return l.ListMemoryMatchConfigs(in)
 }
 
+// ---- 图鉴集合（管理端）----
+
+func (s *PlayServer) ListCollectionSets(ctx context.Context, in *play.ListCollectionSetsReq) (*play.ListCollectionSetsResp, error) {
+	l := logic.NewListCollectionSetsLogic(ctx, s.svcCtx)
+	return l.ListCollectionSets(in)
+}
+
+func (s *PlayServer) CreateCollectionSet(ctx context.Context, in *play.CreateCollectionSetReq) (*play.CollectionSet, error) {
+	l := logic.NewCreateCollectionSetLogic(ctx, s.svcCtx)
+	return l.CreateCollectionSet(in)
+}
+
+func (s *PlayServer) UpdateCollectionSet(ctx context.Context, in *play.UpdateCollectionSetReq) (*play.CollectionSet, error) {
+	l := logic.NewUpdateCollectionSetLogic(ctx, s.svcCtx)
+	return l.UpdateCollectionSet(in)
+}
+
+func (s *PlayServer) SetCollectionSetStatus(ctx context.Context, in *play.SetCollectionSetStatusReq) (*play.CollectionSet, error) {
+	l := logic.NewSetCollectionSetStatusLogic(ctx, s.svcCtx)
+	return l.SetCollectionSetStatus(in)
+}
+
+func (s *PlayServer) GetCollectionSetData(ctx context.Context, in *play.GetCollectionSetDataReq) (*play.GetCollectionSetDataResp, error) {
+	l := logic.NewGetCollectionSetDataLogic(ctx, s.svcCtx)
+	return l.GetCollectionSetData(in)
+}
+
 // ---- 对对碰管理后台（全局规则/牌堆模板/外观池）----
 func (s *PlayServer) GetMemoryMatchGlobalRules(ctx context.Context, in *play.GetMemoryMatchGlobalRulesReq) (*play.GetMemoryMatchGlobalRulesResp, error) {
 	l := logic.NewGetMemoryMatchGlobalRulesLogic(ctx, s.svcCtx)

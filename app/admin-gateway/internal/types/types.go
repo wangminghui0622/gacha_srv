@@ -502,3 +502,82 @@ type UpdateRoleReq struct {
 	Enabled         bool   `json:"enabled"`
 	ExpectedVersion uint64 `json:"expectedVersion"`
 }
+
+// ---- Collection sets (admin) ----
+
+type CollectionSetItem struct {
+	Id             int64  `json:"id"`
+	Code           string `json:"code"`
+	Name           string `json:"name"`
+	Version        int64  `json:"version"`
+	Status         int64  `json:"status"`
+	AccumulateType int64  `json:"accumulateType"`
+	CycleType      int64  `json:"cycleType"`
+	Sort           int64  `json:"sort"`
+	ConfigJson     string `json:"configJson"`
+	StartAt        string `json:"startAt"`
+	EndAt          string `json:"endAt"`
+	CreatedAt      string `json:"createdAt"`
+	UpdatedAt      string `json:"updatedAt"`
+}
+
+type CollectionSetListReq struct {
+	Keyword  string `form:"keyword,optional"`
+	Status   int64  `form:"status,optional"`
+	Page     int64  `form:"page,optional"`
+	PageSize int64  `form:"pageSize,optional"`
+}
+
+type CollectionSetListResp struct {
+	Items    []CollectionSetItem `json:"items"`
+	Total    int64               `json:"total"`
+	Page     int64               `json:"page"`
+	PageSize int64               `json:"pageSize"`
+}
+
+type CollectionSetCreateReq struct {
+	Code           string `json:"code"`
+	Name           string `json:"name"`
+	AccumulateType int64  `json:"accumulateType"`
+	CycleType      int64  `json:"cycleType"`
+	Sort           int64  `json:"sort"`
+	Status         int64  `json:"status"`
+	ConfigJson     string `json:"configJson,optional"`
+	StartAt        string `json:"startAt,optional"`
+	EndAt          string `json:"endAt,optional"`
+}
+
+type CollectionSetUpdateReq struct {
+	Id             int64  `path:"id"`
+	Name           string `json:"name"`
+	AccumulateType int64  `json:"accumulateType"`
+	CycleType      int64  `json:"cycleType"`
+	Sort           int64  `json:"sort"`
+	Status         int64  `json:"status"`
+	ConfigJson     string `json:"configJson,optional"`
+	StartAt        string `json:"startAt,optional"`
+	EndAt          string `json:"endAt,optional"`
+}
+
+type CollectionSetStatusReq struct {
+	Id     int64 `path:"id"`
+	Status int64 `json:"status"`
+}
+
+type CollectionSetDataReq struct {
+	Id int64 `path:"id"`
+}
+
+type CollectionRewardStat struct {
+	Name    string `json:"name"`
+	Claimed int64  `json:"claimed"`
+	Stock   int64  `json:"stock"`
+}
+
+type CollectionSetDataResp struct {
+	Participants  int64                  `json:"participants"`
+	Completed     int64                  `json:"completed"`
+	Claims        int64                  `json:"claims"`
+	PendingClaims int64                  `json:"pendingClaims"`
+	Rewards       []CollectionRewardStat `json:"rewards"`
+}

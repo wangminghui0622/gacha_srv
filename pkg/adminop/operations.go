@@ -64,6 +64,12 @@ func All() []Operation {
 		{ID: "console.playpool.get", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/play-pools/:poolId/versions/:version", Title: "读取统一玩赏池版本"},
 		{ID: "console.playpool.create", Resource: "gacha.pool", Action: "create", Method: "POST", Path: "/gacha/play-pools/drafts", Title: "创建统一玩赏池草稿"},
 		{ID: "console.playpool.publish", Resource: "gacha.pool", Action: "publish", Method: "POST", Path: "/gacha/play-pools/:poolId/versions/:version/publish", Title: "发布统一玩赏池"},
+		// ── 图鉴集合（管理端）──
+		{ID: "console.collection.list", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/collection-sets", Title: "图鉴集合列表"},
+		{ID: "console.collection.create", Resource: "gacha.pool", Action: "create", Method: "POST", Path: "/gacha/collection-sets", Title: "新建图鉴集合"},
+		{ID: "console.collection.update", Resource: "gacha.pool", Action: "write", Method: "PUT", Path: "/gacha/collection-sets/:id", Title: "编辑图鉴集合"},
+		{ID: "console.collection.status", Resource: "gacha.pool", Action: "write", Method: "PUT", Path: "/gacha/collection-sets/:id/status", Title: "更新图鉴集合状态"},
+		{ID: "console.collection.data", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/collection-sets/:id/data", Title: "图鉴集合数据"},
 		// ── 对对碰管理（全局规则/牌堆模板/外观池）──
 		{ID: "console.match.rules.get", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/match/rules", Title: "读取对对碰全局规则"},
 		{ID: "console.match.rules.save", Resource: "gacha.pool", Action: "write", Method: "PUT", Path: "/gacha/match/rules", Title: "保存对对碰全局规则"},

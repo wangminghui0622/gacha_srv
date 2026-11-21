@@ -44,6 +44,11 @@ const (
 	Play_GetGroupBuy_FullMethodName                    = "/play.Play/GetGroupBuy"
 	Play_GetMemoryMatchConfig_FullMethodName           = "/play.Play/GetMemoryMatchConfig"
 	Play_ListMemoryMatchConfigs_FullMethodName         = "/play.Play/ListMemoryMatchConfigs"
+	Play_ListCollectionSets_FullMethodName             = "/play.Play/ListCollectionSets"
+	Play_CreateCollectionSet_FullMethodName            = "/play.Play/CreateCollectionSet"
+	Play_UpdateCollectionSet_FullMethodName            = "/play.Play/UpdateCollectionSet"
+	Play_SetCollectionSetStatus_FullMethodName         = "/play.Play/SetCollectionSetStatus"
+	Play_GetCollectionSetData_FullMethodName           = "/play.Play/GetCollectionSetData"
 	Play_GetMemoryMatchGlobalRules_FullMethodName      = "/play.Play/GetMemoryMatchGlobalRules"
 	Play_SaveMemoryMatchGlobalRules_FullMethodName     = "/play.Play/SaveMemoryMatchGlobalRules"
 	Play_ListMemoryMatchDeckTemplates_FullMethodName   = "/play.Play/ListMemoryMatchDeckTemplates"
@@ -106,6 +111,12 @@ type PlayClient interface {
 	// ---- 记忆翻牌（玩法接口）----
 	GetMemoryMatchConfig(ctx context.Context, in *GetMemoryMatchConfigReq, opts ...grpc.CallOption) (*GetMemoryMatchConfigResp, error)
 	ListMemoryMatchConfigs(ctx context.Context, in *ListMemoryMatchConfigsReq, opts ...grpc.CallOption) (*ListMemoryMatchConfigsResp, error)
+	// ---- 图鉴集合（管理端）----
+	ListCollectionSets(ctx context.Context, in *ListCollectionSetsReq, opts ...grpc.CallOption) (*ListCollectionSetsResp, error)
+	CreateCollectionSet(ctx context.Context, in *CreateCollectionSetReq, opts ...grpc.CallOption) (*CollectionSet, error)
+	UpdateCollectionSet(ctx context.Context, in *UpdateCollectionSetReq, opts ...grpc.CallOption) (*CollectionSet, error)
+	SetCollectionSetStatus(ctx context.Context, in *SetCollectionSetStatusReq, opts ...grpc.CallOption) (*CollectionSet, error)
+	GetCollectionSetData(ctx context.Context, in *GetCollectionSetDataReq, opts ...grpc.CallOption) (*GetCollectionSetDataResp, error)
 	// ---- 对对碰管理后台（全局规则/牌堆模板/外观池）----
 	GetMemoryMatchGlobalRules(ctx context.Context, in *GetMemoryMatchGlobalRulesReq, opts ...grpc.CallOption) (*GetMemoryMatchGlobalRulesResp, error)
 	SaveMemoryMatchGlobalRules(ctx context.Context, in *SaveMemoryMatchGlobalRulesReq, opts ...grpc.CallOption) (*SaveMemoryMatchGlobalRulesResp, error)
@@ -363,6 +374,51 @@ func (c *playClient) ListMemoryMatchConfigs(ctx context.Context, in *ListMemoryM
 	return out, nil
 }
 
+func (c *playClient) ListCollectionSets(ctx context.Context, in *ListCollectionSetsReq, opts ...grpc.CallOption) (*ListCollectionSetsResp, error) {
+	out := new(ListCollectionSetsResp)
+	err := c.cc.Invoke(ctx, Play_ListCollectionSets_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) CreateCollectionSet(ctx context.Context, in *CreateCollectionSetReq, opts ...grpc.CallOption) (*CollectionSet, error) {
+	out := new(CollectionSet)
+	err := c.cc.Invoke(ctx, Play_CreateCollectionSet_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) UpdateCollectionSet(ctx context.Context, in *UpdateCollectionSetReq, opts ...grpc.CallOption) (*CollectionSet, error) {
+	out := new(CollectionSet)
+	err := c.cc.Invoke(ctx, Play_UpdateCollectionSet_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) SetCollectionSetStatus(ctx context.Context, in *SetCollectionSetStatusReq, opts ...grpc.CallOption) (*CollectionSet, error) {
+	out := new(CollectionSet)
+	err := c.cc.Invoke(ctx, Play_SetCollectionSetStatus_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) GetCollectionSetData(ctx context.Context, in *GetCollectionSetDataReq, opts ...grpc.CallOption) (*GetCollectionSetDataResp, error) {
+	out := new(GetCollectionSetDataResp)
+	err := c.cc.Invoke(ctx, Play_GetCollectionSetData_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *playClient) GetMemoryMatchGlobalRules(ctx context.Context, in *GetMemoryMatchGlobalRulesReq, opts ...grpc.CallOption) (*GetMemoryMatchGlobalRulesResp, error) {
 	out := new(GetMemoryMatchGlobalRulesResp)
 	err := c.cc.Invoke(ctx, Play_GetMemoryMatchGlobalRules_FullMethodName, in, out, opts...)
@@ -583,6 +639,12 @@ type PlayServer interface {
 	// ---- 记忆翻牌（玩法接口）----
 	GetMemoryMatchConfig(context.Context, *GetMemoryMatchConfigReq) (*GetMemoryMatchConfigResp, error)
 	ListMemoryMatchConfigs(context.Context, *ListMemoryMatchConfigsReq) (*ListMemoryMatchConfigsResp, error)
+	// ---- 图鉴集合（管理端）----
+	ListCollectionSets(context.Context, *ListCollectionSetsReq) (*ListCollectionSetsResp, error)
+	CreateCollectionSet(context.Context, *CreateCollectionSetReq) (*CollectionSet, error)
+	UpdateCollectionSet(context.Context, *UpdateCollectionSetReq) (*CollectionSet, error)
+	SetCollectionSetStatus(context.Context, *SetCollectionSetStatusReq) (*CollectionSet, error)
+	GetCollectionSetData(context.Context, *GetCollectionSetDataReq) (*GetCollectionSetDataResp, error)
 	// ---- 对对碰管理后台（全局规则/牌堆模板/外观池）----
 	GetMemoryMatchGlobalRules(context.Context, *GetMemoryMatchGlobalRulesReq) (*GetMemoryMatchGlobalRulesResp, error)
 	SaveMemoryMatchGlobalRules(context.Context, *SaveMemoryMatchGlobalRulesReq) (*SaveMemoryMatchGlobalRulesResp, error)
@@ -686,6 +748,21 @@ func (UnimplementedPlayServer) GetMemoryMatchConfig(context.Context, *GetMemoryM
 }
 func (UnimplementedPlayServer) ListMemoryMatchConfigs(context.Context, *ListMemoryMatchConfigsReq) (*ListMemoryMatchConfigsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListMemoryMatchConfigs not implemented")
+}
+func (UnimplementedPlayServer) ListCollectionSets(context.Context, *ListCollectionSetsReq) (*ListCollectionSetsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListCollectionSets not implemented")
+}
+func (UnimplementedPlayServer) CreateCollectionSet(context.Context, *CreateCollectionSetReq) (*CollectionSet, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateCollectionSet not implemented")
+}
+func (UnimplementedPlayServer) UpdateCollectionSet(context.Context, *UpdateCollectionSetReq) (*CollectionSet, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateCollectionSet not implemented")
+}
+func (UnimplementedPlayServer) SetCollectionSetStatus(context.Context, *SetCollectionSetStatusReq) (*CollectionSet, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetCollectionSetStatus not implemented")
+}
+func (UnimplementedPlayServer) GetCollectionSetData(context.Context, *GetCollectionSetDataReq) (*GetCollectionSetDataResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCollectionSetData not implemented")
 }
 func (UnimplementedPlayServer) GetMemoryMatchGlobalRules(context.Context, *GetMemoryMatchGlobalRulesReq) (*GetMemoryMatchGlobalRulesResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMemoryMatchGlobalRules not implemented")
@@ -1210,6 +1287,96 @@ func _Play_ListMemoryMatchConfigs_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Play_ListCollectionSets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCollectionSetsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).ListCollectionSets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_ListCollectionSets_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).ListCollectionSets(ctx, req.(*ListCollectionSetsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_CreateCollectionSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCollectionSetReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).CreateCollectionSet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_CreateCollectionSet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).CreateCollectionSet(ctx, req.(*CreateCollectionSetReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_UpdateCollectionSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateCollectionSetReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).UpdateCollectionSet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_UpdateCollectionSet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).UpdateCollectionSet(ctx, req.(*UpdateCollectionSetReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_SetCollectionSetStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetCollectionSetStatusReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).SetCollectionSetStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_SetCollectionSetStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).SetCollectionSetStatus(ctx, req.(*SetCollectionSetStatusReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_GetCollectionSetData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCollectionSetDataReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).GetCollectionSetData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_GetCollectionSetData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).GetCollectionSetData(ctx, req.(*GetCollectionSetDataReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Play_GetMemoryMatchGlobalRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetMemoryMatchGlobalRulesReq)
 	if err := dec(in); err != nil {
@@ -1676,6 +1843,26 @@ var Play_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListMemoryMatchConfigs",
 			Handler:    _Play_ListMemoryMatchConfigs_Handler,
+		},
+		{
+			MethodName: "ListCollectionSets",
+			Handler:    _Play_ListCollectionSets_Handler,
+		},
+		{
+			MethodName: "CreateCollectionSet",
+			Handler:    _Play_CreateCollectionSet_Handler,
+		},
+		{
+			MethodName: "UpdateCollectionSet",
+			Handler:    _Play_UpdateCollectionSet_Handler,
+		},
+		{
+			MethodName: "SetCollectionSetStatus",
+			Handler:    _Play_SetCollectionSetStatus_Handler,
+		},
+		{
+			MethodName: "GetCollectionSetData",
+			Handler:    _Play_GetCollectionSetData_Handler,
 		},
 		{
 			MethodName: "GetMemoryMatchGlobalRules",

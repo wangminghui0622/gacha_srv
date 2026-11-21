@@ -353,7 +353,7 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     permission: { resource: 'gacha.pool', action: 'read' },
     showInMenu: false,
     backFallback: '/gacha',
-    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+    component: () => import('@/views/gacha/GachaCodexView.vue'),
   },
   {
     name: 'customers',

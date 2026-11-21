@@ -113,6 +113,9 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	if err := repo.EnsureMemoryMatchAdminSeed(db); err != nil {
 		logx.Errorf("初始化对对碰管理数据失败: %v", err)
 	}
+	if err := repo.EnsureCollectionAdminSeed(db); err != nil {
+		logx.Errorf("初始化图鉴集合数据失败: %v", err)
+	}
 
 	// ClientErrorInterceptor：下游业务码还原为 CodeError，跨服务不失真
 	moneyRpc := moneyClient.NewMoney(zrpc.MustNewClient(c.MoneyRpc,
