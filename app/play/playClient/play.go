@@ -147,7 +147,10 @@ type (
 	PlayLockReq                        = play.PlayLockReq
 	PlayLockResp                       = play.PlayLockResp
 	PlayPoolPrize                      = play.PlayPoolPrize
+	PlayPoolReferenceItem              = play.PlayPoolReferenceItem
 	PlayPoolSummary                    = play.PlayPoolSummary
+	QueryPlayPoolReferencesReq         = play.QueryPlayPoolReferencesReq
+	QueryPlayPoolReferencesResp        = play.QueryPlayPoolReferencesResp
 	PlayReleaseResp                    = play.PlayReleaseResp
 	PlaySettleReq                      = play.PlaySettleReq
 	PlaySettleResp                     = play.PlaySettleResp
@@ -216,6 +219,7 @@ type (
 		UpdateAdminPlayPool(ctx context.Context, in *UpdateAdminPlayPoolReq, opts ...grpc.CallOption) (*AdminPlayPool, error)
 		SaveAdminPlayPoolWeights(ctx context.Context, in *SaveAdminPlayPoolWeightsReq, opts ...grpc.CallOption) (*SaveAdminPlayPoolWeightsResp, error)
 		DeleteAdminPlayPools(ctx context.Context, in *DeleteAdminPlayPoolsReq, opts ...grpc.CallOption) (*DeleteAdminPlayPoolsResp, error)
+		QueryPlayPoolReferences(ctx context.Context, in *QueryPlayPoolReferencesReq, opts ...grpc.CallOption) (*QueryPlayPoolReferencesResp, error)
 		// ---- 挖宝 ----
 		ListDigBoxes(ctx context.Context, in *ListDigBoxesReq, opts ...grpc.CallOption) (*ListDigBoxesResp, error)
 		GetDigBoxSession(ctx context.Context, in *GetDigBoxSessionReq, opts ...grpc.CallOption) (*GetDigBoxSessionResp, error)
@@ -355,6 +359,11 @@ func (m *defaultPlay) SaveAdminPlayPoolWeights(ctx context.Context, in *SaveAdmi
 func (m *defaultPlay) DeleteAdminPlayPools(ctx context.Context, in *DeleteAdminPlayPoolsReq, opts ...grpc.CallOption) (*DeleteAdminPlayPoolsResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.DeleteAdminPlayPools(ctx, in, opts...)
+}
+
+func (m *defaultPlay) QueryPlayPoolReferences(ctx context.Context, in *QueryPlayPoolReferencesReq, opts ...grpc.CallOption) (*QueryPlayPoolReferencesResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.QueryPlayPoolReferences(ctx, in, opts...)
 }
 
 // ---- 挖宝 ----

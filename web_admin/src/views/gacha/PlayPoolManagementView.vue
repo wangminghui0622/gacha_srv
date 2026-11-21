@@ -185,17 +185,64 @@
       </a-form>
     </a-modal>
 
-    <a-modal v-model:open="referenceOpen" :title="$t('poolAdmin.referenceTitle')" :footer="null" width="560px">
-      <a-space class="reference-search">
-        <a-input v-model:value="referencePoolId" :placeholder="$t('poolAdmin.referencePlaceholder')" allow-clear @press-enter="queryReference" />
+    <a-modal
+      v-model:open="referenceOpen"
+      :title="$t('poolAdmin.referenceTitle')"
+      :footer="null"
+      width="96vw"
+      :body-style="{ maxHeight: 'calc(100vh - 180px)', overflowY: 'auto' }"
+    >
+      <div class="reference-toolbar">
+        <span class="reference-label">查询类型:</span>
+        <a-radio-group v-model:value="referenceType" button-style="solid">
+          <a-radio-button :value="1">商品ID</a-radio-button>
+          <a-radio-button :value="2">池子ID</a-radio-button>
+        </a-radio-group>
+        <span class="reference-label">ID:</span>
+        <a-input
+          v-model:value="referenceId"
+          class="reference-input"
+          placeholder="输入商品ID或池子ID"
+          allow-clear
+          @press-enter="queryReference"
+        />
         <a-button type="primary" :loading="referenceLoading" @click="queryReference">{{ $t('poolAdmin.query') }}</a-button>
-      </a-space>
-      <a-empty v-if="!referenceLoading && referenceResults.length === 0" :description="$t('poolAdmin.referenceEmpty')" />
-      <a-list v-else :data-source="referenceResults" size="small">
-        <template #renderItem="{ item }">
-          <a-list-item>{{ item.poolId }} · {{ item.name }}</a-list-item>
+      </div>
+
+      <a-table
+        :data-source="referenceResults"
+        :columns="referenceColumns"
+        :row-key="referenceRowKey"
+        :loading="referenceLoading"
+        :pagination="false"
+        size="middle"
+        :scroll="{ x: 1180 }"
+      >
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'status'">
+            <a-tag :color="referenceStatusColor(record.status)">{{ referenceStatusText(record.status) }}</a-tag>
+          </template>
+          <template v-else-if="column.key === 'tags'">
+            <a-tag v-for="tag in record.tags ?? []" :key="tag">{{ tag }}</a-tag>
+            <span v-if="!(record.tags ?? []).length">-</span>
+          </template>
+          <template v-else-if="column.key === 'refType'">
+            {{ Number(record.refType) === 2 ? '池子ID' : '商品ID' }}
+          </template>
+          <template v-else-if="column.key === 'mode'">
+            {{ modeText(record.mode) }}
+          </template>
+          <template v-else-if="column.key === 'periods'">
+            {{ Number(record.periods ?? 0) }}
+          </template>
+          <template v-else-if="column.key === 'quantity'">
+            {{ Number(record.quantity ?? 0) }}
+          </template>
         </template>
-      </a-list>
+        <template #emptyText>
+          <a-empty :description="$t('poolAdmin.referenceEmpty')" />
+        </template>
+      </a-table>
     </a-modal>
   </div>
 </template>
@@ -209,7 +256,14 @@ import { allows } from '@/access/grants'
 import { useSessionStore } from '@/stores/session'
 import { useRouter } from 'vue-router'
 import { catalogIpClient, type IpItem } from '@/api/catalog'
-import { playPoolClient, type AdminPlayPool, type PlayPoolCreateInitial, type PlayPoolPrize, type PlayPoolVersion } from '@/api/playPool'
+import {
+  playPoolClient,
+  type AdminPlayPool,
+  type PlayPoolCreateInitial,
+  type PlayPoolPrize,
+  type PlayPoolReferenceItem,
+  type PlayPoolVersion,
+} from '@/api/playPool'
 import PlayPoolCreateForm from '@/views/gacha/PlayPoolCreateForm.vue'
 
 const session = useSessionStore()
@@ -298,8 +352,23 @@ const editForm = reactive({
 
 const referenceOpen = ref(false)
 const referenceLoading = ref(false)
-const referencePoolId = ref('')
-const referenceResults = ref<AdminPlayPool[]>([])
+const referenceType = ref(1)
+const referenceId = ref('')
+const referenceResults = ref<PlayPoolReferenceItem[]>([])
+
+const referenceColumns = [
+  { title: '池子ID', dataIndex: 'poolId', key: 'poolId', width: 90 },
+  { title: '池子名称', dataIndex: 'poolName', key: 'poolName' },
+  { title: '玩法', key: 'mode', width: 100 },
+  { title: '期数', key: 'periods', width: 80, align: 'center' as const },
+  { title: '状态', key: 'status', width: 100, align: 'center' as const },
+  { title: '标签', key: 'tags', width: 160 },
+  { title: '来源', dataIndex: 'source', key: 'source', width: 100 },
+  { title: '引用类型', key: 'refType', width: 100, align: 'center' as const },
+  { title: '引用ID', dataIndex: 'refId', key: 'refId', width: 100, align: 'center' as const },
+  { title: '赏级', dataIndex: 'prizeGrade', key: 'prizeGrade', width: 100 },
+  { title: '数量', key: 'quantity', width: 80, align: 'center' as const },
+]
 
 const configSkeleton: Record<string, string> = {
   gashapon: '{}',
@@ -586,22 +655,45 @@ function deleteSelected() {
 }
 
 function openReference() {
-  referencePoolId.value = ''
+  referenceType.value = 1
+  referenceId.value = ''
   referenceResults.value = []
   referenceOpen.value = true
 }
 
+function referenceRowKey(record: PlayPoolReferenceItem): string {
+  return `${record.poolId}-${record.refId}-${record.prizeGrade}-${record.quantity}`
+}
+
+function referenceStatusText(status?: string | number): string {
+  switch (Number(status)) {
+    case 1: return '初始化'
+    case 2: return '进行中'
+    case 3: return '已下线'
+    default: return '-'
+  }
+}
+
+function referenceStatusColor(status?: string | number): string {
+  switch (Number(status)) {
+    case 1: return 'default'
+    case 2: return 'green'
+    case 3: return 'orange'
+    default: return 'default'
+  }
+}
+
 async function queryReference() {
-  if (!referencePoolId.value.trim()) return
+  const id = Number(referenceId.value.trim())
+  if (!Number.isFinite(id) || id <= 0) {
+    message.warning('请输入有效的商品ID或池子ID')
+    return
+  }
   referenceLoading.value = true
   try {
-    const reply = await playPoolClient.AdminList({
-      keyword: referencePoolId.value.trim(),
-      mode: '',
-      ipId: '',
-      status: '',
-      tag: '',
-      sortOrder: 'desc',
+    const reply = await playPoolClient.QueryReferences({
+      refType: referenceType.value,
+      refId: id,
       page: 1,
       pageSize: 50,
     })
@@ -746,13 +838,20 @@ onBeforeUnmount(() => {
   margin-top: 16px;
 }
 
-.reference-search {
+.reference-toolbar {
   display: flex;
-  width: 100%;
-  margin-bottom: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
-.reference-search .ant-input {
-  flex: 1;
+.reference-label {
+  color: #606266;
+  font-size: 14px;
+}
+
+.reference-input {
+  width: 280px;
 }
 </style>

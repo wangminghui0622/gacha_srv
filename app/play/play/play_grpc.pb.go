@@ -35,6 +35,7 @@ const (
 	Play_UpdateAdminPlayPool_FullMethodName            = "/play.Play/UpdateAdminPlayPool"
 	Play_SaveAdminPlayPoolWeights_FullMethodName       = "/play.Play/SaveAdminPlayPoolWeights"
 	Play_DeleteAdminPlayPools_FullMethodName           = "/play.Play/DeleteAdminPlayPools"
+	Play_QueryPlayPoolReferences_FullMethodName        = "/play.Play/QueryPlayPoolReferences"
 	Play_ListDigBoxes_FullMethodName                   = "/play.Play/ListDigBoxes"
 	Play_GetDigBoxSession_FullMethodName               = "/play.Play/GetDigBoxSession"
 	Play_GetFullCar_FullMethodName                     = "/play.Play/GetFullCar"
@@ -95,6 +96,7 @@ type PlayClient interface {
 	UpdateAdminPlayPool(ctx context.Context, in *UpdateAdminPlayPoolReq, opts ...grpc.CallOption) (*AdminPlayPool, error)
 	SaveAdminPlayPoolWeights(ctx context.Context, in *SaveAdminPlayPoolWeightsReq, opts ...grpc.CallOption) (*SaveAdminPlayPoolWeightsResp, error)
 	DeleteAdminPlayPools(ctx context.Context, in *DeleteAdminPlayPoolsReq, opts ...grpc.CallOption) (*DeleteAdminPlayPoolsResp, error)
+	QueryPlayPoolReferences(ctx context.Context, in *QueryPlayPoolReferencesReq, opts ...grpc.CallOption) (*QueryPlayPoolReferencesResp, error)
 	// ---- 挖宝 ----
 	ListDigBoxes(ctx context.Context, in *ListDigBoxesReq, opts ...grpc.CallOption) (*ListDigBoxesResp, error)
 	GetDigBoxSession(ctx context.Context, in *GetDigBoxSessionReq, opts ...grpc.CallOption) (*GetDigBoxSessionResp, error)
@@ -287,6 +289,15 @@ func (c *playClient) SaveAdminPlayPoolWeights(ctx context.Context, in *SaveAdmin
 func (c *playClient) DeleteAdminPlayPools(ctx context.Context, in *DeleteAdminPlayPoolsReq, opts ...grpc.CallOption) (*DeleteAdminPlayPoolsResp, error) {
 	out := new(DeleteAdminPlayPoolsResp)
 	err := c.cc.Invoke(ctx, Play_DeleteAdminPlayPools_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) QueryPlayPoolReferences(ctx context.Context, in *QueryPlayPoolReferencesReq, opts ...grpc.CallOption) (*QueryPlayPoolReferencesResp, error) {
+	out := new(QueryPlayPoolReferencesResp)
+	err := c.cc.Invoke(ctx, Play_QueryPlayPoolReferences_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -623,6 +634,7 @@ type PlayServer interface {
 	UpdateAdminPlayPool(context.Context, *UpdateAdminPlayPoolReq) (*AdminPlayPool, error)
 	SaveAdminPlayPoolWeights(context.Context, *SaveAdminPlayPoolWeightsReq) (*SaveAdminPlayPoolWeightsResp, error)
 	DeleteAdminPlayPools(context.Context, *DeleteAdminPlayPoolsReq) (*DeleteAdminPlayPoolsResp, error)
+	QueryPlayPoolReferences(context.Context, *QueryPlayPoolReferencesReq) (*QueryPlayPoolReferencesResp, error)
 	// ---- 挖宝 ----
 	ListDigBoxes(context.Context, *ListDigBoxesReq) (*ListDigBoxesResp, error)
 	GetDigBoxSession(context.Context, *GetDigBoxSessionReq) (*GetDigBoxSessionResp, error)
@@ -721,6 +733,9 @@ func (UnimplementedPlayServer) SaveAdminPlayPoolWeights(context.Context, *SaveAd
 }
 func (UnimplementedPlayServer) DeleteAdminPlayPools(context.Context, *DeleteAdminPlayPoolsReq) (*DeleteAdminPlayPoolsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteAdminPlayPools not implemented")
+}
+func (UnimplementedPlayServer) QueryPlayPoolReferences(context.Context, *QueryPlayPoolReferencesReq) (*QueryPlayPoolReferencesResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method QueryPlayPoolReferences not implemented")
 }
 func (UnimplementedPlayServer) ListDigBoxes(context.Context, *ListDigBoxesReq) (*ListDigBoxesResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListDigBoxes not implemented")
@@ -1121,6 +1136,24 @@ func _Play_DeleteAdminPlayPools_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PlayServer).DeleteAdminPlayPools(ctx, req.(*DeleteAdminPlayPoolsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_QueryPlayPoolReferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryPlayPoolReferencesReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).QueryPlayPoolReferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_QueryPlayPoolReferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).QueryPlayPoolReferences(ctx, req.(*QueryPlayPoolReferencesReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1807,6 +1840,10 @@ var Play_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteAdminPlayPools",
 			Handler:    _Play_DeleteAdminPlayPools_Handler,
+		},
+		{
+			MethodName: "QueryPlayPoolReferences",
+			Handler:    _Play_QueryPlayPoolReferences_Handler,
 		},
 		{
 			MethodName: "ListDigBoxes",

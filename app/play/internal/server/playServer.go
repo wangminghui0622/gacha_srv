@@ -107,6 +107,11 @@ func (s *PlayServer) DeleteAdminPlayPools(ctx context.Context, in *play.DeleteAd
 	return l.DeleteAdminPlayPools(in)
 }
 
+func (s *PlayServer) QueryPlayPoolReferences(ctx context.Context, in *play.QueryPlayPoolReferencesReq) (*play.QueryPlayPoolReferencesResp, error) {
+	l := logic.NewQueryPlayPoolReferencesLogic(ctx, s.svcCtx)
+	return l.QueryPlayPoolReferences(in)
+}
+
 // ---- 挖宝 ----
 func (s *PlayServer) ListDigBoxes(ctx context.Context, in *play.ListDigBoxesReq) (*play.ListDigBoxesResp, error) {
 	l := logic.NewListDigBoxesLogic(ctx, s.svcCtx)

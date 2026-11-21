@@ -418,6 +418,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: pool.GetPlayPoolVersionHandler(serverCtx),
 				},
 				{
+					// 引用查询：商品ID/池子ID 反查奖池（gacha.pool:read）
+					Method:  http.MethodGet,
+					Path:    "/gacha/play-pool-references",
+					Handler: pool.QueryPlayPoolReferencesHandler(serverCtx),
+				},
+				{
 					// 图鉴集合列表（gacha.pool:read）
 					Method:  http.MethodGet,
 					Path:    "/gacha/collection-sets",

@@ -205,6 +205,34 @@ message SaveAdminPlayPoolWeightsResp { bool saved = 1; }
 message DeleteAdminPlayPoolsReq { repeated int64 poolIds = 1; }
 message DeleteAdminPlayPoolsResp { int64 deleted = 1; }
 
+message PlayPoolReferenceItem {
+  int64  poolId = 1;
+  string poolName = 2;
+  string mode = 3;
+  int64  periods = 4;
+  int64  status = 5;       // 1 初始化 2 进行中 3 已下线
+  repeated string tags = 6;
+  string source = 7;       // 商品库 / 赏池
+  int64  refType = 8;      // 1 商品ID 2 池子ID
+  int64  refId = 9;
+  string prizeGrade = 10;
+  int64  quantity = 11;
+}
+
+message QueryPlayPoolReferencesReq {
+  int64 refType = 1;       // 1 商品ID 2 池子ID
+  int64 refId = 2;
+  int64 page = 3;
+  int64 pageSize = 4;
+}
+
+message QueryPlayPoolReferencesResp {
+  repeated PlayPoolReferenceItem items = 1;
+  int64 total = 2;
+  int64 page = 3;
+  int64 pageSize = 4;
+}
+
 service Play {
   // ---- 通用 SAGA 分支（payload 内是各玩法 typed 请求）----
   rpc PlayLock(PlayLockReq) returns (PlayLockResp);
@@ -227,6 +255,7 @@ service Play {
   rpc UpdateAdminPlayPool(UpdateAdminPlayPoolReq) returns (AdminPlayPool);
   rpc SaveAdminPlayPoolWeights(SaveAdminPlayPoolWeightsReq) returns (SaveAdminPlayPoolWeightsResp);
   rpc DeleteAdminPlayPools(DeleteAdminPlayPoolsReq) returns (DeleteAdminPlayPoolsResp);
+  rpc QueryPlayPoolReferences(QueryPlayPoolReferencesReq) returns (QueryPlayPoolReferencesResp);
 
   // ---- 挖宝 ----
   rpc ListDigBoxes(ListDigBoxesReq) returns (ListDigBoxesResp);

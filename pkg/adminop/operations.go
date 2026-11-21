@@ -70,6 +70,7 @@ func All() []Operation {
 		{ID: "console.collection.update", Resource: "gacha.pool", Action: "write", Method: "PUT", Path: "/gacha/collection-sets/:id", Title: "编辑图鉴集合"},
 		{ID: "console.collection.status", Resource: "gacha.pool", Action: "write", Method: "PUT", Path: "/gacha/collection-sets/:id/status", Title: "更新图鉴集合状态"},
 		{ID: "console.collection.data", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/collection-sets/:id/data", Title: "图鉴集合数据"},
+		{ID: "console.playpool.references", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/play-pool-references", Title: "奖池引用查询"},
 		// ── 对对碰管理（全局规则/牌堆模板/外观池）──
 		{ID: "console.match.rules.get", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/match/rules", Title: "读取对对碰全局规则"},
 		{ID: "console.match.rules.save", Resource: "gacha.pool", Action: "write", Method: "PUT", Path: "/gacha/match/rules", Title: "保存对对碰全局规则"},

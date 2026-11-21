@@ -67,6 +67,27 @@ export interface ListAdminPlayPoolsReply {
   pageSize?: number
 }
 
+export interface PlayPoolReferenceItem {
+  poolId?: string | number
+  poolName?: string
+  mode?: string
+  periods?: string | number
+  status?: string | number
+  tags?: string[]
+  source?: string
+  refType?: string | number
+  refId?: string | number
+  prizeGrade?: string
+  quantity?: string | number
+}
+
+export interface QueryPlayPoolReferencesResp {
+  items?: PlayPoolReferenceItem[]
+  total?: string | number
+  page?: string | number
+  pageSize?: string | number
+}
+
 export interface PlayPoolVersion {
   poolId?: string
   version?: string
@@ -114,6 +135,14 @@ export const playPoolClient = {
   },
   Get({ poolId, version }: { poolId: string; version: string }): Promise<PlayPoolVersion> {
     return http.get(`/console/v2/api/gacha/play-pools/${encodeURIComponent(poolId)}/versions/${encodeURIComponent(version)}`)
+  },
+  QueryReferences(params: {
+    refType: number
+    refId: number
+    page?: number
+    pageSize?: number
+  }): Promise<QueryPlayPoolReferencesResp> {
+    return http.get('/console/v2/api/gacha/play-pool-references', { params })
   },
   CreateDraft(payload: {
     idempotencyKey: string
