@@ -207,11 +207,13 @@ import { useI18n } from 'vue-i18n'
 
 import { allows } from '@/access/grants'
 import { useSessionStore } from '@/stores/session'
+import { useRouter } from 'vue-router'
 import { catalogIpClient, type IpItem } from '@/api/catalog'
 import { playPoolClient, type AdminPlayPool, type PlayPoolCreateInitial, type PlayPoolPrize, type PlayPoolVersion } from '@/api/playPool'
 import PlayPoolCreateForm from '@/views/gacha/PlayPoolCreateForm.vue'
 
 const session = useSessionStore()
+const router = useRouter()
 
 const { t } = useI18n()
 const canCreate = computed(() => allows(session.permissionNodes, 'gacha.pool', 'create'))
@@ -440,7 +442,7 @@ function onCreateSuccess() {
   void load()
 }
 
-type PoolFormKind = 'copy' | 'edit' | 'match'
+type PoolFormKind = 'copy' | 'edit'
 
 async function openPoolForm(record: AdminPlayPool, kind: PoolFormKind) {
   if (!record.poolId) return
@@ -611,8 +613,8 @@ async function queryReference() {
   }
 }
 
-function openMatch(record: AdminPlayPool) {
-  void openPoolForm(record, 'match')
+function openMatch(_record: AdminPlayPool) {
+  router.push('/gacha/match')
 }
 
 function modeText(mode?: string): string {
