@@ -2,7 +2,7 @@
   <div class="create-form">
     <div class="form-layout">
       <div class="form-left">
-      <a-form :label-col="{ span: 5 }" :wrapper-col="{ span: 18 }" label-align="right">
+      <a-form :label-col="{ span: 9 }" :wrapper-col="{ span: 15 }" label-align="right">
         <a-form-item label="主题名称" required>
           <a-input v-model:value="form.name" placeholder="主题名称" />
         </a-form-item>
@@ -45,7 +45,7 @@
         <a-form-item label="优惠券">
           <div class="coupon-config">
             <a-space>
-              <a-input-number v-model:value="couponId" :min="0" :precision="0" placeholder="优惠券id" style="width: 160px" />
+              <a-input-number v-model:value="couponId" :min="0" :precision="0" placeholder="优惠券id" style="width: 150px" />
               <a-button @click="addCoupon">添加</a-button>
             </a-space>
             <a-table :data-source="coupons" :pagination="false" row-key="id" size="small" :locale="{ emptyText: '暂无数据' }" class="coupon-table">
@@ -62,7 +62,7 @@
           </div>
         </a-form-item>
 
-        <a-form-item :wrapper-col="{ span: 18, offset: 5 }">
+        <a-form-item :wrapper-col="{ span: 15, offset: 9 }">
           <div class="cover-row">
             <div class="cover-item">
               <div class="cover-label">封面大图</div>
@@ -1411,7 +1411,7 @@ onMounted(loadOptions)
 .cover-row {
   display: flex;
   align-items: flex-start;
-  gap: 40px;
+  gap: 30px;
 }
 
 .cover-item {
