@@ -117,7 +117,12 @@ func mmFinalSettlement(db *gorm.DB, sess *gamemodelnc.MemoryMatchSessions, rules
 			break
 		}
 	}
-	reward := mmReward{TotalPairCount: total, RoundPairs: roundPairs}
+	reward := mmReward{
+		TotalPairCount: total,
+		RoundPairs:     roundPairs,
+		RevenueBase:    rules.RevenueBase,
+		LedgerType:     rules.LedgerType,
+	}
 	if matched != nil && matched.IsPrize == 1 && matched.PrizeKind > 0 {
 		// 有奖档：FOR UPDATE 扣库存（-1 不限；0 → 3045 售罄）
 		var entry gamemodel.MemoryMatchEntries
@@ -237,7 +242,13 @@ func (l *SettleMemoryMatchLogic) SettleMemoryMatch(in *play.SettleMemoryMatchReq
 		}
 
 		if rules.ChampionMinTotalPairs > 0 && rules.ChampionShareBps > 0 {
-			share := memorymatch.ChampionCreditMinor(sess.PurchasePriceMinor, rules.ChampionShareBps)
+			// 收益基准：1=实付金额（会话购买价快照），2=单抽标价（配置标价快照）。
+			// 当前两者在购买时相同；保留分支以便后续接入划线价/优惠实付差异。
+			shareBase := sess.PurchasePriceMinor
+			if rules.RevenueBase == 2 && rules.ListPriceMinor > 0 {
+				shareBase = rules.ListPriceMinor
+			}
+			share := memorymatch.ChampionCreditMinor(shareBase, rules.ChampionShareBps)
 			if share > 0 {
 				var ch gamemodelnc.MemoryMatchChampion
 				err := db.Clauses(clause.Locking{Strength: "UPDATE"}).

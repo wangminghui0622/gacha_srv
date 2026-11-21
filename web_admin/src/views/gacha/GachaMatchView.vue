@@ -12,7 +12,7 @@
               <a-select v-model:value="rulesForm.pairProbabilityMode" :options="probabilityOptions" />
             </a-form-item>
             <a-form-item :label="$t('gachaMatch.initialHandCount')">
-              <a-input-number v-model:value="rulesForm.initialHandCount" :min="1" :max="54" class="number-input" />
+              <a-input-number v-model:value="rulesForm.initialHandCount" :min="1" :max="9" class="number-input" />
             </a-form-item>
             <a-form-item :label="$t('gachaMatch.pairSize')">
               <a-input-number v-model:value="rulesForm.pairSize" :min="2" :max="6" class="number-input" />

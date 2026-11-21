@@ -137,7 +137,13 @@ async function refreshProfile() {
   }
 }
 
+// 中断续玩开关（全局规则 resumeEnabled）；关闭时不落本地断点，也不恢复旧会话。
+function resumeAllowed(): boolean {
+  return config.value?.config.resumeEnabled !== false
+}
+
 function saveSessionId(sessionId: number) {
+  if (!resumeAllowed()) return
   try {
     uni.setStorageSync(STORAGE_KEY, String(sessionId))
   } catch {
@@ -442,6 +448,10 @@ function onSettlementMask() {
 onLoad(async () => {
   await loadConfig()
   await refreshProfile()
+  if (!resumeAllowed()) {
+    clearSessionId()
+    return
+  }
   // 断点续玩：上次会话未完成则直接回到牌局
   try {
     const saved = uni.getStorageSync(STORAGE_KEY)

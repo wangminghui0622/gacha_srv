@@ -529,8 +529,8 @@ func validateGroupBuyPool(in *play.CreatePlayPoolDraftReq) error {
 }
 
 func validateMemoryMatchExtRules(cfg memoryMatchPoolConfig) error {
-	if cfg.InitialHandSize != nil && (*cfg.InitialHandSize < 1 || *cfg.InitialHandSize > 54) {
-		return fmt.Errorf("initialHandSize 必须在 1..54")
+	if cfg.InitialHandSize != nil && (*cfg.InitialHandSize < 1 || *cfg.InitialHandSize > 9) {
+		return fmt.Errorf("initialHandSize 必须在 1..9（牌桌最多 9 格）")
 	}
 	if cfg.PairSize != nil && (*cfg.PairSize < 2 || *cfg.PairSize > 6) {
 		return fmt.Errorf("pairSize 必须在 2..6")

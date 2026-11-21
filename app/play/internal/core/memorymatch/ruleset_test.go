@@ -26,6 +26,27 @@ func TestOpeningWithRulesUsesHandAndPairSize(t *testing.T) {
 	}
 }
 
+func TestGrantInitialDestiny(t *testing.T) {
+	st := &RoundState{
+		InitialHand: []int32{1, 2, 7, 8, 13, 14, 19, 20, 25},
+		Rules: &RuleSet{
+			InitialHandSize:      9,
+			PairSize:             2,
+			ReplenishCount:       1,
+			DestinyIncome:        2,
+			DoubleDestinyBuff:    1,
+			DestinyReplenishCost: 1,
+			DestinyDoubleEnabled: true,
+		},
+	}
+	// 初始手牌：图案 1 两张、图案 2 两张。
+	// 第一命运 1：每张 +2 → 4；第二命运 2：每张 +1、天命双倍再 +1 → 4。合计 8。
+	st.GrantInitialDestiny(1, 2, true)
+	if st.AvailableDestiny != 8 {
+		t.Fatalf("initial destiny=%d want 8", st.AvailableDestiny)
+	}
+}
+
 func TestApplyMatchWithThreeCards(t *testing.T) {
 	st := &RoundState{
 		Deck:             NewDeck(),

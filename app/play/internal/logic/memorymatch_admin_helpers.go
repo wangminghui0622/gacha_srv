@@ -105,8 +105,8 @@ func mmValidateGlobalRules(in *play.MemoryMatchGlobalRules) error {
 	switch {
 	case in.PairProbabilityMode != 0 && in.PairProbabilityMode != 1:
 		return errorx.NewCodeError(errorx.CodeParamError, "碰数概率模式只能是 0 或 1")
-	case in.InitialHandCount < 1 || in.InitialHandCount > 54:
-		return errorx.NewCodeError(errorx.CodeParamError, "初始手牌数必须在 1-54 之间")
+	case in.InitialHandCount < 1 || in.InitialHandCount > 9:
+		return errorx.NewCodeError(errorx.CodeParamError, "初始手牌数必须在 1-9 之间（牌桌最多 9 格）")
 	case in.PairSize < 2 || in.PairSize > 6:
 		return errorx.NewCodeError(errorx.CodeParamError, "几张成碰必须在 2-6 之间")
 	case in.ReplenishCount < 0 || in.ReplenishCount > 54:

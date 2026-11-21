@@ -250,6 +250,10 @@ func mmConfigToRules(db *gorm.DB, cfg *gamemodel.MemoryMatchConfigs) (*mmRules, 
 		return nil, errorx.NewCodeError(errorx.CodeDBError, "读取扩展规则失败")
 	}
 	followGlobal := extErr == nil && ext.FollowGlobal == 1
+	global, globalErr := store.GetGlobalRules(context.Background())
+	if globalErr != nil && !errors.Is(globalErr, gorm.ErrRecordNotFound) {
+		return nil, errorx.NewCodeError(errorx.CodeDBError, "读取全局规则失败")
+	}
 
 	// 默认按历史值；有扩展行时用扩展值。
 	initialHand := int64(9)
@@ -279,28 +283,36 @@ func mmConfigToRules(db *gorm.DB, cfg *gamemodel.MemoryMatchConfigs) (*mmRules, 
 
 	// 跟随全局时以全局规则为准（保存全局时也会同步列，但这里再解析一次，
 	// 保证旧赏池和尚未同步的草稿也能立即生效）。
-	if followGlobal {
-		if global, err := store.GetGlobalRules(context.Background()); err == nil {
-			secondEnabled = global.SecondDestinyEnabled == 1
-			pairProbabilityMode = global.PairProbabilityMode
-			initialHand = global.InitialHandCount
-			pairSize = global.PairSize
-			replenish = global.ReplenishCount
-			destinyDouble = global.DestinyDoubleEnabled
-			destinyIncome = global.DestinyIncome
-			doubleBuff = global.DoubleDestinyBuff
-			destinyCost = global.DestinyReplenishCost
-			resume = global.ResumeEnabled
-			hostMode = global.HostModeEnabled
-			if global.HostModeEnabled == 1 {
-				championMin = global.HostMinPairs
-				championBps = global.HostShareBps
-			} else {
-				championMin, championBps = 0, 0
-			}
+	if followGlobal && global != nil {
+		secondEnabled = global.SecondDestinyEnabled == 1
+		pairProbabilityMode = global.PairProbabilityMode
+		initialHand = global.InitialHandCount
+		pairSize = global.PairSize
+		replenish = global.ReplenishCount
+		destinyDouble = global.DestinyDoubleEnabled
+		destinyIncome = global.DestinyIncome
+		doubleBuff = global.DoubleDestinyBuff
+		destinyCost = global.DestinyReplenishCost
+		resume = global.ResumeEnabled
+		hostMode = global.HostModeEnabled
+		if global.HostModeEnabled == 1 {
+			championMin = global.HostMinPairs
+			championBps = global.HostShareBps
+		} else {
+			championMin, championBps = 0, 0
 		}
 	} else if hostMode != 1 {
 		championMin, championBps = 0, 0
+	}
+
+	// 收益基准/流水类型是全局财务口径，独立于赏池是否跟随全局。
+	revenueBase := int64(1)
+	ledgerType := int64(0)
+	if global != nil {
+		if global.RevenueBase == 2 {
+			revenueBase = 2
+		}
+		ledgerType = global.LedgerType
 	}
 
 	rules := &mmRules{
@@ -327,6 +339,9 @@ func mmConfigToRules(db *gorm.DB, cfg *gamemodel.MemoryMatchConfigs) (*mmRules, 
 		DestinyReplenishCost:  destinyCost,
 		ResumeEnabled:         resume == 1,
 		HostModeEnabled:       hostMode == 1,
+		RevenueBase:           revenueBase,
+		LedgerType:            ledgerType,
+		ListPriceMinor:        cfg.PurchasePriceMinor,
 	}
 	if err := memorymatch.ValidateConfigRules(int(rules.RoundsPerPurchase), int(rules.MaxPairCount),
 		rules.SecondDestinyEnabled, int32(rules.DeckStrategy), rules.PatternWeights,
@@ -501,6 +516,11 @@ func (l *SelectMemoryMatchDestinyLogic) SelectMemoryMatchDestiny(in *play.Select
 			return err
 		}
 		sess.DestinyPatternId = int64(in.PatternId)
+		// 第二命运启用时先等玩家选完第二命运，再一次性创建回合，
+		// 这样开局吉祥数可以同时统计第一/第二命运图案。
+		if rules.SecondDestinyEnabled {
+			return nil
+		}
 		return mmCreateRounds(tx, &sess, rules)
 	})
 	if err != nil {
@@ -545,13 +565,22 @@ func (l *SelectMemoryMatchSecondDestinyLogic) SelectMemoryMatchSecondDestiny(in 
 		if sess.Status != mmSessionAwaitingSecond {
 			return errorx.NewCodeError(errorx.CodeMemoryMatchConflict, "会话状态不满足选第二命运")
 		}
-		return tx.Model(&gamemodelnc.MemoryMatchSessions{}).Where("id = ?", sess.Id).
+		rules, err := mmSessionRules(&sess)
+		if err != nil {
+			return err
+		}
+		if err := tx.Model(&gamemodelnc.MemoryMatchSessions{}).Where("id = ?", sess.Id).
 			Updates(map[string]interface{}{
 				"second_destiny_pattern_id": in.PatternId,
 				"status":                    mmSessionPlaying,
 				"version":                   gorm.Expr("version + 1"),
 				"updated_at":                time.Now(),
-			}).Error
+			}).Error; err != nil {
+			return err
+		}
+		sess.SecondDestinyPatternId = int64(in.PatternId)
+		sess.Status = mmSessionPlaying
+		return mmCreateRounds(tx, &sess, rules)
 	})
 	if err != nil {
 		return nil, mmCodeOrDBError(err)

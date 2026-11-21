@@ -516,6 +516,18 @@ func (s *RoundState) addDestinyForPattern(pattern, destinyPattern, secondDestiny
 	}
 }
 
+// GrantInitialDestiny 统计开局手牌中与命运图案一致的牌，补入开局吉祥数。
+// 语义与旧引擎 newMemoryMatchProgress 一致：初始手牌中出现命运图案即计入收益；
+// 第二命运按 +1（天命双倍开启时再叠加 double_destiny_buff）。
+func (s *RoundState) GrantInitialDestiny(destinyPattern, secondDestinyPattern int32, secondDestinyEnabled bool) {
+	if s == nil {
+		return
+	}
+	for _, card := range s.InitialHand {
+		s.addDestinyForPattern(PatternOfCard(card), destinyPattern, secondDestinyPattern, secondDestinyEnabled)
+	}
+}
+
 // ApplyMatch 配成一组：N 张同图案且都在手牌 → 移除、pair_count++；
 // 配对图案==命运 → 增加出天命收益；第二命运图案 → +1，天命双倍开启时再叠加 buff；
 // 碰后按 replenish_count 补牌，补入命运图案 → 增加出天命收益。

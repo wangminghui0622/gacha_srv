@@ -142,6 +142,10 @@ type mmRules struct {
 	DestinyReplenishCost int64   `json:"destiny_replenish_cost,omitempty"`
 	ResumeEnabled        bool    `json:"resume_enabled,omitempty"`
 	HostModeEnabled      bool    `json:"host_mode_enabled,omitempty"`
+	// 财务口径：收益基准 1=实付金额 2=单抽标价；流水类型随结算快照落库。
+	RevenueBase    int64 `json:"revenue_base,omitempty"`
+	LedgerType     int64 `json:"ledger_type,omitempty"`
+	ListPriceMinor int64 `json:"list_price_minor,omitempty"`
 }
 
 // mmRuleSet 把规则快照转换为引擎扩展规则；旧会话返回 nil，保持历史默认行为。
@@ -179,6 +183,9 @@ type mmReward struct {
 	EntryID        int64         `json:"entry_id"`
 	Remaining      int64         `json:"remaining"`
 	RoundPairs     map[int64]int `json:"round_pairs"`
+	// 结算时的财务口径快照（当前用于审计/后续流水接入）。
+	RevenueBase int64 `json:"revenue_base,omitempty"`
+	LedgerType  int64 `json:"ledger_type,omitempty"`
 }
 
 // mmParseRules 解析规则快照；非法 → 3020

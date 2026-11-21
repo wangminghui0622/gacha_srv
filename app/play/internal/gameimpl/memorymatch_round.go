@@ -486,6 +486,13 @@ func mmCreateRounds(db *gorm.DB, sess *gamemodelnc.MemoryMatchSessions, rules *m
 	if sess.EngineSeed == nil || *sess.EngineSeed == "" {
 		return errorx.NewCodeError(errorx.CodeMemoryMatchConflict, "引擎种子异常")
 	}
+	var existing int64
+	if err := db.Model(&gamemodelnc.MemoryMatchRounds{}).Where("session_id = ?", sess.Id).Count(&existing).Error; err != nil {
+		return err
+	}
+	if existing > 0 {
+		return nil
+	}
 	engineSeed, err := mmEngineSeedBytes(*sess.EngineSeed)
 	if err != nil {
 		return errorx.NewCodeError(errorx.CodeMemoryMatchConflict, "引擎种子异常")
@@ -507,6 +514,8 @@ func mmCreateRounds(db *gorm.DB, sess *gamemodelnc.MemoryMatchSessions, rules *m
 		}
 		st := memorymatch.OpeningWithRules(roundSeed, strategy, rules.PatternWeights,
 			exactMin, exactMax, attemptLimit, mmRuleSet(rules))
+		// 初始手牌中出现命运图案的牌计入开局吉祥数（旧引擎同款语义）。
+		st.GrantInitialDestiny(int32(sess.DestinyPatternId), int32(sess.SecondDestinyPatternId), rules.SecondDestinyEnabled)
 		row := &gamemodelnc.MemoryMatchRounds{
 			SessionId: sess.Id,
 			RoundNo:   roundNo,
