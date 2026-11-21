@@ -135,7 +135,7 @@
     </div>
 
       <div class="create-actions">
-        <a-button class="btn-create" type="primary" :loading="saving" @click="submit">创建</a-button>
+        <a-button class="btn-create" type="primary" :loading="saving" @click="submit">{{ initialPoolId ? '更新' : '创建' }}</a-button>
         <a-button @click="emit('cancel')">取消</a-button>
       </div>
 
@@ -1153,7 +1153,7 @@ async function submit() {
       weight: form.sortWeight,
       adminJson,
     })
-    message.success('赏池已创建')
+    message.success(initialPoolId.value ? '赏池已更新' : '赏池已创建')
     emit('success')
   } catch {
     message.error('创建失败，请检查赏品配置')
