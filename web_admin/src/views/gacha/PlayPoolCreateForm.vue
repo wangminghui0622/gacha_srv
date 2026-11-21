@@ -100,6 +100,10 @@
       <div class="form-right">
         <div class="prize-section">
           <div class="prize-label">赏品配置：</div>
+          <div v-if="form.mode === 'memorymatch'" class="prize-hint">
+            <span>目标碰数必须唯一，范围 0-总碰数上限；新加赏品会自动分配目标碰数，可在表格中修改。</span>
+            <a-button type="link" size="small" @click="autoAssignTargets">自动分配</a-button>
+          </div>
           <div class="prize-config">
             <div ref="prizeTableWrap" class="prize-table-wrap">
               <GroupBuyPrizeTable
@@ -458,6 +462,32 @@ const prizeDraft = reactive({
   childPoolId: 0,
   isPrize: true,
 })
+
+// 对对碰奖档的目标碰数必须唯一；新加的赏品自动取当前未占用的最小值，避免全为 0。
+function nextMemoryTargetValue(): number {
+  const used = new Set(prizes.value.map((prize) => Number(prize.targetValue ?? 0)))
+  let value = 0
+  while (used.has(value)) value += 1
+  return value
+}
+
+function newPrizeTargetValue(): number {
+  return form.mode === 'memorymatch' ? nextMemoryTargetValue() : 0
+}
+
+function autoAssignTargets() {
+  const used = new Set<number>()
+  for (const prize of prizes.value) {
+    let target = Number(prize.targetValue ?? 0)
+    if (!Number.isInteger(target) || target < 0 || used.has(target)) {
+      target = 0
+      while (used.has(target)) target += 1
+      prize.targetValue = target
+    }
+    used.add(target)
+  }
+  message.success('已自动分配目标碰数')
+}
 const skuModalOpen = ref(false)
 const childParent = ref<PlayPoolPrize | null>(null)
 const locatedSkuId = ref('')
@@ -1085,6 +1115,7 @@ function confirmSkuSelection() {
       remaining: quantity,
       isPrize: prizeDraft.isPrize,
       costFen: Number(item.costAmountMinor ?? 0),
+      targetValue: newPrizeTargetValue(),
     })
   }
 
@@ -1178,6 +1209,30 @@ async function submit() {
       message.warning('每回合最大碰数需为 1-27')
       return
     }
+    const maxTarget = Math.round(mmConfig.roundsPerPurchase) * Math.round(mmConfig.maxPairCount)
+    const usedTargets = new Map<number, number>()
+    for (let i = 0; i < prizes.value.length; i += 1) {
+      const prize = prizes.value[i]
+      if (!prize) continue
+      const target = Number(prize.targetValue ?? 0)
+      if (!Number.isInteger(target) || target < 0) {
+        message.warning(`第 ${i + 1} 个奖档的目标碰数必须是 0-${maxTarget} 的整数`)
+        return
+      }
+      if (target > maxTarget) {
+        message.warning(`第 ${i + 1} 个奖档的目标碰数 ${target} 超过总碰数上限 ${maxTarget}`)
+        return
+      }
+      if (usedTargets.has(target)) {
+        message.error(`目标碰数重复：${target}（第 ${usedTargets.get(target)! + 1} 个和第 ${i + 1} 个奖档），请改成不同的值`)
+        return
+      }
+      usedTargets.set(target, i)
+      if (Number(prize.weight ?? 0) <= 0) {
+        message.warning(`第 ${i + 1} 个奖档的权重必须大于 0`)
+        return
+      }
+    }
   }
   const rawConfig =
     initialConfigJson.value && form.mode === initialMode.value
@@ -1269,6 +1324,18 @@ onMounted(loadOptions)
   color: #606266;
   font-size: 14px;
   font-weight: 500;
+  text-align: left;
+}
+
+.prize-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: -4px 0 8px;
+  color: #8a94a6;
+  font-size: 12px;
+  line-height: 1.5;
   text-align: left;
 }
 
