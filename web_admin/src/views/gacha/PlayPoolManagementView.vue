@@ -189,8 +189,10 @@
       v-model:open="referenceOpen"
       :title="$t('poolAdmin.referenceTitle')"
       :footer="null"
-      width="96vw"
-      :body-style="{ maxHeight: 'calc(100vh - 180px)', overflowY: 'auto' }"
+      centered
+      :width="createModalWidth"
+      :wrap-style="createModalWrapStyle"
+      :body-style="{ maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }"
     >
       <div class="reference-toolbar">
         <a-input
@@ -485,7 +487,7 @@ function syncCreateModalLayout() {
 }
 
 function onWindowResize() {
-  if (createModalOpen.value) syncCreateModalLayout()
+  if (createModalOpen.value || referenceOpen.value) syncCreateModalLayout()
 }
 
 function openCreate() {
@@ -654,7 +656,12 @@ function openReference() {
   referenceId.value = ''
   referenceResults.value = []
   referenceLoading.value = false
+  syncCreateModalLayout()
   referenceOpen.value = true
+  void nextTick(() => {
+    syncCreateModalLayout()
+    requestAnimationFrame(syncCreateModalLayout)
+  })
 }
 
 function referenceRowKey(record: PlayPoolReferenceItem): string {
