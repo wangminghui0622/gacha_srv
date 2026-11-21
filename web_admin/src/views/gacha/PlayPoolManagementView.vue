@@ -193,12 +193,6 @@
       :body-style="{ maxHeight: 'calc(100vh - 180px)', overflowY: 'auto' }"
     >
       <div class="reference-toolbar">
-        <span class="reference-label">查询类型:</span>
-        <a-radio-group v-model:value="referenceType" button-style="solid">
-          <a-radio-button :value="1">商品ID</a-radio-button>
-          <a-radio-button :value="2">池子ID</a-radio-button>
-        </a-radio-group>
-        <span class="reference-label">ID:</span>
         <a-input
           v-model:value="referenceId"
           class="reference-input"
@@ -352,7 +346,6 @@ const editForm = reactive({
 
 const referenceOpen = ref(false)
 const referenceLoading = ref(false)
-const referenceType = ref(1)
 const referenceId = ref('')
 const referenceResults = ref<PlayPoolReferenceItem[]>([])
 
@@ -655,7 +648,6 @@ function deleteSelected() {
 }
 
 function openReference() {
-  referenceType.value = 1
   referenceId.value = ''
   referenceResults.value = []
   referenceOpen.value = true
@@ -691,13 +683,14 @@ async function queryReference() {
   }
   referenceLoading.value = true
   try {
-    const reply = await playPoolClient.QueryReferences({
-      refType: referenceType.value,
-      refId: id,
-      page: 1,
-      pageSize: 50,
-    })
-    referenceResults.value = reply.items ?? []
+    const [productReply, poolReply] = await Promise.allSettled([
+      playPoolClient.QueryReferences({ refType: 1, refId: id, page: 1, pageSize: 50 }),
+      playPoolClient.QueryReferences({ refType: 2, refId: id, page: 1, pageSize: 50 }),
+    ])
+    const items: PlayPoolReferenceItem[] = []
+    if (productReply.status === 'fulfilled') items.push(...(productReply.value.items ?? []))
+    if (poolReply.status === 'fulfilled') items.push(...(poolReply.value.items ?? []))
+    referenceResults.value = items
   } catch {
     referenceResults.value = []
   } finally {
@@ -846,12 +839,7 @@ onBeforeUnmount(() => {
   margin-bottom: 16px;
 }
 
-.reference-label {
-  color: #606266;
-  font-size: 14px;
-}
-
 .reference-input {
-  width: 280px;
+  width: 360px;
 }
 </style>

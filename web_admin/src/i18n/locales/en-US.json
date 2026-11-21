@@ -253,7 +253,7 @@
     "cancel": "Cancel",
     "referenceTitle": "Reference lookup",
     "referencePlaceholder": "Enter pool ID",
-    "referenceEmpty": "No matching pools"
+    "referenceEmpty": "No data"
   },
   "gachaMatch": {
     "subtitle": "Global gameplay rules, decks and appearance pool; pools follow global rules by default and can override them",
