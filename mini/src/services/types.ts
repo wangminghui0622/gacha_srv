@@ -644,6 +644,15 @@ export interface MemoryMatchConfigDetail {
   championShareBps: number
   status: number
   entries: MemoryMatchEntryItem[]
+  initialHandSize: number
+  pairSize: number
+  replenishCount: number
+  destinyDoubleEnabled: boolean
+  destinyIncome: number
+  doubleDestinyBuff: number
+  destinyReplenishCost: number
+  resumeEnabled: boolean
+  hostModeEnabled: boolean
 }
 
 export interface MemoryMatchConfigResponse {
@@ -710,6 +719,7 @@ export interface MemoryMatchRoundResponse {
   resultHash: string
   destinyPatternId: number
   secondDestinyPatternId: number
+  pairSize: number
 }
 
 // 命运选择响应

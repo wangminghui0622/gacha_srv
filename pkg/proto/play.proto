@@ -934,6 +934,16 @@ message MemoryMatchConfigItem {
     int64  championShareBps = 18;
     int64  status = 19;                 // 1 上架
     repeated MemoryMatchEntryItem entries = 20;
+    // 对对碰全局玩法规则快照
+    int64  initialHandSize = 21;
+    int64  pairSize = 22;
+    int64  replenishCount = 23;
+    bool   destinyDoubleEnabled = 24;
+    int64  destinyIncome = 25;
+    int64  doubleDestinyBuff = 26;
+    int64  destinyReplenishCost = 27;
+    bool   resumeEnabled = 28;
+    bool   hostModeEnabled = 29;
 }
 
 message GetMemoryMatchConfigReq {
@@ -952,7 +962,7 @@ message GetMemoryMatchConfigResp {
 message MemoryMatchGlobalRules {
     int64  id = 1;
     string name = 2;
-    int64  pairProbabilityMode = 3;  // 0=自然发牌（兼容旧模式）
+    int64  pairProbabilityMode = 3;  // 0=自然发牌（兼容旧模式） 1=按配箱数量精确分配
     int64  initialHandCount = 4;
     int64  pairSize = 5;
     int64  replenishCount = 6;
@@ -1160,14 +1170,16 @@ message GetMemoryMatchRoundResp {
     string resultHash = 12;         // hex；RESOLVED/SKIPPED 后
     int32  destinyPatternId = 13;
     int32  secondDestinyPatternId = 14;
+    int32  pairSize = 15;           // 当前玩法几张成碰
 }
 
 message ApplyMemoryMatchPairReq {
     int64 sessionId = 1;
     int64 userId = 2;
     int64 roundNo = 3;
-    int32 firstCard = 4;  // 1..54
-    int32 secondCard = 5; // 1..54，≠ firstCard，同图案
+    int32 firstCard = 4;  // 兼容旧客户端：1..54
+    int32 secondCard = 5; // 兼容旧客户端：1..54，≠ firstCard，同图案
+    repeated int32 cards = 6; // 新客户端：pair_size 张同图案卡
 }
 
 message ApplyMemoryMatchPairResp {

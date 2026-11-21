@@ -38,7 +38,7 @@ const session = ref<MemoryMatchSessionResponse | null>(null)
 const round = ref<MemoryMatchRoundResponse | null>(null)
 const buying = ref(false)
 const acting = ref(false)
-// 手牌选中（最多两张）
+// 手牌选中（最多 pairSize 张）
 const selectedCards = ref<number[]>([])
 const settlement = ref<MemoryMatchSettlementView | null>(null)
 const settlementOpen = ref(false)
@@ -54,6 +54,9 @@ const inPlay = computed(
       session.value.state === STATE_AWAITING_SECOND ||
       session.value.state === STATE_PLAYING),
 )
+
+// 当前玩法几张成碰（配置优先，回合快照兜底）
+const pairSize = computed(() => Math.max(2, Number(config.value?.config.pairSize || round.value?.pairSize || 2)))
 
 // 当前生效的正面预设（会话携带 or 默认）
 const activeFacePreset = computed<MemoryMatchFacePreset | null>(() => {
@@ -260,22 +263,21 @@ function onCardClick(card: number) {
     selectedCards.value = selectedCards.value.filter((c) => c !== card)
     return
   }
-  if (selectedCards.value.length >= 2) return
+  if (selectedCards.value.length >= pairSize.value) return
   selectedCards.value = [...selectedCards.value, card]
-  if (selectedCards.value.length === 2) {
-    void applyPair(selectedCards.value[0]!, selectedCards.value[1]!)
+  if (selectedCards.value.length === pairSize.value) {
+    void applyPair([...selectedCards.value])
   }
 }
 
-async function applyPair(first: number, second: number) {
+async function applyPair(cards: number[]) {
   if (!session.value || !round.value) return
   acting.value = true
   try {
     const res = await memoryMatchApi.applyMemoryMatchPair(
       session.value.sessionId,
       round.value.roundNo,
-      first,
-      second,
+      cards,
     )
     round.value = res.round
   } catch (err) {

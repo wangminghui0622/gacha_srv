@@ -103,10 +103,12 @@ func mmValidateGlobalRules(in *play.MemoryMatchGlobalRules) error {
 		return errorx.NewCodeError(errorx.CodeParamError, "规则不能为空")
 	}
 	switch {
+	case in.PairProbabilityMode != 0 && in.PairProbabilityMode != 1:
+		return errorx.NewCodeError(errorx.CodeParamError, "碰数概率模式只能是 0 或 1")
 	case in.InitialHandCount < 1 || in.InitialHandCount > 54:
 		return errorx.NewCodeError(errorx.CodeParamError, "初始手牌数必须在 1-54 之间")
-	case in.PairSize < 2 || in.PairSize > 54:
-		return errorx.NewCodeError(errorx.CodeParamError, "几张成碰必须在 2-54 之间")
+	case in.PairSize < 2 || in.PairSize > 6:
+		return errorx.NewCodeError(errorx.CodeParamError, "几张成碰必须在 2-6 之间")
 	case in.ReplenishCount < 0 || in.ReplenishCount > 54:
 		return errorx.NewCodeError(errorx.CodeParamError, "碰后补牌数必须在 0-54 之间")
 	case in.HostShareBps < 0 || in.HostShareBps > 10000:

@@ -172,42 +172,118 @@ func ShuffleDeck(rng *CounterRNG) []int32 {
 
 // ── 回合状态（state_json 持久化结构；当前手牌由 initial_hand+actions 重放派生，可审计）──
 
+// RuleSet 是对对碰全局玩法的可配置参数。
+// 旧回合状态没有 Rules 字段时按历史默认值（9 张手牌 / 2 张成碰 / 补 1 张 / 天命收益 1 / 消耗 1）运行。
+type RuleSet struct {
+	InitialHandSize      int  `json:"initial_hand_size,omitempty"`
+	PairSize             int  `json:"pair_size,omitempty"`
+	ReplenishCount       int  `json:"replenish_count,omitempty"`
+	DestinyDoubleEnabled bool `json:"destiny_double_enabled,omitempty"`
+	DestinyIncome        int  `json:"destiny_income,omitempty"`
+	DoubleDestinyBuff    int  `json:"double_destiny_buff,omitempty"`
+	DestinyReplenishCost int  `json:"destiny_replenish_cost,omitempty"`
+}
+
 type RoundState struct {
 	Deck             []int32  `json:"deck"`              // 洗牌后整副牌（54 张）
-	InitialHand      []int32  `json:"initial_hand"`      // 洗牌后前 9 张
+	InitialHand      []int32  `json:"initial_hand"`      // 洗牌后前 N 张
 	SeedCommitment   string   `json:"seed_commitment"`   // hex
-	DrawPosition     int      `json:"draw_position"`     // 已抽位置（9..54）
+	DrawPosition     int      `json:"draw_position"`     // 已抽位置（N..54）
 	AvailableDestiny int      `json:"available_destiny"` // 命运资源（≤81）
 	DestinyDraws     int      `json:"destiny_draws"`     // 命运抽牌次数
 	PairCount        int      `json:"pair_count"`
-	Actions          []string `json:"actions"` // pair:a:b / replenish:c / destinyDraw:c
+	Actions          []string `json:"actions"` // pair:a:b[:c...] / replenish:c / destinyDraw:c
+	Rules            *RuleSet `json:"rules,omitempty"`
 }
 
-// Opening 创建回合开局（发牌）：DYNAMIC 按 roundSeed 洗牌；EXACT 试发匹配 [min,max]
+func (s *RoundState) handLimit() int {
+	if s != nil && s.Rules != nil && s.Rules.InitialHandSize > 0 {
+		return s.Rules.InitialHandSize
+	}
+	return InitialHandSize
+}
+
+func (s *RoundState) pairSize() int {
+	if s != nil && s.Rules != nil && s.Rules.PairSize >= 2 {
+		if s.Rules.PairSize > CardsPerPattern {
+			return CardsPerPattern
+		}
+		return s.Rules.PairSize
+	}
+	return 2
+}
+
+func (s *RoundState) replenishCount() int {
+	if s != nil && s.Rules != nil && s.Rules.ReplenishCount >= 0 {
+		return s.Rules.ReplenishCount
+	}
+	return 1
+}
+
+func (s *RoundState) destinyIncome() int {
+	if s != nil && s.Rules != nil && s.Rules.DestinyIncome >= 0 {
+		return s.Rules.DestinyIncome
+	}
+	return 1
+}
+
+func (s *RoundState) doubleDestinyBuff() int {
+	if s != nil && s.Rules != nil && s.Rules.DoubleDestinyBuff >= 0 {
+		return s.Rules.DoubleDestinyBuff
+	}
+	return 1
+}
+
+func (s *RoundState) destinyDrawCost() int {
+	if s != nil && s.Rules != nil && s.Rules.DestinyReplenishCost >= 0 {
+		return s.Rules.DestinyReplenishCost
+	}
+	return 1
+}
+
+func (s *RoundState) destinyDoubleEnabled() bool {
+	return s != nil && s.Rules != nil && s.Rules.DestinyDoubleEnabled
+}
+
+// Opening 创建回合开局（历史默认规则）：DYNAMIC 按 roundSeed 洗牌；EXACT 试发匹配 [min,max]
 func Opening(roundSeed []byte, strategy int32, patternWeights []int64, exactMin, exactMax, exactAttemptLimit int) *RoundState {
+	return OpeningWithRules(roundSeed, strategy, patternWeights, exactMin, exactMax, exactAttemptLimit, nil)
+}
+
+// OpeningWithRules 按全局规则创建回合开局。
+func OpeningWithRules(roundSeed []byte, strategy int32, patternWeights []int64, exactMin, exactMax, exactAttemptLimit int, rules *RuleSet) *RoundState {
 	var deck []int32
 	if strategy == 2 { // EXACT
-		deck = exactDeck(roundSeed, exactMin, exactMax, exactAttemptLimit)
+		deck = exactDeck(roundSeed, exactMin, exactMax, exactAttemptLimit, rules)
 	} else {
 		// UNSPECIFIED 视为 DYNAMIC（配置校验已保证合法）
 		deck = ShuffleDeck(NewCounterRNG(roundSeed))
 	}
+	handSize := InitialHandSize
+	if rules != nil && rules.InitialHandSize > 0 {
+		handSize = rules.InitialHandSize
+	}
 	st := &RoundState{
 		Deck:           deck,
-		InitialHand:    append([]int32(nil), deck[:InitialHandSize]...),
+		InitialHand:    append([]int32(nil), deck[:handSize]...),
 		SeedCommitment: SeedCommitment(roundSeed),
-		DrawPosition:   InitialHandSize,
+		DrawPosition:   handSize,
+		Rules:          rules,
 	}
 	return st
 }
 
 // exactDeck EXACT 发牌：逐次尝试（无命运模拟 AutoResolve），取配对数距 [min,max] 最近的牌组，距离 0 即用
-func exactDeck(roundSeed []byte, minPairs, maxPairs, attemptLimit int) []int32 {
+func exactDeck(roundSeed []byte, minPairs, maxPairs, attemptLimit int, rules *RuleSet) []int32 {
 	if attemptLimit <= 0 {
 		attemptLimit = DefaultExactAttempts
 	}
 	if attemptLimit > MaxExactAttempts {
 		attemptLimit = MaxExactAttempts
+	}
+	handSize := InitialHandSize
+	if rules != nil && rules.InitialHandSize > 0 {
+		handSize = rules.InitialHandSize
 	}
 	best := NewDeck()
 	bestDist := int(^uint(0) >> 1)
@@ -215,9 +291,10 @@ func exactDeck(roundSeed []byte, minPairs, maxPairs, attemptLimit int) []int32 {
 		deck := ShuffleDeck(NewCounterRNG(DeckAttemptSeed(roundSeed, i)))
 		sim := &RoundState{
 			Deck:           deck,
-			InitialHand:    append([]int32(nil), deck[:InitialHandSize]...),
+			InitialHand:    append([]int32(nil), deck[:handSize]...),
 			SeedCommitment: SeedCommitment(DeckAttemptSeed(roundSeed, i)),
-			DrawPosition:   InitialHandSize,
+			DrawPosition:   handSize,
+			Rules:          rules,
 		}
 		_ = sim.AutoResolve(MaxPairCountLimit, 0, 0, false) // 无命运模拟：纯配对链
 		d := distToRange(sim.PairCount, minPairs, maxPairs)
@@ -244,21 +321,31 @@ func distToRange(v, lo, hi int) int {
 // Hand 由 initial_hand+actions 重放派生当前手牌（返回副本；状态非法返回 error）
 func (s *RoundState) Hand() ([]int32, error) {
 	hand := append([]int32(nil), s.InitialHand...)
-	pos := InitialHandSize
+	// 起始抽牌位置由当前 draw_position 减去已发生的抽牌动作推导。
+	// 这样旧状态/手工构造状态即使 initial_hand 长度与 draw_position 不完全一致也能回放。
+	pos := s.DrawPosition
+	for _, a := range s.Actions {
+		if strings.HasPrefix(a, "replenish:") || strings.HasPrefix(a, "destinyDraw:") {
+			pos--
+		}
+	}
+	if pos < 0 {
+		return nil, ErrStateInvalid
+	}
 	for _, a := range s.Actions {
 		switch {
 		case strings.HasPrefix(a, "pair:"):
-			parts := strings.SplitN(a, ":", 3)
-			if len(parts) != 3 {
+			parts := strings.Split(a, ":")
+			if len(parts) < 3 {
 				return nil, ErrStateInvalid
 			}
-			x, err1 := strconv.ParseInt(parts[1], 10, 32)
-			y, err2 := strconv.ParseInt(parts[2], 10, 32)
-			if err1 != nil || err2 != nil {
-				return nil, ErrStateInvalid
+			for _, part := range parts[1:] {
+				card, err := strconv.ParseInt(part, 10, 32)
+				if err != nil {
+					return nil, ErrStateInvalid
+				}
+				hand = removeCard(hand, int32(card))
 			}
-			hand = removeCard(hand, int32(x))
-			hand = removeCard(hand, int32(y))
 		case strings.HasPrefix(a, "replenish:") || strings.HasPrefix(a, "destinyDraw:"):
 			idx := strings.IndexByte(a, ':')
 			if _, err := strconv.ParseInt(a[idx+1:], 10, 32); err != nil {
@@ -288,103 +375,154 @@ func removeCard(hand []int32, card int32) []int32 {
 	return hand
 }
 
-// FirstPair 手牌首个同图案对子（按图案 1..9 扫）；无则 ok=false
-func (s *RoundState) FirstPair() (int32, int32, bool) {
+// FirstMatch 按当前 pair_size 找手牌首个同图案组合（按图案 1..9 扫）；无则 ok=false
+func (s *RoundState) FirstMatch() ([]int32, bool) {
+	return s.firstMatchN(s.pairSize())
+}
+
+func (s *RoundState) firstMatchN(n int) ([]int32, bool) {
+	if n < 2 {
+		n = 2
+	}
+	if n > CardsPerPattern {
+		n = CardsPerPattern
+	}
 	hand, err := s.Hand()
 	if err != nil {
-		return 0, 0, false
+		return nil, false
 	}
 	for p := int32(1); p <= PatternCount; p++ {
-		var cards []int32
+		cards := make([]int32, 0, n)
 		for _, c := range hand {
 			if PatternOfCard(c) == p {
 				cards = append(cards, c)
-				if len(cards) == 2 {
-					return cards[0], cards[1], true
+				if len(cards) == n {
+					return cards, true
 				}
 			}
 		}
 	}
-	return 0, 0, false
+	return nil, false
 }
 
-// IsTerminal 终局判定：配对数达标；或无对子且（命运耗尽/堆空/手牌满）
+// FirstPair 兼容旧接口：固定按 2 张成碰查找。
+func (s *RoundState) FirstPair() (int32, int32, bool) {
+	cards, ok := s.firstMatchN(2)
+	if !ok || len(cards) < 2 {
+		return 0, 0, false
+	}
+	return cards[0], cards[1], true
+}
+
+// IsTerminal 终局判定：配对数达标；或无匹配且（命运耗尽/堆空/手牌满）
 func (s *RoundState) IsTerminal(maxPairs int) bool {
 	if s.PairCount >= maxPairs {
 		return true
 	}
-	_, _, ok := s.FirstPair()
-	if ok {
+	if _, ok := s.FirstMatch(); ok {
 		return false
 	}
 	hand, err := s.Hand()
 	if err != nil {
 		return true
 	}
-	return s.AvailableDestiny <= 0 || s.DrawPosition >= DeckSize || len(hand) >= InitialHandSize
+	return s.AvailableDestiny <= 0 || s.DrawPosition >= DeckSize || len(hand) >= s.handLimit()
 }
 
-// ApplyPair 配对：两卡 1..54、互异、同图案、都在手牌 → 移除两张、pair_count++；
-// 配对图案==命运 → available_destiny++（第二命运启用且配对图案==第二命运再 +1——第二命运只增益匹配对子）；
-// draw_position<54 且手牌<9 → 补一张（补入命运图案 → available_destiny++）。
-func (s *RoundState) ApplyPair(maxPairs int, destinyPattern, secondDestinyPattern int32, secondDestinyEnabled bool, firstCard, secondCard int32) error {
+func (s *RoundState) addDestinyForPattern(pattern, destinyPattern, secondDestinyPattern int32, secondDestinyEnabled bool) {
+	if destinyPattern > 0 && pattern == destinyPattern {
+		s.AvailableDestiny += s.destinyIncome()
+	}
+	if secondDestinyEnabled && secondDestinyPattern > 0 && pattern == secondDestinyPattern {
+		s.AvailableDestiny++
+		if s.destinyDoubleEnabled() {
+			s.AvailableDestiny += s.doubleDestinyBuff()
+		}
+	}
+	if s.AvailableDestiny > MaxAvailableDestiny {
+		s.AvailableDestiny = MaxAvailableDestiny
+	}
+}
+
+// ApplyMatch 配成一组：N 张同图案且都在手牌 → 移除、pair_count++；
+// 配对图案==命运 → 增加出天命收益；第二命运图案 → +1，天命双倍开启时再叠加 buff；
+// 碰后按 replenish_count 补牌，补入命运图案 → 增加出天命收益。
+func (s *RoundState) ApplyMatch(maxPairs int, destinyPattern, secondDestinyPattern int32, secondDestinyEnabled bool, cards []int32) error {
 	if s.IsTerminal(maxPairs) {
 		return ErrRoundFinished
 	}
-	if firstCard < 1 || firstCard > DeckSize || secondCard < 1 || secondCard > DeckSize ||
-		firstCard == secondCard || PatternOfCard(firstCard) != PatternOfCard(secondCard) {
+	pairSize := s.pairSize()
+	if len(cards) != pairSize {
 		return ErrInvalidPair
+	}
+	seen := make(map[int32]bool, len(cards))
+	for _, card := range cards {
+		if card < 1 || card > DeckSize || seen[card] || PatternOfCard(card) != PatternOfCard(cards[0]) {
+			return ErrInvalidPair
+		}
+		seen[card] = true
 	}
 	hand, err := s.Hand()
 	if err != nil {
 		return err
 	}
-	if !inHand(hand, firstCard) || !inHand(hand, secondCard) {
-		return ErrInvalidPair
+	for _, card := range cards {
+		if !inHand(hand, card) {
+			return ErrInvalidPair
+		}
 	}
-	if len(s.Actions)+2 > MaxActions {
+	if len(s.Actions)+1 > MaxActions {
 		return ErrActionsLimit
 	}
-	pattern := PatternOfCard(firstCard)
-	s.Actions = append(s.Actions, fmt.Sprintf("pair:%d:%d", firstCard, secondCard))
+	pattern := PatternOfCard(cards[0])
+	parts := make([]string, 0, len(cards)+1)
+	parts = append(parts, "pair")
+	for _, card := range cards {
+		parts = append(parts, strconv.FormatInt(int64(card), 10))
+	}
+	s.Actions = append(s.Actions, strings.Join(parts, ":"))
 	s.PairCount++
-	if destinyPattern > 0 && pattern == destinyPattern {
-		s.AvailableDestiny++
-	}
-	if secondDestinyEnabled && secondDestinyPattern > 0 && pattern == secondDestinyPattern {
-		s.AvailableDestiny++
-	}
-	if s.DrawPosition < DeckSize && len(hand)-2 < InitialHandSize {
+	s.addDestinyForPattern(pattern, destinyPattern, secondDestinyPattern, secondDestinyEnabled)
+
+	handLimit := s.handLimit()
+	for i := 0; i < s.replenishCount(); i++ {
+		if s.DrawPosition >= DeckSize || len(hand)-len(cards)+i >= handLimit || len(s.Actions)+1 > MaxActions {
+			break
+		}
 		c := s.Deck[s.DrawPosition]
 		s.DrawPosition++
 		s.Actions = append(s.Actions, fmt.Sprintf("replenish:%d", c))
-		if destinyPattern > 0 && PatternOfCard(c) == destinyPattern {
-			s.AvailableDestiny++
-		}
+		s.addDestinyForPattern(PatternOfCard(c), destinyPattern, secondDestinyPattern, secondDestinyEnabled)
 	}
 	return nil
 }
 
-// ApplyDestinyDraw 命运抽牌：配对数未满、无对子未配、available_destiny>0、堆未空、手牌<9 → 抽一张；
-// available_destiny--、destiny_draws++；抽到命运图案 → available_destiny++。
+// ApplyPair 兼容旧 API：固定 2 张成碰；pair_size != 2 时请使用 ApplyMatch。
+func (s *RoundState) ApplyPair(maxPairs int, destinyPattern, secondDestinyPattern int32, secondDestinyEnabled bool, firstCard, secondCard int32) error {
+	if s.pairSize() != 2 {
+		return ErrInvalidPair
+	}
+	return s.ApplyMatch(maxPairs, destinyPattern, secondDestinyPattern, secondDestinyEnabled, []int32{firstCard, secondCard})
+}
+
+// ApplyDestinyDraw 命运抽牌：配对数未满、无匹配、命运资源足够、堆未空、手牌未满 → 抽一张；
+// 消耗 destiny_replenish_cost；抽到命运图案 → 增加出天命收益。
 func (s *RoundState) ApplyDestinyDraw(maxPairs int, destinyPattern, secondDestinyPattern int32, secondDestinyEnabled bool) error {
 	if s.IsTerminal(maxPairs) {
 		return ErrRoundFinished
-	}
-	if s.PairCount >= maxPairs {
-		return ErrDestinyUnavailable
 	}
 	hand, err := s.Hand()
 	if err != nil {
 		return err
 	}
-	if len(hand) >= InitialHandSize {
+	if len(hand) >= s.handLimit() {
 		return ErrDestinyUnavailable
 	}
-	if _, _, ok := s.FirstPair(); ok {
+	if _, ok := s.FirstMatch(); ok {
 		return ErrDestinyUnavailable
 	}
-	if s.AvailableDestiny <= 0 {
+	cost := s.destinyDrawCost()
+	if cost < 0 || s.AvailableDestiny < cost {
 		return ErrDestinyUnavailable
 	}
 	if s.DrawPosition >= DeckSize {
@@ -395,20 +533,18 @@ func (s *RoundState) ApplyDestinyDraw(maxPairs int, destinyPattern, secondDestin
 	}
 	c := s.Deck[s.DrawPosition]
 	s.DrawPosition++
-	s.AvailableDestiny--
+	s.AvailableDestiny -= cost
 	s.DestinyDraws++
 	s.Actions = append(s.Actions, fmt.Sprintf("destinyDraw:%d", c))
-	if destinyPattern > 0 && PatternOfCard(c) == destinyPattern {
-		s.AvailableDestiny++
-	}
+	s.addDestinyForPattern(PatternOfCard(c), destinyPattern, secondDestinyPattern, secondDestinyEnabled)
 	return nil
 }
 
-// AutoResolve 自动推进（跳过/兜底）：循环「有对配对，否则命运抽牌」至 Terminal
+// AutoResolve 自动推进（跳过/兜底）：循环「有匹配则配，否则命运抽牌」至 Terminal
 func (s *RoundState) AutoResolve(maxPairs int, destinyPattern, secondDestinyPattern int32, secondDestinyEnabled bool) error {
 	for !s.IsTerminal(maxPairs) {
-		if a, b, ok := s.FirstPair(); ok {
-			if err := s.ApplyPair(maxPairs, destinyPattern, secondDestinyPattern, secondDestinyEnabled, a, b); err != nil {
+		if cards, ok := s.FirstMatch(); ok {
+			if err := s.ApplyMatch(maxPairs, destinyPattern, secondDestinyPattern, secondDestinyEnabled, cards); err != nil {
 				return err
 			}
 			continue
@@ -443,10 +579,11 @@ func ValidateOpening(s *RoundState, roundSeed []byte, maxPairs int) error {
 		}
 		seen[c] = true
 	}
-	if len(s.InitialHand) != InitialHandSize {
+	handLimit := s.handLimit()
+	if handLimit < 1 || handLimit > DeckSize || len(s.InitialHand) != handLimit {
 		return ErrOpeningInvalid
 	}
-	for i := 0; i < InitialHandSize; i++ {
+	for i := 0; i < handLimit; i++ {
 		if s.InitialHand[i] != s.Deck[i] {
 			return ErrOpeningInvalid
 		}
@@ -454,7 +591,7 @@ func ValidateOpening(s *RoundState, roundSeed []byte, maxPairs int) error {
 	if s.SeedCommitment != SeedCommitment(roundSeed) {
 		return ErrOpeningInvalid
 	}
-	if s.DrawPosition < InitialHandSize || s.DrawPosition > DeckSize {
+	if s.DrawPosition < handLimit || s.DrawPosition > DeckSize {
 		return ErrOpeningInvalid
 	}
 	if s.PairCount < 0 || s.PairCount > maxPairs {
@@ -470,7 +607,7 @@ func ValidateOpening(s *RoundState, roundSeed []byte, maxPairs int) error {
 	if err != nil {
 		return ErrOpeningInvalid
 	}
-	if len(hand) > InitialHandSize {
+	if len(hand) > handLimit {
 		return ErrOpeningInvalid
 	}
 	return nil
@@ -563,6 +700,32 @@ func ValidateConfigRules(rounds, maxPairs int, secondDestinyEnabled bool, deckSt
 	}
 	if championMin > 0 && (championBps <= 0 || championBps > 10000) {
 		return fmt.Errorf("%w: champion_bps=%d", ErrConfigInvalid, championBps)
+	}
+	return nil
+}
+
+// ValidateRuleSet 校验扩展规则（全局玩法规则）。
+func ValidateRuleSet(r *RuleSet) error {
+	if r == nil {
+		return nil
+	}
+	if r.InitialHandSize < 1 || r.InitialHandSize > DeckSize {
+		return fmt.Errorf("%w: initial_hand_size=%d", ErrConfigInvalid, r.InitialHandSize)
+	}
+	if r.PairSize < 2 || r.PairSize > CardsPerPattern {
+		return fmt.Errorf("%w: pair_size=%d", ErrConfigInvalid, r.PairSize)
+	}
+	if r.ReplenishCount < 0 || r.ReplenishCount > DeckSize {
+		return fmt.Errorf("%w: replenish_count=%d", ErrConfigInvalid, r.ReplenishCount)
+	}
+	if r.DestinyIncome < 0 || r.DestinyIncome > MaxAvailableDestiny {
+		return fmt.Errorf("%w: destiny_income=%d", ErrConfigInvalid, r.DestinyIncome)
+	}
+	if r.DoubleDestinyBuff < 0 || r.DoubleDestinyBuff > MaxAvailableDestiny {
+		return fmt.Errorf("%w: double_destiny_buff=%d", ErrConfigInvalid, r.DoubleDestinyBuff)
+	}
+	if r.DestinyReplenishCost < 0 || r.DestinyReplenishCost > MaxAvailableDestiny {
+		return fmt.Errorf("%w: destiny_replenish_cost=%d", ErrConfigInvalid, r.DestinyReplenishCost)
 	}
 	return nil
 }

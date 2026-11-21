@@ -265,6 +265,7 @@
     "rulesNotice": "These are global gameplay rules. Pools that follow global rules use this configuration for play and preview. Saving global rules syncs all following pool drafts. Independent pools are not overwritten.",
     "pairProbabilityMode": "Pair probability mode",
     "naturalMode": "Natural deal (legacy compatible)",
+    "exactAllocationMode": "Exact allocation by box quantity",
     "initialHandCount": "Initial hand size",
     "pairSize": "Cards per pair",
     "replenishCount": "Replenish after pair",

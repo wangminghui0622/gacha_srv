@@ -15,7 +15,7 @@
               <a-input-number v-model:value="rulesForm.initialHandCount" :min="1" :max="54" class="number-input" />
             </a-form-item>
             <a-form-item :label="$t('gachaMatch.pairSize')">
-              <a-input-number v-model:value="rulesForm.pairSize" :min="2" :max="54" class="number-input" />
+              <a-input-number v-model:value="rulesForm.pairSize" :min="2" :max="6" class="number-input" />
             </a-form-item>
             <a-form-item :label="$t('gachaMatch.replenishCount')">
               <a-input-number v-model:value="rulesForm.replenishCount" :min="0" :max="54" class="number-input" />
@@ -277,7 +277,10 @@ import {
 const { t } = useI18n()
 const activeTab = ref('rules')
 
-const probabilityOptions = computed(() => [{ value: 0, label: t('gachaMatch.naturalMode') }])
+const probabilityOptions = computed(() => [
+  { value: 0, label: t('gachaMatch.naturalMode') },
+  { value: 1, label: t('gachaMatch.exactAllocationMode') },
+])
 const revenueOptions = computed(() => [
   { value: 1, label: t('gachaMatch.revenueActual') },
   { value: 2, label: t('gachaMatch.revenueOriginal') },

@@ -807,6 +807,15 @@ type MemoryMatchConfigDetail struct {
 	ChampionShareBps      int64                   `json:"championShareBps"`
 	Status                int64                   `json:"status"`
 	Entries               []MemoryMatchEntryItem  `json:"entries"`
+	InitialHandSize       int64                   `json:"initialHandSize"`
+	PairSize              int64                   `json:"pairSize"`
+	ReplenishCount        int64                   `json:"replenishCount"`
+	DestinyDoubleEnabled  bool                    `json:"destinyDoubleEnabled"`
+	DestinyIncome         int64                   `json:"destinyIncome"`
+	DoubleDestinyBuff     int64                   `json:"doubleDestinyBuff"`
+	DestinyReplenishCost  int64                   `json:"destinyReplenishCost"`
+	ResumeEnabled         bool                    `json:"resumeEnabled"`
+	HostModeEnabled       bool                    `json:"hostModeEnabled"`
 }
 
 // MemoryMatchConfigResp 玩法详情（GET /memory-match/configs/:configId）
@@ -835,10 +844,11 @@ type MemoryMatchDestinyReq struct {
 
 // MemoryMatchPairReq 配对（POST .../pair）
 type MemoryMatchPairReq struct {
-	SessionId  int64 `path:"sessionId" validate:"gte=1"`
-	RoundNo    int64 `path:"roundNo" validate:"gte=1"`
-	FirstCard  int32 `json:"firstCard" validate:"gte=1,lte=54"`
-	SecondCard int32 `json:"secondCard" validate:"gte=1,lte=54"`
+	SessionId  int64   `path:"sessionId" validate:"gte=1"`
+	RoundNo    int64   `path:"roundNo" validate:"gte=1"`
+	FirstCard  int32   `json:"firstCard,optional" validate:"gte=0,lte=54"`
+	SecondCard int32   `json:"secondCard,optional" validate:"gte=0,lte=54"`
+	Cards      []int32 `json:"cards,optional"`
 }
 
 // MemoryMatchRoundBrief 回合简报
@@ -889,6 +899,7 @@ type MemoryMatchRoundResp struct {
 	ResultHash             string   `json:"resultHash"`
 	DestinyPatternId       int32    `json:"destinyPatternId"`
 	SecondDestinyPatternId int32    `json:"secondDestinyPatternId"`
+	PairSize               int32    `json:"pairSize"`
 }
 
 // MemoryMatchActionResp 命运选择响应（destiny / second-destiny）

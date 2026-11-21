@@ -265,6 +265,7 @@
     "rulesNotice": "此处为全局玩法规则。赏池若开启「跟随全局」，开局与后台预览都使用本配置；保存全局时会同步所有跟随中的赏池底稿。未跟随的赏池保持独立，不会被全局覆盖。",
     "pairProbabilityMode": "碰数概率模式",
     "naturalMode": "自然发牌（兼容旧模式）",
+    "exactAllocationMode": "按配箱数量精确分配",
     "initialHandCount": "初始手牌数",
     "pairSize": "几张成碰",
     "replenishCount": "碰后补牌数",

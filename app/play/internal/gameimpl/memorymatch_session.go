@@ -6,6 +6,7 @@ import (
 	"errors"
 	"gacha_srv/app/marketing/marketingClient"
 	"gacha_srv/app/play/internal/core/memorymatch"
+	"gacha_srv/app/play/internal/repo"
 	"gacha_srv/app/play/internal/svc"
 	"gacha_srv/app/play/play"
 	gamemodel "gacha_srv/pkg/model/gacha_play"
@@ -228,8 +229,8 @@ func mmEntryOfConfig(db *gorm.DB, configID int64) ([]gamemodel.MemoryMatchEntrie
 	return entries, nil
 }
 
-// mmConfigToRules 配置行 → 规则快照（含配置校验；非法 → 3020）
-func mmConfigToRules(cfg *gamemodel.MemoryMatchConfigs) (*mmRules, error) {
+// mmConfigToRules 配置行 → 规则快照（含全局规则解析与配置校验；非法 → 3020）
+func mmConfigToRules(db *gorm.DB, cfg *gamemodel.MemoryMatchConfigs) (*mmRules, error) {
 	var weights []int64
 	if err := json.Unmarshal([]byte(cfg.PatternWeightsJson), &weights); err != nil {
 		return nil, errorx.NewCodeError(errorx.CodeGameConfigInvalid, "发牌权重配置无效")
@@ -242,19 +243,87 @@ func mmConfigToRules(cfg *gamemodel.MemoryMatchConfigs) (*mmRules, error) {
 	if err := json.Unmarshal([]byte(cfg.BackPresetsJson), &backs); err != nil {
 		return nil, errorx.NewCodeError(errorx.CodeGameConfigInvalid, "背面预设配置无效")
 	}
+
+	store := repo.NewMemoryMatchAdminStore(db)
+	ext, extErr := store.GetConfigExt(context.Background(), cfg.Id)
+	if extErr != nil && !errors.Is(extErr, gorm.ErrRecordNotFound) {
+		return nil, errorx.NewCodeError(errorx.CodeDBError, "读取扩展规则失败")
+	}
+	followGlobal := extErr == nil && ext.FollowGlobal == 1
+
+	// 默认按历史值；有扩展行时用扩展值。
+	initialHand := int64(9)
+	pairSize := int64(2)
+	replenish := int64(1)
+	destinyDouble := int64(1)
+	destinyIncome := int64(1)
+	doubleBuff := int64(1)
+	destinyCost := int64(1)
+	resume := int64(1)
+	hostMode := int64(1)
+	if extErr == nil {
+		initialHand = ext.InitialHandSize
+		pairSize = ext.PairSize
+		replenish = ext.ReplenishCount
+		destinyDouble = ext.DestinyDoubleEnabled
+		destinyIncome = ext.DestinyIncome
+		doubleBuff = ext.DoubleDestinyBuff
+		destinyCost = ext.DestinyReplenishCost
+		resume = ext.ResumeEnabled
+		hostMode = ext.HostModeEnabled
+	}
+	secondEnabled := cfg.SecondDestinyEnabled == 1
+	championMin := cfg.ChampionMinTotalPairs
+	championBps := cfg.ChampionShareBps
+
+	// 跟随全局时以全局规则为准（保存全局时也会同步列，但这里再解析一次，
+	// 保证旧赏池和尚未同步的草稿也能立即生效）。
+	if followGlobal {
+		if global, err := store.GetGlobalRules(context.Background()); err == nil {
+			secondEnabled = global.SecondDestinyEnabled == 1
+			initialHand = global.InitialHandCount
+			pairSize = global.PairSize
+			replenish = global.ReplenishCount
+			destinyDouble = global.DestinyDoubleEnabled
+			destinyIncome = global.DestinyIncome
+			doubleBuff = global.DoubleDestinyBuff
+			destinyCost = global.DestinyReplenishCost
+			resume = global.ResumeEnabled
+			hostMode = global.HostModeEnabled
+			if global.HostModeEnabled == 1 {
+				championMin = global.HostMinPairs
+				championBps = global.HostShareBps
+			} else {
+				championMin, championBps = 0, 0
+			}
+		}
+	} else if hostMode != 1 {
+		championMin, championBps = 0, 0
+	}
+
 	rules := &mmRules{
 		RoundsPerPurchase:     cfg.RoundsPerPurchase,
 		MaxPairCount:          cfg.MaxPairCount,
 		PurchasePriceMinor:    cfg.PurchasePriceMinor,
 		WalletKind:            cfg.WalletKind,
-		SecondDestinyEnabled:  cfg.SecondDestinyEnabled == 1,
+		SecondDestinyEnabled:  secondEnabled,
 		DeckStrategy:          cfg.DeckStrategy,
 		PatternWeights:        weights,
 		ExactMinPairCount:     cfg.ExactMinPairCount,
 		ExactMaxPairCount:     cfg.ExactMaxPairCount,
 		ExactAttemptLimit:     cfg.ExactAttemptLimit,
-		ChampionMinTotalPairs: cfg.ChampionMinTotalPairs,
-		ChampionShareBps:      cfg.ChampionShareBps,
+		ChampionMinTotalPairs: championMin,
+		ChampionShareBps:      championBps,
+		HasExtendedRules:      true,
+		InitialHandSize:       initialHand,
+		PairSize:              pairSize,
+		ReplenishCount:        replenish,
+		DestinyDoubleEnabled:  destinyDouble == 1,
+		DestinyIncome:         destinyIncome,
+		DoubleDestinyBuff:     doubleBuff,
+		DestinyReplenishCost:  destinyCost,
+		ResumeEnabled:         resume == 1,
+		HostModeEnabled:       hostMode == 1,
 	}
 	if err := memorymatch.ValidateConfigRules(int(rules.RoundsPerPurchase), int(rules.MaxPairCount),
 		rules.SecondDestinyEnabled, int32(rules.DeckStrategy), rules.PatternWeights,
@@ -262,6 +331,9 @@ func mmConfigToRules(cfg *gamemodel.MemoryMatchConfigs) (*mmRules, error) {
 		faces, backs, int(cfg.DefaultFacePresetId), int(cfg.DefaultBackPresetId),
 		int(rules.ChampionMinTotalPairs), int(rules.ChampionShareBps)); err != nil {
 		return nil, errorx.NewCodeError(errorx.CodeGameConfigInvalid, "玩法配置校验失败")
+	}
+	if err := memorymatch.ValidateRuleSet(mmRuleSet(rules)); err != nil {
+		return nil, errorx.NewCodeError(errorx.CodeGameConfigInvalid, "全局玩法规则校验失败")
 	}
 	return rules, nil
 }
@@ -278,7 +350,7 @@ func mmLoadConfig(db *gorm.DB, configID int64) (*gamemodel.MemoryMatchConfigs, *
 	if cfg.Status != 1 {
 		return nil, nil, errorx.NewCodeError(errorx.CodeNotFound, "玩法不存在")
 	}
-	rules, err := mmConfigToRules(&cfg)
+	rules, err := mmConfigToRules(db, &cfg)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -313,6 +385,15 @@ func mmConfigItem(cfg *gamemodel.MemoryMatchConfigs, rules *mmRules, entries []g
 		ChampionMinTotalPairs: rules.ChampionMinTotalPairs,
 		ChampionShareBps:      rules.ChampionShareBps,
 		Status:                cfg.Status,
+		InitialHandSize:       rules.InitialHandSize,
+		PairSize:              rules.PairSize,
+		ReplenishCount:        rules.ReplenishCount,
+		DestinyDoubleEnabled:  rules.DestinyDoubleEnabled,
+		DestinyIncome:         rules.DestinyIncome,
+		DoubleDestinyBuff:     rules.DoubleDestinyBuff,
+		DestinyReplenishCost:  rules.DestinyReplenishCost,
+		ResumeEnabled:         rules.ResumeEnabled,
+		HostModeEnabled:       rules.HostModeEnabled,
 	}
 	for _, f := range faces {
 		fi := &play.MemoryMatchFacePreset{PresetId: f.PresetID, Name: f.Name}

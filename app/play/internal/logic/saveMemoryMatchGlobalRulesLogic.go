@@ -63,5 +63,8 @@ func (l *SaveMemoryMatchGlobalRulesLogic) SaveMemoryMatchGlobalRules(in *play.Sa
 	if err := store.SaveGlobalRules(l.ctx, row); err != nil {
 		return nil, mmDBError(err)
 	}
+	if err := store.SyncFollowingConfigs(l.ctx, row); err != nil {
+		return nil, mmDBError(err)
+	}
 	return &play.SaveMemoryMatchGlobalRulesResp{Rules: mmGlobalRuleToProto(row)}, nil
 }

@@ -70,6 +70,15 @@ func configToView(c *playClient.MemoryMatchConfigItem) types.MemoryMatchConfigDe
 		ChampionMinTotalPairs: c.ChampionMinTotalPairs,
 		ChampionShareBps:      c.ChampionShareBps,
 		Status:                c.Status,
+		InitialHandSize:       c.InitialHandSize,
+		PairSize:              c.PairSize,
+		ReplenishCount:        c.ReplenishCount,
+		DestinyDoubleEnabled:  c.DestinyDoubleEnabled,
+		DestinyIncome:         c.DestinyIncome,
+		DoubleDestinyBuff:     c.DoubleDestinyBuff,
+		DestinyReplenishCost:  c.DestinyReplenishCost,
+		ResumeEnabled:         c.ResumeEnabled,
+		HostModeEnabled:       c.HostModeEnabled,
 		FacePresets:           make([]types.MemoryMatchFacePreset, 0, len(c.FacePresets)),
 		BackPresets:           make([]types.MemoryMatchBackPreset, 0, len(c.BackPresets)),
 		Entries:               make([]types.MemoryMatchEntryItem, 0, len(c.Entries)),
@@ -141,5 +150,6 @@ func roundToView(r *playClient.GetMemoryMatchRoundResp) types.MemoryMatchRoundRe
 		ResultHash:             r.ResultHash,
 		DestinyPatternId:       r.DestinyPatternId,
 		SecondDestinyPatternId: r.SecondDestinyPatternId,
+		PairSize:               r.PairSize,
 	}
 }

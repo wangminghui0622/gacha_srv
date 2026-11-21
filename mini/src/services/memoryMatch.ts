@@ -72,12 +72,12 @@ export function getMemoryMatchRound(
 export function applyMemoryMatchPair(
   sessionId: number,
   roundNo: number,
-  firstCard: number,
-  secondCard: number,
+  cards: number[],
 ): Promise<MemoryMatchRoundActionResponse> {
   return post(`/memory-match/sessions/${sessionId}/rounds/${roundNo}/pair`, {
-    firstCard,
-    secondCard,
+    cards,
+    firstCard: cards[0] ?? 0,
+    secondCard: cards[1] ?? 0,
   })
 }
 

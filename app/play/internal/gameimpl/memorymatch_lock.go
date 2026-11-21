@@ -70,7 +70,7 @@ func (l *LockMemoryMatchLogic) LockMemoryMatch(in *play.LockMemoryMatchReq) (*pl
 		if cfg.Status != 1 {
 			return status.Error(codes.Aborted, fmt.Sprintf("code=%d msg=玩法不可用", errorx.CodeGameConfigInvalid))
 		}
-		rules, err := mmConfigToRules(&cfg)
+		rules, err := mmConfigToRules(db, &cfg)
 		if err != nil {
 			return mmAborted(err)
 		}

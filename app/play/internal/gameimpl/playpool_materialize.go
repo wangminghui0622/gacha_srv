@@ -1,6 +1,7 @@
 package gameimpl
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -8,6 +9,8 @@ import (
 	"time"
 
 	"gacha_srv/app/play/internal/core"
+	"gacha_srv/app/play/internal/core/memorymatch"
+	"gacha_srv/app/play/internal/repo"
 	gamemodel "gacha_srv/pkg/model/gacha_play"
 	gamemodelnc "gacha_srv/pkg/model_nocache/gacha_play"
 
@@ -556,6 +559,79 @@ func materializeMemoryMatch(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes 
 	if backPresets == "" || backPresets == "null" {
 		backPresets = "[]"
 	}
+
+	// 解析全局规则：默认跟随；未跟随则用本池字段覆盖。
+	store := repo.NewMemoryMatchAdminStore(db)
+	global, globalErr := store.GetGlobalRules(context.Background())
+	followGlobal := cfg.FollowGlobal == nil || *cfg.FollowGlobal
+	initialHand := int64(9)
+	pairSize := int64(2)
+	replenish := int64(1)
+	destinyDouble := int64(1)
+	destinyIncome := int64(1)
+	doubleBuff := int64(1)
+	destinyCost := int64(1)
+	resume := int64(1)
+	hostMode := int64(1)
+	secondEnabled := cfg.SecondDestinyEnabled
+	championMin := cfg.ChampionMinTotalPairs
+	championBps := cfg.ChampionShareBps
+	if globalErr == nil {
+		initialHand = global.InitialHandCount
+		pairSize = global.PairSize
+		replenish = global.ReplenishCount
+		destinyDouble = global.DestinyDoubleEnabled
+		destinyIncome = global.DestinyIncome
+		doubleBuff = global.DoubleDestinyBuff
+		destinyCost = global.DestinyReplenishCost
+		resume = global.ResumeEnabled
+		hostMode = global.HostModeEnabled
+		secondEnabled = global.SecondDestinyEnabled
+		if hostMode == 1 {
+			championMin = global.HostMinPairs
+			championBps = global.HostShareBps
+		} else {
+			championMin, championBps = 0, 0
+		}
+	}
+	if !followGlobal {
+		if cfg.InitialHandSize != nil {
+			initialHand = *cfg.InitialHandSize
+		}
+		if cfg.PairSize != nil {
+			pairSize = *cfg.PairSize
+		}
+		if cfg.ReplenishCount != nil {
+			replenish = *cfg.ReplenishCount
+		}
+		if cfg.DestinyDoubleEnabled != nil {
+			destinyDouble = *cfg.DestinyDoubleEnabled
+		}
+		if cfg.DestinyIncome != nil {
+			destinyIncome = *cfg.DestinyIncome
+		}
+		if cfg.DoubleDestinyBuff != nil {
+			doubleBuff = *cfg.DoubleDestinyBuff
+		}
+		if cfg.DestinyReplenishCost != nil {
+			destinyCost = *cfg.DestinyReplenishCost
+		}
+		if cfg.ResumeEnabled != nil {
+			resume = *cfg.ResumeEnabled
+		}
+		if cfg.HostModeEnabled != nil {
+			hostMode = *cfg.HostModeEnabled
+		}
+		if hostMode != 1 {
+			championMin, championBps = 0, 0
+		}
+	}
+	if followGlobal {
+		if faces, backs, ok := memoryMatchPresetsFromAppearances(db); ok {
+			facePresets, backPresets = faces, backs
+		}
+	}
+
 	entries := make([]gamemodel.MemoryMatchEntries, 0, len(prizes))
 	for _, p := range prizes {
 		kind := playPoolAssetKind(&p)
@@ -585,7 +661,7 @@ func materializeMemoryMatch(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes 
 		MaxPairCount:          cfg.MaxPairCount,
 		PurchasePriceMinor:    v.PriceFen,
 		WalletKind:            cfg.WalletKind,
-		SecondDestinyEnabled:  cfg.SecondDestinyEnabled,
+		SecondDestinyEnabled:  secondEnabled,
 		DeckStrategy:          cfg.DeckStrategy,
 		PatternWeightsJson:    string(weightsJSON),
 		ExactMinPairCount:     cfg.ExactMinPairCount,
@@ -595,12 +671,26 @@ func materializeMemoryMatch(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes 
 		BackPresetsJson:       backPresets,
 		DefaultFacePresetId:   cfg.DefaultFacePresetId,
 		DefaultBackPresetId:   cfg.DefaultBackPresetId,
-		ChampionMinTotalPairs: cfg.ChampionMinTotalPairs,
-		ChampionShareBps:      cfg.ChampionShareBps,
+		ChampionMinTotalPairs: championMin,
+		ChampionShareBps:      championBps,
 		Status:                1,
 		CreatedAt:             now,
 		UpdatedAt:             now,
 	}, []string{"name", "rounds_per_purchase", "max_pair_count", "purchase_price_minor", "wallet_kind", "second_destiny_enabled", "deck_strategy", "pattern_weights_json", "exact_min_pair_count", "exact_max_pair_count", "exact_attempt_limit", "face_presets_json", "back_presets_json", "default_face_preset_id", "default_back_preset_id", "champion_min_total_pairs", "champion_share_bps", "status", "updated_at"}); err != nil {
+		return err
+	}
+	if err := db.Model(&gamemodel.MemoryMatchConfigs{}).Where("id = ?", v.PoolId).Updates(map[string]any{
+		"follow_global":          boolToInt(followGlobal),
+		"initial_hand_size":      initialHand,
+		"pair_size":              pairSize,
+		"replenish_count":        replenish,
+		"destiny_double_enabled": destinyDouble,
+		"destiny_income":         destinyIncome,
+		"double_destiny_buff":    doubleBuff,
+		"destiny_replenish_cost": destinyCost,
+		"resume_enabled":         resume,
+		"host_mode_enabled":      hostMode,
+	}).Error; err != nil {
 		return err
 	}
 	if err := db.Where("config_id = ?", v.PoolId).Delete(&gamemodel.MemoryMatchEntries{}).Error; err != nil {
@@ -610,4 +700,56 @@ func materializeMemoryMatch(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes 
 		return status.Error(codes.InvalidArgument, "记忆翻牌没有奖档")
 	}
 	return db.Create(&entries).Error
+}
+
+func boolToInt(value bool) int {
+	if value {
+		return 1
+	}
+	return 0
+}
+
+// memoryMatchPresetsFromAppearances 把外观池中的 9 个卡面 + 卡背组装为默认外观预设。
+func memoryMatchPresetsFromAppearances(db *gorm.DB) (string, string, bool) {
+	store := repo.NewMemoryMatchAdminStore(db)
+	facesRows, _, err := store.ListAppearances(context.Background(), 1, 1, "", 1, 200)
+	if err != nil {
+		return "", "", false
+	}
+	faces := make([]memorymatch.FaceItem, 0, 9)
+	for _, row := range facesRows {
+		faces = append(faces, memorymatch.FaceItem{
+			PatternID: int32(len(faces) + 1),
+			Name:      row.Name,
+			ImageURL:  row.ImageURL,
+		})
+		if len(faces) == 9 {
+			break
+		}
+	}
+	if len(faces) < 9 {
+		return "", "", false
+	}
+	backsRows, _, err := store.ListAppearances(context.Background(), 2, 1, "", 1, 20)
+	if err != nil {
+		return "", "", false
+	}
+	backURL, backBg := "", ""
+	if len(backsRows) > 0 {
+		backURL = backsRows[0].ImageURL
+		backBg = backsRows[0].BackImageURL
+	}
+	facePresets := []memorymatch.FacePreset{{PresetID: 1, Name: "默认", Faces: faces}}
+	backPresets := []memorymatch.BackPreset{{
+		PresetID: 1, Name: "默认", BackImageURL: backURL, FaceBackgroundImageURL: backBg,
+	}}
+	faceJSON, err := json.Marshal(facePresets)
+	if err != nil {
+		return "", "", false
+	}
+	backJSON, err := json.Marshal(backPresets)
+	if err != nil {
+		return "", "", false
+	}
+	return string(faceJSON), string(backJSON), true
 }

@@ -68,6 +68,24 @@ type MemoryMatchAppearanceRow struct {
 
 func (MemoryMatchAppearanceRow) TableName() string { return "memory_match_appearances" }
 
+// MemoryMatchConfigExtRow 是 memory_match_configs 的扩展列（全局规则/跟随开关）。
+// 该表原有字段仍由 goctl 生成的 MemoryMatchConfigs 使用，这里只补充新增列。
+type MemoryMatchConfigExtRow struct {
+	ID                   int64 `gorm:"column:id;primaryKey" json:"id"`
+	FollowGlobal         int64 `gorm:"column:follow_global;not null;default:1" json:"followGlobal"`
+	InitialHandSize      int64 `gorm:"column:initial_hand_size;not null;default:9" json:"initialHandSize"`
+	PairSize             int64 `gorm:"column:pair_size;not null;default:2" json:"pairSize"`
+	ReplenishCount       int64 `gorm:"column:replenish_count;not null;default:1" json:"replenishCount"`
+	DestinyDoubleEnabled int64 `gorm:"column:destiny_double_enabled;not null;default:1" json:"destinyDoubleEnabled"`
+	DestinyIncome        int64 `gorm:"column:destiny_income;not null;default:1" json:"destinyIncome"`
+	DoubleDestinyBuff    int64 `gorm:"column:double_destiny_buff;not null;default:1" json:"doubleDestinyBuff"`
+	DestinyReplenishCost int64 `gorm:"column:destiny_replenish_cost;not null;default:1" json:"destinyReplenishCost"`
+	ResumeEnabled        int64 `gorm:"column:resume_enabled;not null;default:1" json:"resumeEnabled"`
+	HostModeEnabled      int64 `gorm:"column:host_mode_enabled;not null;default:1" json:"hostModeEnabled"`
+}
+
+func (MemoryMatchConfigExtRow) TableName() string { return "memory_match_configs" }
+
 // MemoryMatchAdminStore 对对碰管理后台存储。
 type MemoryMatchAdminStore struct {
 	db *gorm.DB
@@ -84,6 +102,7 @@ func EnsureMemoryMatchAdminSeed(db *gorm.DB) error {
 		&MemoryMatchGlobalRuleRow{},
 		&MemoryMatchDeckTemplateRow{},
 		&MemoryMatchAppearanceRow{},
+		&MemoryMatchConfigExtRow{},
 	); err != nil {
 		return err
 	}
@@ -163,6 +182,47 @@ func (s *MemoryMatchAdminStore) GetGlobalRules(ctx context.Context) (*MemoryMatc
 		return nil, err
 	}
 	return &row, nil
+}
+
+// GetConfigExt 读取某个赏池的对对碰扩展规则。
+func (s *MemoryMatchAdminStore) GetConfigExt(ctx context.Context, configID int64) (*MemoryMatchConfigExtRow, error) {
+	var row MemoryMatchConfigExtRow
+	if err := s.db.WithContext(ctx).Where("id = ?", configID).First(&row).Error; err != nil {
+		return nil, err
+	}
+	return &row, nil
+}
+
+// SyncFollowingConfigs 保存全局规则时同步所有 follow_global=1 的赏池配置。
+// 只更新本仓规则快照会读取的字段；已购会话使用 rules_json 快照，不受影响。
+func (s *MemoryMatchAdminStore) SyncFollowingConfigs(ctx context.Context, rule *MemoryMatchGlobalRuleRow) error {
+	if rule == nil {
+		return nil
+	}
+	championMin := rule.HostMinPairs
+	championBps := rule.HostShareBps
+	if rule.HostModeEnabled != 1 {
+		championMin, championBps = 0, 0
+	}
+	updates := map[string]any{
+		"second_destiny_enabled":   rule.SecondDestinyEnabled,
+		"initial_hand_size":        rule.InitialHandCount,
+		"pair_size":                rule.PairSize,
+		"replenish_count":          rule.ReplenishCount,
+		"destiny_double_enabled":   rule.DestinyDoubleEnabled,
+		"destiny_income":           rule.DestinyIncome,
+		"double_destiny_buff":      rule.DoubleDestinyBuff,
+		"destiny_replenish_cost":   rule.DestinyReplenishCost,
+		"resume_enabled":           rule.ResumeEnabled,
+		"host_mode_enabled":        rule.HostModeEnabled,
+		"champion_min_total_pairs": championMin,
+		"champion_share_bps":       championBps,
+		"updated_at":               time.Now(),
+	}
+	return s.db.WithContext(ctx).
+		Table("memory_match_configs").
+		Where("follow_global = ?", 1).
+		Updates(updates).Error
 }
 
 func (s *MemoryMatchAdminStore) SaveGlobalRules(ctx context.Context, row *MemoryMatchGlobalRuleRow) error {

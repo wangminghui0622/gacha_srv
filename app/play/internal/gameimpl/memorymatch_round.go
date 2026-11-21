@@ -108,9 +108,19 @@ func (l *ApplyMemoryMatchPairLogic) ApplyMemoryMatchPair(in *play.ApplyMemoryMat
 	if in.SessionId <= 0 || in.UserId <= 0 || in.RoundNo <= 0 {
 		return nil, errorx.NewCodeError(errorx.CodeParamError, "请求参数非法")
 	}
-	if in.FirstCard < 1 || in.FirstCard > 54 || in.SecondCard < 1 || in.SecondCard > 54 ||
-		in.FirstCard == in.SecondCard {
+	cards := in.Cards
+	if len(cards) == 0 {
+		cards = []int32{in.FirstCard, in.SecondCard}
+	}
+	if len(cards) < 2 {
 		return nil, errorx.NewCodeError(errorx.CodeParamError, "配对无效")
+	}
+	seen := map[int32]bool{}
+	for _, card := range cards {
+		if card < 1 || card > 54 || seen[card] {
+			return nil, errorx.NewCodeError(errorx.CodeParamError, "配对无效")
+		}
+		seen[card] = true
 	}
 	if _, err := mmLoadSession(l.svcCtx.DB, in.SessionId, in.UserId); err != nil {
 		return nil, err
@@ -150,9 +160,12 @@ func (l *ApplyMemoryMatchPairLogic) ApplyMemoryMatchPair(in *play.ApplyMemoryMat
 		if err := memorymatch.ValidateOpening(st, roundSeed, int(rules.MaxPairCount)); err != nil {
 			return errorx.NewCodeError(errorx.CodeMemoryMatchConflict, "回合开局校验失败")
 		}
-		if err := st.ApplyPair(int(rules.MaxPairCount),
+		if len(cards) != int(rules.PairSize) {
+			return errorx.NewCodeError(errorx.CodeParamError, "配对张数与玩法规则不一致")
+		}
+		if err := st.ApplyMatch(int(rules.MaxPairCount),
 			int32(sess.DestinyPatternId), int32(sess.SecondDestinyPatternId),
-			rules.SecondDestinyEnabled, in.FirstCard, in.SecondCard); err != nil {
+			rules.SecondDestinyEnabled, cards); err != nil {
 			return mmMapEngineErr(err)
 		}
 		if err := tx.Model(&gamemodelnc.MemoryMatchRounds{}).Where("id = ?", round.Id).
@@ -460,6 +473,7 @@ func mmRoundView(sess *gamemodelnc.MemoryMatchSessions, rules *mmRules, round *g
 		Terminal:               st.IsTerminal(int(rules.MaxPairCount)),
 		DestinyPatternId:       int32(sess.DestinyPatternId),
 		SecondDestinyPatternId: int32(sess.SecondDestinyPatternId),
+		PairSize:               int32(rules.PairSize),
 	}
 	if round.ResultHash != nil && *round.ResultHash != "" {
 		view.ResultHash = *round.ResultHash
@@ -478,8 +492,8 @@ func mmCreateRounds(db *gorm.DB, sess *gamemodelnc.MemoryMatchSessions, rules *m
 	}
 	for roundNo := int64(1); roundNo <= rules.RoundsPerPurchase; roundNo++ {
 		roundSeed := memorymatch.RoundSeed(engineSeed, sess.Id, roundNo)
-		st := memorymatch.Opening(roundSeed, int32(rules.DeckStrategy), rules.PatternWeights,
-			int(rules.ExactMinPairCount), int(rules.ExactMaxPairCount), int(rules.ExactAttemptLimit))
+		st := memorymatch.OpeningWithRules(roundSeed, int32(rules.DeckStrategy), rules.PatternWeights,
+			int(rules.ExactMinPairCount), int(rules.ExactMaxPairCount), int(rules.ExactAttemptLimit), mmRuleSet(rules))
 		row := &gamemodelnc.MemoryMatchRounds{
 			SessionId: sess.Id,
 			RoundNo:   roundNo,

@@ -61,6 +61,18 @@ type memoryMatchPoolConfig struct {
 	DefaultBackPresetId   int64           `json:"defaultBackPresetId"`
 	ChampionMinTotalPairs int64           `json:"championMinTotalPairs"`
 	ChampionShareBps      int64           `json:"championShareBps"`
+
+	// 对对碰全局玩法规则：默认跟随；显式 false 时使用本池字段覆盖。
+	FollowGlobal         *bool  `json:"followGlobal,omitempty"`
+	InitialHandSize      *int64 `json:"initialHandSize,omitempty"`
+	PairSize             *int64 `json:"pairSize,omitempty"`
+	ReplenishCount       *int64 `json:"replenishCount,omitempty"`
+	DestinyDoubleEnabled *int64 `json:"destinyDoubleEnabled,omitempty"`
+	DestinyIncome        *int64 `json:"destinyIncome,omitempty"`
+	DoubleDestinyBuff    *int64 `json:"doubleDestinyBuff,omitempty"`
+	DestinyReplenishCost *int64 `json:"destinyReplenishCost,omitempty"`
+	ResumeEnabled        *int64 `json:"resumeEnabled,omitempty"`
+	HostModeEnabled      *int64 `json:"hostModeEnabled,omitempty"`
 }
 
 func jsonOrDefault(raw string) string {
@@ -516,10 +528,44 @@ func validateGroupBuyPool(in *play.CreatePlayPoolDraftReq) error {
 	return nil
 }
 
+func validateMemoryMatchExtRules(cfg memoryMatchPoolConfig) error {
+	if cfg.InitialHandSize != nil && (*cfg.InitialHandSize < 1 || *cfg.InitialHandSize > 54) {
+		return fmt.Errorf("initialHandSize 必须在 1..54")
+	}
+	if cfg.PairSize != nil && (*cfg.PairSize < 2 || *cfg.PairSize > 6) {
+		return fmt.Errorf("pairSize 必须在 2..6")
+	}
+	if cfg.ReplenishCount != nil && (*cfg.ReplenishCount < 0 || *cfg.ReplenishCount > 54) {
+		return fmt.Errorf("replenishCount 必须在 0..54")
+	}
+	for name, value := range map[string]*int64{
+		"destinyIncome":        cfg.DestinyIncome,
+		"doubleDestinyBuff":    cfg.DoubleDestinyBuff,
+		"destinyReplenishCost": cfg.DestinyReplenishCost,
+	} {
+		if value != nil && *value < 0 {
+			return fmt.Errorf("%s 不能为负", name)
+		}
+	}
+	for name, value := range map[string]*int64{
+		"destinyDoubleEnabled": cfg.DestinyDoubleEnabled,
+		"resumeEnabled":        cfg.ResumeEnabled,
+		"hostModeEnabled":      cfg.HostModeEnabled,
+	} {
+		if value != nil && *value != 0 && *value != 1 {
+			return fmt.Errorf("%s 只能是 0 或 1", name)
+		}
+	}
+	return nil
+}
+
 func validateMemoryMatchPool(in *play.CreatePlayPoolDraftReq) error {
 	cfg, err := parseMemoryMatchPoolConfig(in.ConfigJson)
 	if err != nil {
 		return abortf("记忆翻牌 configJson 非法: %v", err)
+	}
+	if err := validateMemoryMatchExtRules(cfg); err != nil {
+		return abortf("记忆翻牌全局规则非法: %v", err)
 	}
 	pairs := map[int64]bool{}
 	for _, p := range in.Prizes {
