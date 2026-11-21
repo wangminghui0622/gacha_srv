@@ -543,6 +543,12 @@ async function openPoolForm(record: AdminPlayPool, kind: PoolFormKind) {
       : null
     const mode = record.mode ?? detail?.mode ?? 'gashapon'
     const suffix = kind === 'copy' ? t('poolAdmin.copySuffix') : ''
+    let adminExtras: Record<string, unknown> = {}
+    try {
+      adminExtras = JSON.parse(detail?.adminJson || '{}')
+    } catch {
+      adminExtras = {}
+    }
     createInitial.value = {
       poolId: kind === 'copy' ? undefined : record.poolId,
       mode,
@@ -554,6 +560,8 @@ async function openPoolForm(record: AdminPlayPool, kind: PoolFormKind) {
       weight: Number(record.weight ?? 0),
       configJson: detail?.configJson ?? configSkeleton[mode] ?? '{}',
       prizes: detail?.prizes ?? (prizeSkeleton[mode] as PlayPoolPrize[] | undefined) ?? [],
+      coverImage: typeof adminExtras.coverImage === 'string' ? adminExtras.coverImage : '',
+      coverThumb: typeof adminExtras.coverThumb === 'string' ? adminExtras.coverThumb : '',
     }
     createFormKey.value += 1
     syncCreateModalLayout()

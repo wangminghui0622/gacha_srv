@@ -24,19 +24,13 @@ type (
 	AssignGashaponLuckyUserResp        = play.AssignGashaponLuckyUserResp
 	CheckPrizesGrantedReq              = play.CheckPrizesGrantedReq
 	CheckPrizesGrantedResp             = play.CheckPrizesGrantedResp
-	ComboChainRecordItem               = play.ComboChainRecordItem
-	ComboChainSharedPrizeItem          = play.ComboChainSharedPrizeItem
 	CollectionRewardStat               = play.CollectionRewardStat
 	CollectionSet                      = play.CollectionSet
-	CreateCollectionSetReq             = play.CreateCollectionSetReq
-	GetCollectionSetDataReq            = play.GetCollectionSetDataReq
-	GetCollectionSetDataResp           = play.GetCollectionSetDataResp
-	ListCollectionSetsReq              = play.ListCollectionSetsReq
-	ListCollectionSetsResp             = play.ListCollectionSetsResp
-	SetCollectionSetStatusReq          = play.SetCollectionSetStatusReq
-	UpdateCollectionSetReq             = play.UpdateCollectionSetReq
+	ComboChainRecordItem               = play.ComboChainRecordItem
+	ComboChainSharedPrizeItem          = play.ComboChainSharedPrizeItem
 	CompleteMemoryMatchRoundReq        = play.CompleteMemoryMatchRoundReq
 	CompleteMemoryMatchRoundResp       = play.CompleteMemoryMatchRoundResp
+	CreateCollectionSetReq             = play.CreateCollectionSetReq
 	CreatePlayPoolDraftReq             = play.CreatePlayPoolDraftReq
 	CreatePlayPoolDraftResp            = play.CreatePlayPoolDraftResp
 	DeleteAdminPlayPoolsReq            = play.DeleteAdminPlayPoolsReq
@@ -53,6 +47,8 @@ type (
 	GashaponEntryOutcome               = play.GashaponEntryOutcome
 	GashaponRecordItem                 = play.GashaponRecordItem
 	GashaponSpecialPrizeItem           = play.GashaponSpecialPrizeItem
+	GetCollectionSetDataReq            = play.GetCollectionSetDataReq
+	GetCollectionSetDataResp           = play.GetCollectionSetDataResp
 	GetComboChainReq                   = play.GetComboChainReq
 	GetComboChainResp                  = play.GetComboChainResp
 	GetDigBoxSessionReq                = play.GetDigBoxSessionReq
@@ -93,6 +89,8 @@ type (
 	GroupBuyRecordItem                 = play.GroupBuyRecordItem
 	ListAdminPlayPoolsReq              = play.ListAdminPlayPoolsReq
 	ListAdminPlayPoolsResp             = play.ListAdminPlayPoolsResp
+	ListCollectionSetsReq              = play.ListCollectionSetsReq
+	ListCollectionSetsResp             = play.ListCollectionSetsResp
 	ListComboChainRecordsReq           = play.ListComboChainRecordsReq
 	ListComboChainRecordsResp          = play.ListComboChainRecordsResp
 	ListDigBoxesReq                    = play.ListDigBoxesReq
@@ -149,8 +147,6 @@ type (
 	PlayPoolPrize                      = play.PlayPoolPrize
 	PlayPoolReferenceItem              = play.PlayPoolReferenceItem
 	PlayPoolSummary                    = play.PlayPoolSummary
-	QueryPlayPoolReferencesReq         = play.QueryPlayPoolReferencesReq
-	QueryPlayPoolReferencesResp        = play.QueryPlayPoolReferencesResp
 	PlayReleaseResp                    = play.PlayReleaseResp
 	PlaySettleReq                      = play.PlaySettleReq
 	PlaySettleResp                     = play.PlaySettleResp
@@ -158,6 +154,8 @@ type (
 	PrizeItem                          = play.PrizeItem
 	PublishPlayPoolReq                 = play.PublishPlayPoolReq
 	PublishPlayPoolResp                = play.PublishPlayPoolResp
+	QueryPlayPoolReferencesReq         = play.QueryPlayPoolReferencesReq
+	QueryPlayPoolReferencesResp        = play.QueryPlayPoolReferencesResp
 	ReleaseComboChainReq               = play.ReleaseComboChainReq
 	ReleaseComboChainResp              = play.ReleaseComboChainResp
 	ReleaseDigBoxReq                   = play.ReleaseDigBoxReq
@@ -180,6 +178,7 @@ type (
 	SelectMemoryMatchDestinyResp       = play.SelectMemoryMatchDestinyResp
 	SelectMemoryMatchSecondDestinyReq  = play.SelectMemoryMatchSecondDestinyReq
 	SelectMemoryMatchSecondDestinyResp = play.SelectMemoryMatchSecondDestinyResp
+	SetCollectionSetStatusReq          = play.SetCollectionSetStatusReq
 	SetMemoryMatchAppearanceReq        = play.SetMemoryMatchAppearanceReq
 	SetMemoryMatchAppearanceResp       = play.SetMemoryMatchAppearanceResp
 	SettleComboChainReq                = play.SettleComboChainReq
@@ -197,6 +196,7 @@ type (
 	SkipMemoryMatchReq                 = play.SkipMemoryMatchReq
 	SkipMemoryMatchResp                = play.SkipMemoryMatchResp
 	UpdateAdminPlayPoolReq             = play.UpdateAdminPlayPoolReq
+	UpdateCollectionSetReq             = play.UpdateCollectionSetReq
 
 	Play interface {
 		// ---- 通用 SAGA 分支（payload 内是各玩法 typed 请求）----
@@ -419,7 +419,6 @@ func (m *defaultPlay) ListMemoryMatchConfigs(ctx context.Context, in *ListMemory
 }
 
 // ---- 图鉴集合（管理端）----
-
 func (m *defaultPlay) ListCollectionSets(ctx context.Context, in *ListCollectionSetsReq, opts ...grpc.CallOption) (*ListCollectionSetsResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.ListCollectionSets(ctx, in, opts...)

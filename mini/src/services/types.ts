@@ -669,6 +669,7 @@ export interface MemoryMatchConfigSummary {
   roundsPerPurchase: number
   maxPairCount: number
   status: number
+  coverImage?: string
 }
 
 export interface MemoryMatchConfigListResponse {

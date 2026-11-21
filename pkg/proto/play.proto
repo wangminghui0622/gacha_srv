@@ -135,6 +135,7 @@ message GetPlayPoolVersionResp {
   int64  status      = 8;
   int64  publishedAt = 9;
   repeated PlayPoolPrize prizes = 10;
+  string adminJson   = 11;
 }
 
 message PlayPoolSummary {
@@ -990,6 +991,7 @@ message MemoryMatchConfigSummary {
     int64  roundsPerPurchase = 4;
     int64  maxPairCount = 5;
     int64  status = 6;
+    string coverImage = 7;
 }
 
 message ListMemoryMatchConfigsReq {}

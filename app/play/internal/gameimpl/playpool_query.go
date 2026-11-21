@@ -40,6 +40,13 @@ func GetPlayPoolVersion(ctx context.Context, svcCtx *svc.ServiceContext, in *pla
 	if v.PublishedAt != nil {
 		publishedAt = v.PublishedAt.Unix()
 	}
+	var head struct {
+		AdminJSON string `gorm:"column:admin_json"`
+	}
+	if err := svcCtx.DB.Table("play_pool_heads").Select("admin_json").
+		Where("id = ?", v.PoolId).Take(&head).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
 	return &play.GetPlayPoolVersionResp{
 		PoolId:      v.PoolId,
 		Version:     v.Version,
@@ -51,6 +58,7 @@ func GetPlayPoolVersion(ctx context.Context, svcCtx *svc.ServiceContext, in *pla
 		Status:      v.Status,
 		PublishedAt: publishedAt,
 		Prizes:      playPoolPrizesToProto(prizes),
+		AdminJson:   head.AdminJSON,
 	}, nil
 }
 

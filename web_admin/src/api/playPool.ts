@@ -34,6 +34,8 @@ export interface PlayPoolCreateInitial {
   weight?: number
   configJson?: string
   prizes?: PlayPoolPrize[]
+  coverImage?: string
+  coverThumb?: string
 }
 
 export interface PlayPoolSummary {
@@ -99,6 +101,7 @@ export interface PlayPoolVersion {
   status?: string | number
   publishedAt?: string
   prizes?: PlayPoolPrize[]
+  adminJson?: string
 }
 
 export const playPoolClient = {

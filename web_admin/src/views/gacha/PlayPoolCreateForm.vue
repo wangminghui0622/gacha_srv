@@ -378,6 +378,8 @@ function applyInitial(initial?: PlayPoolCreateInitial | null) {
   form.ipId = initial.ipId || undefined
   form.boxCount = initial.periods ?? 1
   form.sortWeight = initial.weight ?? 0
+  form.coverImage = initial.coverImage ?? ''
+  form.coverThumb = initial.coverThumb ?? ''
   const tags = new Set(initial.tags ?? [])
   form.isOnSale = tags.has('展示')
   form.isNew = tags.has('新品')

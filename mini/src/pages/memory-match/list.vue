@@ -53,6 +53,11 @@ onLoad(async () => {
 async function loadCovers() {
   await Promise.all(
     configs.value.map(async (c) => {
+      // 后台「赏池管理 → 编辑 → 封面大图/缩略图」优先
+      if (c.coverImage && !c.coverImage.startsWith('/')) {
+        covers.value[c.configId] = c.coverImage
+        return
+      }
       try {
         const detail = await memoryMatchApi.getMemoryMatchConfig(c.configId)
         const presets = detail.config.facePresets ?? []
