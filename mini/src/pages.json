@@ -83,19 +83,24 @@
 		{
 			"path": "pages/memory-match/index",
 			"style": {
-				"navigationBarTitleText": "对对碰"
+				"navigationBarTitleText": "对对碰",
+				"navigationBarBackgroundColor": "#080b09",
+				"navigationBarTextStyle": "white",
+				"backgroundColor": "#080b09"
 			}
 		},
 		{
 			"path": "pages/memory-match/rules",
 			"style": {
-				"navigationStyle": "custom"
+				"navigationStyle": "custom",
+				"backgroundColor": "#111612"
 			}
 		},
 		{
 			"path": "pages/memory-match/buff",
 			"style": {
-				"navigationStyle": "custom"
+				"navigationStyle": "custom",
+				"backgroundColor": "#0d1110"
 			}
 		},
 		{

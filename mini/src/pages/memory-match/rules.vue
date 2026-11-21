@@ -2,16 +2,20 @@
   <view class="rule-page">
     <view class="topbar">
       <text class="back" @click="goBack">‹</text>
-      <text class="title">{{ $t('memoryMatch.rulesTitle') }}</text>
+      <text class="title">{{ t('memoryMatch.rulesTitle') }}</text>
       <text class="placeholder"></text>
     </view>
     <scroll-view scroll-y class="scroll">
-      <text class="content">{{ $t('memoryMatch.rulesText') }}</text>
+      <text class="content">{{ t('memoryMatch.rulesText') }}</text>
     </scroll-view>
   </view>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
 function goBack() {
   uni.navigateBack({ delta: 1 })
 }

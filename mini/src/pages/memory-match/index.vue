@@ -60,6 +60,12 @@ const inPlay = computed(
 // 当前玩法几张成碰（配置优先，回合快照兜底）
 const pairSize = computed(() => Math.max(2, Number(config.value?.config.pairSize || round.value?.pairSize || 2)))
 
+// 3x3 牌桌：手牌按顺序填入 9 个格子，空位保留牌桌底纹
+const boardSlots = computed(() => {
+  const hand = round.value?.handCardIds ?? []
+  return Array.from({ length: 9 }, (_, i) => ({ key: `slot-${i}`, card: hand[i] ?? 0 }))
+})
+
 // 当前生效的正面预设（会话携带 or 默认）
 const activeFacePreset = computed<MemoryMatchFacePreset | null>(() => {
   const presets = config.value?.config.facePresets ?? []
@@ -326,6 +332,10 @@ async function onAutoPair() {
   }
 }
 
+function onCellClick(card: number) {
+  if (card > 0) onCardClick(card)
+}
+
 function onCardClick(card: number) {
   if (acting.value || !round.value || round.value.terminal) return
   if (selectedCards.value.includes(card)) {
@@ -455,19 +465,33 @@ onLoad(async () => {
     <template v-if="config">
       <!-- ═══ 牌局（命运选择 / 第二命运 / 游玩中）═══ -->
       <template v-if="inPlay && session">
-        <view class="gacha-card mm-card">
-          <view class="mm-head">
-            <text class="mm-name">{{ config.config.name }}</text>
-            <text class="mm-round-progress">
-              {{ t('memoryMatch.roundProgress', { cur: session.completedRounds, total: session.purchasedRounds }) }}
-            </text>
+        <view class="mm-shell">
+          <view class="mm-top">
+            <view class="mm-heading">
+              <text class="mm-name">{{ config.config.name }}</text>
+              <text class="mm-round-progress">
+                {{ t('memoryMatch.roundProgress', { cur: session.completedRounds, total: session.purchasedRounds }) }}
+              </text>
+            </view>
+            <view class="mm-skip" :class="{ disabled: acting }" @click="onSkipClick">
+              {{ t('memoryMatch.skip') }}
+            </view>
           </view>
+          <view class="mm-champion">👑 {{ championText() }}</view>
           <view class="quick-links">
-            <view class="quick-link" @click="openRules">{{ t('memoryMatch.ruleLink') }}</view>
-            <view class="quick-link buff" @click="openBuff">{{ t('memoryMatch.buffLink') }}</view>
-            <view class="quick-link" @click="openRecords">{{ t('memoryMatch.recordsLink') }}</view>
+            <view class="quick-link" @click="openRules">
+              <text class="quick-icon">📖</text>
+              <text>{{ t('memoryMatch.ruleLink') }}</text>
+            </view>
+            <view class="quick-link buff" @click="openBuff">
+              <text class="quick-icon">⚡</text>
+              <text>{{ t('memoryMatch.buffLink') }}</text>
+            </view>
+            <view class="quick-link" @click="openRecords">
+              <text class="quick-icon">🧾</text>
+              <text>{{ t('memoryMatch.recordsLink') }}</text>
+            </view>
           </view>
-          <view class="mm-champion">{{ championText() }}</view>
 
           <!-- 命运选择（会话状态 2） -->
           <view v-if="session.state === STATE_AWAITING_DESTINY" class="destiny-panel">
@@ -480,7 +504,10 @@ onLoad(async () => {
                 :class="{ disabled: acting }"
                 @click="pickDestiny(p.patternId, false)"
               >
-                <image v-if="p.imageUrl" :src="p.imageUrl" class="pattern-img" mode="aspectFit" />
+                <view class="pattern-face">
+                  <image v-if="p.imageUrl" :src="p.imageUrl" class="pattern-img" mode="aspectFit" />
+                  <text v-else class="pattern-glyph">{{ p.patternId }}</text>
+                </view>
                 <text class="pattern-name">{{ p.name }}</text>
               </view>
             </view>
@@ -497,7 +524,10 @@ onLoad(async () => {
                 :class="{ disabled: acting }"
                 @click="pickDestiny(p.patternId, true)"
               >
-                <image v-if="p.imageUrl" :src="p.imageUrl" class="pattern-img" mode="aspectFit" />
+                <view class="pattern-face">
+                  <image v-if="p.imageUrl" :src="p.imageUrl" class="pattern-img" mode="aspectFit" />
+                  <text v-else class="pattern-glyph">{{ p.patternId }}</text>
+                </view>
                 <text class="pattern-name">{{ p.name }}</text>
               </view>
             </view>
@@ -505,7 +535,7 @@ onLoad(async () => {
 
           <!-- 牌局（会话状态 4） -->
           <view v-else-if="round" class="board-panel">
-            <view class="stat-grid">
+            <view class="stat-row">
               <view class="stat-box">
                 <text class="stat-label">{{ t('memoryMatch.destinyCount') }}</text>
                 <text class="stat-value">{{ round.availableDestiny }}</text>
@@ -519,51 +549,53 @@ onLoad(async () => {
             <view class="board-meta">
               <text>{{ t('memoryMatch.roundNo', { n: round.roundNo }) }}</text>
               <text>{{ t('memoryMatch.pairProgress', { n: round.pairCount, max: round.maxPairCount }) }}</text>
-              <text class="destiny-count">
-                ✨ {{ t('memoryMatch.destinyLeft', { n: round.availableDestiny }) }}（{{ t('memoryMatch.destinyDrawn', { n: round.destinyDraws }) }}）
-              </text>
+              <text class="destiny-count">✨ {{ t('memoryMatch.destinyDrawn', { n: round.destinyDraws }) }}</text>
             </view>
 
-            <!-- 手牌：点两张同图案配对 -->
-            <view class="hand-grid">
-              <view
-                v-for="card in round.handCardIds"
-                :key="card"
-                class="hand-tile"
-                :class="{ selected: selectedCards.includes(card) }"
-                @click="onCardClick(card)"
-              >
-                <image
-                  v-if="faceOfPattern(patternOfCard(card))?.imageUrl"
-                  :src="faceOfPattern(patternOfCard(card))!.imageUrl"
-                  class="hand-img"
-                  mode="aspectFit"
-                />
-                <text v-else class="hand-pattern">{{ patternOfCard(card) }}</text>
+            <!-- 3x3 牌桌：点相同图案的牌完成一碰 -->
+            <view class="board-stage">
+              <view class="board-grid">
+                <view
+                  v-for="slot in boardSlots"
+                  :key="slot.key"
+                  class="board-cell"
+                  :class="{ filled: slot.card > 0, selected: slot.card > 0 && selectedCards.includes(slot.card) }"
+                  @click="onCellClick(slot.card)"
+                >
+                  <image
+                    v-if="slot.card > 0 && faceOfPattern(patternOfCard(slot.card))?.imageUrl"
+                    :src="faceOfPattern(patternOfCard(slot.card))!.imageUrl"
+                    class="board-face"
+                    mode="aspectFit"
+                  />
+                  <text v-else-if="slot.card > 0" class="board-glyph">{{ patternOfCard(slot.card) }}</text>
+                  <view v-else class="board-empty">
+                    <text class="board-empty-mark">✦</text>
+                  </view>
+                </view>
               </view>
-              <view v-if="round.handCardIds.length === 0" class="hand-empty">{{ t('memoryMatch.handEmpty') }}</view>
+
+              <view class="board-side">
+                <view
+                  class="rail-btn gold"
+                  :class="{ disabled: acting || autoPlaying || round.terminal }"
+                  @click="onAutoPair"
+                >
+                  <text class="rail-icon">⚡</text>
+                  <text class="rail-text">{{ autoPlaying ? t('memoryMatch.autoPairing') : t('memoryMatch.autoPair') }}</text>
+                </view>
+                <view class="rail-btn" :class="{ disabled: acting || round.availableDestiny <= 0 }" @click="onDestinyDraw">
+                  <text class="rail-icon">✨</text>
+                  <text class="rail-text">{{ t('memoryMatch.destinyDraw') }}</text>
+                </view>
+                <view class="rail-btn ghost" :class="{ disabled: acting || !round.terminal }" @click="onComplete">
+                  <text class="rail-icon">🏁</text>
+                  <text class="rail-text">{{ t('memoryMatch.completeRound') }}</text>
+                </view>
+              </view>
             </view>
+
             <view class="board-hint">{{ round.terminal ? t('memoryMatch.roundTerminal') : t('memoryMatch.pairHint') }}</view>
-
-            <!-- 回合操作 -->
-            <view class="board-actions">
-              <view
-                class="btn-primary act-btn"
-                :class="{ disabled: acting || autoPlaying || round.terminal }"
-                @click="onAutoPair"
-              >
-                {{ autoPlaying ? t('memoryMatch.autoPairing') : t('memoryMatch.autoPair') }}
-              </view>
-              <view class="btn-plain act-btn" :class="{ disabled: acting || round.availableDestiny <= 0 }" @click="onDestinyDraw">
-                ✨ {{ t('memoryMatch.destinyDraw') }}
-              </view>
-              <view class="btn-primary act-btn" :class="{ disabled: acting || !round.terminal }" @click="onComplete">
-                {{ t('memoryMatch.completeRound') }}
-              </view>
-              <view class="btn-plain act-btn danger" :class="{ disabled: acting }" @click="onSkipClick">
-                {{ t('memoryMatch.skip') }}
-              </view>
-            </view>
 
             <!-- 回合进度 -->
             <view class="rounds-list">
@@ -590,23 +622,34 @@ onLoad(async () => {
 
       <!-- ═══ 购买页（无进行中会话）═══ -->
       <template v-else>
-        <view class="gacha-card mm-card">
-          <view class="mm-head">
-            <text class="mm-name">{{ config.config.name }}</text>
-            <text class="mm-price money">{{ formatMoney(config.config.purchasePrice) }}</text>
+        <view class="mm-shell">
+          <view class="mm-hero">
+            <text class="mm-hero-tag">PAIR MATCH</text>
+            <text class="mm-hero-title">{{ config.config.name }}</text>
+            <view class="mm-hero-price money">{{ formatMoney(config.config.purchasePrice) }}</view>
+            <text class="mm-hero-sub">
+              {{ t('memoryMatch.roundsPerPurchase', { n: config.config.roundsPerPurchase }) }}
+              · {{ t('memoryMatch.maxPairs', { n: config.config.maxPairCount }) }}
+            </text>
           </view>
           <view class="quick-links">
-            <view class="quick-link" @click="openRules">{{ t('memoryMatch.ruleLink') }}</view>
-            <view class="quick-link buff" @click="openBuff">{{ t('memoryMatch.buffLink') }}</view>
-            <view class="quick-link" @click="openRecords">{{ t('memoryMatch.recordsLink') }}</view>
-          </view>
-          <view class="mm-line">
-            {{ t('memoryMatch.roundsPerPurchase', { n: config.config.roundsPerPurchase }) }}
-            · {{ t('memoryMatch.maxPairs', { n: config.config.maxPairCount }) }}
+            <view class="quick-link" @click="openRules">
+              <text class="quick-icon">📖</text>
+              <text>{{ t('memoryMatch.ruleLink') }}</text>
+            </view>
+            <view class="quick-link buff" @click="openBuff">
+              <text class="quick-icon">⚡</text>
+              <text>{{ t('memoryMatch.buffLink') }}</text>
+            </view>
+            <view class="quick-link" @click="openRecords">
+              <text class="quick-icon">🧾</text>
+              <text>{{ t('memoryMatch.recordsLink') }}</text>
+            </view>
           </view>
           <view class="mm-champion">👑 {{ championText() }}</view>
 
           <!-- 奖档 -->
+          <view class="section-head">{{ t('memoryMatch.prizeTiers') }}</view>
           <view class="entries-list">
             <view v-for="e in config.config.entries" :key="e.entryId" class="entry-row">
               <text class="entry-pairs">{{ t('memoryMatch.entryPairs', { n: e.totalPairCount }) }}</text>
@@ -697,440 +740,655 @@ onLoad(async () => {
 </template>
 
 <style scoped lang="scss">
+$mm-ink: #e9f2ec;
+$mm-muted: #8aa696;
+$mm-green: #5cf2a2;
+$mm-gold: #ffd166;
+
+.memorymatch-page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: calc(env(safe-area-inset-top) + 24rpx) 0 calc(40rpx + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at 18% 0%, rgba(46, 140, 88, 0.3), transparent 52%),
+    radial-gradient(circle at 92% 96%, rgba(122, 84, 20, 0.22), transparent 48%),
+    #080b09;
+  color: $mm-ink;
+}
+
+.mm-shell {
+  margin: 0 24rpx;
+  padding: 30rpx 28rpx 28rpx;
+  border-radius: 28rpx;
+  border: 1rpx solid rgba(120, 255, 180, 0.14);
+  background: linear-gradient(165deg, rgba(23, 35, 27, 0.98), rgba(9, 15, 11, 0.98));
+  box-shadow: 0 24rpx 60rpx rgba(0, 0, 0, 0.45);
+  text-align: left;
+}
+
+.mm-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.mm-heading {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mm-name {
+  font-size: 42rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: #ffffff;
+}
+
+.mm-round-progress {
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  color: $mm-muted;
+}
+
+.mm-skip {
+  flex-shrink: 0;
+  padding: 10rpx 28rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.18);
+  color: #cfd8d2;
+  font-size: 24rpx;
+  line-height: 1.4;
+
+  &.disabled {
+    opacity: 0.45;
+  }
+}
+
+.mm-champion {
+  margin: 14rpx 0 2rpx;
+  font-size: 24rpx;
+  color: $mm-gold;
+}
+
 .quick-links {
   display: flex;
-  flex-wrap: wrap;
   gap: 12rpx;
-  margin: 8rpx 0 18rpx;
+  margin: 18rpx 0 4rpx;
 }
 
 .quick-link {
-  padding: 8rpx 18rpx;
-  border-radius: 999rpx;
-  border: 1rpx solid rgba(120, 255, 180, 0.35);
-  background: rgba(32, 92, 60, 0.35);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 14rpx 0;
+  border-radius: 14rpx;
+  border: 1rpx solid rgba(120, 255, 180, 0.26);
+  background: rgba(32, 92, 60, 0.28);
   color: #9ff0c3;
   font-size: 24rpx;
+  line-height: 1.3;
+
+  &.buff {
+    border-color: rgba(255, 210, 90, 0.32);
+    background: rgba(120, 92, 20, 0.28);
+    color: #ffe08a;
+  }
 }
 
-.quick-link.buff {
-  border-color: rgba(255, 210, 90, 0.4);
-  background: rgba(120, 92, 20, 0.35);
-  color: #ffe08a;
+.quick-icon {
+  font-size: 26rpx;
 }
 
-.stat-grid {
+.stat-row {
   display: flex;
   gap: 16rpx;
-  margin-bottom: 18rpx;
+  margin: 22rpx 0 16rpx;
 }
 
 .stat-box {
+  position: relative;
   flex: 1;
+  overflow: hidden;
+  padding: 18rpx 22rpx;
+  border-radius: 18rpx;
+  border: 1rpx solid rgba(120, 255, 180, 0.18);
+  background: linear-gradient(180deg, rgba(20, 50, 33, 0.92), rgba(8, 20, 13, 0.92));
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -46rpx;
+    right: -36rpx;
+    width: 140rpx;
+    height: 140rpx;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(92, 242, 162, 0.18), transparent 70%);
+  }
+}
+
+.stat-label {
+  display: block;
+  font-size: 24rpx;
+  letter-spacing: 2rpx;
+  color: #8fd9b1;
+}
+
+.stat-value {
+  display: block;
+  margin-top: 2rpx;
+  font-size: 64rpx;
+  font-weight: 900;
+  line-height: 1.05;
+  color: #ffffff;
+  text-shadow: 0 0 24rpx rgba(92, 242, 162, 0.35);
+}
+
+.board-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx 20rpx;
+  margin-bottom: 16rpx;
+  font-size: 22rpx;
+  color: $mm-muted;
+
+  .destiny-count {
+    color: $mm-gold;
+  }
+}
+
+// 3x3 牌桌与右侧操作栏
+.board-stage {
+  display: flex;
+  align-items: stretch;
+  gap: 14rpx;
+}
+
+.board-grid {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  padding: 10rpx;
+  border-radius: 22rpx;
+  border: 1rpx solid rgba(120, 255, 180, 0.16);
+  background:
+    radial-gradient(circle at 50% 38%, rgba(30, 80, 52, 0.35), rgba(5, 10, 7, 0.96) 72%),
+    #060a07;
+  box-shadow: inset 0 0 60rpx rgba(0, 0, 0, 0.6);
+}
+
+.board-cell {
+  box-sizing: border-box;
+  width: calc(33.333% - 10rpx);
+  height: 158rpx;
+  margin: 5rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 14rpx;
+  border: 1rpx dashed rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+
+  &.filled {
+    border-style: solid;
+    border-color: rgba(126, 255, 179, 0.25);
+    background: linear-gradient(180deg, #1d2f24, #0f1c15);
+    box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.35);
+  }
+
+  &.selected {
+    transform: translateY(-4rpx);
+    border-color: $mm-gold;
+    box-shadow: 0 0 0 3rpx rgba(255, 209, 102, 0.35), 0 0 30rpx rgba(255, 209, 102, 0.25);
+  }
+}
+
+.board-face {
+  width: 100%;
+  height: 100%;
+  padding: 8rpx;
+  box-sizing: border-box;
+}
+
+.board-glyph {
+  font-size: 64rpx;
+  font-weight: 900;
+  color: $mm-green;
+}
+
+.board-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.board-empty-mark {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.07);
+}
+
+.board-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  width: 148rpx;
+  flex-shrink: 0;
+}
+
+.rail-btn {
+  flex: 1;
+  min-height: 96rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 18rpx 12rpx;
+  justify-content: center;
+  gap: 6rpx;
+  padding: 10rpx 6rpx;
   border-radius: 16rpx;
   border: 1rpx solid rgba(120, 255, 180, 0.25);
-  background: linear-gradient(180deg, rgba(15, 42, 28, 0.9), rgba(8, 22, 15, 0.9));
+  background: linear-gradient(180deg, rgba(26, 70, 45, 0.85), rgba(9, 22, 14, 0.9));
+  color: #bff5d6;
+  font-size: 22rpx;
+  line-height: 1.25;
+  text-align: center;
 
-  .stat-label {
-    font-size: 24rpx;
-    color: #8fd9b1;
+  &.gold {
+    border-color: rgba(255, 210, 90, 0.55);
+    background: linear-gradient(180deg, rgba(120, 88, 20, 0.85), rgba(40, 28, 6, 0.9));
+    color: #ffe08a;
+    box-shadow: 0 0 24rpx rgba(255, 190, 60, 0.18);
   }
 
-  .stat-value {
-    margin-top: 6rpx;
-    font-size: 52rpx;
+  &.ghost {
+    border-color: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.04);
+    color: #cfd8d2;
+  }
+
+  &.disabled {
+    opacity: 0.38;
+  }
+}
+
+.rail-icon {
+  font-size: 30rpx;
+}
+
+.rail-text {
+  word-break: break-all;
+}
+
+.board-hint {
+  margin-top: 14rpx;
+  font-size: 23rpx;
+  line-height: 1.6;
+  color: $mm-muted;
+  text-align: center;
+}
+
+.rounds-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 18rpx;
+}
+
+.round-chip {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 22rpx;
+  color: #b6c9bd;
+
+  &.active {
+    border-color: rgba(92, 242, 162, 0.55);
+    color: $mm-green;
+  }
+
+  &.done {
+    border-color: rgba(255, 209, 102, 0.5);
+    color: $mm-gold;
+  }
+
+  &.skipped {
+    opacity: 0.5;
+  }
+}
+
+.round-chip-state {
+  font-size: 20rpx;
+}
+
+// 命运选择盘
+.destiny-panel {
+  margin-top: 10rpx;
+}
+
+.panel-title {
+  margin: 18rpx 0 14rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #d9f5e4;
+}
+
+.pattern-grid {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -6rpx;
+}
+
+.pattern-tile {
+  box-sizing: border-box;
+  width: calc(33.333% - 12rpx);
+  margin: 6rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 14rpx 8rpx 12rpx;
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(120, 255, 180, 0.18);
+  background: linear-gradient(180deg, #1a2b21, #0d1711);
+
+  &.disabled {
+    opacity: 0.5;
+  }
+}
+
+.pattern-face {
+  width: 120rpx;
+  height: 150rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10rpx;
+  background: radial-gradient(circle at 50% 35%, rgba(44, 110, 74, 0.5), rgba(9, 20, 14, 0.95));
+  box-shadow: inset 0 0 24rpx rgba(0, 0, 0, 0.5);
+}
+
+.pattern-img {
+  width: 96rpx;
+  height: 120rpx;
+}
+
+.pattern-glyph {
+  font-size: 56rpx;
+  font-weight: 900;
+  color: $mm-green;
+}
+
+.pattern-name {
+  font-size: 22rpx;
+  color: #9fbfae;
+}
+
+// 购买页
+.mm-hero {
+  padding: 20rpx 8rpx 6rpx;
+}
+
+.mm-hero-tag {
+  display: inline-block;
+  padding: 4rpx 18rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(92, 242, 162, 0.35);
+  color: $mm-green;
+  font-size: 20rpx;
+  letter-spacing: 6rpx;
+}
+
+.mm-hero-title {
+  display: block;
+  margin-top: 18rpx;
+  font-size: 56rpx;
+  font-weight: 900;
+  letter-spacing: 3rpx;
+  color: #ffffff;
+}
+
+.mm-hero-price {
+  margin-top: 8rpx;
+  font-size: 46rpx;
+  font-weight: 800;
+  color: $mm-gold;
+}
+
+.mm-hero-sub {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  color: $mm-muted;
+}
+
+.section-head {
+  margin: 26rpx 0 12rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  color: #b9d7c6;
+}
+
+.entries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  margin-bottom: 8rpx;
+}
+
+.entry-row {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 16rpx 20rpx;
+  border-radius: 14rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 25rpx;
+}
+
+.entry-pairs {
+  flex-shrink: 0;
+  font-weight: 800;
+  color: $mm-gold;
+}
+
+.entry-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #dcebe2;
+}
+
+.entry-remain {
+  flex-shrink: 0;
+  font-size: 22rpx;
+  color: $mm-muted;
+}
+
+.preset-grid {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -6rpx;
+}
+
+.preset-tile {
+  position: relative;
+  box-sizing: border-box;
+  width: calc(33.333% - 12rpx);
+  margin: 6rpx;
+  padding: 20rpx 8rpx;
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: #dcebe2;
+  font-size: 24rpx;
+  text-align: center;
+
+  &.selected {
+    border-color: $mm-gold;
+    color: #ffe08a;
+    box-shadow: 0 0 0 2rpx rgba(255, 209, 102, 0.28);
+  }
+
+  &.disabled {
+    opacity: 0.4;
+  }
+}
+
+.preset-name {
+  font-size: 24rpx;
+}
+
+.preset-lock {
+  position: absolute;
+  top: 4rpx;
+  right: 8rpx;
+  font-size: 22rpx;
+}
+
+.quote-card {
+  margin: 26rpx 0 18rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.quote-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 26rpx;
+  color: $mm-muted;
+
+  .money {
+    font-size: 32rpx;
     font-weight: 800;
-    color: #ffffff;
-    line-height: 1.1;
+    color: $mm-gold;
   }
 }
 
 .start-btn {
   margin-top: 20rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #2fd98a, #0f9d63);
   font-size: 34rpx;
+  font-weight: 700;
   letter-spacing: 6rpx;
-}
-
-.mm-card {
-  text-align: left;
-
-  .mm-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8rpx;
-
-    .mm-name {
-      font-size: 40rpx;
-      font-weight: 700;
-    }
-
-    .mm-price {
-      font-size: 36rpx;
-      font-weight: 700;
-      color: var(--color-accent);
-    }
-
-    .mm-round-progress {
-      font-size: 26rpx;
-      color: var(--color-text-secondary);
-    }
-  }
-
-  .mm-line {
-    font-size: 26rpx;
-    color: var(--color-text-secondary);
-    margin-bottom: 12rpx;
-  }
-
-  .mm-champion {
-    font-size: 26rpx;
-    color: var(--color-accent);
-    margin-bottom: 20rpx;
-  }
-}
-
-.money {
-  color: var(--color-accent);
-}
-
-// 奖档列表
-.entries-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12rpx;
-  margin-bottom: 24rpx;
-
-  .entry-row {
-    display: flex;
-    align-items: center;
-    gap: 16rpx;
-    border: 1rpx solid var(--color-border);
-    border-radius: 12rpx;
-    padding: 12rpx 20rpx;
-    background: var(--color-bg);
-    font-size: 26rpx;
-
-    .entry-pairs {
-      flex-shrink: 0;
-      font-weight: 700;
-      color: var(--color-primary);
-    }
-
-    .entry-name {
-      flex: 1;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .entry-remain {
-      flex-shrink: 0;
-      color: var(--color-text-secondary);
-      font-size: 24rpx;
-    }
-  }
-}
-
-.panel-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  margin: 20rpx 0 12rpx;
-}
-
-// 预设选择（web grid 3 列 → flex-wrap）
-.preset-grid {
-  display: flex;
-  flex-wrap: wrap;
-  margin: 0 -6rpx 8rpx;
-
-  .preset-tile {
-    position: relative;
-    box-sizing: border-box;
-    width: calc(33.33% - 12rpx);
-    margin: 6rpx;
-    border: 1rpx solid var(--color-border);
-    border-radius: 12rpx;
-    background: var(--color-bg);
-    padding: 20rpx 8rpx;
-    font-size: 26rpx;
-    text-align: center;
-
-    &.selected {
-      border-color: var(--color-accent);
-      box-shadow: 0 0 0 3rpx rgba(255, 165, 0, 0.25);
-    }
-
-    &.disabled {
-      opacity: 0.45;
-    }
-
-    .preset-lock {
-      position: absolute;
-      top: 4rpx;
-      right: 8rpx;
-      font-size: 24rpx;
-    }
-  }
-}
-
-.quote-card {
-  background: var(--color-bg);
-  border-radius: 12rpx;
-  padding: 20rpx 24rpx;
-  margin: 20rpx 0 24rpx;
-
-  .quote-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 26rpx;
-  }
+  line-height: 92rpx;
+  box-shadow: 0 12rpx 30rpx rgba(24, 180, 110, 0.35);
 }
 
 .wallet-tip {
-  margin-top: 16rpx;
-  font-size: 24rpx;
-  color: var(--color-text-secondary);
+  margin-top: 14rpx;
   text-align: center;
+  font-size: 22rpx;
+  color: $mm-muted;
 }
 
-// 命运选择盘（web grid 3 列 → flex-wrap）
-.destiny-panel {
-  .pattern-grid {
-    display: flex;
-    flex-wrap: wrap;
-    margin: 16rpx -8rpx 0;
-
-    .pattern-tile {
-      box-sizing: border-box;
-      width: calc(33.33% - 16rpx);
-      margin: 8rpx;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8rpx;
-      border: 1rpx solid var(--color-border);
-      border-radius: 12rpx;
-      background: var(--color-bg);
-      padding: 20rpx 8rpx;
-
-      &.disabled {
-        opacity: 0.5;
-      }
-
-      .pattern-img {
-        width: 96rpx;
-        height: 96rpx;
-      }
-
-      .pattern-name {
-        font-size: 24rpx;
-      }
-    }
-  }
+.money {
+  color: $mm-gold;
 }
 
-// 牌局
-.board-panel {
-  .board-meta {
-    display: flex;
-    gap: 20rpx;
-    flex-wrap: wrap;
-    font-size: 26rpx;
-    color: var(--color-text-secondary);
-    margin-bottom: 20rpx;
-
-    .destiny-count {
-      color: var(--color-accent);
-    }
-  }
-
-  .hand-grid {
-    display: flex;
-    flex-wrap: wrap;
-    margin: 0 -6rpx 16rpx;
-
-    .hand-tile {
-      box-sizing: border-box;
-      width: calc(33.33% - 12rpx);
-      margin: 6rpx;
-      height: 220rpx;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1rpx solid var(--color-border);
-      border-radius: 12rpx;
-      background: var(--color-bg);
-
-      &.selected {
-        border-color: var(--color-accent);
-        box-shadow: 0 0 0 3rpx rgba(255, 165, 0, 0.25);
-      }
-
-      .hand-img {
-        width: 100%;
-        height: 100%;
-        padding: 12rpx;
-        box-sizing: border-box;
-      }
-
-      .hand-pattern {
-        font-size: 48rpx;
-        font-weight: 700;
-        color: var(--color-primary);
-      }
-    }
-
-    .hand-empty {
-      width: 100%;
-      text-align: center;
-      font-size: 26rpx;
-      color: var(--color-text-secondary);
-      padding: 32rpx 0;
-    }
-  }
-
-  .board-hint {
-    font-size: 24rpx;
-    color: var(--color-text-secondary);
-    margin-bottom: 20rpx;
-  }
-
-  .board-actions {
-    display: flex;
-    gap: 16rpx;
-    margin-bottom: 24rpx;
-
-    .act-btn {
-      flex: 1;
-      font-size: 26rpx;
-      line-height: 76rpx;
-      margin-top: 0;
-
-      &.danger {
-        color: var(--color-danger);
-        border-color: var(--color-danger);
-      }
-    }
-  }
-
-  .rounds-list {
-    display: flex;
-    gap: 16rpx;
-    flex-wrap: wrap;
-
-    .round-chip {
-      display: flex;
-      align-items: center;
-      gap: 12rpx;
-      border: 1rpx solid var(--color-border);
-      border-radius: 999rpx;
-      padding: 6rpx 20rpx;
-      font-size: 24rpx;
-      background: var(--color-bg);
-
-      &.active {
-        border-color: var(--color-primary);
-        color: var(--color-primary);
-      }
-
-      &.done {
-        border-color: var(--color-accent);
-        color: var(--color-accent);
-      }
-
-      &.skipped {
-        opacity: 0.5;
-      }
-
-      .round-chip-state {
-        font-size: 22rpx;
-      }
-    }
-  }
-
-  .spinner {
-    width: 48rpx;
-    height: 48rpx;
-    margin: 0 auto 12rpx;
-    border: 4rpx solid var(--color-border);
-    border-top-color: var(--color-primary);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
+// 结算弹层
+.modal-mask .modal-card {
+  border: 1rpx solid rgba(120, 255, 180, 0.18);
+  background: linear-gradient(165deg, #1a2b21, #0c1510);
+  color: $mm-ink;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-// 结算弹层（a-modal → 自绘弹层）
 .settle-title {
+  margin-bottom: 24rpx;
   font-size: 34rpx;
   font-weight: 700;
   text-align: center;
-  margin-bottom: 24rpx;
 }
 
 .settle-body {
   text-align: center;
+}
 
-  .settle-emoji {
-    font-size: 112rpx;
-    margin-bottom: 20rpx;
-  }
+.settle-emoji {
+  margin-bottom: 20rpx;
+  font-size: 112rpx;
+}
 
-  .settle-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 28rpx;
-    padding: 12rpx 8rpx;
+.settle-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12rpx 8rpx;
+  font-size: 28rpx;
+}
 
-    .settle-strong {
-      font-weight: 700;
-      color: var(--color-accent);
-    }
-  }
+.settle-strong {
+  font-weight: 700;
+  color: $mm-gold;
+}
 
-  .settle-hash {
-    text-align: left;
-    font-size: 24rpx;
-    color: var(--color-text-secondary);
-    padding: 12rpx 8rpx 20rpx;
+.settle-hash {
+  padding: 12rpx 8rpx 20rpx;
+  text-align: left;
+  font-size: 24rpx;
+  color: $mm-muted;
+}
 
-    .settle-hash-label {
-      margin-right: 12rpx;
-    }
+.settle-hash-label {
+  margin-right: 12rpx;
+}
 
-    .settle-hash-value {
-      font-size: 22rpx;
-      word-break: break-all;
-    }
-  }
+.settle-hash-value {
+  font-size: 22rpx;
+  word-break: break-all;
+}
 
-  .mm-champion {
-    font-size: 26rpx;
-    color: var(--color-accent);
-    margin-bottom: 24rpx;
-  }
+.settle-body .mm-champion {
+  margin-bottom: 24rpx;
 }
 
 .settle-empty {
   text-align: center;
-  color: var(--color-text-secondary);
+  color: $mm-muted;
   font-size: 26rpx;
 }
 
-.center {
+.spinner {
+  width: 48rpx;
+  height: 48rpx;
+  margin: 0 auto 12rpx;
+  border: 4rpx solid rgba(255, 255, 255, 0.12);
+  border-top-color: $mm-green;
+  border-radius: 50%;
+  animation: mm-spin 0.8s linear infinite;
+}
+
+@keyframes mm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.mm-card.center {
+  margin: 0 24rpx;
+  border-radius: 28rpx;
+  border: 1rpx solid rgba(120, 255, 180, 0.14);
+  background: linear-gradient(165deg, rgba(23, 35, 27, 0.98), rgba(9, 15, 11, 0.98));
+  color: $mm-muted;
   text-align: center;
 
   .mm-empty {
-    color: var(--color-text-secondary);
+    color: $mm-muted;
     font-size: 26rpx;
   }
 }
