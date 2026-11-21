@@ -49,6 +49,12 @@ const selectedCards = ref<number[]>([])
 const settlement = ref<MemoryMatchSettlementView | null>(null)
 const settlementOpen = ref(false)
 
+// 主题页弹层
+const faceModalOpen = ref(false)
+const backModalOpen = ref(false)
+const prizeModalOpen = ref(false)
+const championModalOpen = ref(false)
+
 // 外观选择（0=默认；购买前 PUT 持久化）
 const facePresetId = ref(0)
 const backPresetId = ref(0)
@@ -69,6 +75,31 @@ const boardSlots = computed(() => {
   const hand = round.value?.handCardIds ?? []
   return Array.from({ length: 9 }, (_, i) => ({ key: `slot-${i}`, card: hand[i] ?? 0 }))
 })
+
+// 页面展示模式：购买前预览 / 选吉祥卡 / 牌局
+const displayMode = computed<'preview' | 'destiny' | 'board' | 'loading'>(() => {
+  if (session.value?.state === STATE_AWAITING_DESTINY || session.value?.state === STATE_AWAITING_SECOND) {
+    return 'destiny'
+  }
+  if (inPlay.value) {
+    return round.value ? 'board' : 'loading'
+  }
+  return 'preview'
+})
+
+const heroImage = computed(() => {
+  const backs = config.value?.config.backPresets ?? []
+  const bid = session.value?.backPresetId ?? backPresetId.value ?? config.value?.config.defaultBackPresetId ?? 0
+  const back = backs.find((b) => b.presetId === bid) ?? backs[0]
+  return back?.faceBackgroundImageUrl || back?.backImageUrl || faceOfPattern(1)?.imageUrl || ''
+})
+
+const luckyPatternId = computed(() => session.value?.destinyPatternId || round.value?.destinyPatternId || 1)
+const luckyCardImage = computed(() => faceOfPattern(luckyPatternId.value)?.imageUrl || faceOfPattern(1)?.imageUrl || '')
+const previewCardImage = computed(() => faceOfPattern(1)?.imageUrl || '')
+
+const displayDestiny = computed(() => (displayMode.value === 'board' ? round.value?.availableDestiny ?? 0 : 0))
+const displayPairs = computed(() => (displayMode.value === 'board' ? round.value?.pairCount ?? 0 : 0))
 
 // 当前生效的正面预设（会话携带 or 默认）
 const activeFacePreset = computed<MemoryMatchFacePreset | null>(() => {
@@ -118,6 +149,8 @@ function championText(): string {
   const mask = String(c.userId).slice(-4)
   return t('memoryMatch.championLine', { user: `***${mask}`, n: c.totalPairCount })
 }
+
+const championPending = computed(() => config.value?.champion.pendingIncome || '0.00')
 
 // ── 读取 ──
 
@@ -285,6 +318,40 @@ function openBuff() {
 
 function openRecords() {
   uni.navigateTo({ url: '/pages/records/index' })
+}
+
+function goBack() {
+  uni.navigateBack({ delta: 1 })
+}
+
+function onShare() {
+  uni.showToast({ title: '请使用右上角分享', icon: 'none' })
+}
+
+function openFacePicker() {
+  faceModalOpen.value = true
+}
+
+function openBackPicker() {
+  backModalOpen.value = true
+}
+
+function openPrizes() {
+  prizeModalOpen.value = true
+}
+
+function openChampion() {
+  championModalOpen.value = true
+}
+
+function chooseFacePreset(id: number) {
+  selectFacePreset(id)
+  if (facePresetId.value === id) faceModalOpen.value = false
+}
+
+function chooseBackPreset(id: number) {
+  selectBackPreset(id)
+  if (backPresetId.value === id) backModalOpen.value = false
 }
 
 // ── 牌局 ──
@@ -473,205 +540,181 @@ onLoad(async (query?: Record<string, string | undefined>) => {
 </script>
 
 <template>
-  <view class="memorymatch-page">
+  <view class="mm-page">
     <template v-if="config">
-      <!-- ═══ 牌局（命运选择 / 第二命运 / 游玩中）═══ -->
-      <template v-if="inPlay && session">
-        <view class="mm-shell">
-          <view class="mm-top">
-            <view class="mm-heading">
-              <text class="mm-name">{{ config.config.name }}</text>
-              <text class="mm-round-progress">
-                {{ t('memoryMatch.roundProgress', { cur: session.completedRounds, total: session.purchasedRounds }) }}
-              </text>
-            </view>
-            <view class="mm-skip" :class="{ disabled: acting }" @click="onSkipClick">
-              {{ t('memoryMatch.skip') }}
-            </view>
+      <!-- 顶栏 -->
+      <view class="mm-topbar">
+        <view class="top-btn" @click="goBack">‹</view>
+        <text class="top-title">{{ config.config.name }}</text>
+        <view class="top-btn share" @click="onShare">↗</view>
+      </view>
+
+      <!-- 主题英雄区 + 左右入口 -->
+      <view class="hero-wrap">
+        <view class="hero-ring"></view>
+        <view class="hero-platform"></view>
+        <image v-if="heroImage" :src="heroImage" class="hero-img" mode="aspectFit" />
+        <view v-else class="hero-fallback">🥷</view>
+
+        <view class="side-rail left">
+          <view class="side-btn" @click="openFacePicker">
+            <text class="side-icon">🎴</text>
+            <text class="side-text">卡面预设</text>
           </view>
-          <view class="mm-champion">👑 {{ championText() }}</view>
-          <view class="quick-links">
-            <view class="quick-link" @click="openRules">
-              <text class="quick-icon">📖</text>
-              <text>{{ t('memoryMatch.ruleLink') }}</text>
-            </view>
-            <view class="quick-link buff" @click="openBuff">
-              <text class="quick-icon">⚡</text>
-              <text>{{ t('memoryMatch.buffLink') }}</text>
-            </view>
-            <view class="quick-link" @click="openRecords">
-              <text class="quick-icon">🧾</text>
-              <text>{{ t('memoryMatch.recordsLink') }}</text>
-            </view>
+          <view class="side-btn" @click="openBackPicker">
+            <text class="side-icon">🃏</text>
+            <text class="side-text">卡背预设</text>
           </view>
-
-          <!-- 命运选择（会话状态 2） -->
-          <view v-if="session.state === STATE_AWAITING_DESTINY" class="destiny-panel">
-            <view class="panel-title">🔮 {{ t('memoryMatch.pickDestiny') }}</view>
-            <view class="pattern-grid">
-              <view
-                v-for="p in patternOptions()"
-                :key="p.patternId"
-                class="pattern-tile"
-                :class="{ disabled: acting }"
-                @click="pickDestiny(p.patternId, false)"
-              >
-                <view class="pattern-face">
-                  <image v-if="p.imageUrl" :src="p.imageUrl" class="pattern-img" mode="aspectFit" />
-                  <text v-else class="pattern-glyph">{{ p.patternId }}</text>
-                </view>
-                <text class="pattern-name">{{ p.name }}</text>
-              </view>
-            </view>
-          </view>
-
-          <!-- 第二命运选择（会话状态 3） -->
-          <view v-else-if="session.state === STATE_AWAITING_SECOND" class="destiny-panel">
-            <view class="panel-title">🔮 {{ t('memoryMatch.pickSecondDestiny') }}</view>
-            <view class="pattern-grid">
-              <view
-                v-for="p in patternOptions()"
-                :key="p.patternId"
-                class="pattern-tile"
-                :class="{ disabled: acting }"
-                @click="pickDestiny(p.patternId, true)"
-              >
-                <view class="pattern-face">
-                  <image v-if="p.imageUrl" :src="p.imageUrl" class="pattern-img" mode="aspectFit" />
-                  <text v-else class="pattern-glyph">{{ p.patternId }}</text>
-                </view>
-                <text class="pattern-name">{{ p.name }}</text>
-              </view>
-            </view>
-          </view>
-
-          <!-- 牌局（会话状态 4） -->
-          <view v-else-if="round" class="board-panel">
-            <view class="stat-row">
-              <view class="stat-box">
-                <text class="stat-label">{{ t('memoryMatch.destinyCount') }}</text>
-                <text class="stat-value">{{ round.availableDestiny }}</text>
-              </view>
-              <view class="stat-box">
-                <text class="stat-label">{{ t('memoryMatch.currentPairs') }}</text>
-                <text class="stat-value">{{ round.pairCount }}</text>
-              </view>
-            </view>
-
-            <view class="board-meta">
-              <text>{{ t('memoryMatch.roundNo', { n: round.roundNo }) }}</text>
-              <text>{{ t('memoryMatch.pairProgress', { n: round.pairCount, max: round.maxPairCount }) }}</text>
-              <text class="destiny-count">✨ {{ t('memoryMatch.destinyDrawn', { n: round.destinyDraws }) }}</text>
-            </view>
-
-            <!-- 3x3 牌桌：点相同图案的牌完成一碰 -->
-            <view class="board-stage">
-              <view class="board-grid">
-                <view
-                  v-for="slot in boardSlots"
-                  :key="slot.key"
-                  class="board-cell"
-                  :class="{ filled: slot.card > 0, selected: slot.card > 0 && selectedCards.includes(slot.card) }"
-                  @click="onCellClick(slot.card)"
-                >
-                  <image
-                    v-if="slot.card > 0 && faceOfPattern(patternOfCard(slot.card))?.imageUrl"
-                    :src="faceOfPattern(patternOfCard(slot.card))!.imageUrl"
-                    class="board-face"
-                    mode="aspectFit"
-                  />
-                  <text v-else-if="slot.card > 0" class="board-glyph">{{ patternOfCard(slot.card) }}</text>
-                  <view v-else class="board-empty">
-                    <text class="board-empty-mark">✦</text>
-                  </view>
-                </view>
-              </view>
-
-              <view class="board-side">
-                <view
-                  class="rail-btn gold"
-                  :class="{ disabled: acting || autoPlaying || round.terminal }"
-                  @click="onAutoPair"
-                >
-                  <text class="rail-icon">⚡</text>
-                  <text class="rail-text">{{ autoPlaying ? t('memoryMatch.autoPairing') : t('memoryMatch.autoPair') }}</text>
-                </view>
-                <view class="rail-btn" :class="{ disabled: acting || round.availableDestiny <= 0 }" @click="onDestinyDraw">
-                  <text class="rail-icon">✨</text>
-                  <text class="rail-text">{{ t('memoryMatch.destinyDraw') }}</text>
-                </view>
-                <view class="rail-btn ghost" :class="{ disabled: acting || !round.terminal }" @click="onComplete">
-                  <text class="rail-icon">🏁</text>
-                  <text class="rail-text">{{ t('memoryMatch.completeRound') }}</text>
-                </view>
-              </view>
-            </view>
-
-            <view class="board-hint">{{ round.terminal ? t('memoryMatch.roundTerminal') : t('memoryMatch.pairHint') }}</view>
-
-            <!-- 回合进度 -->
-            <view class="rounds-list">
-              <view
-                v-for="r in session.rounds"
-                :key="r.roundNo"
-                class="round-chip"
-                :class="{ active: r.state === 2, done: r.state === 3, skipped: r.state === 4 }"
-              >
-                <text>{{ t('memoryMatch.roundNo', { n: r.roundNo }) }}</text>
-                <text class="round-chip-state">
-                  {{ r.state === 2 ? t('memoryMatch.roundPlaying') : r.state === 3 ? t('memoryMatch.roundResolved') : t('memoryMatch.roundSkipped') }}
-                </text>
-              </view>
-            </view>
-          </view>
-
-          <view v-else class="board-panel">
-            <view class="spinner"></view>
-            <view class="board-hint">{{ t('common.loading') }}</view>
+          <view class="side-btn gold" @click="openChampion">
+            <text class="side-icon">🏆</text>
+            <text class="side-text">吉王领域</text>
           </view>
         </view>
-      </template>
 
-      <!-- ═══ 购买页（无进行中会话）═══ -->
-      <template v-else>
-        <view class="mm-shell">
-          <view class="mm-hero">
-            <text class="mm-hero-tag">PAIR MATCH</text>
-            <text class="mm-hero-title">{{ config.config.name }}</text>
-            <view class="mm-hero-price money">{{ formatMoney(config.config.purchasePrice) }}</view>
-            <text class="mm-hero-sub">
-              {{ t('memoryMatch.roundsPerPurchase', { n: config.config.roundsPerPurchase }) }}
-              · {{ t('memoryMatch.maxPairs', { n: config.config.maxPairCount }) }}
-            </text>
+        <view class="side-rail right">
+          <view class="side-btn" @click="openRules">
+            <text class="side-icon">📜</text>
+            <text class="side-text">抽赏规则</text>
           </view>
-          <view class="quick-links">
-            <view class="quick-link" @click="openRules">
-              <text class="quick-icon">📖</text>
-              <text>{{ t('memoryMatch.ruleLink') }}</text>
-            </view>
-            <view class="quick-link buff" @click="openBuff">
-              <text class="quick-icon">⚡</text>
-              <text>{{ t('memoryMatch.buffLink') }}</text>
-            </view>
-            <view class="quick-link" @click="openRecords">
-              <text class="quick-icon">🧾</text>
-              <text>{{ t('memoryMatch.recordsLink') }}</text>
-            </view>
+          <view class="side-btn" @click="openPrizes">
+            <text class="side-icon">🎁</text>
+            <text class="side-text">赏品列表</text>
           </view>
-          <view class="mm-champion">👑 {{ championText() }}</view>
+          <view class="side-btn" @click="openRecords">
+            <text class="side-icon">🧾</text>
+            <text class="side-text">抽赏记录</text>
+          </view>
+        </view>
+      </view>
 
-          <!-- 奖档 -->
-          <view class="section-head">{{ t('memoryMatch.prizeTiers') }}</view>
-          <view class="entries-list">
-            <view v-for="e in config.config.entries" :key="e.entryId" class="entry-row">
-              <text class="entry-pairs">{{ t('memoryMatch.entryPairs', { n: e.totalPairCount }) }}</text>
-              <text class="entry-name">{{ e.name }} · {{ entryPrizeText(e.prize) }}</text>
-              <text class="entry-remain">{{ t('memoryMatch.entryRemain', { n: e.remaining }) }}</text>
-            </view>
+      <!-- 吉祥卡 / 吉祥数 / 当前碰数 -->
+      <view class="stat-row">
+        <view class="stat-card lucky-card">
+          <view class="lucky-img-wrap">
+            <image v-if="luckyCardImage" :src="luckyCardImage" class="lucky-img" mode="aspectFill" />
+            <text v-else class="lucky-glyph">吉</text>
           </view>
+          <text class="stat-caption">吉祥卡</text>
+        </view>
+        <view class="stat-card">
+          <text class="stat-label">吉祥数</text>
+          <text class="stat-value">{{ displayDestiny }}</text>
+          <view
+            class="stat-action"
+            :class="{ disabled: displayMode !== 'board' || displayDestiny <= 0 || acting }"
+            @click="onDestinyDraw"
+          >
+            使用
+          </view>
+        </view>
+        <view class="stat-card">
+          <text class="stat-label">当前碰数</text>
+          <text class="stat-value">{{ displayPairs }}</text>
+          <view
+            class="stat-action gold"
+            :class="{ disabled: displayMode !== 'board' || acting || autoPlaying || !round || round.terminal }"
+            @click="onAutoPair"
+          >
+            {{ autoPlaying ? '碰牌中' : '开启自动碰' }}
+          </view>
+        </view>
+      </view>
 
-          <!-- 正面预设选择（非默认需拥有权益） -->
-          <view class="panel-title">🎴 {{ t('memoryMatch.facePresetLabel') }}</view>
+      <!-- 3x3 牌桌 -->
+      <view class="card-grid">
+        <template v-if="displayMode === 'preview'">
+          <view v-for="i in 9" :key="`preview-${i}`" class="card-cell preview">
+            <image v-if="previewCardImage" :src="previewCardImage" class="card-img" mode="aspectFill" />
+            <text v-else class="card-glyph">{{ i }}</text>
+            <text class="pattern-badge">{{ i }}</text>
+          </view>
+        </template>
+
+        <template v-else-if="displayMode === 'destiny'">
+          <view
+            v-for="p in patternOptions()"
+            :key="`destiny-${p.patternId}`"
+            class="card-cell destiny"
+            :class="{ disabled: acting }"
+            @click="pickDestiny(p.patternId, session?.state === STATE_AWAITING_SECOND)"
+          >
+            <image v-if="p.imageUrl" :src="p.imageUrl" class="card-img" mode="aspectFill" />
+            <text v-else class="card-glyph">{{ p.patternId }}</text>
+            <text class="pattern-badge">{{ p.patternId }}</text>
+            <text class="destiny-name">{{ p.name }}</text>
+          </view>
+        </template>
+
+        <template v-else-if="displayMode === 'board'">
+          <view
+            v-for="slot in boardSlots"
+            :key="slot.key"
+            class="card-cell"
+            :class="{ filled: slot.card > 0, selected: slot.card > 0 && selectedCards.includes(slot.card) }"
+            @click="onCellClick(slot.card)"
+          >
+            <image
+              v-if="slot.card > 0 && faceOfPattern(patternOfCard(slot.card))?.imageUrl"
+              :src="faceOfPattern(patternOfCard(slot.card))!.imageUrl"
+              class="card-img"
+              mode="aspectFill"
+            />
+            <text v-else-if="slot.card > 0" class="card-glyph">{{ patternOfCard(slot.card) }}</text>
+            <view v-else class="card-empty"></view>
+            <text v-if="slot.card > 0" class="pattern-badge">{{ patternOfCard(slot.card) }}</text>
+          </view>
+        </template>
+
+        <template v-else>
+          <view v-for="i in 9" :key="`loading-${i}`" class="card-cell loading"></view>
+        </template>
+      </view>
+
+      <view v-if="displayMode === 'destiny'" class="hint">
+        {{ session?.state === STATE_AWAITING_SECOND ? t('memoryMatch.pickSecondDestiny') : t('memoryMatch.pickDestiny') }}
+      </view>
+      <view v-else-if="displayMode === 'board'" class="hint">
+        {{ round?.terminal ? t('memoryMatch.roundTerminal') : t('memoryMatch.pairHint') }}
+      </view>
+
+      <!-- 底部价格与操作 -->
+      <view class="bottom-area">
+        <view class="price-row">
+          <text class="price-text">{{ formatMoney(config.config.purchasePrice) }}/次</text>
+        </view>
+        <view v-if="displayMode === 'preview'" class="start-btn" :class="{ disabled: buying }" @click="onBuyClick">
+          {{ t('memoryMatch.startGame') }}
+        </view>
+        <view v-else-if="displayMode === 'board'" class="game-actions">
+          <view class="game-btn" :class="{ disabled: acting || !round || !round.terminal }" @click="onComplete">完成回合</view>
+          <view class="game-btn" :class="{ disabled: acting || autoPlaying || !round || round.terminal }" @click="onAutoPair">自动碰</view>
+          <view class="game-btn danger" :class="{ disabled: acting }" @click="onSkipClick">跳过</view>
+        </view>
+        <view v-else class="start-btn disabled">
+          {{ displayMode === 'destiny' ? '请选择吉祥卡' : '加载中…' }}
+        </view>
+        <view class="buff-link" @click="openBuff">超吉BUFF规则</view>
+      </view>
+
+      <!-- 回合进度 -->
+      <view v-if="displayMode === 'board' && session" class="rounds-strip">
+        <view
+          v-for="r in session.rounds"
+          :key="r.roundNo"
+          class="round-dot"
+          :class="{ active: r.state === 2, done: r.state === 3, skipped: r.state === 4 }"
+        >
+          {{ r.roundNo }}
+        </view>
+      </view>
+
+      <!-- 卡面预设弹层 -->
+      <view v-if="faceModalOpen" class="mm-modal-mask" @click="faceModalOpen = false">
+        <view class="mm-modal" @click.stop>
+          <view class="mm-modal-head">
+            <text class="mm-modal-title">卡面预设</text>
+            <text class="mm-modal-close" @click="faceModalOpen = false">×</text>
+          </view>
           <view class="preset-grid">
             <view
               v-for="p in config.config.facePresets"
@@ -681,47 +724,73 @@ onLoad(async (query?: Record<string, string | undefined>) => {
                 selected: facePresetId === p.presetId,
                 disabled: buying || (p.presetId !== config.config.defaultFacePresetId && !config.appearance.ownedFacePresetIds.includes(p.presetId)),
               }"
-              @click="selectFacePreset(p.presetId)"
+              @click="chooseFacePreset(p.presetId)"
             >
+              <image v-if="p.faces[0]?.imageUrl" :src="p.faces[0]!.imageUrl" class="preset-img" mode="aspectFill" />
               <text class="preset-name">{{ p.name }}</text>
-              <text
-                v-if="p.presetId !== config.config.defaultFacePresetId && !config.appearance.ownedFacePresetIds.includes(p.presetId)"
-                class="preset-lock"
-              >🔒</text>
+              <text v-if="p.presetId !== config.config.defaultFacePresetId && !config.appearance.ownedFacePresetIds.includes(p.presetId)" class="preset-lock">🔒</text>
             </view>
           </view>
+        </view>
+      </view>
 
-          <!-- 背面预设选择 -->
-          <view class="panel-title">🃏 {{ t('memoryMatch.backPresetLabel') }}</view>
+      <!-- 卡背预设弹层 -->
+      <view v-if="backModalOpen" class="mm-modal-mask" @click="backModalOpen = false">
+        <view class="mm-modal" @click.stop>
+          <view class="mm-modal-head">
+            <text class="mm-modal-title">卡背预设</text>
+            <text class="mm-modal-close" @click="backModalOpen = false">×</text>
+          </view>
           <view class="preset-grid">
             <view
               v-for="p in config.config.backPresets"
               :key="p.presetId"
               class="preset-tile"
               :class="{ selected: backPresetId === p.presetId, disabled: buying }"
-              @click="selectBackPreset(p.presetId)"
+              @click="chooseBackPreset(p.presetId)"
             >
+              <image v-if="p.backImageUrl" :src="p.backImageUrl" class="preset-img" mode="aspectFill" />
               <text class="preset-name">{{ p.name }}</text>
             </view>
           </view>
+        </view>
+      </view>
 
-          <!-- 购买 -->
-          <view class="quote-card">
-            <view class="quote-row">
-              <text>{{ t('memoryMatch.unitPrice') }}</text>
-              <text class="money">{{ formatMoney(config.config.purchasePrice) }}</text>
+      <!-- 赏品列表弹层 -->
+      <view v-if="prizeModalOpen" class="mm-modal-mask" @click="prizeModalOpen = false">
+        <view class="mm-modal" @click.stop>
+          <view class="mm-modal-head">
+            <text class="mm-modal-title">赏品列表</text>
+            <text class="mm-modal-close" @click="prizeModalOpen = false">×</text>
+          </view>
+          <view class="entries-list">
+            <view v-for="e in config.config.entries" :key="e.entryId" class="entry-row">
+              <text class="entry-pairs">{{ t('memoryMatch.entryPairs', { n: e.totalPairCount }) }}</text>
+              <text class="entry-name">{{ e.name }} · {{ entryPrizeText(e.prize) }}</text>
+              <text class="entry-remain">{{ t('memoryMatch.entryRemain', { n: e.remaining }) }}</text>
             </view>
           </view>
-          <view class="btn-primary start-btn" :class="{ disabled: buying }" @click="onBuyClick">
-            {{ t('memoryMatch.startGame') }}
-          </view>
-          <view class="wallet-tip">{{ t('memoryMatch.walletOnly') }}</view>
         </view>
-      </template>
+      </view>
+
+      <!-- 吉王领域弹层 -->
+      <view v-if="championModalOpen" class="mm-modal-mask" @click="championModalOpen = false">
+        <view class="mm-modal" @click.stop>
+          <view class="mm-modal-head">
+            <text class="mm-modal-title">吉王领域</text>
+            <text class="mm-modal-close" @click="championModalOpen = false">×</text>
+          </view>
+          <view class="champion-panel">
+            <text class="champion-line">👑 {{ championText() }}</text>
+            <text class="champion-pending">待结算收益 ¥{{ championPending }}</text>
+            <text class="champion-tip">成为吉王后，后续每局购买的播主收益会累计到待结算收益，换王时结算。</text>
+          </view>
+        </view>
+      </view>
 
       <!-- 结算弹层 -->
-      <view v-if="settlementOpen" class="modal-mask" @click="onSettlementMask">
-        <view class="modal-card" @click.stop>
+      <view v-if="settlementOpen" class="mm-modal-mask" @click="onSettlementMask">
+        <view class="mm-modal settle-modal" @click.stop>
           <view class="settle-title">{{ t('memoryMatch.settleTitle') }}</view>
           <view v-if="settlement" class="settle-body">
             <view class="settle-emoji">{{ settlement.prize.kind === 0 ? '🍂' : '🎉' }}</view>
@@ -738,480 +807,593 @@ onLoad(async (query?: Record<string, string | undefined>) => {
               <text class="settle-hash-value">{{ settlement.finalHash.slice(0, 16) }}…</text>
             </view>
             <view class="mm-champion">👑 {{ championText() }}</view>
-            <view class="btn-primary" @click="closeSettlement">{{ t('memoryMatch.playAgain') }}</view>
+            <view class="start-btn" @click="closeSettlement">{{ t('memoryMatch.playAgain') }}</view>
           </view>
           <view v-else class="settle-empty">{{ t('common.empty') }}</view>
         </view>
       </view>
     </template>
 
-    <view v-else class="gacha-card mm-card center">
-      <view class="mm-empty">{{ t('memoryMatch.empty') }}</view>
+    <view v-else class="empty-state">
+      <view class="spinner"></view>
+      <text>{{ t('memoryMatch.empty') }}</text>
     </view>
   </view>
 </template>
 
-<style scoped lang="scss">
-$mm-ink: #e9f2ec;
-$mm-muted: #8aa696;
-$mm-green: #5cf2a2;
-$mm-gold: #ffd166;
 
-.memorymatch-page {
+<style scoped lang="scss">
+$gold: #f3d27a;
+$gold-dark: #b07a2a;
+$green: #38e08e;
+$ink: #eaf5ed;
+$muted: #8fb39d;
+
+.mm-page {
   box-sizing: border-box;
   min-height: 100vh;
-  padding: calc(env(safe-area-inset-top) + 24rpx) 0 calc(40rpx + env(safe-area-inset-bottom));
+  padding: calc(env(safe-area-inset-top) + 12rpx) 0 calc(32rpx + env(safe-area-inset-bottom));
   background:
-    radial-gradient(circle at 18% 0%, rgba(46, 140, 88, 0.3), transparent 52%),
-    radial-gradient(circle at 92% 96%, rgba(122, 84, 20, 0.22), transparent 48%),
-    #080b09;
-  color: $mm-ink;
+    radial-gradient(circle at 50% 0%, rgba(28, 104, 58, 0.55), transparent 45%),
+    radial-gradient(circle at 10% 35%, rgba(24, 80, 44, 0.35), transparent 45%),
+    linear-gradient(180deg, #071a0f 0%, #04110a 55%, #020805 100%);
+  color: $ink;
 }
 
-.mm-shell {
-  margin: 0 24rpx;
-  padding: 30rpx 28rpx 28rpx;
-  border-radius: 28rpx;
-  border: 1rpx solid rgba(120, 255, 180, 0.14);
-  background: linear-gradient(165deg, rgba(23, 35, 27, 0.98), rgba(9, 15, 11, 0.98));
-  box-shadow: 0 24rpx 60rpx rgba(0, 0, 0, 0.45);
-  text-align: left;
-}
-
-.mm-top {
+.mm-topbar {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 16rpx;
+  padding: 0 24rpx;
+  height: 84rpx;
 }
 
-.mm-heading {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.mm-name {
-  font-size: 42rpx;
-  font-weight: 800;
-  letter-spacing: 2rpx;
-  color: #ffffff;
-}
-
-.mm-round-progress {
-  margin-top: 6rpx;
-  font-size: 24rpx;
-  color: $mm-muted;
-}
-
-.mm-skip {
-  flex-shrink: 0;
-  padding: 10rpx 28rpx;
-  border-radius: 999rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.18);
-  color: #cfd8d2;
-  font-size: 24rpx;
-  line-height: 1.4;
-
-  &.disabled {
-    opacity: 0.45;
-  }
-}
-
-.mm-champion {
-  margin: 14rpx 0 2rpx;
-  font-size: 24rpx;
-  color: $mm-gold;
-}
-
-.quick-links {
-  display: flex;
-  gap: 12rpx;
-  margin: 18rpx 0 4rpx;
-}
-
-.quick-link {
-  flex: 1;
+.top-btn {
+  width: 64rpx;
+  height: 64rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8rpx;
-  padding: 14rpx 0;
-  border-radius: 14rpx;
-  border: 1rpx solid rgba(120, 255, 180, 0.26);
-  background: rgba(32, 92, 60, 0.28);
-  color: #9ff0c3;
-  font-size: 24rpx;
-  line-height: 1.3;
+  border-radius: 50%;
+  border: 1rpx solid rgba(243, 210, 122, 0.45);
+  background: rgba(15, 45, 27, 0.75);
+  color: $gold;
+  font-size: 40rpx;
+  line-height: 1;
+}
 
-  &.buff {
-    border-color: rgba(255, 210, 90, 0.32);
-    background: rgba(120, 92, 20, 0.28);
-    color: #ffe08a;
+.top-btn.share {
+  font-size: 32rpx;
+}
+
+.top-title {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: 36rpx;
+  font-weight: 800;
+  letter-spacing: 4rpx;
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hero-wrap {
+  position: relative;
+  height: 380rpx;
+  margin: 4rpx 0 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-ring {
+  position: absolute;
+  width: 360rpx;
+  height: 360rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(76, 255, 160, 0.18);
+  box-shadow: 0 0 80rpx rgba(56, 224, 142, 0.18), inset 0 0 60rpx rgba(56, 224, 142, 0.12);
+}
+
+.hero-platform {
+  position: absolute;
+  bottom: 18rpx;
+  width: 300rpx;
+  height: 46rpx;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(80, 255, 170, 0.35), transparent 70%);
+  filter: blur(4rpx);
+}
+
+.hero-img {
+  position: relative;
+  z-index: 1;
+  width: 300rpx;
+  height: 330rpx;
+}
+
+.hero-fallback {
+  position: relative;
+  z-index: 1;
+  font-size: 160rpx;
+}
+
+.side-rail {
+  position: absolute;
+  top: 10rpx;
+  bottom: 10rpx;
+  width: 132rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 3;
+
+  &.left {
+    left: 18rpx;
+  }
+
+  &.right {
+    right: 18rpx;
   }
 }
 
-.quick-icon {
-  font-size: 26rpx;
+.side-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  min-height: 92rpx;
+  padding: 8rpx 4rpx;
+  border-radius: 14rpx;
+  border: 1rpx solid rgba(243, 210, 122, 0.35);
+  background: linear-gradient(180deg, rgba(18, 58, 34, 0.92), rgba(6, 22, 13, 0.94));
+  box-shadow: 0 8rpx 18rpx rgba(0, 0, 0, 0.35);
+  color: #cfe9d8;
+
+  &.gold {
+    border-color: rgba(243, 210, 122, 0.7);
+    background: linear-gradient(180deg, rgba(92, 66, 18, 0.9), rgba(28, 20, 6, 0.94));
+    color: $gold;
+  }
+}
+
+.side-icon {
+  font-size: 30rpx;
+  line-height: 1.1;
+}
+
+.side-text {
+  font-size: 19rpx;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .stat-row {
   display: flex;
-  gap: 16rpx;
-  margin: 22rpx 0 16rpx;
+  gap: 12rpx;
+  margin: 4rpx 24rpx 16rpx;
 }
 
-.stat-box {
+.stat-card {
   position: relative;
   flex: 1;
-  overflow: hidden;
-  padding: 18rpx 22rpx;
-  border-radius: 18rpx;
-  border: 1rpx solid rgba(120, 255, 180, 0.18);
-  background: linear-gradient(180deg, rgba(20, 50, 33, 0.92), rgba(8, 20, 13, 0.92));
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 14rpx 8rpx;
+  border-radius: 12rpx;
+  border: 2rpx solid rgba(243, 210, 122, 0.7);
+  background: linear-gradient(180deg, rgba(14, 46, 27, 0.95), rgba(5, 18, 11, 0.96));
+  box-shadow: inset 0 0 24rpx rgba(0, 0, 0, 0.5);
+}
 
-  &::after {
-    content: '';
-    position: absolute;
-    top: -46rpx;
-    right: -36rpx;
-    width: 140rpx;
-    height: 140rpx;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(92, 242, 162, 0.18), transparent 70%);
-  }
+.lucky-card {
+  flex: 0 0 172rpx;
+}
+
+.lucky-img-wrap {
+  width: 116rpx;
+  height: 116rpx;
+  border-radius: 8rpx;
+  overflow: hidden;
+  border: 1rpx solid rgba(243, 210, 122, 0.5);
+  background: #0b2416;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lucky-img {
+  width: 100%;
+  height: 100%;
+}
+
+.lucky-glyph {
+  font-size: 54rpx;
+  font-weight: 900;
+  color: $gold;
+}
+
+.stat-caption {
+  margin-top: 8rpx;
+  font-size: 21rpx;
+  color: #d7c08a;
 }
 
 .stat-label {
-  display: block;
-  font-size: 24rpx;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
-  color: #8fd9b1;
+  color: #a9c9b6;
 }
 
 .stat-value {
-  display: block;
-  margin-top: 2rpx;
-  font-size: 64rpx;
+  margin: 4rpx 0 10rpx;
+  font-size: 56rpx;
   font-weight: 900;
-  line-height: 1.05;
+  line-height: 1;
   color: #ffffff;
-  text-shadow: 0 0 24rpx rgba(92, 242, 162, 0.35);
+  text-shadow: 0 0 18rpx rgba(56, 224, 142, 0.35);
 }
 
-.board-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10rpx 20rpx;
-  margin-bottom: 16rpx;
+.stat-action {
+  min-width: 110rpx;
+  padding: 8rpx 18rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid rgba(190, 205, 198, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+  color: #d7e3dc;
   font-size: 22rpx;
-  color: $mm-muted;
-
-  .destiny-count {
-    color: $mm-gold;
-  }
-}
-
-// 3x3 牌桌与右侧操作栏
-.board-stage {
-  display: flex;
-  align-items: stretch;
-  gap: 14rpx;
-}
-
-.board-grid {
-  flex: 1;
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  padding: 10rpx;
-  border-radius: 22rpx;
-  border: 1rpx solid rgba(120, 255, 180, 0.16);
-  background:
-    radial-gradient(circle at 50% 38%, rgba(30, 80, 52, 0.35), rgba(5, 10, 7, 0.96) 72%),
-    #060a07;
-  box-shadow: inset 0 0 60rpx rgba(0, 0, 0, 0.6);
-}
-
-.board-cell {
-  box-sizing: border-box;
-  width: calc(33.333% - 10rpx);
-  height: 158rpx;
-  margin: 5rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  border-radius: 14rpx;
-  border: 1rpx dashed rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-
-  &.filled {
-    border-style: solid;
-    border-color: rgba(126, 255, 179, 0.25);
-    background: linear-gradient(180deg, #1d2f24, #0f1c15);
-    box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.35);
-  }
-
-  &.selected {
-    transform: translateY(-4rpx);
-    border-color: $mm-gold;
-    box-shadow: 0 0 0 3rpx rgba(255, 209, 102, 0.35), 0 0 30rpx rgba(255, 209, 102, 0.25);
-  }
-}
-
-.board-face {
-  width: 100%;
-  height: 100%;
-  padding: 8rpx;
-  box-sizing: border-box;
-}
-
-.board-glyph {
-  font-size: 64rpx;
-  font-weight: 900;
-  color: $mm-green;
-}
-
-.board-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.board-empty-mark {
-  font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.07);
-}
-
-.board-side {
-  display: flex;
-  flex-direction: column;
-  gap: 12rpx;
-  width: 148rpx;
-  flex-shrink: 0;
-}
-
-.rail-btn {
-  flex: 1;
-  min-height: 96rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6rpx;
-  padding: 10rpx 6rpx;
-  border-radius: 16rpx;
-  border: 1rpx solid rgba(120, 255, 180, 0.25);
-  background: linear-gradient(180deg, rgba(26, 70, 45, 0.85), rgba(9, 22, 14, 0.9));
-  color: #bff5d6;
-  font-size: 22rpx;
-  line-height: 1.25;
   text-align: center;
 
   &.gold {
-    border-color: rgba(255, 210, 90, 0.55);
-    background: linear-gradient(180deg, rgba(120, 88, 20, 0.85), rgba(40, 28, 6, 0.9));
-    color: #ffe08a;
-    box-shadow: 0 0 24rpx rgba(255, 190, 60, 0.18);
-  }
-
-  &.ghost {
-    border-color: rgba(255, 255, 255, 0.16);
-    background: rgba(255, 255, 255, 0.04);
-    color: #cfd8d2;
+    border-color: rgba(243, 210, 122, 0.65);
+    background: linear-gradient(180deg, rgba(74, 54, 12, 0.8), rgba(30, 22, 6, 0.85));
+    color: $gold;
   }
 
   &.disabled {
-    opacity: 0.38;
+    opacity: 0.4;
   }
 }
 
-.rail-icon {
-  font-size: 30rpx;
+.card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 20rpx;
 }
 
-.rail-text {
-  word-break: break-all;
+.card-cell {
+  position: relative;
+  box-sizing: border-box;
+  width: calc(33.333% - 10rpx);
+  height: 206rpx;
+  margin: 5rpx;
+  border-radius: 12rpx;
+  overflow: hidden;
+  border: 2rpx solid rgba(201, 151, 58, 0.75);
+  background: linear-gradient(180deg, #123a24, #07180f);
+  box-shadow: inset 0 0 22rpx rgba(0, 0, 0, 0.55), 0 8rpx 18rpx rgba(0, 0, 0, 0.25);
+
+  &.filled {
+    border-color: rgba(243, 210, 122, 0.85);
+  }
+
+  &.selected {
+    border-color: #ffe28a;
+    box-shadow: 0 0 0 3rpx rgba(255, 226, 138, 0.35), 0 0 30rpx rgba(255, 210, 90, 0.45);
+    transform: translateY(-3rpx);
+  }
+
+  &.destiny {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &.disabled {
+    opacity: 0.55;
+  }
+
+  &.loading {
+    opacity: 0.45;
+  }
 }
 
-.board-hint {
-  margin-top: 14rpx;
-  font-size: 23rpx;
-  line-height: 1.6;
-  color: $mm-muted;
+.card-img {
+  width: 100%;
+  height: 100%;
+}
+
+.card-glyph {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 64rpx;
+  font-weight: 900;
+  color: $green;
+}
+
+.card-empty {
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(46, 130, 80, 0.18), transparent 60%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.015) 0 8rpx, transparent 8rpx 16rpx);
+}
+
+.pattern-badge {
+  position: absolute;
+  top: 6rpx;
+  right: 6rpx;
+  min-width: 28rpx;
+  height: 28rpx;
+  padding: 0 4rpx;
+  border-radius: 6rpx;
+  background: rgba(2, 10, 6, 0.8);
+  border: 1rpx solid rgba(243, 210, 122, 0.45);
+  color: $gold;
+  font-size: 17rpx;
+  line-height: 28rpx;
   text-align: center;
 }
 
-.rounds-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10rpx;
-  margin-top: 18rpx;
+.destiny-name {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 6rpx 0;
+  background: rgba(2, 10, 6, 0.72);
+  color: #d9e9df;
+  font-size: 18rpx;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.round-chip {
-  display: flex;
-  align-items: center;
-  gap: 10rpx;
-  padding: 6rpx 18rpx;
-  border-radius: 999rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.03);
+.hint {
+  margin: 12rpx 24rpx 0;
+  text-align: center;
   font-size: 22rpx;
-  color: #b6c9bd;
+  line-height: 1.5;
+  color: $muted;
+}
 
-  &.active {
-    border-color: rgba(92, 242, 162, 0.55);
-    color: $mm-green;
-  }
+.bottom-area {
+  margin: 18rpx 32rpx 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-  &.done {
-    border-color: rgba(255, 209, 102, 0.5);
-    color: $mm-gold;
-  }
+.price-row {
+  margin-bottom: 10rpx;
+}
 
-  &.skipped {
+.price-text {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: $gold;
+  letter-spacing: 1rpx;
+}
+
+.start-btn {
+  width: 100%;
+  line-height: 92rpx;
+  border-radius: 999rpx;
+  border: 2rpx solid rgba(170, 255, 200, 0.5);
+  background: linear-gradient(135deg, #7dff9d 0%, #1ecf7a 45%, #0b8f56 100%);
+  box-shadow: 0 10rpx 28rpx rgba(31, 207, 122, 0.4), inset 0 2rpx 0 rgba(255, 255, 255, 0.45);
+  color: #06301c;
+  font-size: 38rpx;
+  font-weight: 900;
+  letter-spacing: 12rpx;
+  text-align: center;
+  text-indent: 12rpx;
+
+  &.disabled {
     opacity: 0.5;
   }
 }
 
-.round-chip-state {
+.game-actions {
+  width: 100%;
+  display: flex;
+  gap: 12rpx;
+}
+
+.game-btn {
+  flex: 1;
+  line-height: 78rpx;
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(243, 210, 122, 0.45);
+  background: linear-gradient(180deg, rgba(20, 66, 39, 0.95), rgba(6, 24, 14, 0.95));
+  color: #d9f0e2;
+  font-size: 24rpx;
+  text-align: center;
+
+  &.danger {
+    border-color: rgba(255, 120, 120, 0.45);
+    color: #ffb3b3;
+  }
+
+  &.disabled {
+    opacity: 0.35;
+  }
+}
+
+.buff-link {
+  margin-top: 14rpx;
+  padding: 6rpx 20rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(243, 210, 122, 0.4);
+  background: rgba(70, 56, 16, 0.35);
+  color: $gold;
   font-size: 20rpx;
 }
 
-// 命运选择盘
-.destiny-panel {
-  margin-top: 10rpx;
+.rounds-strip {
+  display: flex;
+  justify-content: center;
+  gap: 16rpx;
+  margin-top: 18rpx;
 }
 
-.panel-title {
-  margin: 18rpx 0 14rpx;
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #d9f5e4;
+.round-dot {
+  width: 46rpx;
+  height: 46rpx;
+  line-height: 46rpx;
+  border-radius: 50%;
+  border: 1rpx solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  color: #aabfb2;
+  font-size: 20rpx;
+  text-align: center;
+
+  &.active {
+    border-color: rgba(56, 224, 142, 0.7);
+    color: $green;
+  }
+
+  &.done {
+    border-color: rgba(243, 210, 122, 0.7);
+    color: $gold;
+  }
+
+  &.skipped {
+    opacity: 0.45;
+  }
 }
 
-.pattern-grid {
+.mm-modal-mask {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx;
+  background: rgba(0, 0, 0, 0.62);
+}
+
+.mm-modal {
+  box-sizing: border-box;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 28rpx;
+  border-radius: 22rpx;
+  border: 2rpx solid rgba(243, 210, 122, 0.65);
+  background: linear-gradient(165deg, #102a1a 0%, #06120b 100%);
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.55), inset 0 0 40rpx rgba(43, 160, 94, 0.12);
+  color: $ink;
+}
+
+.mm-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.mm-modal-title {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: $gold;
+  letter-spacing: 2rpx;
+}
+
+.mm-modal-close {
+  width: 52rpx;
+  height: 52rpx;
+  line-height: 48rpx;
+  text-align: center;
+  border-radius: 50%;
+  border: 1rpx solid rgba(255, 255, 255, 0.15);
+  color: #cfe0d6;
+  font-size: 34rpx;
+}
+
+.preset-grid {
   display: flex;
   flex-wrap: wrap;
   margin: 0 -6rpx;
 }
 
-.pattern-tile {
+.preset-tile {
+  position: relative;
   box-sizing: border-box;
-  width: calc(33.333% - 12rpx);
+  width: calc(50% - 12rpx);
   margin: 6rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8rpx;
-  padding: 14rpx 8rpx 12rpx;
-  border-radius: 16rpx;
-  border: 1rpx solid rgba(120, 255, 180, 0.18);
-  background: linear-gradient(180deg, #1a2b21, #0d1711);
+  padding: 12rpx;
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+
+  &.selected {
+    border-color: $gold;
+    box-shadow: 0 0 0 2rpx rgba(243, 210, 122, 0.28);
+  }
 
   &.disabled {
-    opacity: 0.5;
+    opacity: 0.4;
   }
 }
 
-.pattern-face {
-  width: 120rpx;
+.preset-img {
+  width: 100%;
   height: 150rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10rpx;
-  background: radial-gradient(circle at 50% 35%, rgba(44, 110, 74, 0.5), rgba(9, 20, 14, 0.95));
-  box-shadow: inset 0 0 24rpx rgba(0, 0, 0, 0.5);
+  border-radius: 8rpx;
+  background: #07180f;
 }
 
-.pattern-img {
-  width: 96rpx;
-  height: 120rpx;
-}
-
-.pattern-glyph {
-  font-size: 56rpx;
-  font-weight: 900;
-  color: $mm-green;
-}
-
-.pattern-name {
-  font-size: 22rpx;
-  color: #9fbfae;
-}
-
-// 购买页
-.mm-hero {
-  padding: 20rpx 8rpx 6rpx;
-}
-
-.mm-hero-tag {
-  display: inline-block;
-  padding: 4rpx 18rpx;
-  border-radius: 999rpx;
-  border: 1rpx solid rgba(92, 242, 162, 0.35);
-  color: $mm-green;
-  font-size: 20rpx;
-  letter-spacing: 6rpx;
-}
-
-.mm-hero-title {
+.preset-name {
   display: block;
-  margin-top: 18rpx;
-  font-size: 56rpx;
-  font-weight: 900;
-  letter-spacing: 3rpx;
-  color: #ffffff;
-}
-
-.mm-hero-price {
   margin-top: 8rpx;
-  font-size: 46rpx;
-  font-weight: 800;
-  color: $mm-gold;
+  font-size: 22rpx;
+  text-align: center;
+  color: #d7e7dd;
 }
 
-.mm-hero-sub {
-  display: block;
-  margin-top: 6rpx;
-  font-size: 24rpx;
-  color: $mm-muted;
-}
-
-.section-head {
-  margin: 26rpx 0 12rpx;
-  font-size: 26rpx;
-  font-weight: 700;
-  letter-spacing: 2rpx;
-  color: #b9d7c6;
+.preset-lock {
+  position: absolute;
+  top: 8rpx;
+  right: 10rpx;
+  font-size: 22rpx;
 }
 
 .entries-list {
   display: flex;
   flex-direction: column;
   gap: 10rpx;
-  margin-bottom: 8rpx;
 }
 
 .entry-row {
   display: flex;
   align-items: center;
-  gap: 14rpx;
-  padding: 16rpx 20rpx;
-  border-radius: 14rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
-  font-size: 25rpx;
+  gap: 12rpx;
+  padding: 14rpx 16rpx;
+  border-radius: 10rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 23rpx;
 }
 
 .entry-pairs {
   flex-shrink: 0;
   font-weight: 800;
-  color: $mm-gold;
+  color: $gold;
 }
 
 .entry-name {
@@ -1225,107 +1407,38 @@ $mm-gold: #ffd166;
 
 .entry-remain {
   flex-shrink: 0;
-  font-size: 22rpx;
-  color: $mm-muted;
+  font-size: 20rpx;
+  color: $muted;
 }
 
-.preset-grid {
+.champion-panel {
   display: flex;
-  flex-wrap: wrap;
-  margin: 0 -6rpx;
+  flex-direction: column;
+  gap: 14rpx;
 }
 
-.preset-tile {
-  position: relative;
-  box-sizing: border-box;
-  width: calc(33.333% - 12rpx);
-  margin: 6rpx;
-  padding: 20rpx 8rpx;
-  border-radius: 12rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.03);
-  color: #dcebe2;
+.champion-line {
+  font-size: 28rpx;
+  color: $gold;
+}
+
+.champion-pending {
   font-size: 24rpx;
-  text-align: center;
-
-  &.selected {
-    border-color: $mm-gold;
-    color: #ffe08a;
-    box-shadow: 0 0 0 2rpx rgba(255, 209, 102, 0.28);
-  }
-
-  &.disabled {
-    opacity: 0.4;
-  }
+  color: #b9d7c6;
 }
 
-.preset-name {
-  font-size: 24rpx;
-}
-
-.preset-lock {
-  position: absolute;
-  top: 4rpx;
-  right: 8rpx;
+.champion-tip {
   font-size: 22rpx;
-}
-
-.quote-card {
-  margin: 26rpx 0 18rpx;
-  padding: 20rpx 24rpx;
-  border-radius: 16rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.quote-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 26rpx;
-  color: $mm-muted;
-
-  .money {
-    font-size: 32rpx;
-    font-weight: 800;
-    color: $mm-gold;
-  }
-}
-
-.start-btn {
-  margin-top: 20rpx;
-  border-radius: 999rpx;
-  background: linear-gradient(135deg, #2fd98a, #0f9d63);
-  font-size: 34rpx;
-  font-weight: 700;
-  letter-spacing: 6rpx;
-  line-height: 92rpx;
-  box-shadow: 0 12rpx 30rpx rgba(24, 180, 110, 0.35);
-}
-
-.wallet-tip {
-  margin-top: 14rpx;
-  text-align: center;
-  font-size: 22rpx;
-  color: $mm-muted;
-}
-
-.money {
-  color: $mm-gold;
-}
-
-// 结算弹层
-.modal-mask .modal-card {
-  border: 1rpx solid rgba(120, 255, 180, 0.18);
-  background: linear-gradient(165deg, #1a2b21, #0c1510);
-  color: $mm-ink;
+  line-height: 1.6;
+  color: $muted;
 }
 
 .settle-title {
-  margin-bottom: 24rpx;
-  font-size: 34rpx;
-  font-weight: 700;
+  margin-bottom: 20rpx;
+  font-size: 32rpx;
+  font-weight: 800;
   text-align: center;
+  color: $gold;
 }
 
 .settle-body {
@@ -1333,54 +1446,66 @@ $mm-gold: #ffd166;
 }
 
 .settle-emoji {
-  margin-bottom: 20rpx;
-  font-size: 112rpx;
+  margin-bottom: 16rpx;
+  font-size: 96rpx;
 }
 
 .settle-row {
   display: flex;
   justify-content: space-between;
-  padding: 12rpx 8rpx;
-  font-size: 28rpx;
+  padding: 10rpx 6rpx;
+  font-size: 26rpx;
 }
 
 .settle-strong {
-  font-weight: 700;
-  color: $mm-gold;
+  font-weight: 800;
+  color: $gold;
 }
 
 .settle-hash {
-  padding: 12rpx 8rpx 20rpx;
+  padding: 10rpx 6rpx 18rpx;
   text-align: left;
-  font-size: 24rpx;
-  color: $mm-muted;
+  font-size: 22rpx;
+  color: $muted;
 }
 
 .settle-hash-label {
-  margin-right: 12rpx;
+  margin-right: 10rpx;
 }
 
 .settle-hash-value {
-  font-size: 22rpx;
+  font-size: 20rpx;
   word-break: break-all;
 }
 
 .settle-body .mm-champion {
-  margin-bottom: 24rpx;
+  margin: 10rpx 0 18rpx;
+  font-size: 24rpx;
+  color: $gold;
 }
 
 .settle-empty {
   text-align: center;
-  color: $mm-muted;
-  font-size: 26rpx;
+  color: $muted;
+  font-size: 24rpx;
+}
+
+.empty-state {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  color: $muted;
+  font-size: 24rpx;
 }
 
 .spinner {
   width: 48rpx;
   height: 48rpx;
-  margin: 0 auto 12rpx;
   border: 4rpx solid rgba(255, 255, 255, 0.12);
-  border-top-color: $mm-green;
+  border-top-color: $green;
   border-radius: 50%;
   animation: mm-spin 0.8s linear infinite;
 }
@@ -1388,20 +1513,6 @@ $mm-gold: #ffd166;
 @keyframes mm-spin {
   to {
     transform: rotate(360deg);
-  }
-}
-
-.mm-card.center {
-  margin: 0 24rpx;
-  border-radius: 28rpx;
-  border: 1rpx solid rgba(120, 255, 180, 0.14);
-  background: linear-gradient(165deg, rgba(23, 35, 27, 0.98), rgba(9, 15, 11, 0.98));
-  color: $mm-muted;
-  text-align: center;
-
-  .mm-empty {
-    color: $mm-muted;
-    font-size: 26rpx;
   }
 }
 </style>
