@@ -15,6 +15,7 @@ export default defineConfig(({ mode }) => {
     },
     // h5 兜底形态：/gacha 前缀代理到玩家网关（原 web/ 同款约定，web/ 已删除）
     server: {
+      host: true,
       port: 9375,
       proxy: {
         "/gacha": {

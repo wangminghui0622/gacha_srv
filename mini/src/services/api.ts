@@ -13,7 +13,7 @@ let DEFAULT_BASE_URL: string
 DEFAULT_BASE_URL = '/gacha/api/v1'
 // #endif
 // #ifndef H5
-DEFAULT_BASE_URL = 'http://127.0.0.1:9310/gacha/api/v1'
+DEFAULT_BASE_URL = import.meta.env.VITE_MP_API_BASE_URL || 'http://127.0.0.1:9310/gacha/api/v1'
 // #endif
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || DEFAULT_BASE_URL
