@@ -189,7 +189,8 @@
       v-model:open="referenceOpen"
       :title="$t('poolAdmin.referenceTitle')"
       :footer="null"
-      :style="{ top: '77px' }"
+      :centered="createModalTop === null"
+      :style="createModalTop !== null ? { top: `${createModalTop}px` } : undefined"
       :width="createModalWidth"
       :wrap-style="createModalWrapStyle"
       :body-style="{ minHeight: 'calc(100vh - 200px)', maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }"
@@ -319,6 +320,8 @@ const createInitial = ref<PlayPoolCreateInitial | null>(null)
 const createFormKey = ref(0)
 const createModalWidth = ref('96vw')
 const createModalWrapStyle = ref<Record<string, string>>({})
+const createModalTop = ref<number | null>(null)
+const createModalHeight = ref<number | null>(null)
 const createOpen = ref(false)
 const creating = ref(false)
 const createForm = reactive({
@@ -470,6 +473,16 @@ function setWeight(record: AdminPlayPool, value: number | null) {
   weights[record.poolId] = Math.max(0, Math.trunc(value ?? 0))
 }
 
+function captureCreateModalBox() {
+  const modal = document.querySelector('.ant-modal')
+  if (!modal) return
+  const rect = modal.getBoundingClientRect()
+  if (rect.height > 0) {
+    createModalTop.value = Math.round(rect.top)
+    createModalHeight.value = Math.round(rect.height)
+  }
+}
+
 function syncCreateModalLayout() {
   const content = document.querySelector('.content')
   if (!content) return
@@ -488,6 +501,11 @@ function syncCreateModalLayout() {
 
 function onWindowResize() {
   if (createModalOpen.value || referenceOpen.value) syncCreateModalLayout()
+  if (createModalOpen.value) {
+    requestAnimationFrame(captureCreateModalBox)
+  } else if (referenceOpen.value && createModalHeight.value) {
+    createModalTop.value = Math.max(0, Math.round((window.innerHeight - createModalHeight.value) / 2))
+  }
 }
 
 function openCreate() {
@@ -497,7 +515,10 @@ function openCreate() {
   createModalOpen.value = true
   void nextTick(() => {
     syncCreateModalLayout()
-    requestAnimationFrame(syncCreateModalLayout)
+    requestAnimationFrame(() => {
+      syncCreateModalLayout()
+      captureCreateModalBox()
+    })
   })
 }
 
@@ -535,7 +556,10 @@ async function openPoolForm(record: AdminPlayPool, kind: PoolFormKind) {
     createModalOpen.value = true
     void nextTick(() => {
       syncCreateModalLayout()
-      requestAnimationFrame(syncCreateModalLayout)
+      requestAnimationFrame(() => {
+        syncCreateModalLayout()
+        captureCreateModalBox()
+      })
     })
   } catch {
     message.error(t('poolAdmin.detailLoadFailed'))
