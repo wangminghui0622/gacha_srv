@@ -833,6 +833,7 @@ type MemoryMatchConfigSummary struct {
 	RoundsPerPurchase int64  `json:"roundsPerPurchase"`
 	MaxPairCount      int64  `json:"maxPairCount"`
 	Status            int64  `json:"status"`
+	CoverImage        string `json:"coverImage"`
 }
 
 // MemoryMatchConfigListResp 主题列表（GET /memory-match/configs）

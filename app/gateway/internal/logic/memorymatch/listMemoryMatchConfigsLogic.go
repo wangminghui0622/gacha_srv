@@ -49,6 +49,7 @@ func (l *ListMemoryMatchConfigsLogic) ListMemoryMatchConfigs() (resp *types.Memo
 			RoundsPerPurchase: c.RoundsPerPurchase,
 			MaxPairCount:      c.MaxPairCount,
 			Status:            c.Status,
+			CoverImage:        c.CoverImage,
 		})
 	}
 	return resp, nil
