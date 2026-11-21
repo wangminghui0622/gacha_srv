@@ -8,11 +8,11 @@
     <view v-if="loading" class="list-state">加载中…</view>
     <view v-else-if="configs.length === 0" class="list-state">暂无可玩主题</view>
     <view v-else class="theme-grid">
-      <view v-for="(c, idx) in configs" :key="c.configId" class="theme-card" @click="open(c.configId)">
+      <view v-for="c in configs" :key="c.configId" class="theme-card" @click="open(c.configId)">
         <view class="theme-cover">
           <image v-if="coverOf(c.configId)" :src="coverOf(c.configId)" class="theme-cover-img" mode="aspectFill" @error="onCoverError(c.configId)" />
           <view v-else class="theme-cover-fallback">{{ c.name.slice(0, 1) }}</view>
-          <text class="theme-badge">{{ idx + 1 }}</text>
+          <text class="theme-tag">新箱</text>
         </view>
         <view class="theme-body">
           <text class="theme-name">{{ c.name }}</text>
@@ -158,20 +158,18 @@ function open(configId: number) {
   color: rgba(125, 255, 157, 0.55);
 }
 
-.theme-badge {
+.theme-tag {
   position: absolute;
   top: 12rpx;
   right: 12rpx;
   z-index: 3;
-  min-width: 42rpx;
   height: 42rpx;
-  padding: 0 10rpx;
-  border-radius: 10rpx;
-  background: rgba(2, 10, 6, 0.82);
-  border: 1rpx solid rgba(243, 210, 122, 0.6);
-  color: #f3d27a;
-  font-size: 24rpx;
-  font-weight: 800;
+  padding: 0 14rpx;
+  border-radius: 8rpx;
+  background: linear-gradient(135deg, #c6ff4a, #8ef02f);
+  color: #10230a;
+  font-size: 22rpx;
+  font-weight: 900;
   line-height: 42rpx;
   text-align: center;
 }
