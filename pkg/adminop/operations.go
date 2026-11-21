@@ -73,6 +73,7 @@ func All() []Operation {
 		{ID: "console.match.appearance.list", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/match/appearances", Title: "对对碰外观池列表"},
 		{ID: "console.match.appearance.save", Resource: "gacha.pool", Action: "write", Method: "POST", Path: "/gacha/match/appearances", Title: "保存对对碰外观"},
 		{ID: "console.match.appearance.delete", Resource: "gacha.pool", Action: "write", Method: "DELETE", Path: "/gacha/match/appearances/:id", Title: "删除对对碰外观"},
+		{ID: "console.upload", Resource: "gacha.pool", Action: "write", Method: "POST", Path: "/upload", Title: "上传文件到 OSS"},
 		// assign_lucky 路径适配：server_v2 是 /gacha/boxes/:boxId/lucky-assignment，
 		// 本仓幸运指派实体是扭蛋配置（gashapon_configs），不是箱子
 		{ID: "console.pool.assignluckyuser", Resource: "gacha.pool", Action: "assign_lucky", Method: "POST", Path: "/gacha/gashapons/:configId/lucky-assignment", Title: "指定幸运用户"},

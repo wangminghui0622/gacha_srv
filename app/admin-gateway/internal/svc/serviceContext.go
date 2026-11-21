@@ -7,6 +7,8 @@ import (
 	"crypto/ed25519"
 	"encoding/base64"
 
+	"gacha_srv/app/admin-gateway/internal/config"
+	"gacha_srv/app/admin-gateway/internal/middleware"
 	"gacha_srv/app/base/baseClient"
 	"gacha_srv/app/catalog/catalogClient"
 	"gacha_srv/app/draw/drawClient"
@@ -14,26 +16,27 @@ import (
 	"gacha_srv/app/money/moneyClient"
 	"gacha_srv/app/ops/opsClient"
 	"gacha_srv/app/play/playClient"
-	"gacha_srv/app/admin-gateway/internal/config"
-	"gacha_srv/app/admin-gateway/internal/middleware"
+	"gacha_srv/app/thirdparty/thirdpartyClient"
 	"gacha_srv/pkg/utils/errorx"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/zrpc"
+	"google.golang.org/grpc"
 )
 
 type ServiceContext struct {
-	Config      config.Config
-	OpsRpc      opsClient.Ops
-	DrawRpc     drawClient.Draw
-	MarketingRpc marketingClient.Marketing
-	PlayRpc     playClient.Play
-	CatalogRpc  catalogClient.Catalog
-	BaseRpc     baseClient.Base
-	MoneyRpc    moneyClient.Money
-	Rdb         *redis.Client
-	PubKey      ed25519.PublicKey
+	Config        config.Config
+	OpsRpc        opsClient.Ops
+	DrawRpc       drawClient.Draw
+	MarketingRpc  marketingClient.Marketing
+	PlayRpc       playClient.Play
+	CatalogRpc    catalogClient.Catalog
+	BaseRpc       baseClient.Base
+	MoneyRpc      moneyClient.Money
+	ThirdpartyRpc thirdpartyClient.Thirdparty
+	Rdb           *redis.Client
+	PubKey        ed25519.PublicKey
 
 	RequestId        rest.Middleware
 	ConsoleAuth      rest.Middleware
@@ -71,6 +74,12 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	// 资金服务客户端（M14d 支付路由存管控制台；同样还原业务码）
 	moneyRpc := moneyClient.NewMoney(zrpc.MustNewClient(c.MoneyRpc,
 		zrpc.WithUnaryClientInterceptor(errorx.ClientErrorInterceptor)))
+	thirdpartyRpc := thirdpartyClient.NewThirdparty(zrpc.MustNewClient(c.ThirdpartyRpc,
+		zrpc.WithUnaryClientInterceptor(errorx.ClientErrorInterceptor),
+		zrpc.WithDialOption(grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(16<<20),
+			grpc.MaxCallSendMsgSize(16<<20),
+		))))
 
 	// 会话吊销检查 Redis（console:session:revoked:<jti>）
 	if len(c.CacheRedis) == 0 {
@@ -93,6 +102,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		CatalogRpc:       catalogRpc,
 		BaseRpc:          baseRpc,
 		MoneyRpc:         moneyRpc,
+		ThirdpartyRpc:    thirdpartyRpc,
 		Rdb:              rdb,
 		PubKey:           ed25519.PublicKey(pub),
 		RequestId:        middleware.NewRequestIdMiddleware().Handle,

@@ -26,6 +26,8 @@ type Config struct {
 	BaseRpc zrpc.RpcClientConf
 	// 资金服务客户端（支付路由存管控制台；M14d）
 	MoneyRpc zrpc.RpcClientConf
+	// 第三方服务客户端（OSS 文件上传）
+	ThirdpartyRpc zrpc.RpcClientConf
 
 	// 控制台令牌本地验签（不依赖 ops-rpc 在线）
 	Console ConsoleConf

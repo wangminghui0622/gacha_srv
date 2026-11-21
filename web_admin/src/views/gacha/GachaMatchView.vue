@@ -235,10 +235,36 @@
           <a-input v-model:value="appearanceForm.name" :placeholder="$t('gachaMatch.nameRequired')" />
         </a-form-item>
         <a-form-item :label="$t('gachaMatch.imageUrl')">
-          <a-input v-model:value="appearanceForm.imageUrl" />
+          <div class="upload-row">
+            <a-input v-model:value="appearanceForm.imageUrl" />
+            <a-upload
+              :show-upload-list="false"
+              accept="image/*"
+              :before-upload="(file: File) => uploadAppearanceImage(file, 'imageUrl')"
+            >
+              <a-button :loading="uploadingField === 'imageUrl'">{{ $t('gachaMatch.upload') }}</a-button>
+            </a-upload>
+          </div>
+          <a-image v-if="appearanceForm.imageUrl" :src="appearanceForm.imageUrl" :width="72" :height="72" class="upload-preview" />
         </a-form-item>
         <a-form-item :label="$t('gachaMatch.backImageUrl')">
-          <a-input v-model:value="appearanceForm.backImageUrl" />
+          <div class="upload-row">
+            <a-input v-model:value="appearanceForm.backImageUrl" />
+            <a-upload
+              :show-upload-list="false"
+              accept="image/*"
+              :before-upload="(file: File) => uploadAppearanceImage(file, 'backImageUrl')"
+            >
+              <a-button :loading="uploadingField === 'backImageUrl'">{{ $t('gachaMatch.upload') }}</a-button>
+            </a-upload>
+          </div>
+          <a-image
+            v-if="appearanceForm.backImageUrl"
+            :src="appearanceForm.backImageUrl"
+            :width="72"
+            :height="72"
+            class="upload-preview"
+          />
         </a-form-item>
         <a-form-item :label="$t('common.status')">
           <a-select v-model:value="appearanceForm.status" :options="statusOptions" />
@@ -270,6 +296,7 @@ import { useI18n } from 'vue-i18n'
 import PageHeader from '@/components/PageHeader.vue'
 import {
   gachaMatchClient,
+  uploadImageFile,
   type MemoryMatchAppearance,
   type MemoryMatchDeckTemplate,
 } from '@/api/gachaMatch'
@@ -473,6 +500,7 @@ const appearanceTotal = ref(0)
 const appearanceQuery = reactive({ type: -1, status: -1, keyword: '' })
 const appearanceModalOpen = ref(false)
 const appearanceSaving = ref(false)
+const uploadingField = ref<'' | 'imageUrl' | 'backImageUrl'>('')
 const appearanceForm = reactive({
   id: 0,
   type: 1,
@@ -548,6 +576,33 @@ function openAppearanceModal(record?: MemoryMatchAppearance) {
   appearanceForm.functionConfig = record?.functionConfig ?? ''
   appearanceForm.weight = record ? toNumber(record.weight) : 0
   appearanceModalOpen.value = true
+}
+
+async function uploadAppearanceImage(
+  file: File,
+  field: 'imageUrl' | 'backImageUrl',
+): Promise<boolean> {
+  if (!file.type.startsWith('image/')) {
+    message.warning(t('gachaMatch.imageOnly'))
+    return false
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    message.warning(t('gachaMatch.imageTooLarge'))
+    return false
+  }
+  uploadingField.value = field
+  try {
+    const reply = await uploadImageFile(file, 'gacha/match')
+    if (reply.url) {
+      appearanceForm[field] = reply.url
+      message.success(t('gachaMatch.uploadSuccess'))
+    }
+  } catch {
+    // 错误提示由请求拦截器统一处理
+  } finally {
+    uploadingField.value = ''
+  }
+  return false
 }
 
 async function saveAppearance() {
@@ -656,5 +711,18 @@ onMounted(() => {
 
 .filter-input {
   width: 240px;
+}
+
+.upload-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.upload-preview {
+  margin-top: 8px;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  object-fit: cover;
 }
 </style>

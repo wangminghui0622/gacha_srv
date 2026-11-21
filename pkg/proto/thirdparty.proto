@@ -36,6 +36,8 @@ service Thirdparty {
     rpc GetAliPayOauthToken(GetAliPayOauthTokenReq) returns (GetAliPayOauthTokenResp);
     rpc GetAliPayUserInfo(GetAliPayUserInfoReq) returns (GetAliPayUserInfoResp);
     rpc IngestProviderMetrics(IngestProviderMetricsReq) returns (IngestProviderMetricsResp);
+    // 上传文件到 OSS（管理后台图片等；返回可公开访问的 URL）
+    rpc UploadObject(UploadObjectReq) returns (UploadObjectResp);
 }
 
 // 验证码场景（照抄 server_v2 CaptchaScene；UNSPECIFIED 也按 LOGIN 处理）
@@ -212,6 +214,21 @@ message IngestProviderMetricsResp {
     uint32 acceptedCount = 2; // 接受样本数（新修订）
     uint32 staleCount = 3;    // 过期样本数（旧修订）
     bool replayed = 4;        // 是否幂等重放
+}
+
+// ==================== OSS 文件上传 ====================
+
+message UploadObjectReq {
+    string filename = 1;    // 原始文件名（用于提取扩展名，可空）
+    string contentType = 2; // MIME 类型，如 image/png
+    bytes data = 3;         // 文件内容
+    string dir = 4;         // OSS 目录前缀（空用默认 gacha/match）
+}
+
+message UploadObjectResp {
+    string objectKey = 1; // OSS 对象 key
+    string url = 2;       // 可访问 URL（PublicBaseURL 或 OSS 默认域名）
+    int64 size = 3;       // 文件字节数
 }
 
 // 指标快照变更事件（outbox 载荷；event_id = outbox 行 id，AUTO_INCREMENT 后回填）

@@ -30,6 +30,7 @@ const (
 	Thirdparty_GetAliPayOauthToken_FullMethodName              = "/thirdparty.Thirdparty/GetAliPayOauthToken"
 	Thirdparty_GetAliPayUserInfo_FullMethodName                = "/thirdparty.Thirdparty/GetAliPayUserInfo"
 	Thirdparty_IngestProviderMetrics_FullMethodName            = "/thirdparty.Thirdparty/IngestProviderMetrics"
+	Thirdparty_UploadObject_FullMethodName                     = "/thirdparty.Thirdparty/UploadObject"
 )
 
 // ThirdpartyClient is the client API for Thirdparty service.
@@ -47,6 +48,8 @@ type ThirdpartyClient interface {
 	GetAliPayOauthToken(ctx context.Context, in *GetAliPayOauthTokenReq, opts ...grpc.CallOption) (*GetAliPayOauthTokenResp, error)
 	GetAliPayUserInfo(ctx context.Context, in *GetAliPayUserInfoReq, opts ...grpc.CallOption) (*GetAliPayUserInfoResp, error)
 	IngestProviderMetrics(ctx context.Context, in *IngestProviderMetricsReq, opts ...grpc.CallOption) (*IngestProviderMetricsResp, error)
+	// 上传文件到 OSS（管理后台图片等；返回可公开访问的 URL）
+	UploadObject(ctx context.Context, in *UploadObjectReq, opts ...grpc.CallOption) (*UploadObjectResp, error)
 }
 
 type thirdpartyClient struct {
@@ -156,6 +159,15 @@ func (c *thirdpartyClient) IngestProviderMetrics(ctx context.Context, in *Ingest
 	return out, nil
 }
 
+func (c *thirdpartyClient) UploadObject(ctx context.Context, in *UploadObjectReq, opts ...grpc.CallOption) (*UploadObjectResp, error) {
+	out := new(UploadObjectResp)
+	err := c.cc.Invoke(ctx, Thirdparty_UploadObject_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ThirdpartyServer is the server API for Thirdparty service.
 // All implementations must embed UnimplementedThirdpartyServer
 // for forward compatibility
@@ -171,6 +183,8 @@ type ThirdpartyServer interface {
 	GetAliPayOauthToken(context.Context, *GetAliPayOauthTokenReq) (*GetAliPayOauthTokenResp, error)
 	GetAliPayUserInfo(context.Context, *GetAliPayUserInfoReq) (*GetAliPayUserInfoResp, error)
 	IngestProviderMetrics(context.Context, *IngestProviderMetricsReq) (*IngestProviderMetricsResp, error)
+	// 上传文件到 OSS（管理后台图片等；返回可公开访问的 URL）
+	UploadObject(context.Context, *UploadObjectReq) (*UploadObjectResp, error)
 	mustEmbedUnimplementedThirdpartyServer()
 }
 
@@ -210,6 +224,9 @@ func (UnimplementedThirdpartyServer) GetAliPayUserInfo(context.Context, *GetAliP
 }
 func (UnimplementedThirdpartyServer) IngestProviderMetrics(context.Context, *IngestProviderMetricsReq) (*IngestProviderMetricsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IngestProviderMetrics not implemented")
+}
+func (UnimplementedThirdpartyServer) UploadObject(context.Context, *UploadObjectReq) (*UploadObjectResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UploadObject not implemented")
 }
 func (UnimplementedThirdpartyServer) mustEmbedUnimplementedThirdpartyServer() {}
 
@@ -422,6 +439,24 @@ func _Thirdparty_IngestProviderMetrics_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Thirdparty_UploadObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadObjectReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ThirdpartyServer).UploadObject(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Thirdparty_UploadObject_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ThirdpartyServer).UploadObject(ctx, req.(*UploadObjectReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Thirdparty_ServiceDesc is the grpc.ServiceDesc for Thirdparty service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -472,6 +507,10 @@ var Thirdparty_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IngestProviderMetrics",
 			Handler:    _Thirdparty_IngestProviderMetrics_Handler,
+		},
+		{
+			MethodName: "UploadObject",
+			Handler:    _Thirdparty_UploadObject_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

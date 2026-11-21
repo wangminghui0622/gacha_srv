@@ -53,10 +53,10 @@ const (
 
 // 身份域 1000-1999（identity-rpc；旧仓用户域余额/冻结码迁往资金域 2000 段）
 const (
-	CodeUserNotFound     = 1001 // 用户不存在
-	CodePasswordWrong    = 1002 // 密码错误
-	CodeUsernameExists   = 1003 // 用户名已存在
-	CodeTokenInvalid     = 1004 // 令牌无效
+	CodeUserNotFound   = 1001 // 用户不存在
+	CodePasswordWrong  = 1002 // 密码错误
+	CodeUsernameExists = 1003 // 用户名已存在
+	CodeTokenInvalid   = 1004 // 令牌无效
 	// M15a 手机号/微信登录（验证码收发/微信接口错误走 9000 段 thirdparty）
 	CodePhoneLoginInvalid   = 1011 // 未绑定手机号登录失败（server_v2 ErrInvalidPhoneLogin；验证码错归 9001）
 	CodePhoneInUse          = 1012 // 手机号已被其他用户绑定（exact_token 唯一键仲裁）
@@ -132,11 +132,11 @@ const (
 
 // 玩法域 6000-6999（play-rpc 6 玩法+幸运指派+发奖标记；旧仓玩法域 3000 段拆出）
 const (
-	CodeDigBoxNotFound       = 6001 // 挖宝箱不存在（旧 3015）
-	CodeDigCellOccupied      = 6002 // 所选格子已被挖开
-	CodeDigSessionInvalid    = 6003 // 挖宝会话状态不满足操作
-	CodeDigPriceMismatch     = 6004 // 挖宝价格校验不一致（满车/扭蛋价格校验复用）
-	CodeDigRecordNotFound    = 6005 // 挖宝记录不存在
+	CodeDigBoxNotFound    = 6001 // 挖宝箱不存在（旧 3015）
+	CodeDigCellOccupied   = 6002 // 所选格子已被挖开
+	CodeDigSessionInvalid = 6003 // 挖宝会话状态不满足操作
+	CodeDigPriceMismatch  = 6004 // 挖宝价格校验不一致（满车/扭蛋价格校验复用）
+	CodeDigRecordNotFound = 6005 // 挖宝记录不存在
 
 	CodeGameConfigInvalid     = 6006 // 玩法配置缺失或 JSON 无效
 	CodeFullCarDeparted       = 6007 // 满车已出发（余票 0）
@@ -201,6 +201,8 @@ const (
 	CodeTencentAdRecordFailed  = 9010 // 广告点击记录失败（openid 缺失等）
 	CodeMetricInvalidRequest   = 9011 // 指标接入请求非法（校验失败）
 	CodeMetricConflict         = 9012 // 指标接入幂等冲突（同键异内容）
+	CodeOSSNotConfigured       = 9013 // OSS 未配置（Endpoint/Bucket/AK/SK 缺失）
+	CodeOSSUploadFailed        = 9014 // OSS 上传失败（网络/签名/服务端错误）
 )
 
 // 运营域 10000-10999（ops-rpc，M14 管理控制台；旧仓 7000 段平移）

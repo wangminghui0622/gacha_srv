@@ -50,6 +50,13 @@ MoneyRpc:
       - 127.0.0.1:2379
     Key: money.rpc
 
+# 第三方服务客户端（OSS 文件上传）
+ThirdpartyRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: thirdparty.rpc
+
 # 控制台令牌本地验签（Ed25519 公钥，与 ops-rpc 的 Console.PrivateKeyBase64 配对）
 Console:
   # 公钥 base64（32 字节；ops-rpc 签发，本网关持公钥验签不依赖 ops-rpc 在线）

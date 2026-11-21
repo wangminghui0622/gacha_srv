@@ -19,6 +19,7 @@ import (
 	session "gacha_srv/app/admin-gateway/internal/handler/session"
 	system "gacha_srv/app/admin-gateway/internal/handler/system"
 	task "gacha_srv/app/admin-gateway/internal/handler/task"
+	upload "gacha_srv/app/admin-gateway/internal/handler/upload"
 	"gacha_srv/app/admin-gateway/internal/svc"
 
 	"github.com/zeromicro/go-zero/rest"
@@ -475,6 +476,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Method:  http.MethodDelete,
 					Path:    "/gacha/match/appearances/:id",
 					Handler: match.DeleteMemoryMatchAppearanceHandler(serverCtx),
+				},
+				{
+					// 上传文件到 OSS（gacha.pool:write；multipart 字段 file）
+					Method:  http.MethodPost,
+					Path:    "/upload",
+					Handler: upload.UploadHandler(serverCtx),
 				},
 			}...,
 		),

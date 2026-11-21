@@ -62,6 +62,21 @@ export interface ListMemoryMatchAppearancesReply {
   total?: IntLike
 }
 
+export interface UploadFileReply {
+  objectKey?: string
+  url?: string
+  size?: IntLike
+}
+
+export function uploadImageFile(file: File, dir = 'gacha/match'): Promise<UploadFileReply> {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('dir', dir)
+  return http.post('/console/v2/api/upload', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+}
+
 export const gachaMatchClient = {
   GetRules(): Promise<{ rules?: MemoryMatchGlobalRules }> {
     return http.get('/console/v2/api/gacha/match/rules')

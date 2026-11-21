@@ -38,6 +38,8 @@ type (
 	SendCaptchaResp                      = thirdparty.SendCaptchaResp
 	TxAdClickReq                         = thirdparty.TxAdClickReq
 	TxAdClickResp                        = thirdparty.TxAdClickResp
+	UploadObjectReq                      = thirdparty.UploadObjectReq
+	UploadObjectResp                     = thirdparty.UploadObjectResp
 
 	Thirdparty interface {
 		SendCaptcha(ctx context.Context, in *SendCaptchaReq, opts ...grpc.CallOption) (*SendCaptchaResp, error)
@@ -51,6 +53,8 @@ type (
 		GetAliPayOauthToken(ctx context.Context, in *GetAliPayOauthTokenReq, opts ...grpc.CallOption) (*GetAliPayOauthTokenResp, error)
 		GetAliPayUserInfo(ctx context.Context, in *GetAliPayUserInfoReq, opts ...grpc.CallOption) (*GetAliPayUserInfoResp, error)
 		IngestProviderMetrics(ctx context.Context, in *IngestProviderMetricsReq, opts ...grpc.CallOption) (*IngestProviderMetricsResp, error)
+		// 上传文件到 OSS（管理后台图片等；返回可公开访问的 URL）
+		UploadObject(ctx context.Context, in *UploadObjectReq, opts ...grpc.CallOption) (*UploadObjectResp, error)
 	}
 
 	defaultThirdparty struct {
@@ -117,4 +121,10 @@ func (m *defaultThirdparty) GetAliPayUserInfo(ctx context.Context, in *GetAliPay
 func (m *defaultThirdparty) IngestProviderMetrics(ctx context.Context, in *IngestProviderMetricsReq, opts ...grpc.CallOption) (*IngestProviderMetricsResp, error) {
 	client := thirdparty.NewThirdpartyClient(m.cli.Conn())
 	return client.IngestProviderMetrics(ctx, in, opts...)
+}
+
+// 上传文件到 OSS（管理后台图片等；返回可公开访问的 URL）
+func (m *defaultThirdparty) UploadObject(ctx context.Context, in *UploadObjectReq, opts ...grpc.CallOption) (*UploadObjectResp, error) {
+	client := thirdparty.NewThirdpartyClient(m.cli.Conn())
+	return client.UploadObject(ctx, in, opts...)
 }

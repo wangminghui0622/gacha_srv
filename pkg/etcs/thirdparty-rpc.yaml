@@ -98,6 +98,18 @@ TencentAd:
       UserActionSetID: 1
   MiniAppID: ""
 
+# OSS 对象存储（管理后台图片上传；Enabled=false 时上传接口返回 9013）
+# 生产环境通过部署环境变量注入 OSS_ENDPOINT/OSS_BUCKET/OSS_ACCESS_KEY_ID/OSS_ACCESS_KEY_SECRET/OSS_PUBLIC_BASE_URL，
+# 不要把密钥写进仓库。远程 deploy/dev/conf/thirdparty-rpc.yaml 会改为 Enabled: true + 占位符。
+OSS:
+  Enabled: false
+  Endpoint: "oss-cn-hangzhou.aliyuncs.com"
+  Bucket: ""
+  AccessKeyID: ""
+  AccessKeySecret: ""
+  PublicBaseURL: ""
+  Dir: "gacha"
+
 # ops-rpc 客户端（M15d 指标事件 outbox 直投 ApplyMetricEvent，走 Etcd）
 OpsRpc:
   Etcd:

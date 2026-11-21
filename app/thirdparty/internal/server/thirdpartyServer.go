@@ -77,3 +77,9 @@ func (s *ThirdpartyServer) IngestProviderMetrics(ctx context.Context, in *thirdp
 	l := logic.NewIngestProviderMetricsLogic(ctx, s.svcCtx)
 	return l.IngestProviderMetrics(in)
 }
+
+// 上传文件到 OSS（管理后台图片等；返回可公开访问的 URL）
+func (s *ThirdpartyServer) UploadObject(ctx context.Context, in *thirdparty.UploadObjectReq) (*thirdparty.UploadObjectResp, error) {
+	l := logic.NewUploadObjectLogic(ctx, s.svcCtx)
+	return l.UploadObject(in)
+}

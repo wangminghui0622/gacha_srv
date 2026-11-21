@@ -7,8 +7,8 @@ import (
 	"gacha_srv/app/thirdparty/internal/config"
 	"gacha_srv/app/thirdparty/internal/server"
 	"gacha_srv/app/thirdparty/internal/svc"
-	"gacha_srv/pkg/utils/errorx"
 	"gacha_srv/app/thirdparty/thirdparty"
+	"gacha_srv/pkg/utils/errorx"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"
@@ -33,6 +33,8 @@ func main() {
 			reflection.Register(grpcServer)
 		}
 	})
+	// OSS 图片上传：放宽 gRPC 消息上限（默认 4MB），支持 10MB 以内的后台图片。
+	s.AddOptions(grpc.MaxRecvMsgSize(16<<20), grpc.MaxSendMsgSize(16<<20))
 	// 业务码跨 gRPC 不失真：CodeError(1000-10999) 直接作 status code 传出；
 	// DTM SAGA 分支的 status.Error 原样透出
 	s.AddUnaryInterceptors(errorx.ServerErrorInterceptor)

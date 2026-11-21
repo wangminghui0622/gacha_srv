@@ -3,14 +3,15 @@ package svc
 import (
 	"errors"
 
+	"gacha_srv/app/ops/opsClient"
 	"gacha_srv/app/thirdparty/internal/alipay"
 	"gacha_srv/app/thirdparty/internal/config"
+	"gacha_srv/app/thirdparty/internal/oss"
 	"gacha_srv/app/thirdparty/internal/outbox"
 	"gacha_srv/app/thirdparty/internal/repo"
 	"gacha_srv/app/thirdparty/internal/sms"
 	"gacha_srv/app/thirdparty/internal/tencentad"
 	"gacha_srv/app/thirdparty/internal/wechat"
-	"gacha_srv/app/ops/opsClient"
 	thirdpartymodel "gacha_srv/pkg/model_nocache/gacha_thirdparty"
 	"gacha_srv/pkg/utils/errorx"
 
@@ -39,6 +40,7 @@ type ServiceContext struct {
 	Alipay           *alipay.OAuthClient
 	TencentAd        *tencentad.Service
 	MetricDispatcher *outbox.Dispatcher
+	OSS              *oss.Client
 }
 
 // TencentAdConfigured 腾讯广告是否可用（server_v2 TxAdClick 的 nil 守卫同款语义：
@@ -106,11 +108,23 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	outboxModel := thirdpartymodel.NewIntegrationMetricOutboxModel(db)
 
 	// M15d D2：指标事件 outbox 单实例轮询 → ops-rpc ApplyMetricEvent（替代老项目 Kafka）
-	opsRpc := opsClient.NewOps(zrpc.MustNewClient(c.OpsRpc,
-		zrpc.WithUnaryClientInterceptor(errorx.ClientErrorInterceptor)))
+	opsRpc := opsClient.NewOps(zrpc.MustNewClient(c.OpsRpc, zrpc.WithUnaryClientInterceptor(errorx.ClientErrorInterceptor)))
 	dispatcher, err := outbox.NewDispatcher(outboxModel, outbox.NewRpcPublisher(opsRpc), outbox.DefaultOptions())
 	if err != nil {
 		panic("failed to init metric dispatcher: " + err.Error())
+	}
+
+	ossClient, err := oss.New(oss.Config{
+		Enabled:         c.OSS.Enabled,
+		Endpoint:        c.OSS.Endpoint,
+		Bucket:          c.OSS.Bucket,
+		AccessKeyID:     c.OSS.AccessKeyID,
+		AccessKeySecret: c.OSS.AccessKeySecret,
+		PublicBaseURL:   c.OSS.PublicBaseURL,
+		Dir:             c.OSS.Dir,
+	})
+	if err != nil {
+		panic("failed to init oss client: " + err.Error())
 	}
 
 	return &ServiceContext{
@@ -143,5 +157,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Alipay:             alipayClient,
 		TencentAd:          tencentad.NewService(repo.NewTxAdClickStore(thirdpartymodel.NewIntegrationTxAdClickModel(db))),
 		MetricDispatcher:   dispatcher,
+		OSS:                ossClient,
 	}
 }
