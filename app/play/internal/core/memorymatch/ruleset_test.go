@@ -101,6 +101,16 @@ func TestExactDeckTargets(t *testing.T) {
 			t.Fatalf("target %d produced %d pairs", target, st.PairCount)
 		}
 	}
+	threeRules := &RuleSet{InitialHandSize: 9, PairSize: 3, ReplenishCount: 1}
+	for target := 0; target <= 3; target++ {
+		st := OpeningWithRules(seed, 2, nil, target, target, 64, threeRules)
+		if err := st.AutoResolve(27, 0, 0, false); err != nil {
+			t.Fatal(err)
+		}
+		if st.PairCount != target {
+			t.Fatalf("pair_size=3 target %d produced %d pairs", target, st.PairCount)
+		}
+	}
 }
 
 func TestValidateRuleSet(t *testing.T) {

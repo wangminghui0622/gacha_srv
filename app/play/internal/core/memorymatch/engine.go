@@ -285,28 +285,20 @@ func exactDeck(roundSeed []byte, minPairs, maxPairs, attemptLimit int, rules *Ru
 	if rules != nil && rules.InitialHandSize > 0 {
 		handSize = rules.InitialHandSize
 	}
-	// 精确目标且 2 张成碰：直接构造恰好 target 对的开局，比随机试发稳定。
-	if minPairs == maxPairs && minPairs > 0 && (rules == nil || rules.PairSize <= 2) {
-		if deck, ok := buildExactPairDeck(handSize, minPairs); ok {
-			return deck
-		}
-	}
-	// 目标 0 碰：构造前 N 张各不同图案的开局（仅当 handSize<=9 时可行），
-	// 这样 AutoResolve 会立即终止在 0 对。
-	if minPairs == 0 && maxPairs == 0 && handSize <= PatternCount {
-		used := make([]bool, DeckSize+1)
-		deck := make([]int32, 0, DeckSize)
-		for i := 0; i < handSize; i++ {
-			card := int32(i*CardsPerPattern + 1)
-			deck = append(deck, card)
-			used[card] = true
-		}
-		for card := int32(1); card <= DeckSize; card++ {
-			if !used[card] {
-				deck = append(deck, card)
+	// 精确目标：直接构造恰好 target 碰的开局，比随机试发稳定。
+	if minPairs == maxPairs && minPairs >= 0 {
+		pairSize, replenish := 2, 1
+		if rules != nil {
+			if rules.PairSize >= 2 {
+				pairSize = rules.PairSize
+			}
+			if rules.ReplenishCount >= 0 {
+				replenish = rules.ReplenishCount
 			}
 		}
-		return deck
+		if deck, ok := buildExactMatchDeck(handSize, pairSize, minPairs, replenish); ok {
+			return deck
+		}
 	}
 	best := NewDeck()
 	bestDist := int(^uint(0) >> 1)
@@ -331,15 +323,20 @@ func exactDeck(roundSeed []byte, minPairs, maxPairs, attemptLimit int, rules *Ru
 	return best
 }
 
-// buildExactPairDeck 构造恰好 pairs 对（2 张成碰）的开局：
-// 手牌 = pairs 对 + 若干单张，补牌依次补入尚未出现的图案，补完后手牌全不同、无新对子。
-func buildExactPairDeck(handSize, pairs int) ([]int32, bool) {
-	if pairs <= 0 || handSize < 2 || pairs*2 > handSize {
+// buildExactMatchDeck 构造恰好 target 碰的开局：
+// 手牌 = target 组（每组 pairSize 张同图案）+ 若干单张；每次成碰后补入尚未出现的图案，
+// 补完后手牌不再形成新的碰。仅当图案总数足够时构造成功，否则回退到随机试发。
+func buildExactMatchDeck(handSize, pairSize, target, replenish int) ([]int32, bool) {
+	if pairSize < 2 || handSize < 1 || target < 0 || replenish < 0 {
 		return nil, false
 	}
-	singles := handSize - pairs*2
-	usedPatterns := pairs + singles
-	if usedPatterns > PatternCount || usedPatterns+pairs > PatternCount {
+	if target*pairSize > handSize {
+		return nil, false
+	}
+	singles := handSize - target*pairSize
+	usedPatterns := target + singles
+	replenishTotal := target * replenish
+	if usedPatterns > PatternCount || usedPatterns+replenishTotal > PatternCount {
 		return nil, false
 	}
 	cards := make([]int32, 0, DeckSize)
@@ -352,19 +349,21 @@ func buildExactPairDeck(handSize, pairs int) ([]int32, bool) {
 		cards = append(cards, card)
 		return true
 	}
-	for p := 1; p <= pairs; p++ {
+	for p := 1; p <= target; p++ {
 		base := int32((p-1)*CardsPerPattern + 1)
-		if !add(base) || !add(base+1) {
-			return nil, false
+		for k := 0; k < pairSize; k++ {
+			if !add(base + int32(k)) {
+				return nil, false
+			}
 		}
 	}
 	for i := 0; i < singles; i++ {
-		p := pairs + 1 + i
+		p := target + 1 + i
 		if !add(int32((p-1)*CardsPerPattern + 1)) {
 			return nil, false
 		}
 	}
-	for i := 0; i < pairs; i++ {
+	for i := 0; i < replenishTotal; i++ {
 		p := usedPatterns + 1 + i
 		if p > PatternCount || !add(int32((p-1)*CardsPerPattern+1)) {
 			return nil, false
