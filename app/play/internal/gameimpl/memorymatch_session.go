@@ -275,12 +275,14 @@ func mmConfigToRules(db *gorm.DB, cfg *gamemodel.MemoryMatchConfigs) (*mmRules, 
 	secondEnabled := cfg.SecondDestinyEnabled == 1
 	championMin := cfg.ChampionMinTotalPairs
 	championBps := cfg.ChampionShareBps
+	pairProbabilityMode := int64(0)
 
 	// 跟随全局时以全局规则为准（保存全局时也会同步列，但这里再解析一次，
 	// 保证旧赏池和尚未同步的草稿也能立即生效）。
 	if followGlobal {
 		if global, err := store.GetGlobalRules(context.Background()); err == nil {
 			secondEnabled = global.SecondDestinyEnabled == 1
+			pairProbabilityMode = global.PairProbabilityMode
 			initialHand = global.InitialHandCount
 			pairSize = global.PairSize
 			replenish = global.ReplenishCount
@@ -315,6 +317,7 @@ func mmConfigToRules(db *gorm.DB, cfg *gamemodel.MemoryMatchConfigs) (*mmRules, 
 		ChampionMinTotalPairs: championMin,
 		ChampionShareBps:      championBps,
 		HasExtendedRules:      true,
+		PairProbabilityMode:   pairProbabilityMode,
 		InitialHandSize:       initialHand,
 		PairSize:              pairSize,
 		ReplenishCount:        replenish,

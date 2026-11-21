@@ -130,16 +130,18 @@ type mmRules struct {
 	ChampionShareBps      int64   `json:"champion_share_bps"`
 
 	// 全局玩法规则（旧会话 rules_json 没有这些字段时 HasExtendedRules=false）
-	HasExtendedRules     bool  `json:"has_extended_rules,omitempty"`
-	InitialHandSize      int64 `json:"initial_hand_size,omitempty"`
-	PairSize             int64 `json:"pair_size,omitempty"`
-	ReplenishCount       int64 `json:"replenish_count,omitempty"`
-	DestinyDoubleEnabled bool  `json:"destiny_double_enabled,omitempty"`
-	DestinyIncome        int64 `json:"destiny_income,omitempty"`
-	DoubleDestinyBuff    int64 `json:"double_destiny_buff,omitempty"`
-	DestinyReplenishCost int64 `json:"destiny_replenish_cost,omitempty"`
-	ResumeEnabled        bool  `json:"resume_enabled,omitempty"`
-	HostModeEnabled      bool  `json:"host_mode_enabled,omitempty"`
+	HasExtendedRules     bool    `json:"has_extended_rules,omitempty"`
+	PairProbabilityMode  int64   `json:"pair_probability_mode,omitempty"`
+	TargetRoundPairs     []int64 `json:"target_round_pairs,omitempty"`
+	InitialHandSize      int64   `json:"initial_hand_size,omitempty"`
+	PairSize             int64   `json:"pair_size,omitempty"`
+	ReplenishCount       int64   `json:"replenish_count,omitempty"`
+	DestinyDoubleEnabled bool    `json:"destiny_double_enabled,omitempty"`
+	DestinyIncome        int64   `json:"destiny_income,omitempty"`
+	DoubleDestinyBuff    int64   `json:"double_destiny_buff,omitempty"`
+	DestinyReplenishCost int64   `json:"destiny_replenish_cost,omitempty"`
+	ResumeEnabled        bool    `json:"resume_enabled,omitempty"`
+	HostModeEnabled      bool    `json:"host_mode_enabled,omitempty"`
 }
 
 // mmRuleSet 把规则快照转换为引擎扩展规则；旧会话返回 nil，保持历史默认行为。

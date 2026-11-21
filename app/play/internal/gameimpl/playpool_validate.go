@@ -572,8 +572,9 @@ func validateMemoryMatchPool(in *play.CreatePlayPoolDraftReq) error {
 		if p.SpecialKind != "" {
 			return abortf("记忆翻牌不支持 specialKind=%s", p.SpecialKind)
 		}
-		if p.TargetValue < 0 || p.TargetValue > cfg.MaxPairCount {
-			return abortf("记忆翻牌奖 %s 的 targetValue 必须在 0..%d", p.Name, cfg.MaxPairCount)
+		maxTarget := cfg.RoundsPerPurchase * cfg.MaxPairCount
+		if p.TargetValue < 0 || p.TargetValue > maxTarget {
+			return abortf("记忆翻牌奖 %s 的 targetValue 必须在 0..%d", p.Name, maxTarget)
 		}
 		if pairs[p.TargetValue] {
 			return abortf("记忆翻牌 targetValue 重复: %d", p.TargetValue)

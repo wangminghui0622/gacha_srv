@@ -2,6 +2,8 @@ package gameimpl
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -73,6 +75,12 @@ func (l *LockMemoryMatchLogic) LockMemoryMatch(in *play.LockMemoryMatchReq) (*pl
 		rules, err := mmConfigToRules(db, &cfg)
 		if err != nil {
 			return mmAborted(err)
+		}
+		// 按配箱数量精确分配：从奖档剩余库存中选一个目标总碰数，再分配到各回合。
+		if rules.PairProbabilityMode == 1 {
+			if err := mmPlanExactAllocation(db, in.ConfigId, rules); err != nil {
+				return mmAborted(err)
+			}
 		}
 
 		faceID := in.FacePresetId
@@ -253,4 +261,62 @@ func (l *LockMemoryMatchRevertLogic) LockMemoryMatchRevert(in *play.LockMemoryMa
 	}
 	l.Infof("LockMemoryMatchRevert success, requestId: %s, sessionId: %d", in.RequestId, outSessionID)
 	return &play.LockMemoryMatchResp{SessionId: outSessionID, Status: "RELEASED"}, nil
+}
+
+// mmPlanExactAllocation 按奖档剩余库存选一个目标总碰数，并平均分配到各回合。
+// 仅有剩余库存的奖档参与分配；remaining=-1（不限量）按 1 份参与。
+func mmPlanExactAllocation(db *gorm.DB, configID int64, rules *mmRules) error {
+	if rules == nil || rules.RoundsPerPurchase <= 0 || rules.MaxPairCount <= 0 {
+		return nil
+	}
+	var entries []gamemodel.MemoryMatchEntries
+	if err := db.Where("config_id = ? AND remaining <> 0", configID).Order("total_pair_count").Find(&entries).Error; err != nil {
+		return err
+	}
+	if len(entries) == 0 {
+		return errorx.NewCodeError(errorx.CodeGameConfigInvalid, "没有可分配的对对碰奖档库存")
+	}
+	var totalWeight uint64
+	weights := make([]uint64, len(entries))
+	for i, entry := range entries {
+		weight := uint64(entry.Remaining)
+		if entry.Remaining <= 0 {
+			weight = 1
+		}
+		weights[i] = weight
+		totalWeight += weight
+	}
+	var b [8]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return err
+	}
+	pick := binary.BigEndian.Uint64(b[:]) % totalWeight
+	target := entries[len(entries)-1].TotalPairCount
+	for i, weight := range weights {
+		if pick < weight {
+			target = entries[i].TotalPairCount
+			break
+		}
+		pick -= weight
+	}
+
+	rounds := int(rules.RoundsPerPurchase)
+	targets := make([]int64, rounds)
+	base := target / int64(rounds)
+	remainder := target % int64(rounds)
+	for i := 0; i < rounds; i++ {
+		value := base
+		if int64(i) < remainder {
+			value++
+		}
+		if value > rules.MaxPairCount {
+			value = rules.MaxPairCount
+		}
+		if value < 0 {
+			value = 0
+		}
+		targets[i] = value
+	}
+	rules.TargetRoundPairs = targets
+	return nil
 }

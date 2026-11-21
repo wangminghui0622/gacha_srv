@@ -285,6 +285,29 @@ func exactDeck(roundSeed []byte, minPairs, maxPairs, attemptLimit int, rules *Ru
 	if rules != nil && rules.InitialHandSize > 0 {
 		handSize = rules.InitialHandSize
 	}
+	// 精确目标且 2 张成碰：直接构造恰好 target 对的开局，比随机试发稳定。
+	if minPairs == maxPairs && minPairs > 0 && (rules == nil || rules.PairSize <= 2) {
+		if deck, ok := buildExactPairDeck(handSize, minPairs); ok {
+			return deck
+		}
+	}
+	// 目标 0 碰：构造前 N 张各不同图案的开局（仅当 handSize<=9 时可行），
+	// 这样 AutoResolve 会立即终止在 0 对。
+	if minPairs == 0 && maxPairs == 0 && handSize <= PatternCount {
+		used := make([]bool, DeckSize+1)
+		deck := make([]int32, 0, DeckSize)
+		for i := 0; i < handSize; i++ {
+			card := int32(i*CardsPerPattern + 1)
+			deck = append(deck, card)
+			used[card] = true
+		}
+		for card := int32(1); card <= DeckSize; card++ {
+			if !used[card] {
+				deck = append(deck, card)
+			}
+		}
+		return deck
+	}
 	best := NewDeck()
 	bestDist := int(^uint(0) >> 1)
 	for i := int32(0); i < int32(attemptLimit); i++ {
@@ -306,6 +329,56 @@ func exactDeck(roundSeed []byte, minPairs, maxPairs, attemptLimit int, rules *Ru
 		}
 	}
 	return best
+}
+
+// buildExactPairDeck 构造恰好 pairs 对（2 张成碰）的开局：
+// 手牌 = pairs 对 + 若干单张，补牌依次补入尚未出现的图案，补完后手牌全不同、无新对子。
+func buildExactPairDeck(handSize, pairs int) ([]int32, bool) {
+	if pairs <= 0 || handSize < 2 || pairs*2 > handSize {
+		return nil, false
+	}
+	singles := handSize - pairs*2
+	usedPatterns := pairs + singles
+	if usedPatterns > PatternCount || usedPatterns+pairs > PatternCount {
+		return nil, false
+	}
+	cards := make([]int32, 0, DeckSize)
+	used := make([]bool, DeckSize+1)
+	add := func(card int32) bool {
+		if card < 1 || card > DeckSize || used[card] {
+			return false
+		}
+		used[card] = true
+		cards = append(cards, card)
+		return true
+	}
+	for p := 1; p <= pairs; p++ {
+		base := int32((p-1)*CardsPerPattern + 1)
+		if !add(base) || !add(base+1) {
+			return nil, false
+		}
+	}
+	for i := 0; i < singles; i++ {
+		p := pairs + 1 + i
+		if !add(int32((p-1)*CardsPerPattern + 1)) {
+			return nil, false
+		}
+	}
+	for i := 0; i < pairs; i++ {
+		p := usedPatterns + 1 + i
+		if p > PatternCount || !add(int32((p-1)*CardsPerPattern+1)) {
+			return nil, false
+		}
+	}
+	for card := int32(1); card <= DeckSize; card++ {
+		if !used[card] {
+			cards = append(cards, card)
+		}
+	}
+	if len(cards) != DeckSize {
+		return nil, false
+	}
+	return cards, true
 }
 
 func distToRange(v, lo, hi int) int {

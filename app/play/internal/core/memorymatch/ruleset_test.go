@@ -89,6 +89,20 @@ func TestApplyDestinyDrawCostAndIncome(t *testing.T) {
 	}
 }
 
+func TestExactDeckTargets(t *testing.T) {
+	rules := &RuleSet{InitialHandSize: 9, PairSize: 2, ReplenishCount: 1}
+	seed := RoundSeed(testEngineSeed(), 11, 1)
+	for target := 0; target <= 4; target++ {
+		st := OpeningWithRules(seed, 2, nil, target, target, 64, rules)
+		if err := st.AutoResolve(27, 0, 0, false); err != nil {
+			t.Fatal(err)
+		}
+		if st.PairCount != target {
+			t.Fatalf("target %d produced %d pairs", target, st.PairCount)
+		}
+	}
+}
+
 func TestValidateRuleSet(t *testing.T) {
 	if err := ValidateRuleSet(&RuleSet{InitialHandSize: 0, PairSize: 2, ReplenishCount: 1}); err == nil {
 		t.Fatal("expect initial hand validation")

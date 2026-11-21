@@ -492,8 +492,21 @@ func mmCreateRounds(db *gorm.DB, sess *gamemodelnc.MemoryMatchSessions, rules *m
 	}
 	for roundNo := int64(1); roundNo <= rules.RoundsPerPurchase; roundNo++ {
 		roundSeed := memorymatch.RoundSeed(engineSeed, sess.Id, roundNo)
-		st := memorymatch.OpeningWithRules(roundSeed, int32(rules.DeckStrategy), rules.PatternWeights,
-			int(rules.ExactMinPairCount), int(rules.ExactMaxPairCount), int(rules.ExactAttemptLimit), mmRuleSet(rules))
+		strategy := int32(rules.DeckStrategy)
+		exactMin := int(rules.ExactMinPairCount)
+		exactMax := int(rules.ExactMaxPairCount)
+		attemptLimit := int(rules.ExactAttemptLimit)
+		if rules.PairProbabilityMode == 1 && int(roundNo) <= len(rules.TargetRoundPairs) {
+			// 按配箱数量精确分配：每回合尝试发到指定碰数。
+			strategy = 2
+			exactMin = int(rules.TargetRoundPairs[roundNo-1])
+			exactMax = exactMin
+			if attemptLimit < memorymatch.MaxExactAttempts {
+				attemptLimit = memorymatch.MaxExactAttempts
+			}
+		}
+		st := memorymatch.OpeningWithRules(roundSeed, strategy, rules.PatternWeights,
+			exactMin, exactMax, attemptLimit, mmRuleSet(rules))
 		row := &gamemodelnc.MemoryMatchRounds{
 			SessionId: sess.Id,
 			RoundNo:   roundNo,
