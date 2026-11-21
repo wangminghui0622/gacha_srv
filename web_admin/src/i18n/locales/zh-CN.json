@@ -280,7 +280,7 @@
     "hostShareBps": "播主收益万分比",
     "revenueBase": "收益基准",
     "revenueActual": "实付金额",
-    "revenueOriginal": "商品原价",
+    "revenueOriginal": "单抽标价",
     "ledgerType": "流水类型",
     "saveRules": "保存全局规则",
     "rulesSaved": "全局规则已保存",

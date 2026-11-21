@@ -280,7 +280,7 @@
     "hostShareBps": "Host share (bps)",
     "revenueBase": "Revenue base",
     "revenueActual": "Paid amount",
-    "revenueOriginal": "Original price",
+    "revenueOriginal": "Per-draw list price",
     "ledgerType": "Ledger type",
     "saveRules": "Save global rules",
     "rulesSaved": "Global rules saved",
