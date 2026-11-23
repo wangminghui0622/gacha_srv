@@ -79,13 +79,19 @@
             <a-form-item :label="$t('couponAdmin.scopeLabel')">
               <a-select v-model:value="form.scope" :options="scopeOptions" :placeholder="$t('couponAdmin.scopeLabel')" />
             </a-form-item>
+            <a-form-item v-if="form.scope === 'mode'" :label="$t('couponAdmin.useMode')" required>
+              <a-select v-model:value="form.useMode" :options="useModeOptions" :placeholder="$t('couponAdmin.useMode')" />
+            </a-form-item>
+            <a-form-item v-if="form.scope === 'pool'" :label="$t('couponAdmin.poolId')" required>
+              <a-input v-model:value="form.poolId" :placeholder="$t('couponAdmin.poolId')" inputmode="numeric" />
+            </a-form-item>
             <a-form-item :label="$t('couponAdmin.validityDaysLabel')" required>
               <a-input-number v-model:value="form.validityDays" :min="0" :precision="0" style="width: 100%" />
             </a-form-item>
             <a-form-item :label="$t('couponAdmin.naturalDay')">
               <a-switch v-model:checked="form.naturalDay" />
             </a-form-item>
-            <a-form-item :label="$t('couponAdmin.totalThreshold')">
+            <a-form-item :label="$t('couponAdmin.totalThreshold')" :required="isFixedOrCustom">
               <a-input-number v-model:value="form.minGrossYuan" :min="0" :precision="2" style="width: 100%" />
             </a-form-item>
           </a-col>
@@ -98,29 +104,33 @@
               <template #label><span class="coupon-red-label">单价</span>门槛上限</template>
               <a-input-number v-model:value="form.maxUnitPriceYuan" :min="0" :precision="2" style="width: 100%" />
             </a-form-item>
-            <a-form-item>
+            <a-form-item :required="itemThresholdRequired">
               <template #label><span class="coupon-red-label">数量</span>门槛下限</template>
               <a-input-number v-model:value="form.minItemCount" :min="0" :precision="0" style="width: 100%" />
             </a-form-item>
-            <a-form-item>
+            <a-form-item :required="itemThresholdRequired">
               <template #label><span class="coupon-red-label">数量</span>门槛上限</template>
               <a-input-number v-model:value="form.maxItemCount" :min="0" :precision="0" style="width: 100%" />
             </a-form-item>
-            <a-form-item :label="form.kind === 'COUPON_TEMPLATE_KIND_PERCENT_BPS' ? $t('couponAdmin.discountPercent') : $t('couponAdmin.rewardAmount')">
+            <a-form-item
+              :label="form.kind === 'COUPON_TEMPLATE_KIND_PERCENT_BPS' ? $t('couponAdmin.discountPercent') : $t('couponAdmin.rewardAmount')"
+              :required="amountRequired || isPercent"
+            >
               <a-input-number
                 v-if="form.kind === 'COUPON_TEMPLATE_KIND_PERCENT_BPS'"
                 v-model:value="form.discountPercent"
                 :min="0.01"
                 :max="100"
                 :precision="2"
+                :placeholder="$t('couponAdmin.discountPlaceholder')"
                 style="width: 100%"
               />
               <a-input-number v-else v-model:value="form.rewardAmountYuan" :min="0" :precision="2" style="width: 100%" />
             </a-form-item>
-            <a-form-item :label="$t('couponAdmin.rewardCount')">
+            <a-form-item :label="$t('couponAdmin.rewardCount')" :required="isDraw">
               <a-input-number v-model:value="form.rewardCount" :min="0" :precision="0" style="width: 100%" />
             </a-form-item>
-            <a-form-item :label="$t('couponAdmin.rewardTemplateId')">
+            <a-form-item :label="$t('couponAdmin.rewardTemplateId')" :required="isDraw">
               <a-input v-model:value="form.rewardTemplateId" inputmode="numeric" />
             </a-form-item>
           </a-col>
@@ -233,27 +243,17 @@ function isEnabled(record: CouponTemplate) {
 }
 
 function usageLimitText(record: CouponTemplate) {
-  switch (Number(record.scene ?? 0)) {
-    case 1:
-      return t('couponAdmin.scopeMode')
-    case 2:
-      return t('couponAdmin.scopePool')
-    default:
-      return t('couponAdmin.unlimited')
-  }
+  const scope = couponScope(record)
+  if (scope.kind === 'mode') return t('couponAdmin.scopeMode')
+  if (scope.kind === 'pool') return t('couponAdmin.scopePool')
+  return t('couponAdmin.unlimited')
 }
 
 function limitTargetText(record: CouponTemplate) {
-  const key = targetBusinessKey(record)
-  if (key) return key
-  switch (Number(record.scene ?? 0)) {
-    case 1:
-      return t('couponAdmin.scopeGacha')
-    case 2:
-      return t('couponAdmin.scopeMemoryMatch')
-    default:
-      return '-'
-  }
+  const scope = couponScope(record)
+  if (scope.kind === 'mode') return modeLabel(scope.target)
+  if (scope.kind === 'pool') return t('couponAdmin.poolTarget', { id: scope.target })
+  return '-'
 }
 
 function targetBusinessKey(record: CouponTemplate) {
@@ -272,6 +272,22 @@ const scopeOptions = computed(() => [
   { value: 'mode', label: t('couponAdmin.scopeMode') },
   { value: 'pool', label: t('couponAdmin.scopePool') },
 ])
+const useModeOptions = computed(() => [
+  { value: 'gashapon', label: t('poolAdmin.modeGashapon') },
+  { value: 'fullcar', label: t('poolAdmin.modeFullcar') },
+  { value: 'combochain', label: t('poolAdmin.modeCombochain') },
+  { value: 'dig', label: t('poolAdmin.modeDig') },
+  { value: 'groupbuy', label: t('poolAdmin.modeGroupbuy') },
+  { value: 'memorymatch', label: t('poolAdmin.modeMemorymatch') },
+])
+const isFixedOrCustom = computed(
+  () => form.kind === 'COUPON_TEMPLATE_KIND_FIXED_MINOR' || form.kind === 'COUPON_TEMPLATE_KIND_CUSTOM_MINOR',
+)
+const isDraw = computed(() => form.kind === 'COUPON_TEMPLATE_KIND_DRAW_REWARD')
+const isFree = computed(() => form.kind === 'COUPON_TEMPLATE_KIND_FREE')
+const isPercent = computed(() => form.kind === 'COUPON_TEMPLATE_KIND_PERCENT_BPS')
+const itemThresholdRequired = computed(() => isDraw.value || isFree.value)
+const amountRequired = computed(() => isFixedOrCustom.value)
 
 const modalOpen = ref(false)
 const saving = ref(false)
@@ -282,6 +298,8 @@ const form = reactive({
   description: '',
   kind: undefined as string | undefined,
   scope: undefined as string | undefined,
+  useMode: undefined as string | undefined,
+  poolId: '',
   validityDays: 0,
   naturalDay: false,
   minGrossYuan: 0,
@@ -290,7 +308,7 @@ const form = reactive({
   minItemCount: 0,
   maxItemCount: 0,
   rewardAmountYuan: 0,
-  discountPercent: 90,
+  discountPercent: undefined as number | undefined,
   rewardCount: 0,
   rewardTemplateId: '0',
   enabled: true,
@@ -302,16 +320,41 @@ function fenToYuan(value: string | number | undefined) {
 function yuanToFen(value: number | undefined) {
   return Math.max(0, Math.round(Number(value ?? 0) * 100))
 }
-function sceneOf(scope: string | undefined) {
-  if (scope === 'mode') return 1
-  if (scope === 'pool') return 2
+type CouponScope = { kind: 'unlimited' | 'mode' | 'pool'; target: string }
+
+function couponScope(record: CouponTemplate): CouponScope {
+  const key = targetBusinessKey(record)
+  if (key.startsWith('mode:')) return { kind: 'mode', target: key.slice(5) }
+  if (key.startsWith('pool:')) return { kind: 'pool', target: key.slice(5) }
+  switch (Number(record.scene ?? 0)) {
+    case 1:
+      return { kind: 'mode', target: 'gashapon' }
+    case 2:
+      return { kind: 'mode', target: 'memorymatch' }
+    default:
+      return { kind: 'unlimited', target: '' }
+  }
+}
+
+function sceneForSave() {
+  if (form.scope !== 'mode') return 0
+  if (form.useMode === 'gashapon') return 1
+  if (form.useMode === 'memorymatch') return 2
   return 0
 }
+
+function targetBusinessKeyForSave() {
+  if (form.scope === 'mode' && form.useMode) return `mode:${form.useMode}`
+  if (form.scope === 'pool' && form.poolId.trim()) return `pool:${form.poolId.trim()}`
+  return ''
+}
+
+function modeLabel(mode: string) {
+  return useModeOptions.value.find((item) => item.value === mode)?.label ?? mode
+}
+
 function scopeOf(record: CouponTemplate) {
-  const scene = Number(record.scene ?? 0)
-  if (scene === 1) return 'mode'
-  if (scene === 2) return 'pool'
-  return 'unlimited'
+  return couponScope(record).kind
 }
 
 function openCreate() {
@@ -321,6 +364,8 @@ function openCreate() {
     description: '',
     kind: undefined,
     scope: undefined,
+    useMode: undefined,
+    poolId: '',
     validityDays: 0,
     naturalDay: false,
     minGrossYuan: 0,
@@ -329,7 +374,7 @@ function openCreate() {
     minItemCount: 0,
     maxItemCount: 0,
     rewardAmountYuan: 0,
-    discountPercent: 90,
+    discountPercent: undefined,
     rewardCount: 0,
     rewardTemplateId: '0',
     enabled: true,
@@ -338,12 +383,15 @@ function openCreate() {
 }
 
 function openEdit(record: CouponTemplate) {
+  const scope = couponScope(record)
   Object.assign(form, {
     templateId: String(record.templateId ?? ''),
     name: String(record.name ?? ''),
     description: String(record.description ?? ''),
     kind: normalizeKind(record.kind),
-    scope: scopeOf(record),
+    scope: scope.kind,
+    useMode: scope.kind === 'mode' ? scope.target : undefined,
+    poolId: scope.kind === 'pool' ? scope.target : '',
     validityDays: Number(record.validityDays ?? 0),
     naturalDay: record.naturalDay === true,
     minGrossYuan: fenToYuan(record.minGrossMinor),
@@ -398,25 +446,38 @@ async function save() {
     message.warning(t('couponAdmin.validityRequired'))
     return
   }
+  if (form.scope === 'mode' && !form.useMode) {
+    message.warning(t('couponAdmin.useModeRequired'))
+    return
+  }
+  if (form.scope === 'pool' && !positiveId(form.poolId.trim())) {
+    message.warning(t('couponAdmin.poolIdRequired'))
+    return
+  }
   const templateId = form.templateId || String(Math.max(0, ...latestTemplates.value.map((item) => Number(item.templateId ?? 0))) + 1)
   if (!positiveId(templateId)) {
     message.warning(t('couponAdmin.typeRequired'))
     return
   }
   const kind = form.kind
-  if (
-    (kind === 'COUPON_TEMPLATE_KIND_FIXED_MINOR' || kind === 'COUPON_TEMPLATE_KIND_CUSTOM_MINOR') &&
-    yuanToFen(form.rewardAmountYuan) <= 0
-  ) {
+  if (isFixedOrCustom.value && (yuanToFen(form.rewardAmountYuan) <= 0 || yuanToFen(form.minGrossYuan) <= 0)) {
     message.warning(t('couponAdmin.amountMustBePositive'))
     return
   }
-  if (kind === 'COUPON_TEMPLATE_KIND_PERCENT_BPS' && (!form.discountPercent || form.discountPercent <= 0 || form.discountPercent > 100)) {
+  if (isPercent.value && (!form.discountPercent || form.discountPercent <= 0 || form.discountPercent > 100)) {
     message.warning(t('couponAdmin.discountMustBePositive'))
     return
   }
-  if (kind === 'COUPON_TEMPLATE_KIND_DRAW_REWARD' && Math.trunc(form.rewardCount) <= 0) {
+  if (itemThresholdRequired.value && (Math.trunc(form.minItemCount) <= 0 || Math.trunc(form.maxItemCount) <= 0)) {
+    message.warning(t('couponAdmin.itemThresholdRequired'))
+    return
+  }
+  if (isDraw.value && Math.trunc(form.rewardCount) <= 0) {
     message.warning(t('couponAdmin.rewardCountRequired'))
+    return
+  }
+  if (isDraw.value && !positiveId(form.rewardTemplateId.trim())) {
+    message.warning(t('couponAdmin.rewardTemplateId'))
     return
   }
   const template: CouponTemplate = {
@@ -425,8 +486,8 @@ async function save() {
     name: form.name.trim(),
     description: form.description.trim(),
     kind,
-    amountMinor: kind === 'COUPON_TEMPLATE_KIND_FIXED_MINOR' || kind === 'COUPON_TEMPLATE_KIND_CUSTOM_MINOR' ? yuanToFen(form.rewardAmountYuan) : 0,
-    percentBps: kind === 'COUPON_TEMPLATE_KIND_PERCENT_BPS' ? Math.round(form.discountPercent * 100) : 0,
+    amountMinor: isFixedOrCustom.value ? yuanToFen(form.rewardAmountYuan) : 0,
+    percentBps: isPercent.value ? Math.round((form.discountPercent ?? 0) * 100) : 0,
     minGrossMinor: yuanToFen(form.minGrossYuan),
     minUnitPriceMinor: yuanToFen(form.minUnitPriceYuan),
     maxUnitPriceMinor: yuanToFen(form.maxUnitPriceYuan),
@@ -434,17 +495,13 @@ async function save() {
     maxItemCount: Math.max(0, Math.trunc(form.maxItemCount)),
     currency: 'CNY',
     funder: 'DISCOUNT_FUNDER_PLATFORM',
-    scene: sceneOf(form.scope),
-    targetBusinessKey: '',
+    scene: sceneForSave(),
+    targetBusinessKey: targetBusinessKeyForSave(),
     validityDays: Math.trunc(form.validityDays),
     naturalDay: form.naturalDay,
     enabled: form.enabled,
     rewardTemplateId: form.rewardTemplateId.trim() || '0',
     rewardCount: Math.max(0, Math.trunc(form.rewardCount)),
-  }
-  if (kind === 'COUPON_TEMPLATE_KIND_DRAW_REWARD' && !positiveId(String(template.rewardTemplateId))) {
-    message.warning(t('couponAdmin.rewardTemplateId'))
-    return
   }
   saving.value = true
   try {
