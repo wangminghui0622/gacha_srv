@@ -224,65 +224,80 @@
       v-model:open="appearanceModalOpen"
       :title="appearanceForm.id ? $t('gachaMatch.appearanceEditTitle') : $t('gachaMatch.appearanceCreateTitle')"
       :confirm-loading="appearanceSaving"
-      width="640px"
+      width="720px"
       @ok="saveAppearance"
     >
-      <a-form :label-col="{ span: 7 }" :wrapper-col="{ span: 16 }">
+      <a-form :label-col="{ span: 5 }" :wrapper-col="{ span: 18 }">
         <a-form-item :label="$t('gachaMatch.appearanceType')">
           <a-select v-model:value="appearanceForm.type" :options="appearanceTypeEditOptions" />
         </a-form-item>
         <a-form-item :label="$t('gachaMatch.deckName')">
           <a-input v-model:value="appearanceForm.name" :placeholder="$t('gachaMatch.nameRequired')" />
         </a-form-item>
-        <a-form-item :label="$t('gachaMatch.imageUrl')">
-          <div class="upload-row">
-            <a-input v-model:value="appearanceForm.imageUrl" />
-            <a-upload
-              :show-upload-list="false"
-              accept="image/*"
-              :before-upload="(file: File) => uploadAppearanceImage(file, 'imageUrl')"
-            >
-              <a-button :loading="uploadingField === 'imageUrl'">{{ $t('gachaMatch.upload') }}</a-button>
-            </a-upload>
-          </div>
-          <a-image v-if="appearanceForm.imageUrl" :src="appearanceForm.imageUrl" :width="72" :height="72" class="upload-preview" />
+        <a-form-item :label="$t('gachaMatch.appearanceImage')">
+          <a-upload
+            :show-upload-list="false"
+            accept="image/*"
+            :before-upload="(file: File) => uploadAppearanceImage(file, 'imageUrl')"
+          >
+            <div class="appearance-upload-box">
+              <img v-if="appearanceForm.imageUrl" :src="appearanceForm.imageUrl" alt="" />
+              <template v-else>
+                <span class="upload-plus">+</span>
+                <span class="upload-text">
+                  {{ uploadingField === 'imageUrl' ? $t('gachaMatch.uploading') : $t('gachaMatch.upload') }}
+                </span>
+              </template>
+            </div>
+          </a-upload>
         </a-form-item>
-        <a-form-item :label="$t('gachaMatch.backImageUrl')">
-          <div class="upload-row">
-            <a-input v-model:value="appearanceForm.backImageUrl" />
-            <a-upload
-              :show-upload-list="false"
-              accept="image/*"
-              :before-upload="(file: File) => uploadAppearanceImage(file, 'backImageUrl')"
-            >
-              <a-button :loading="uploadingField === 'backImageUrl'">{{ $t('gachaMatch.upload') }}</a-button>
-            </a-upload>
-          </div>
-          <a-image
-            v-if="appearanceForm.backImageUrl"
-            :src="appearanceForm.backImageUrl"
-            :width="72"
-            :height="72"
-            class="upload-preview"
-          />
+        <a-form-item v-if="appearanceForm.type === 2" :label="$t('gachaMatch.appearanceBackImage')">
+          <a-upload
+            :show-upload-list="false"
+            accept="image/*"
+            :before-upload="(file: File) => uploadAppearanceImage(file, 'backImageUrl')"
+          >
+            <div class="appearance-upload-box">
+              <img v-if="appearanceForm.backImageUrl" :src="appearanceForm.backImageUrl" alt="" />
+              <template v-else>
+                <span class="upload-plus">+</span>
+                <span class="upload-text">
+                  {{ uploadingField === 'backImageUrl' ? $t('gachaMatch.uploading') : $t('gachaMatch.upload') }}
+                </span>
+              </template>
+            </div>
+          </a-upload>
+          <div class="form-hint">{{ $t('gachaMatch.appearanceFaceBackgroundHint') }}</div>
         </a-form-item>
         <a-form-item :label="$t('common.status')">
-          <a-select v-model:value="appearanceForm.status" :options="statusOptions" />
+          <a-switch
+            :checked="appearanceForm.status === 1"
+            @change="onAppearanceStatusChange"
+          />
         </a-form-item>
         <a-form-item :label="$t('gachaMatch.appearanceFree')">
           <a-switch v-model:checked="appearanceForm.free" />
+          <div class="form-hint">{{ $t('gachaMatch.appearanceFreeHint') }}</div>
         </a-form-item>
         <a-form-item :label="$t('gachaMatch.appearanceExchangePoints')">
-          <a-input-number v-model:value="appearanceForm.exchangePoints" :min="0" :precision="2" class="number-input" />
+          <a-input-number v-model:value="appearanceForm.exchangePoints" :min="0" :precision="2" class="short-number" />
         </a-form-item>
         <a-form-item :label="$t('gachaMatch.appearanceFunctionType')">
-          <a-input v-model:value="appearanceForm.functionType" />
+          <a-select
+            v-model:value="appearanceForm.functionType"
+            :options="appearanceFunctionTypeOptions"
+            :placeholder="$t('gachaMatch.appearanceFunctionNone')"
+          />
         </a-form-item>
         <a-form-item :label="$t('gachaMatch.appearanceFunctionConfig')">
-          <a-input v-model:value="appearanceForm.functionConfig" />
+          <a-textarea
+            v-model:value="appearanceForm.functionConfig"
+            :rows="5"
+            placeholder='{"bonus":1}'
+          />
         </a-form-item>
         <a-form-item :label="$t('poolAdmin.weight')">
-          <a-input-number v-model:value="appearanceForm.weight" :min="0" class="number-input" />
+          <a-input-number v-model:value="appearanceForm.weight" :min="0" class="short-number" />
         </a-form-item>
       </a-form>
     </a-modal>
@@ -524,6 +539,13 @@ const appearanceTypeEditOptions = computed(() => [
   { value: 1, label: t('gachaMatch.cardFace') },
   { value: 2, label: t('gachaMatch.cardBack') },
 ])
+const appearanceFunctionTypeOptions = computed(() => {
+  const options = [{ value: '', label: t('gachaMatch.appearanceFunctionNone') }]
+  if (appearanceForm.functionType && !options.some((item) => item.value === appearanceForm.functionType)) {
+    options.push({ value: appearanceForm.functionType, label: appearanceForm.functionType })
+  }
+  return options
+})
 const appearanceStatusOptions = computed(() => [
   { value: -1, label: t('gachaMatch.appearanceAllStatuses') },
   { value: 1, label: t('gachaMatch.enabled') },
@@ -563,6 +585,10 @@ async function loadAppearances(page = appearancePage.value) {
   }
 }
 
+function onAppearanceStatusChange(checked: boolean) {
+  appearanceForm.status = checked ? 1 : 0
+}
+
 function openAppearanceModal(record?: MemoryMatchAppearance) {
   appearanceForm.id = record ? toNumber(record.id) : 0
   appearanceForm.type = record ? toNumber(record.type, 1) : 1
@@ -570,7 +596,7 @@ function openAppearanceModal(record?: MemoryMatchAppearance) {
   appearanceForm.imageUrl = record?.imageUrl ?? ''
   appearanceForm.backImageUrl = record?.backImageUrl ?? ''
   appearanceForm.status = record ? toNumber(record.status, 1) : 1
-  appearanceForm.free = record ? toNumber(record.free, 1) === 1 : true
+  appearanceForm.free = record ? toNumber(record.free, 1) === 1 : false
   appearanceForm.exchangePoints = record ? toNumber(record.exchangePoints) : 0
   appearanceForm.functionType = record?.functionType ?? ''
   appearanceForm.functionConfig = record?.functionConfig ?? ''
@@ -730,5 +756,48 @@ onMounted(() => {
   border: 1px solid #e4e7ed;
   border-radius: 4px;
   object-fit: cover;
+}
+
+.appearance-upload-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 120px;
+  height: 120px;
+  overflow: hidden;
+  color: #8c8c8c;
+  background: #fafafa;
+  border: 1px dashed #d9d9d9;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.appearance-upload-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upload-plus {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.upload-text {
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.form-hint {
+  margin-top: 4px;
+  color: #8c8c8c;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.short-number {
+  width: 120px;
 }
 </style>
