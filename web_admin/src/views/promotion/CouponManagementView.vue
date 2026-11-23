@@ -69,15 +69,15 @@
           <div class="coupon-choice-title">
             <span class="coupon-choice-required">{{ $t('couponAdmin.typeLabel') }}</span>
           </div>
-          <a-radio-group v-model:value="form.kind" button-style="solid" class="coupon-segmented">
-            <a-radio-button v-for="option in kindOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio-button>
+          <a-radio-group v-model:value="form.kind" class="coupon-radio-group">
+            <a-radio v-for="option in kindOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
           </a-radio-group>
         </div>
         <div class="coupon-choice-block">
           <div class="coupon-choice-title">{{ $t('couponAdmin.scopeLabel') }}</div>
           <div class="coupon-scope-line">
-            <a-radio-group v-model:value="form.scope" button-style="solid" class="coupon-segmented">
-              <a-radio-button v-for="option in scopeOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio-button>
+            <a-radio-group v-model:value="form.scope" class="coupon-radio-group">
+              <a-radio v-for="option in scopeOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
             </a-radio-group>
             <a-button v-if="form.scope" type="link" size="small" class="coupon-clear-btn" @click="form.scope = undefined">{{ $t('couponAdmin.clear') }}</a-button>
           </div>
@@ -637,17 +637,16 @@ onMounted(() => {
   justify-content: center;
   gap: 8px;
 }
-.coupon-segmented :deep(.ant-radio-button-wrapper) {
-  padding: 0 14px;
-  font-size: 13px;
+.coupon-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 20px;
 }
-.coupon-segmented :deep(.ant-radio-button-wrapper:first-child) {
-  border-start-start-radius: 16px;
-  border-end-start-radius: 16px;
-}
-.coupon-segmented :deep(.ant-radio-button-wrapper:last-child) {
-  border-start-end-radius: 16px;
-  border-end-end-radius: 16px;
+.coupon-radio-group :deep(.ant-radio-wrapper) {
+  margin-inline-end: 0;
+  font-size: 14px;
 }
 .coupon-clear-btn {
   padding: 0;
