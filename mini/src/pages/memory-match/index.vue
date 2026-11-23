@@ -109,8 +109,20 @@ const heroImage = computed(() => {
   )
 })
 
-const luckyPatternId = computed(() => session.value?.destinyPatternId || round.value?.destinyPatternId || 1)
-const luckyCardImage = computed(() => faceOfPattern(luckyPatternId.value)?.imageUrl || faceOfPattern(1)?.imageUrl || '')
+const luckyPreviewPatternId = ref(0)
+const luckyPatternId = computed(
+  () =>
+    luckyPreviewPatternId.value ||
+    session.value?.destinyPatternId ||
+    round.value?.destinyPatternId ||
+    0,
+)
+// 未选择吉祥卡时展示牌背；首次选中后才展示对应卡面。
+const luckyCardImage = computed(() => {
+  const patternId = luckyPatternId.value
+  if (patternId > 0) return faceOfPattern(patternId)?.imageUrl || ''
+  return previewCardImage.value
+})
 // 未开局时九宫格展示牌背（默认 back1），不是卡面图案。
 const previewCardImage = computed(() => activeBackPreset.value?.backImageUrl || activeBackPreset.value?.faceBackgroundImageUrl || '')
 
@@ -285,6 +297,7 @@ function onBuyClick() {
 async function buy() {
   if (buying.value) return
   buying.value = true
+  luckyPreviewPatternId.value = 0
   try {
     // 先持久化外观选择，再携带同值购买（后端 Lock 分支校验）
     await memoryMatchApi.setMemoryMatchAppearance(configId.value, facePresetId.value, backPresetId.value)
@@ -308,6 +321,7 @@ async function buy() {
 async function pickDestiny(patternId: number, second: boolean) {
   if (acting.value || !session.value) return
   acting.value = true
+  if (!second) luckyPreviewPatternId.value = patternId
   try {
     if (second) {
       await memoryMatchApi.selectMemoryMatchSecondDestiny(session.value.sessionId, patternId)
