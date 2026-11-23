@@ -64,6 +64,7 @@ func All() []Operation {
 		{ID: "console.playpool.get", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/play-pools/:poolId/versions/:version", Title: "读取统一玩赏池版本"},
 		{ID: "console.playpool.create", Resource: "gacha.pool", Action: "create", Method: "POST", Path: "/gacha/play-pools/drafts", Title: "创建统一玩赏池草稿"},
 		{ID: "console.playpool.publish", Resource: "gacha.pool", Action: "publish", Method: "POST", Path: "/gacha/play-pools/:poolId/versions/:version/publish", Title: "发布统一玩赏池"},
+		{ID: "console.playpool.retire", Resource: "gacha.pool", Action: "publish", Method: "POST", Path: "/gacha/play-pools/:poolId/retire", Title: "下架统一玩赏池"},
 		// ── 图鉴集合（管理端）──
 		{ID: "console.collection.list", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/collection-sets", Title: "图鉴集合列表"},
 		{ID: "console.collection.create", Resource: "gacha.pool", Action: "create", Method: "POST", Path: "/gacha/collection-sets", Title: "新建图鉴集合"},
