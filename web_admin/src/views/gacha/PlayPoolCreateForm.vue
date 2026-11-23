@@ -99,10 +99,31 @@
 
       <div class="form-right">
         <div class="prize-section">
-          <div class="prize-label">赏品配置：</div>
+          <div class="prize-label">{{ form.mode === 'memorymatch' ? '奖档配置：' : '赏品配置：' }}</div>
           <div v-if="form.mode === 'memorymatch'" class="prize-hint">
-            <span>目标碰数必须唯一，范围 0-总碰数上限；新加赏品会自动分配目标碰数，可在表格中修改。</span>
+            <span>每个目标碰数对应一个奖档，必须唯一；总碰数上限 {{ memoryTargetMax }}；未配置的档位不会中奖。</span>
             <a-button type="link" size="small" @click="autoAssignTargets">自动分配</a-button>
+          </div>
+          <div v-if="form.mode === 'memorymatch'" class="target-summary">
+            <div class="target-summary-line">
+              <span class="target-summary-label">已配置：</span>
+              <a-tag v-for="value in memoryTargetUnique" :key="value" :color="memoryTargetBadgeColor(value)">
+                {{ value }}
+              </a-tag>
+              <span v-if="!memoryTargetUnique.length" class="target-summary-muted">暂无</span>
+            </div>
+            <div v-if="memoryTargetDuplicates.length" class="target-summary-error">
+              重复目标碰数：{{ memoryTargetDuplicates.join('、') }}，请改成不同的值
+            </div>
+            <div v-else-if="memoryTargetOutOfRange.length" class="target-summary-error">
+              超出 0-{{ memoryTargetMax }}：{{ memoryTargetOutOfRange.join('、') }}
+            </div>
+            <div v-else-if="memoryMissingTargets.length" class="target-summary-muted">
+              未配置：{{ memoryMissingTargets.join('、') }}（这些总碰数不会中奖）
+            </div>
+            <div v-else-if="memoryTargetUnique.length" class="target-summary-ok">
+              已覆盖 0-{{ memoryTargetMax }} 全部档位
+            </div>
           </div>
           <div class="prize-config">
             <div ref="prizeTableWrap" class="prize-table-wrap">
@@ -385,6 +406,45 @@ const switchItems = [
 
 const prizes = ref<PlayPoolPrize[]>([])
 const expandedPrizeIndexes = ref<Set<number>>(new Set())
+
+const memoryTargetMax = computed(
+  () => Math.max(0, Math.round(mmConfig.roundsPerPurchase) * Math.round(mmConfig.maxPairCount)),
+)
+const memoryTargetValues = computed(() => prizes.value.map((prize) => Number(prize.targetValue ?? 0)))
+const memoryTargetUnique = computed(() =>
+  Array.from(new Set(memoryTargetValues.value)).sort((a, b) => a - b),
+)
+const memoryTargetDuplicates = computed(() => {
+  const seen = new Set<number>()
+  const duplicates = new Set<number>()
+  for (const value of memoryTargetValues.value) {
+    if (seen.has(value)) duplicates.add(value)
+    else seen.add(value)
+  }
+  return Array.from(duplicates).sort((a, b) => a - b)
+})
+const memoryTargetOutOfRange = computed(() =>
+  Array.from(
+    new Set(
+      memoryTargetValues.value.filter(
+        (value) => !Number.isInteger(value) || value < 0 || value > memoryTargetMax.value,
+      ),
+    ),
+  ).sort((a, b) => a - b),
+)
+const memoryMissingTargets = computed(() => {
+  if (memoryTargetMax.value > 30) return []
+  const used = new Set(memoryTargetUnique.value)
+  return Array.from({ length: memoryTargetMax.value + 1 }, (_, index) => index).filter(
+    (value) => !used.has(value),
+  )
+})
+
+function memoryTargetBadgeColor(value: number): string {
+  if (!Number.isInteger(value) || value < 0 || value > memoryTargetMax.value) return 'red'
+  if (memoryTargetDuplicates.value.includes(value)) return 'red'
+  return 'green'
+}
 
 function applyMemoryMatchConfig(raw?: string | null) {
   let rounds = 3
@@ -1337,6 +1397,46 @@ onMounted(loadOptions)
   font-size: 12px;
   line-height: 1.5;
   text-align: left;
+}
+
+.target-summary {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  background: #fafafa;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.target-summary-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.target-summary-label {
+  color: #606266;
+}
+
+.target-summary :deep(.ant-tag) {
+  margin-inline-end: 0;
+}
+
+.target-summary-muted {
+  color: #8a94a6;
+}
+
+.target-summary-error {
+  margin-top: 4px;
+  color: #cf1322;
+}
+
+.target-summary-ok {
+  margin-top: 4px;
+  color: #389e0d;
 }
 
 .prize-config {
