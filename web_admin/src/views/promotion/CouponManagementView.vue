@@ -64,44 +64,39 @@
       :cancel-text="$t('couponAdmin.cancel')"
       @ok="save"
     >
-      <a-form :label-col="{ span: 7 }" :wrapper-col="{ span: 16 }">
-        <a-form-item
-          :label="$t('couponAdmin.typeLabel')"
-          :label-col="{ span: 3 }"
-          :wrapper-col="{ span: 21 }"
-          required
-        >
-          <a-radio-group v-model:value="form.kind" :options="kindOptions" class="coupon-radio-row" />
-        </a-form-item>
-        <a-form-item
-          :label="$t('couponAdmin.scopeLabel')"
-          :label-col="{ span: 3 }"
-          :wrapper-col="{ span: 21 }"
-        >
-          <div class="coupon-scope-row">
-            <a-radio-group v-model:value="form.scope" :options="scopeOptions" class="coupon-radio-row" />
-            <a-button v-if="form.scope" type="link" size="small" @click="form.scope = undefined">{{ $t('couponAdmin.clear') }}</a-button>
+      <div class="coupon-choice-area">
+        <div class="coupon-choice-block">
+          <div class="coupon-choice-title">
+            <span class="coupon-choice-required">{{ $t('couponAdmin.typeLabel') }}</span>
           </div>
-        </a-form-item>
-        <a-form-item
-          v-if="form.scope === 'mode'"
-          :label="$t('couponAdmin.useMode')"
-          :label-col="{ span: 3 }"
-          :wrapper-col="{ span: 21 }"
-          required
-        >
-          <a-select v-model:value="form.useMode" :options="useModeOptions" :placeholder="$t('couponAdmin.useMode')" style="max-width: 320px" />
-        </a-form-item>
-        <a-form-item
-          v-if="form.scope === 'pool'"
-          :label="$t('couponAdmin.poolId')"
-          :label-col="{ span: 3 }"
-          :wrapper-col="{ span: 21 }"
-          required
-        >
-          <a-input v-model:value="form.poolId" :placeholder="$t('couponAdmin.poolId')" inputmode="numeric" style="max-width: 320px" />
-        </a-form-item>
+          <a-radio-group v-model:value="form.kind" button-style="solid" class="coupon-segmented">
+            <a-radio-button v-for="option in kindOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio-button>
+          </a-radio-group>
+        </div>
+        <div class="coupon-choice-block">
+          <div class="coupon-choice-title">{{ $t('couponAdmin.scopeLabel') }}</div>
+          <div class="coupon-scope-line">
+            <a-radio-group v-model:value="form.scope" button-style="solid" class="coupon-segmented">
+              <a-radio-button v-for="option in scopeOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio-button>
+            </a-radio-group>
+            <a-button v-if="form.scope" type="link" size="small" class="coupon-clear-btn" @click="form.scope = undefined">{{ $t('couponAdmin.clear') }}</a-button>
+          </div>
+        </div>
+        <div v-if="form.scope === 'mode'" class="coupon-choice-block">
+          <div class="coupon-choice-title">
+            <span class="coupon-choice-required">{{ $t('couponAdmin.useMode') }}</span>
+          </div>
+          <a-select v-model:value="form.useMode" :options="useModeOptions" :placeholder="$t('couponAdmin.useMode')" style="width: 320px" />
+        </div>
+        <div v-if="form.scope === 'pool'" class="coupon-choice-block">
+          <div class="coupon-choice-title">
+            <span class="coupon-choice-required">{{ $t('couponAdmin.poolId') }}</span>
+          </div>
+          <a-input v-model:value="form.poolId" :placeholder="$t('couponAdmin.poolId')" inputmode="numeric" style="width: 320px" />
+        </div>
+      </div>
 
+      <a-form :label-col="{ span: 7 }" :wrapper-col="{ span: 16 }">
         <a-row :gutter="22">
           <a-col :span="12">
             <a-form-item :label="$t('couponAdmin.nameLabel')" required>
@@ -611,20 +606,50 @@ onMounted(() => {
 .coupon-red-label {
   color: #ff4d4f;
 }
-.coupon-radio-row {
+.coupon-choice-area {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 8px;
-  white-space: nowrap;
-}
-.coupon-radio-row :deep(.ant-radio-wrapper) {
-  margin-inline-end: 0;
-  font-size: 12px;
-}
-.coupon-scope-row {
-  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 14px;
+  margin: 4px 0 22px;
+}
+.coupon-choice-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.coupon-choice-title {
+  color: #303133;
+  font-size: 14px;
+  font-weight: 500;
+}
+.coupon-choice-required::before {
+  content: '*';
+  margin-right: 4px;
+  color: #ff4d4f;
+}
+.coupon-scope-line {
+  display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.coupon-segmented :deep(.ant-radio-button-wrapper) {
+  padding: 0 14px;
+  font-size: 13px;
+}
+.coupon-segmented :deep(.ant-radio-button-wrapper:first-child) {
+  border-start-start-radius: 16px;
+  border-end-start-radius: 16px;
+}
+.coupon-segmented :deep(.ant-radio-button-wrapper:last-child) {
+  border-start-end-radius: 16px;
+  border-end-end-radius: 16px;
+}
+.coupon-clear-btn {
+  padding: 0;
 }
 </style>
