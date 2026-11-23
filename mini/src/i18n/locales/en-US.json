@@ -45,6 +45,7 @@
     "phonePlaceholder": "11-digit mainland mobile",
     "code": "Code",
     "codePlaceholder": "6-digit code",
+    "testCodeHint": "Test code is fixed to 888888",
     "sendCode": "Send Code",
     "resendCountdown": "Resend in {n}s",
     "codeSent": "Code sent (dev: contact admin to retrieve)",

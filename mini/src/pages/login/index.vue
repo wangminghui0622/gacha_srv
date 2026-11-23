@@ -1,30 +1,22 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import { onShow, onUnload } from '@dcloudio/uni-app'
+import { onShow } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 
 import * as userApi from '@/services/user'
 import { useAuthStore } from '@/store/authStore'
 import { tokenStorage } from '@/utils/storage'
 
-// 登录页 = 启动页（设计 M16 D4）：token 有效直接进首页；手机号登录为主形态
+// 登录页 = 启动页（设计 M16 D4）：token 有效直接进首页。
+// 当前阶段只提供手机号 + 验证码登录，验证码固定 888888（测试用）。
 
 const { t } = useI18n()
 const auth = useAuthStore()
 
-type TabKey = 'phone' | 'login' | 'register'
-const tabs: { key: TabKey; label: string }[] = [
-  { key: 'phone', label: t('auth.phoneLogin') },
-  { key: 'login', label: t('auth.login') },
-  { key: 'register', label: t('auth.register') },
-]
-const activeTab = ref<TabKey>('phone')
 const loading = ref(false)
 
-const loginForm = reactive({ username: '', password: '' })
-const registerForm = reactive({ username: '', password: '', nickname: '' })
 // M15a 手机号登录（tenantId 与 web 一致恒 1）
-const phoneForm = reactive({ tenantId: 1, phone: '', code: '' })
+const phoneForm = reactive({ tenantId: 1, phone: '', code: '888888' })
 
 // 登录成功：写令牌 → 拉资料入 store → 进首页（reLaunch 清栈，登录页出栈）
 async function afterAuth(token: string) {
@@ -53,35 +45,7 @@ onShow(async () => {
   }
 })
 
-// ── 手机号验证码登录：60s 倒计时重发 ──
-const sending = ref(false)
-const countdown = ref(0)
-let countdownTimer: ReturnType<typeof setInterval> | undefined
-
-async function onSendCode() {
-  if (!/^1[3-9]\d{9}$/.test(phoneForm.phone)) {
-    uni.showToast({ title: t('auth.phonePlaceholder'), icon: 'none' })
-    return
-  }
-  sending.value = true
-  try {
-    await userApi.requestPhoneCode({ tenantId: phoneForm.tenantId, phone: phoneForm.phone })
-    uni.showToast({ title: t('auth.codeSent'), icon: 'none' })
-    countdown.value = 60
-    countdownTimer = setInterval(() => {
-      countdown.value -= 1
-      if (countdown.value <= 0 && countdownTimer) {
-        clearInterval(countdownTimer)
-        countdownTimer = undefined
-      }
-    }, 1000)
-  } catch (err) {
-    showErr(err)
-  } finally {
-    sending.value = false
-  }
-}
-
+// ── 手机号验证码登录（当前验证码固定 888888）──
 async function onPhoneLogin() {
   if (!/^1[3-9]\d{9}$/.test(phoneForm.phone) || phoneForm.code.length !== 6) {
     uni.showToast({ title: t('auth.codePlaceholder'), icon: 'none' })
@@ -97,44 +61,6 @@ async function onPhoneLogin() {
     loading.value = false
   }
 }
-
-// ── 账号登录 / 注册（注册后自动登录，与 web 同流程）──
-async function onLogin() {
-  if (loginForm.username.length < 3 || loginForm.password.length < 6) {
-    uni.showToast({ title: t('auth.usernamePlaceholder'), icon: 'none' })
-    return
-  }
-  loading.value = true
-  try {
-    const res = await userApi.login(loginForm)
-    await afterAuth(res.token)
-  } catch (err) {
-    showErr(err)
-  } finally {
-    loading.value = false
-  }
-}
-
-async function onRegister() {
-  if (registerForm.username.length < 3 || registerForm.password.length < 6) {
-    uni.showToast({ title: t('auth.usernamePlaceholder'), icon: 'none' })
-    return
-  }
-  loading.value = true
-  try {
-    await userApi.register({ ...registerForm, nickname: registerForm.nickname || undefined })
-    const res = await userApi.login({ username: registerForm.username, password: registerForm.password })
-    await afterAuth(res.token)
-  } catch (err) {
-    showErr(err)
-  } finally {
-    loading.value = false
-  }
-}
-
-onUnload(() => {
-  if (countdownTimer) clearInterval(countdownTimer)
-})
 </script>
 
 <template>
@@ -142,20 +68,7 @@ onUnload(() => {
     <view class="app-logo">🎁</view>
     <view class="app-name">{{ t('common.appName') }}</view>
 
-    <view class="tab-bar">
-      <view
-        v-for="tab in tabs"
-        :key="tab.key"
-        class="tab-item"
-        :class="{ active: activeTab === tab.key }"
-        @click="activeTab = tab.key"
-      >
-        {{ tab.label }}
-      </view>
-    </view>
-
-    <!-- 手机号验证码登录 -->
-    <view v-if="activeTab === 'phone'" class="gacha-card form-card">
+    <view class="gacha-card form-card">
       <view class="form-item">
         <view class="form-label">{{ t('auth.phone') }}</view>
         <input
@@ -168,80 +81,18 @@ onUnload(() => {
       </view>
       <view class="form-item">
         <view class="form-label">{{ t('auth.code') }}</view>
-        <view class="code-row">
-          <input
-            v-model="phoneForm.code"
-            class="form-input code-input"
-            type="number"
-            :maxlength="6"
-            :placeholder="t('auth.codePlaceholder')"
-          />
-          <view class="code-btn" :class="{ disabled: countdown > 0 || sending }" @click="onSendCode">
-            {{ countdown > 0 ? t('auth.resendCountdown', { n: countdown }) : t('auth.sendCode') }}
-          </view>
-        </view>
+        <input
+          v-model="phoneForm.code"
+          class="form-input"
+          type="number"
+          :maxlength="6"
+          :placeholder="t('auth.codePlaceholder')"
+        />
       </view>
+      <view class="form-hint">{{ t('auth.testCodeHint') }}</view>
       <view class="btn-primary" :class="{ disabled: loading }" @click="onPhoneLogin">
         {{ t('auth.loginSubmit') }}
       </view>
-    </view>
-
-    <!-- 账号登录 -->
-    <view v-else-if="activeTab === 'login'" class="gacha-card form-card">
-      <view class="form-item">
-        <view class="form-label">{{ t('auth.username') }}</view>
-        <input v-model="loginForm.username" class="form-input" :maxlength="32" :placeholder="t('auth.usernamePlaceholder')" />
-      </view>
-      <view class="form-item">
-        <view class="form-label">{{ t('auth.password') }}</view>
-        <input
-          v-model="loginForm.password"
-          class="form-input"
-          password
-          :maxlength="32"
-          :placeholder="t('auth.passwordPlaceholder')"
-        />
-      </view>
-      <view class="btn-primary" :class="{ disabled: loading }" @click="onLogin">
-        {{ t('auth.loginSubmit') }}
-      </view>
-      <view class="switch-link" @click="activeTab = 'register'">{{ t('auth.switchToRegister') }}</view>
-    </view>
-
-    <!-- 注册 -->
-    <view v-else class="gacha-card form-card">
-      <view class="form-item">
-        <view class="form-label">{{ t('auth.username') }}</view>
-        <input
-          v-model="registerForm.username"
-          class="form-input"
-          :maxlength="32"
-          :placeholder="t('auth.usernamePlaceholder')"
-        />
-      </view>
-      <view class="form-item">
-        <view class="form-label">{{ t('auth.password') }}</view>
-        <input
-          v-model="registerForm.password"
-          class="form-input"
-          password
-          :maxlength="32"
-          :placeholder="t('auth.passwordPlaceholder')"
-        />
-      </view>
-      <view class="form-item">
-        <view class="form-label">{{ t('auth.nickname') }}</view>
-        <input
-          v-model="registerForm.nickname"
-          class="form-input"
-          :maxlength="32"
-          :placeholder="t('auth.nicknamePlaceholder')"
-        />
-      </view>
-      <view class="btn-primary" :class="{ disabled: loading }" @click="onRegister">
-        {{ t('auth.registerSubmit') }}
-      </view>
-      <view class="switch-link" @click="activeTab = 'login'">{{ t('auth.switchToLogin') }}</view>
     </view>
   </view>
 </template>
@@ -262,28 +113,6 @@ onUnload(() => {
     margin: 16rpx 0 48rpx;
   }
 
-  .tab-bar {
-    display: flex;
-    margin: 0 24rpx 24rpx;
-    background: var(--color-card);
-    border-radius: 12rpx;
-    padding: 8rpx;
-
-    .tab-item {
-      flex: 1;
-      text-align: center;
-      font-size: 28rpx;
-      color: var(--color-text-secondary);
-      line-height: 72rpx;
-      border-radius: 8rpx;
-
-      &.active {
-        background: var(--color-primary);
-        color: #fff;
-      }
-    }
-  }
-
   .form-card {
     padding-top: 40rpx;
 
@@ -301,30 +130,6 @@ onUnload(() => {
         font-size: 32rpx;
         height: 72rpx;
       }
-
-      .code-row {
-        display: flex;
-        align-items: center;
-        gap: 16rpx;
-
-        .code-input {
-          flex: 1;
-        }
-
-        .code-btn {
-          flex-shrink: 0;
-          font-size: 26rpx;
-          color: var(--color-primary);
-          border: 1rpx solid var(--color-primary);
-          border-radius: 8rpx;
-          padding: 8rpx 20rpx;
-
-          &.disabled {
-            color: var(--color-text-secondary);
-            border-color: var(--color-border);
-          }
-        }
-      }
     }
 
     .form-hint {
@@ -332,13 +137,6 @@ onUnload(() => {
       text-align: center;
       color: var(--color-text-secondary);
       font-size: 24rpx;
-    }
-
-    .switch-link {
-      margin-top: 24rpx;
-      text-align: center;
-      color: var(--color-primary);
-      font-size: 26rpx;
     }
   }
 }
