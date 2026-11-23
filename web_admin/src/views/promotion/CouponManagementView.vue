@@ -78,9 +78,9 @@
             <a-radio-group v-model:value="form.scope" class="coupon-radio-group">
               <a-radio v-for="option in scopeOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
             </a-radio-group>
+            <a-button v-if="form.scope" type="link" size="small" class="coupon-clear-btn" @click="form.scope = undefined">{{ $t('couponAdmin.clear') }}</a-button>
           </div>
         </div>
-        <a-button v-if="form.scope" type="link" size="small" class="coupon-clear-btn" @click="form.scope = undefined">{{ $t('couponAdmin.clear') }}</a-button>
         <div v-if="form.scope === 'mode'" class="coupon-choice-block">
           <div class="coupon-choice-title">
             <span class="coupon-choice-required">{{ $t('couponAdmin.useMode') }}</span>
@@ -660,5 +660,6 @@ onMounted(() => {
 }
 .coupon-clear-btn {
   padding: 0;
+  font-size: 15px;
 }
 </style>
