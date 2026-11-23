@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 
@@ -109,12 +109,33 @@ const heroImage = computed(() => {
   )
 })
 
-// 标题下方轮播：展示赏池里配置了图片的奖品，左右滑动切换。
+// 标题下方轮播：展示赏池里配置了图片的奖品，左右滑动/箭头切换。
 const heroImages = computed(() =>
   (config.value?.config.entries ?? [])
     .map((entry) => entryImage(entry))
     .filter((url): url is string => !!url),
 )
+const heroIndex = ref(0)
+
+function onHeroChange(e: { detail: { current: number } }) {
+  heroIndex.value = e.detail.current
+}
+
+function prevHero() {
+  const total = heroImages.value.length
+  if (total <= 1) return
+  heroIndex.value = (heroIndex.value - 1 + total) % total
+}
+
+function nextHero() {
+  const total = heroImages.value.length
+  if (total <= 1) return
+  heroIndex.value = (heroIndex.value + 1) % total
+}
+
+watch(heroImages, (imgs) => {
+  if (heroIndex.value >= imgs.length) heroIndex.value = 0
+})
 
 const luckyPreviewPatternId = ref(0)
 const luckyPatternId = computed(
@@ -179,13 +200,24 @@ function entryPrizeText(p: DigPrizeItem): string {
 }
 
 const entryWeightTotal = computed(() =>
-  (config.value?.config.entries ?? []).reduce((sum, e) => sum + Math.max(0, Number(e.weight ?? 0)), 0),
+  (config.value?.config.entries ?? []).reduce((sum, e) => sum + entryAllocationWeight(e), 0),
 )
 
-function entryProbability(e: { weight?: number }): string {
+// 与后端 memorymatch_lock 一致：只按有奖档剩余库存分配目标，
+// 0 库存不参与，-1 不限量按 1 份权重，无奖档固定 0。
+function entryAllocationWeight(e: { remaining?: number; prize?: { kind?: number } }): number {
+  if (Number(e.prize?.kind ?? 0) === 0) return 0
+  const remaining = Number(e.remaining ?? -1)
+  if (remaining === 0) return 0
+  if (remaining < 0) return 1
+  return remaining
+}
+
+function entryProbability(e: { remaining?: number; prize?: { kind?: number } }): string {
   const total = entryWeightTotal.value
-  if (total <= 0) return '0.00'
-  return ((Math.max(0, Number(e.weight ?? 0)) / total) * 100).toFixed(2)
+  const weight = entryAllocationWeight(e)
+  if (total <= 0 || weight <= 0) return '0.00'
+  return ((weight / total) * 100).toFixed(2)
 }
 
 function entryImage(e: { imageUrl?: string }): string {
@@ -597,13 +629,10 @@ onLoad(async (query?: Record<string, string | undefined>) => {
         <swiper
           v-if="heroImages.length"
           class="hero-swiper"
-          :autoplay="heroImages.length > 1"
-          :interval="3200"
+          :current="heroIndex"
           :duration="450"
           :circular="heroImages.length > 1"
-          :indicator-dots="heroImages.length > 1"
-          indicator-color="rgba(255, 255, 255, 0.35)"
-          indicator-active-color="#f3d27a"
+          @change="onHeroChange"
         >
           <swiper-item v-for="(img, idx) in heroImages" :key="`hero-${idx}`">
             <image :src="img" class="hero-product-img" mode="aspectFit" />
@@ -611,6 +640,10 @@ onLoad(async (query?: Record<string, string | undefined>) => {
         </swiper>
         <image v-else-if="heroImage" :src="heroImage" class="hero-img" mode="aspectFit" />
         <view v-else class="hero-fallback">🥷</view>
+        <template v-if="heroImages.length > 1">
+          <view class="hero-arrow left" @click.stop="prevHero">‹</view>
+          <view class="hero-arrow right" @click.stop="nextHero">›</view>
+        </template>
 
         <view class="side-rail left">
           <view class="side-btn" @click="openFacePicker">
@@ -940,6 +973,31 @@ $muted: #8fb39d;
   z-index: 3;
   width: 480rpx;
   height: 320rpx;
+}
+
+.hero-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54rpx;
+  height: 86rpx;
+  color: rgba(225, 255, 235, 0.55);
+  font-size: 76rpx;
+  font-weight: 300;
+  line-height: 1;
+  text-shadow: 0 0 18rpx rgba(80, 255, 140, 0.45);
+  transform: translateY(-50%);
+}
+
+.hero-arrow.left {
+  left: 140rpx;
+}
+
+.hero-arrow.right {
+  right: 140rpx;
 }
 
 .hero-product-img {
