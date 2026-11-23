@@ -9,6 +9,8 @@ export interface CouponTemplate {
   version?: string | number
   tenantId?: string | number
   status?: string | number
+  name?: string
+  description?: string
   kind?: string | number
   amountMinor?: string | number
   minGrossMinor?: string | number
@@ -22,6 +24,8 @@ export interface CouponTemplate {
   maxItemCount?: number
   targetBusinessKey?: string
   validityDays?: number
+  naturalDay?: boolean
+  enabled?: boolean
   rewardTemplateId?: string | number
   rewardCount?: number
 }

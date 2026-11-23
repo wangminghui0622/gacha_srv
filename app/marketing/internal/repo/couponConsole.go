@@ -33,6 +33,10 @@ type (
 		ID                int64  `gorm:"column:id;primaryKey;autoIncrement"`
 		TemplateID        int64  `gorm:"column:template_id"`
 		Version           int64  `gorm:"column:version"`
+		Name              string `gorm:"column:name"`
+		Description       string `gorm:"column:description"`
+		NaturalDay        int32  `gorm:"column:natural_day"`
+		Enabled           int32  `gorm:"column:enabled"`
 		Kind              int32  `gorm:"column:kind"`
 		AmountMinor       int64  `gorm:"column:amount_minor"`
 		PercentBps        int32  `gorm:"column:percent_bps"`
@@ -59,6 +63,7 @@ type (
 		Kind       int32
 		Value      int64
 		MinGross   int64
+		Status     int32
 	}
 
 	// UserCouponGrantRow user_coupons 铸券行（Id 由 Create 回填）
@@ -176,10 +181,10 @@ func UpsertPlayerCouponTemplate(tx *gorm.DB, r *PlayerCouponTemplateRow) error {
 	now := time.Now()
 	return tx.Exec(
 		"INSERT INTO coupon_templates (template_no, name, kind, value, min_gross, status, created_at, updated_at) "+
-			"VALUES (?, ?, ?, ?, ?, 1, ?, ?) "+
+			"VALUES (?, ?, ?, ?, ?, ?, ?, ?) "+
 			"ON DUPLICATE KEY UPDATE name = VALUES(name), kind = VALUES(kind), "+
-			"value = VALUES(value), min_gross = VALUES(min_gross), status = 1, updated_at = VALUES(updated_at)",
-		r.TemplateNo, r.Name, r.Kind, r.Value, r.MinGross, now, now).Error
+			"value = VALUES(value), min_gross = VALUES(min_gross), status = VALUES(status), updated_at = VALUES(updated_at)",
+		r.TemplateNo, r.Name, r.Kind, r.Value, r.MinGross, r.Status, now, now).Error
 }
 
 // GetPlayerCouponTemplateID 按 template_no 取 player 行主键（缓存失效用）；未找到返回 ErrRecordNotFound。
@@ -235,11 +240,19 @@ func PutLoyaltyDefaults(tx *gorm.DB, pointsPerYuan, maxRatioBps int64) error {
 
 // ToProto 版本行 → console CouponTemplate（tenant_id 单租户固定 1，status 恒 PUBLISHED）。
 func (r *CouponTemplateVersionRow) ToProto() *marketing.CouponTemplate {
+	status := marketing.CouponTemplateStatus_COUPON_TEMPLATE_STATUS_PUBLISHED
+	if r.Enabled == 0 {
+		status = marketing.CouponTemplateStatus_COUPON_TEMPLATE_STATUS_DISABLED
+	}
 	return &marketing.CouponTemplate{
 		TemplateId:        uint64(r.TemplateID),
 		Version:           uint64(r.Version),
+		Name:              r.Name,
+		Description:       r.Description,
+		NaturalDay:        r.NaturalDay == 1,
+		Enabled:           r.Enabled == 1,
 		TenantId:          1,
-		Status:            marketing.CouponTemplateStatus_COUPON_TEMPLATE_STATUS_PUBLISHED,
+		Status:            status,
 		Kind:              marketing.CouponTemplateKind(r.Kind),
 		AmountMinor:       r.AmountMinor,
 		MinGrossMinor:     r.MinGrossMinor,

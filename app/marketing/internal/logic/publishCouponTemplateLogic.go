@@ -85,6 +85,10 @@ func (l *PublishCouponTemplateLogic) PublishCouponTemplate(in *marketing.Publish
 		row := &repo.CouponTemplateVersionRow{
 			TemplateID:        int64(t.TemplateId),
 			Version:           head.NextVersion,
+			Name:              t.Name,
+			Description:       t.Description,
+			NaturalDay:        boolToInt32(t.NaturalDay),
+			Enabled:           boolToInt32(t.Enabled),
 			Kind:              int32(t.Kind),
 			AmountMinor:       t.AmountMinor,
 			PercentBps:        t.PercentBps,
@@ -123,10 +127,11 @@ func (l *PublishCouponTemplateLogic) PublishCouponTemplate(in *marketing.Publish
 		}
 		if err := repo.UpsertPlayerCouponTemplate(tx, &repo.PlayerCouponTemplateRow{
 			TemplateNo: core.ConsoleTemplateNo(t.TemplateId),
-			Name:       "console",
+			Name:       couponTemplateName(t),
 			Kind:       int32(t.Kind),
 			Value:      value,
 			MinGross:   t.MinGrossMinor,
+			Status:     couponTemplateStatus(t),
 		}); err != nil {
 			return err
 		}
@@ -159,4 +164,25 @@ func couponTemplateContentEqual(req *marketing.CouponTemplate, stored *repo.Coup
 	b := stored.ToProto()
 	b.TemplateId, b.Version, b.Status, b.TenantId = 0, 0, 0, 0
 	return proto.Equal(a, b)
+}
+
+func boolToInt32(v bool) int32 {
+	if v {
+		return 1
+	}
+	return 0
+}
+
+func couponTemplateName(t *marketing.CouponTemplate) string {
+	if t.Name != "" {
+		return t.Name
+	}
+	return "console"
+}
+
+func couponTemplateStatus(t *marketing.CouponTemplate) int32 {
+	if t.Enabled {
+		return 1
+	}
+	return 2
 }

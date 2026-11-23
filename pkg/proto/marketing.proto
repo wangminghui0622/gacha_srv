@@ -448,6 +448,7 @@ message GetCampaignRequest {
 enum CouponTemplateStatus {
     COUPON_TEMPLATE_STATUS_UNSPECIFIED = 0;
     COUPON_TEMPLATE_STATUS_PUBLISHED = 1;
+    COUPON_TEMPLATE_STATUS_DISABLED = 2;
 }
 
 enum CouponTemplateKind {
@@ -491,6 +492,10 @@ message CouponTemplate {
     uint32 validityDays = 17;
     uint64 rewardTemplateId = 18;
     uint32 rewardCount = 19;
+    string name = 20;
+    string description = 21;
+    bool naturalDay = 22;
+    bool enabled = 23;
 }
 
 message PublishCouponTemplateRequest {
