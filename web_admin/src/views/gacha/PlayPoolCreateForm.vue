@@ -101,7 +101,7 @@
         <div class="prize-section">
           <div class="prize-label">{{ form.mode === 'memorymatch' ? '奖档配置：' : '赏品配置：' }}</div>
           <div v-if="form.mode === 'memorymatch'" class="prize-hint">
-            <span>每个目标碰数对应一个奖档（数量固定为 1），必须唯一；总碰数上限 {{ memoryTargetMax }}；未配置的档位不会中奖。</span>
+            <span>每个目标碰数对应一个奖档（数量为库存份数，牌桌不会展开成多行），必须唯一；总碰数上限 {{ memoryTargetMax }}；未配置的档位不会中奖。</span>
             <a-button type="link" size="small" @click="autoAssignTargets">自动填目标碰数</a-button>
           </div>
           <div v-if="form.mode === 'memorymatch'" class="target-summary">
@@ -210,7 +210,7 @@
           v-else-if="form.mode === 'memorymatch'"
           type="info"
           show-icon
-          message="对对碰：同一商品只能添加一次，数量固定为 1"
+          message="对对碰：同一商品只能添加一次；数量为库存份数，牌桌不会展开成多行"
           style="margin-bottom: 12px"
         />
         <div class="sku-toolbar">
@@ -296,7 +296,7 @@
               <span v-else>—</span>
             </template>
           </a-table-column>
-          <a-table-column v-if="form.mode !== 'memorymatch'" title="数量" :width="80" align="center">
+          <a-table-column title="数量" :width="80" align="center">
             <template #default="{ record }">
               <a-input-number
                 v-model:value="skuQuantities[record.productId ?? '']"
@@ -793,8 +793,8 @@ function reindexPrizes() {
   expandedPrizeIndexes.value = new Set()
 }
 
-// 对对碰每个目标碰数只对应一件赏品，数量固定为 1，禁止展开多份；
-// 历史草稿里可能残留同一商品多行，进入编辑时顺手去重。
+// 对对碰同一商品只能配置一个奖档，历史草稿里可能残留同一商品多行，进入编辑时去重；
+// 数量是库存份数，牌桌按单行展示，不展开成多份。
 function normalizeMemoryMatchQuantities() {
   if (form.mode !== 'memorymatch') return
   expandedPrizeIndexes.value = new Set()
@@ -805,8 +805,6 @@ function normalizeMemoryMatchQuantities() {
       const skuId = Number(prize.skuId ?? 0)
       if (skuId > 0 && seenSkus.has(skuId)) continue
       if (skuId > 0) seenSkus.add(skuId)
-      prize.quantity = 1
-      prize.remaining = 1
     }
     kept.push(prize)
   }
@@ -927,9 +925,7 @@ function syncSkuSelection(products: AdminProductItem[]) {
     skuProductCache.set(key, item)
     if (quantities[key] === undefined) {
       const prize = existing.get(Number(key))
-      quantities[key] = form.mode === 'memorymatch'
-        ? 1
-        : prize ? Math.max(1, Math.trunc(Number(prize.quantity ?? 1))) : 1
+      quantities[key] = prize ? Math.max(1, Math.trunc(Number(prize.quantity ?? 1))) : 1
     }
     if (!childMode && !skuTouchedKeys.has(key) && existing.has(Number(key))) {
       selected.add(key)
@@ -1281,9 +1277,7 @@ function confirmSkuSelection() {
     const id = Number(item.productId ?? 0)
     const prize = existing.get(id)
     if (!prize) continue
-    const quantity = form.mode === 'memorymatch'
-      ? 1
-      : Math.max(1, Math.trunc(Number(skuQuantities.value[item.productId ?? ''] ?? 1)))
+    const quantity = Math.max(1, Math.trunc(Number(skuQuantities.value[item.productId ?? ''] ?? 1)))
     prize.quantity = quantity
     prize.remaining = quantity
     prize.imageUrl = item.coverUrl || prize.imageUrl || ''
@@ -1302,9 +1296,7 @@ function confirmSkuSelection() {
   for (const item of selected) {
     const id = Number(item.productId ?? 0)
     if (!id || existing.has(id)) continue
-    const quantity = form.mode === 'memorymatch'
-      ? 1
-      : Math.max(1, Math.trunc(Number(skuQuantities.value[item.productId ?? ''] ?? 1)))
+    const quantity = Math.max(1, Math.trunc(Number(skuQuantities.value[item.productId ?? ''] ?? 1)))
     prizes.value.push({
       prizeIndex: prizes.value.length,
       prizeGrade: form.mode === 'memorymatch' ? 'PairCard' : prizeDraft.prizeGrade,

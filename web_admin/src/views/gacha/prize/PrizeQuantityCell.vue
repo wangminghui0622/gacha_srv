@@ -1,6 +1,6 @@
 <template>
   <button
-    v-if="record.__expanded || Number(record.quantity ?? 0) > 1"
+    v-if="expandable && (record.__expanded || Number(record.quantity ?? 0) > 1)"
     type="button"
     class="qty-toggle"
     :class="{ 'qty-badge': isQtyBadge }"
@@ -17,7 +17,9 @@
 import { computed } from 'vue'
 import type { DisplayPrize } from './prizeTypes'
 
-const props = defineProps<{ record: DisplayPrize }>()
+const props = withDefaults(defineProps<{ record: DisplayPrize; expandable?: boolean }>(), {
+  expandable: true,
+})
 const emit = defineEmits<{ toggle: [prize: DisplayPrize] }>()
 
 const qtyBadgePalette = [

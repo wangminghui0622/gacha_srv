@@ -576,9 +576,6 @@ func validateMemoryMatchPool(in *play.CreatePlayPoolDraftReq) error {
 		if p.SpecialKind != "" {
 			return abortf("记忆翻牌不支持 specialKind=%s", p.SpecialKind)
 		}
-		if p.Quantity > 1 || p.Remaining > 1 {
-			return abortf("记忆翻牌奖 %s 的数量只能为 1（同一商品不能配置多份）", p.Name)
-		}
 		if p.PrizeType == 2 && p.SkuId > 0 {
 			if skus[p.SkuId] {
 				return abortf("记忆翻牌同一商品不能重复配置：%s", p.Name)

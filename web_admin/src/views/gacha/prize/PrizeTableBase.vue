@@ -44,7 +44,7 @@
     </a-table-column>
     <a-table-column title="总数" width="60" align="center">
       <template #default="{ record }">
-        <PrizeQuantityCell :record="record" @toggle="emit('toggle', $event)" />
+        <PrizeQuantityCell :record="record" :expandable="!showTarget" @toggle="emit('toggle', $event)" />
       </template>
     </a-table-column>
     <a-table-column title="概率(%)" width="80" align="center">
