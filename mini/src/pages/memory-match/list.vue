@@ -2,7 +2,6 @@
   <view class="mm-list-page">
     <view class="list-hero">
       <text class="list-title">对对碰</text>
-      <text class="list-sub">选择一个主题开始游戏</text>
     </view>
 
     <view v-if="loading" class="list-state">加载中…</view>
@@ -107,13 +106,6 @@ function open(configId: number) {
   font-weight: 900;
   letter-spacing: 4rpx;
   color: #ffffff;
-}
-
-.list-sub {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 24rpx;
-  color: #8aa696;
 }
 
 .list-state {
