@@ -17,13 +17,15 @@
     </a-table-column>
     <a-table-column v-if="showTarget" title="目标碰数" width="110" align="center">
       <template #default="{ record }">
-        <a-input-number
-          :value="record.targetValue ?? 0"
-          :min="0"
-          size="small"
-          style="width: 88px"
-          @change="(value: number | null) => emit('targetChange', record, value)"
-        />
+        <div class="target-cell" @click.stop @mousedown.stop>
+          <a-input-number
+            :value="record.targetValue ?? 0"
+            :min="0"
+            size="small"
+            style="width: 88px"
+            @change="(value: number | null) => emit('targetChange', record, value)"
+          />
+        </div>
       </template>
     </a-table-column>
     <a-table-column title="赏品" align="center">
@@ -83,5 +85,10 @@ const emit = defineEmits<{
 :deep(.ant-table-tbody > tr.ant-table-row:hover > td),
 :deep(.ant-table-tbody > tr.ant-table-row > td.ant-table-cell-row-hover) {
   background: #f0f0f0 !important;
+}
+
+.target-cell {
+  margin: -8px;
+  padding: 8px 0;
 }
 </style>
