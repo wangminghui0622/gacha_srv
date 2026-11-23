@@ -90,16 +90,20 @@
             </a-form-item>
           </a-col>
           <a-col :span="12">
-            <a-form-item :label="$t('couponAdmin.minUnitPrice')">
+            <a-form-item>
+              <template #label><span class="coupon-red-label">单价</span>门槛下限</template>
               <a-input-number v-model:value="form.minUnitPriceYuan" :min="0" :precision="2" style="width: 100%" />
             </a-form-item>
-            <a-form-item :label="$t('couponAdmin.maxUnitPrice')">
+            <a-form-item>
+              <template #label><span class="coupon-red-label">单价</span>门槛上限</template>
               <a-input-number v-model:value="form.maxUnitPriceYuan" :min="0" :precision="2" style="width: 100%" />
             </a-form-item>
-            <a-form-item :label="$t('couponAdmin.minItemCount')">
+            <a-form-item>
+              <template #label><span class="coupon-red-label">数量</span>门槛下限</template>
               <a-input-number v-model:value="form.minItemCount" :min="0" :precision="0" style="width: 100%" />
             </a-form-item>
-            <a-form-item :label="$t('couponAdmin.maxItemCount')">
+            <a-form-item>
+              <template #label><span class="coupon-red-label">数量</span>门槛上限</template>
               <a-input-number v-model:value="form.maxItemCount" :min="0" :precision="0" style="width: 100%" />
             </a-form-item>
             <a-form-item :label="form.kind === 'COUPON_TEMPLATE_KIND_PERCENT_BPS' ? $t('couponAdmin.discountPercent') : $t('couponAdmin.rewardAmount')">
@@ -506,5 +510,8 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   margin-top: 14px;
+}
+.coupon-red-label {
+  color: #ff4d4f;
 }
 </style>
