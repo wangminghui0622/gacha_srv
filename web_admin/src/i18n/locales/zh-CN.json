@@ -125,6 +125,7 @@
     "permissionsUpdated": "菜单权限已更新",
     "openMenu": "打开导航菜单",
     "closeAllTabs": "关闭全部",
+    "closeTab": "关闭",
     "closeTabsRight": "删除右侧",
     "closeTabsLeft": "删除左侧",
     "closeOtherTabs": "删除其他"

@@ -50,7 +50,6 @@
             :key="tab.path"
             class="tab-dropdown"
             :trigger="['contextmenu']"
-            :disabled="tabs.length <= 1"
           >
             <div
               class="custom-tab"
@@ -58,10 +57,11 @@
               @click="handleTabChange(tab.path)"
             >
               <span class="tab-label">{{ $t(tab.titleKey) }}</span>
-              <CloseOutlined v-if="tabs.length > 1" class="tab-close" @click.stop="handleTabRemove(tab.path)" />
+              <CloseOutlined class="tab-close" @click.stop="handleTabRemove(tab.path)" />
             </div>
             <template #overlay>
               <a-menu @click="(info: { key: string | number }) => handleTabContextMenu(String(info.key), tab.path)">
+                <a-menu-item v-if="tabs.length === 1" key="close">{{ $t('layout.closeTab') }}</a-menu-item>
                 <a-menu-item v-if="hasTabsRight(tab.path)" key="right">{{ $t('layout.closeTabsRight') }}</a-menu-item>
                 <a-menu-item v-if="hasTabsLeft(tab.path)" key="left">{{ $t('layout.closeTabsLeft') }}</a-menu-item>
                 <a-menu-item v-if="tabs.length > 1" key="other">{{ $t('layout.closeOtherTabs') }}</a-menu-item>
@@ -340,6 +340,9 @@ function closeOtherTabs(path: string) {
 
 function handleTabContextMenu(key: string, path: string) {
   switch (key) {
+    case 'close':
+      handleTabRemove(path)
+      break
     case 'right':
       closeTabsToRight(path)
       break

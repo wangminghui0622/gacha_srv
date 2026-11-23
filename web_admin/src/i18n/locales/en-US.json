@@ -125,6 +125,7 @@
     "permissionsUpdated": "Menu permissions updated",
     "openMenu": "Open navigation menu",
     "closeAllTabs": "Close all",
+    "closeTab": "Close",
     "closeTabsRight": "Close tabs to the right",
     "closeTabsLeft": "Close tabs to the left",
     "closeOtherTabs": "Close other tabs"
