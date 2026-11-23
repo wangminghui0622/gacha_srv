@@ -247,7 +247,8 @@ async function loadConfig() {
     facePresetId.value = app.facePresetId
     backPresetId.value = app.backPresetId
   } catch (err) {
-    config.value = null
+    // 刷新失败时保留当前配置，避免页面从已有内容变成空白。
+    if (!config.value) config.value = null
     uni.showToast({ title: (err as Error).message, icon: 'none' })
   }
 }
@@ -416,7 +417,9 @@ function openBackPicker() {
   backModalOpen.value = true
 }
 
-function openPrizes() {
+async function openPrizes() {
+  // 每次打开赏品列表都拉取最新已发布配置，后台改价/改库存后无需重进页面。
+  await loadConfig()
   prizeModalOpen.value = true
 }
 
