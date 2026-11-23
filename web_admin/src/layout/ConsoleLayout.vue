@@ -50,6 +50,7 @@
             :key="tab.path"
             class="tab-dropdown"
             :trigger="['contextmenu']"
+            :disabled="tabs.length <= 1"
           >
             <div
               class="custom-tab"
@@ -61,9 +62,9 @@
             </div>
             <template #overlay>
               <a-menu @click="(info: { key: string | number }) => handleTabContextMenu(String(info.key), tab.path)">
-                <a-menu-item key="right">{{ $t('layout.closeTabsRight') }}</a-menu-item>
-                <a-menu-item key="left">{{ $t('layout.closeTabsLeft') }}</a-menu-item>
-                <a-menu-item key="other">{{ $t('layout.closeOtherTabs') }}</a-menu-item>
+                <a-menu-item v-if="hasTabsRight(tab.path)" key="right">{{ $t('layout.closeTabsRight') }}</a-menu-item>
+                <a-menu-item v-if="hasTabsLeft(tab.path)" key="left">{{ $t('layout.closeTabsLeft') }}</a-menu-item>
+                <a-menu-item v-if="tabs.length > 1" key="other">{{ $t('layout.closeOtherTabs') }}</a-menu-item>
               </a-menu>
             </template>
           </a-dropdown>
@@ -349,6 +350,19 @@ function handleTabContextMenu(key: string, path: string) {
       closeOtherTabs(path)
       break
   }
+}
+
+function tabIndex(path: string): number {
+  return tabs.value.findIndex((tab) => tab.path === path)
+}
+
+function hasTabsRight(path: string): boolean {
+  const index = tabIndex(path)
+  return index >= 0 && index < tabs.value.length - 1
+}
+
+function hasTabsLeft(path: string): boolean {
+  return tabIndex(path) > 0
 }
 
 async function refreshPermissions() {
