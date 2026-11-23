@@ -89,7 +89,7 @@
       :wrap-style="createModalWrapStyle"
       :footer="null"
       :destroy-on-close="true"
-      :body-style="{ maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }"
+      :body-style="{ height: 'calc(100vh - 150px)', overflowY: 'auto' }"
     >
       <template #title>
         <div class="create-pool-title">
@@ -192,7 +192,7 @@
       centered
       :width="createModalWidth"
       :wrap-style="createModalWrapStyle"
-      :body-style="{ height: '1019px', maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }"
+      :body-style="{ height: 'calc(100vh - 150px)', overflowY: 'auto' }"
     >
       <div class="reference-toolbar">
         <a-input
