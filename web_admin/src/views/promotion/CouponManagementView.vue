@@ -276,8 +276,8 @@ const form = reactive({
   templateId: '',
   name: '',
   description: '',
-  kind: '',
-  scope: '',
+  kind: undefined as string | undefined,
+  scope: undefined as string | undefined,
   validityDays: 0,
   naturalDay: false,
   minGrossYuan: 0,
@@ -298,7 +298,7 @@ function fenToYuan(value: string | number | undefined) {
 function yuanToFen(value: number | undefined) {
   return Math.max(0, Math.round(Number(value ?? 0) * 100))
 }
-function sceneOf(scope: string) {
+function sceneOf(scope: string | undefined) {
   if (scope === 'mode') return 1
   if (scope === 'pool') return 2
   return 0
@@ -315,8 +315,8 @@ function openCreate() {
     templateId: String(Math.max(0, ...latestTemplates.value.map((item) => Number(item.templateId ?? 0))) + 1),
     name: '',
     description: '',
-    kind: '',
-    scope: '',
+    kind: undefined,
+    scope: undefined,
     validityDays: 0,
     naturalDay: false,
     minGrossYuan: 0,
