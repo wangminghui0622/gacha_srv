@@ -404,6 +404,21 @@ async function save() {
     return
   }
   const kind = form.kind
+  if (
+    (kind === 'COUPON_TEMPLATE_KIND_FIXED_MINOR' || kind === 'COUPON_TEMPLATE_KIND_CUSTOM_MINOR') &&
+    yuanToFen(form.rewardAmountYuan) <= 0
+  ) {
+    message.warning(t('couponAdmin.amountMustBePositive'))
+    return
+  }
+  if (kind === 'COUPON_TEMPLATE_KIND_PERCENT_BPS' && (!form.discountPercent || form.discountPercent <= 0 || form.discountPercent > 100)) {
+    message.warning(t('couponAdmin.discountMustBePositive'))
+    return
+  }
+  if (kind === 'COUPON_TEMPLATE_KIND_DRAW_REWARD' && Math.trunc(form.rewardCount) <= 0) {
+    message.warning(t('couponAdmin.rewardCountRequired'))
+    return
+  }
   const template: CouponTemplate = {
     templateId,
     tenantId: tenant(),
