@@ -168,4 +168,7 @@ export const playPoolClient = {
   Publish({ poolId, version }: { poolId: string; version: string }): Promise<{ status?: string }> {
     return http.post(`/console/v2/api/gacha/play-pools/${encodeURIComponent(poolId)}/versions/${encodeURIComponent(version)}/publish`, {})
   },
+  Retire({ poolId }: { poolId: string }): Promise<{ status?: string; retiredVersions?: string | number }> {
+    return http.post(`/console/v2/api/gacha/play-pools/${encodeURIComponent(poolId)}/retire`, {})
+  },
 }

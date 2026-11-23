@@ -12,6 +12,8 @@
       <a-button v-if="canCreate" class="btn-plain" @click="openCreate">{{ $t('poolAdmin.create') }}</a-button>
       <a-button v-if="canWrite" class="btn-plain" @click="saveWeights">{{ $t('poolAdmin.saveSort') }}</a-button>
       <a-button v-if="canWrite" class="btn-plain" @click="deleteSelected">{{ $t('poolAdmin.deletePools') }}</a-button>
+      <a-button v-if="canWrite" class="btn-plain" :loading="publishingSelected" @click="publishSelected">{{ $t('poolAdmin.publishSelected') }}</a-button>
+      <a-button v-if="canWrite" class="btn-plain" :loading="retiringSelected" @click="retireSelected">{{ $t('poolAdmin.retireSelected') }}</a-button>
     </div>
 
     <a-table
@@ -307,6 +309,8 @@ const sortOptions = computed(() => [
 const ipOptions = computed(() => ips.value.filter((item) => item.ipId && item.name).map((item) => ({ label: item.name as string, value: item.ipId as string })))
 
 const selectedRowKeys = ref<string[]>([])
+const publishingSelected = ref(false)
+const retiringSelected = ref(false)
 const rowSelection = computed(() => ({
   selectedRowKeys: selectedRowKeys.value,
   onChange: (keys: (string | number)[]) => {
@@ -682,6 +686,92 @@ function deleteSelected() {
       message.success(t('poolAdmin.deleted'))
       selectedRowKeys.value = []
       await load()
+    },
+  })
+}
+
+function selectedPools(): AdminPlayPool[] {
+  const keys = new Set(selectedRowKeys.value)
+  return items.value.filter((item) => item.poolId && keys.has(item.poolId))
+}
+
+async function runPoolBatch(pools: AdminPlayPool[], action: (pool: AdminPlayPool) => Promise<unknown>): Promise<number> {
+  let failed = 0
+  for (const pool of pools) {
+    try {
+      await action(pool)
+    } catch {
+      failed += 1
+    }
+  }
+  return failed
+}
+
+function publishSelected() {
+  const pools = selectedPools()
+  if (pools.length === 0) {
+    message.warning(t('poolAdmin.selectToPublish'))
+    return
+  }
+  const drafts = pools.filter((pool) => Number(pool.status) === 1 && pool.poolId && pool.latestVersion)
+  if (drafts.length === 0) {
+    message.warning(t('poolAdmin.noDraftToPublish'))
+    return
+  }
+  Modal.confirm({
+    title: t('poolAdmin.publishSelected'),
+    content: t('poolAdmin.publishConfirm', { n: drafts.length }),
+    okText: t('poolAdmin.publishSelected'),
+    cancelText: t('poolAdmin.cancel'),
+    onOk: async () => {
+      publishingSelected.value = true
+      try {
+        const failed = await runPoolBatch(drafts, (pool) =>
+          playPoolClient.Publish({ poolId: pool.poolId as string, version: pool.latestVersion as string }),
+        )
+        const succeeded = drafts.length - failed
+        if (succeeded > 0) message.success(t('poolAdmin.publishedCount', { n: succeeded }))
+        if (failed > 0) message.error(t('poolAdmin.publishFailedCount', { n: failed }))
+        selectedRowKeys.value = []
+        await load()
+      } finally {
+        publishingSelected.value = false
+      }
+    },
+  })
+}
+
+function retireSelected() {
+  const pools = selectedPools()
+  if (pools.length === 0) {
+    message.warning(t('poolAdmin.selectToRetire'))
+    return
+  }
+  const published = pools.filter((pool) => Number(pool.status) === 2 && pool.poolId)
+  if (published.length === 0) {
+    message.warning(t('poolAdmin.noPublishedToRetire'))
+    return
+  }
+  Modal.confirm({
+    title: t('poolAdmin.retireSelected'),
+    content: t('poolAdmin.retireConfirm', { n: published.length }),
+    okText: t('poolAdmin.retireSelected'),
+    cancelText: t('poolAdmin.cancel'),
+    okType: 'danger',
+    onOk: async () => {
+      retiringSelected.value = true
+      try {
+        const failed = await runPoolBatch(published, (pool) =>
+          playPoolClient.Retire({ poolId: pool.poolId as string }),
+        )
+        const succeeded = published.length - failed
+        if (succeeded > 0) message.success(t('poolAdmin.retiredCount', { n: succeeded }))
+        if (failed > 0) message.error(t('poolAdmin.retireFailedCount', { n: failed }))
+        selectedRowKeys.value = []
+        await load()
+      } finally {
+        retiringSelected.value = false
+      }
     },
   })
 }

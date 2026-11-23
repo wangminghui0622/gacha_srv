@@ -460,6 +460,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: pool.PublishPlayPoolHandler(serverCtx),
 				},
 				{
+					// 下架统一玩赏池所有已发布版本（gacha.pool:publish）
+					Method:  http.MethodPost,
+					Path:    "/gacha/play-pools/:poolId/retire",
+					Handler: pool.RetirePlayPoolHandler(serverCtx),
+				},
+				{
 					// 创建统一玩赏池草稿（gacha.pool:create；幂等键走 Idempotency-Key 头）
 					Method:  http.MethodPost,
 					Path:    "/gacha/play-pools/drafts",
