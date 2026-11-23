@@ -68,13 +68,13 @@
       <div class="coupon-choice-area">
         <div class="coupon-choice-line">
           <div class="coupon-choice-inline">
-            <span class="coupon-choice-title"><span class="coupon-choice-required">{{ $t('couponAdmin.typeLabel') }}</span></span>
+            <span class="coupon-choice-title"><span class="coupon-choice-required">{{ $t('couponAdmin.typeLabel') }}</span>：</span>
             <a-radio-group v-model:value="form.kind" class="coupon-radio-group">
               <a-radio v-for="option in kindOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
             </a-radio-group>
           </div>
           <div class="coupon-choice-inline">
-            <span class="coupon-choice-title">{{ $t('couponAdmin.scopeLabel') }}</span>
+            <span class="coupon-choice-title">{{ $t('couponAdmin.scopeLabel') }}：</span>
             <a-radio-group v-model:value="form.scope" class="coupon-radio-group">
               <a-radio v-for="option in scopeOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
             </a-radio-group>
