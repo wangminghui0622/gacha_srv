@@ -18,8 +18,9 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// validatePlayPoolSKUs 发布前校验实物奖 SKU：存在、ACTIVE、PHYSICAL。
-// 校验放在事务外（跨服务 RPC 不占用玩法库事务）。
+// validatePlayPoolSKUs 发布前校验实物奖：存在、ACTIVE、PHYSICAL。
+// 管理后台按「商品」选择实物奖（prizes.skuId 存商品 ID），也兼容直接存 SKU ID，
+// 因此先按 SKU 查找，未命中再按商品查找。校验放在事务外（跨服务 RPC 不占用玩法库事务）。
 func validatePlayPoolSKUs(ctx context.Context, svcCtx *svc.ServiceContext, poolId, version int64) error {
 	// 单测/本地最小上下文未注入 CatalogRpc 时跳过（生产配置必填）。
 	if svcCtx.CatalogRpc == nil {
@@ -34,14 +35,22 @@ func validatePlayPoolSKUs(ctx context.Context, svcCtx *svc.ServiceContext, poolI
 			continue
 		}
 		sku, err := svcCtx.CatalogRpc.GetSKU(ctx, &catalogClient.GetSKURequest{SkuId: uint64(p.SkuId)})
-		if err != nil {
-			return status.Error(codes.InvalidArgument, fmt.Sprintf("奖品 %s 的 SKU %d 不存在或不可用", p.Name, p.SkuId))
+		if err == nil {
+			if sku.Status != catalog.ProductStatus_PRODUCT_STATUS_ACTIVE {
+				return status.Error(codes.InvalidArgument, fmt.Sprintf("奖品 %s 的 SKU 未上架", p.Name))
+			}
+			if sku.FulfillmentMode != catalog.FulfillmentMode_FULFILLMENT_MODE_PHYSICAL {
+				return status.Error(codes.InvalidArgument, fmt.Sprintf("奖品 %s 的 SKU 不是实物履约", p.Name))
+			}
+			continue
 		}
-		if sku.Status != catalog.ProductStatus_PRODUCT_STATUS_ACTIVE {
-			return status.Error(codes.InvalidArgument, fmt.Sprintf("奖品 %s 的 SKU 未上架", p.Name))
+		// 兼容后台按商品选择：prizes.skuId 存的是商品 ID。
+		product, productErr := svcCtx.CatalogRpc.GetProduct(ctx, &catalogClient.GetProductRequest{ProductId: uint64(p.SkuId)})
+		if productErr != nil {
+			return status.Error(codes.InvalidArgument, fmt.Sprintf("奖品 %s 的商品 %d 不存在或不可用", p.Name, p.SkuId))
 		}
-		if sku.FulfillmentMode != catalog.FulfillmentMode_FULFILLMENT_MODE_PHYSICAL {
-			return status.Error(codes.InvalidArgument, fmt.Sprintf("奖品 %s 的 SKU 不是实物履约", p.Name))
+		if product.Status != catalog.ProductStatus_PRODUCT_STATUS_ACTIVE {
+			return status.Error(codes.InvalidArgument, fmt.Sprintf("奖品 %s 的商品未上架", p.Name))
 		}
 	}
 	return nil
