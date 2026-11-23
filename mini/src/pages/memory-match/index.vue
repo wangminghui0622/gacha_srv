@@ -109,6 +109,13 @@ const heroImage = computed(() => {
   )
 })
 
+// 标题下方轮播：展示赏池里配置了图片的奖品，左右滑动切换。
+const heroImages = computed(() =>
+  (config.value?.config.entries ?? [])
+    .map((entry) => entryImage(entry))
+    .filter((url): url is string => !!url),
+)
+
 const luckyPreviewPatternId = ref(0)
 const luckyPatternId = computed(
   () =>
@@ -587,7 +594,22 @@ onLoad(async (query?: Record<string, string | undefined>) => {
       <view class="hero-wrap">
         <view class="hero-ring"></view>
         <view class="hero-platform"></view>
-        <image v-if="heroImage" :src="heroImage" class="hero-img" mode="aspectFit" />
+        <swiper
+          v-if="heroImages.length"
+          class="hero-swiper"
+          :autoplay="heroImages.length > 1"
+          :interval="3200"
+          :duration="450"
+          :circular="heroImages.length > 1"
+          :indicator-dots="heroImages.length > 1"
+          indicator-color="rgba(255, 255, 255, 0.35)"
+          indicator-active-color="#f3d27a"
+        >
+          <swiper-item v-for="(img, idx) in heroImages" :key="`hero-${idx}`">
+            <image :src="img" class="hero-product-img" mode="aspectFit" />
+          </swiper-item>
+        </swiper>
+        <image v-else-if="heroImage" :src="heroImage" class="hero-img" mode="aspectFit" />
         <view v-else class="hero-fallback">🥷</view>
 
         <view class="side-rail left">
@@ -911,6 +933,18 @@ $muted: #8fb39d;
   z-index: 1;
   width: 300rpx;
   height: 330rpx;
+}
+
+.hero-swiper {
+  position: relative;
+  z-index: 3;
+  width: 480rpx;
+  height: 320rpx;
+}
+
+.hero-product-img {
+  width: 100%;
+  height: 100%;
 }
 
 .hero-fallback {
