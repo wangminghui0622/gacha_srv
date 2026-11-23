@@ -866,8 +866,10 @@ function scrollToLocatedSku() {
       const wrap = skuTableWrap.value
       if (!wrap) return
       const located = wrap.querySelector('.sku-located-id')
-      const row = located?.closest('tr')
-      if (row) row.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      const row = (wrap.querySelector('.sku-located-row') ?? located?.closest('tr')) as HTMLElement | null
+      if (!row) return
+      row.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      row.focus({ preventScroll: true })
     })
   })
 }
@@ -1061,7 +1063,10 @@ function toggleSkuSelection(record: AdminProductItem) {
 }
 
 function skuCustomRow(record: AdminProductItem) {
+  const located = String(record.productId ?? '') === locatedSkuId.value
   return {
+    class: located ? 'sku-located-row' : undefined,
+    tabindex: located ? -1 : undefined,
     style: { cursor: 'pointer' },
     onClick: (event: MouseEvent) => {
       const target = event.target as HTMLElement | null
@@ -1508,6 +1513,15 @@ onMounted(loadOptions)
 .sku-located-id {
   color: #ff4d4f;
   font-weight: 600;
+}
+
+:deep(.sku-located-row > td:first-child) {
+  box-shadow: inset 4px 0 0 #1677ff;
+}
+
+:deep(.sku-located-row:focus) {
+  outline: 2px solid #1677ff;
+  outline-offset: -2px;
 }
 
 .sku-table-wrap {
