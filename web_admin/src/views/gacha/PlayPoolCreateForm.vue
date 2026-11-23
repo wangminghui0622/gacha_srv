@@ -655,6 +655,18 @@ watch(
     } else if (prizeDraft.prizeGrade === 'PairCard') {
       prizeDraft.prizeGrade = 'SP'
     }
+    if (oldMode === 'memorymatch' && mode !== 'memorymatch') {
+      const before = prizes.value.length
+      prizes.value = prizes.value.filter(
+        (prize) =>
+          !(
+            prize.prizeType === 1 &&
+            Number(prize.targetValue ?? 0) === 0 &&
+            prize.name === '谢谢参与'
+          ),
+      )
+      if (prizes.value.length !== before) reindexPrizes()
+    }
     if (oldMode !== 'groupbuy' || mode === 'groupbuy') return
     if (!prizes.value.some((prize) => prize.hasParent)) return
     Modal.confirm({
@@ -1320,6 +1332,10 @@ async function submit() {
   }
   if (prizes.value.length === 0) {
     message.warning('请至少添加一个赏品')
+    return
+  }
+  if (form.mode === 'memorymatch' && !prizes.value.some((prize) => prize.isPrize !== false)) {
+    message.warning('请至少添加一个有奖档（商品），不能只有谢谢参与')
     return
   }
   const tags: string[] = []
