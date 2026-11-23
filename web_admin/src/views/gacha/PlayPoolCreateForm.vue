@@ -206,6 +206,13 @@
           :message="`父赏：${childParent.name}`"
           style="margin-bottom: 12px"
         />
+        <a-alert
+          v-else-if="form.mode === 'memorymatch'"
+          type="info"
+          show-icon
+          message="对对碰：同一商品只能添加一次，数量固定为 1"
+          style="margin-bottom: 12px"
+        />
         <div class="sku-toolbar">
           <a-input
             v-model:value="skuFilters.keyword"
@@ -786,15 +793,26 @@ function reindexPrizes() {
   expandedPrizeIndexes.value = new Set()
 }
 
-// 对对碰每个目标碰数只对应一件赏品，数量固定为 1，禁止展开多份。
+// 对对碰每个目标碰数只对应一件赏品，数量固定为 1，禁止展开多份；
+// 历史草稿里可能残留同一商品多行，进入编辑时顺手去重。
 function normalizeMemoryMatchQuantities() {
   if (form.mode !== 'memorymatch') return
   expandedPrizeIndexes.value = new Set()
+  const seenSkus = new Set<number>()
+  const kept: PlayPoolPrize[] = []
   for (const prize of prizes.value) {
     if (prize.prizeType === 2) {
+      const skuId = Number(prize.skuId ?? 0)
+      if (skuId > 0 && seenSkus.has(skuId)) continue
+      if (skuId > 0) seenSkus.add(skuId)
       prize.quantity = 1
       prize.remaining = 1
     }
+    kept.push(prize)
+  }
+  if (kept.length !== prizes.value.length) {
+    prizes.value = kept
+    reindexPrizes()
   }
 }
 
@@ -1306,6 +1324,7 @@ function confirmSkuSelection() {
   }
 
   reindexPrizes()
+  if (form.mode === 'memorymatch') normalizeMemoryMatchQuantities()
   skuModalOpen.value = false
   resetSkuPickerState()
   message.success('赏品选择已更新')
