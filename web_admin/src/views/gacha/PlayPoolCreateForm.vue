@@ -102,7 +102,7 @@
           <div class="prize-label">{{ form.mode === 'memorymatch' ? '奖档配置：' : '赏品配置：' }}</div>
           <div v-if="form.mode === 'memorymatch'" class="prize-hint">
             <span>每个目标碰数对应一个奖档，必须唯一；总碰数上限 {{ memoryTargetMax }}；未配置的档位不会中奖。</span>
-            <a-button type="link" size="small" @click="autoAssignTargets">自动分配</a-button>
+            <a-button type="link" size="small" @click="autoAssignTargets">自动填目标碰数</a-button>
           </div>
           <div v-if="form.mode === 'memorymatch'" class="target-summary">
             <div class="target-summary-line">
@@ -546,7 +546,7 @@ function autoAssignTargets() {
     }
     used.add(target)
   }
-  message.success('已自动分配目标碰数')
+  message.success('已自动填充目标碰数')
 }
 const skuModalOpen = ref(false)
 const childParent = ref<PlayPoolPrize | null>(null)
