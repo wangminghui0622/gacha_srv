@@ -58,7 +58,8 @@
     <a-modal
       v-model:open="modalOpen"
       :title="$t('couponAdmin.modalTitle')"
-      width="820px"
+      width="1180px"
+      :style="{ maxWidth: '96vw' }"
       :confirm-loading="saving"
       :ok-text="$t('couponAdmin.confirm')"
       :cancel-text="$t('couponAdmin.cancel')"
@@ -616,17 +617,17 @@ onMounted(() => {
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 8px 10px;
+  gap: 12px 24px;
   width: 100%;
 }
 .coupon-choice-inline {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 10px;
 }
 .coupon-choice-inline .coupon-choice-title {
-  width: 66px;
-  font-size: 11px;
+  width: 100px;
+  font-size: 15px;
   text-align: right;
 }
 .coupon-choice-block {
@@ -638,7 +639,7 @@ onMounted(() => {
 }
 .coupon-choice-title {
   color: #303133;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -651,11 +652,11 @@ onMounted(() => {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 3px;
+  gap: 8px;
 }
 .coupon-radio-group :deep(.ant-radio-wrapper) {
   margin-inline-end: 0;
-  font-size: 10.5px;
+  font-size: 15px;
 }
 .coupon-clear-btn {
   padding: 0;
