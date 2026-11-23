@@ -504,6 +504,9 @@ function applyInitial(initial?: PlayPoolCreateInitial | null) {
       prizeIndex: index,
     }))
   }
+  if (initialMode.value === 'memorymatch') {
+    ensureMemoryMatchNoPrizeTier()
+  }
 }
 
 watch(() => props.initial, applyInitial, { immediate: true })
@@ -569,6 +572,30 @@ function autoAssignTargets() {
   }
   message.success('已自动填充目标碰数')
 }
+
+// 对齐老系统：对对碰默认带一条 0 碰「谢谢参与」无奖档；
+// 它只做结算兜底，不参与目标碰数分配，概率显示 0.00。
+function ensureMemoryMatchNoPrizeTier() {
+  if (form.mode !== 'memorymatch') return
+  if (prizes.value.some((prize) => Number(prize.targetValue ?? 0) === 0)) return
+  prizes.value.unshift({
+    prizeIndex: 0,
+    prizeGrade: 'PairCard',
+    specialKind: '',
+    prizeType: 1,
+    name: '谢谢参与',
+    skuId: 0,
+    childPoolId: 0,
+    imageUrl: '',
+    targetValue: 0,
+    weight: 1,
+    quantity: -1,
+    remaining: -1,
+    isPrize: false,
+    costFen: 0,
+  })
+  reindexPrizes()
+}
 const skuModalOpen = ref(false)
 const childParent = ref<PlayPoolPrize | null>(null)
 const locatedSkuId = ref('')
@@ -624,6 +651,7 @@ watch(
         prizeDraft.prizeType = 2
         prizeDraft.childPoolId = 0
       }
+      ensureMemoryMatchNoPrizeTier()
     } else if (prizeDraft.prizeGrade === 'PairCard') {
       prizeDraft.prizeGrade = 'SP'
     }
@@ -785,14 +813,27 @@ function removePrize(index: number) {
   reindexPrizes()
 }
 
+// 与后端目标分配保持一致：只按“有奖档”的剩余库存权重计算概率；
+// 无奖档（谢谢参与）概率固定 0.00，不参与分配。
+function prizeAllocationWeight(prize: PlayPoolPrize): number {
+  if (prize.isPrize === false) return 0
+  const remaining = Number(prize.remaining ?? NaN)
+  if (Number.isFinite(remaining)) {
+    if (remaining === 0) return 0
+    if (remaining < 0) return 1
+    return remaining
+  }
+  return Math.max(0, Number(prize.quantity ?? 0))
+}
+
 const totalPrizeUnits = computed(() =>
-  prizes.value.reduce((sum, prize) => sum + Math.max(0, Number(prize.quantity ?? 0)), 0),
+  prizes.value.reduce((sum, prize) => sum + prizeAllocationWeight(prize), 0),
 )
 
 function probability(prize: DisplayPrize): string {
-  if (totalPrizeUnits.value <= 0) return '0'
-  const factor = prize.__expanded ? 1 : Math.max(0, Number(prize.quantity ?? 1))
-  return ((100 / totalPrizeUnits.value) * factor).toFixed(2)
+  if (totalPrizeUnits.value <= 0) return '0.00'
+  const weight = prize.__expanded ? 1 : prizeAllocationWeight(prize)
+  return ((100 / totalPrizeUnits.value) * weight).toFixed(2)
 }
 
 async function loadSkuOptions() {

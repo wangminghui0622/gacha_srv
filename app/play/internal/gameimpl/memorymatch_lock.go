@@ -270,7 +270,10 @@ func mmPlanExactAllocation(db *gorm.DB, configID int64, rules *mmRules) error {
 		return nil
 	}
 	var entries []gamemodel.MemoryMatchEntries
-	if err := db.Where("config_id = ? AND remaining <> 0", configID).Order("total_pair_count").Find(&entries).Error; err != nil {
+	// 只从“有奖档”里分配目标总碰数；0 碰「谢谢参与」等无奖档只用于结算兜底，
+	// 不参与概率/目标分配（对齐老系统：无奖档概率 0.00）。
+	if err := db.Where("config_id = ? AND remaining <> 0 AND is_prize = 1", configID).
+		Order("total_pair_count").Find(&entries).Error; err != nil {
 		return err
 	}
 	if len(entries) == 0 {
