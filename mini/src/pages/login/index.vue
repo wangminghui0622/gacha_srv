@@ -7,20 +7,18 @@ import * as userApi from '@/services/user'
 import { useAuthStore } from '@/store/authStore'
 import { tokenStorage } from '@/utils/storage'
 
-// 登录页 = 启动页（设计 M16 D4）：token 有效直接进首页；微信一键登录为主形态
-// 微信 tab 从 web 的"手输 code"变为真实 uni.login 按钮（设计 D3，语义不变）
+// 登录页 = 启动页（设计 M16 D4）：token 有效直接进首页；手机号登录为主形态
 
 const { t } = useI18n()
 const auth = useAuthStore()
 
-type TabKey = 'wechat' | 'phone' | 'login' | 'register'
+type TabKey = 'phone' | 'login' | 'register'
 const tabs: { key: TabKey; label: string }[] = [
-  { key: 'wechat', label: t('auth.wechatLogin') },
   { key: 'phone', label: t('auth.phoneLogin') },
   { key: 'login', label: t('auth.login') },
   { key: 'register', label: t('auth.register') },
 ]
-const activeTab = ref<TabKey>('wechat')
+const activeTab = ref<TabKey>('phone')
 const loading = ref(false)
 
 const loginForm = reactive({ username: '', password: '' })
@@ -54,28 +52,6 @@ onShow(async () => {
     // 401 已由适配器清令牌；其余错误留在登录页
   }
 })
-
-// ── 微信一键登录：uni.login 拿 code → /auth/wechat/login（M15a 端点，后端零改动）──
-async function onWechatLogin() {
-  loading.value = true
-  try {
-    // #ifdef MP-WEIXIN
-    const loginRes = await new Promise<UniApp.LoginRes>((resolve, reject) => {
-      uni.login({ provider: 'weixin', success: resolve, fail: reject })
-    })
-    const res = await userApi.wechatLogin({ tenantId: 1, code: loginRes.code, scene: 2 })
-    await afterAuth(res.token)
-    // #endif
-    // #ifndef MP-WEIXIN
-    uni.showToast({ title: t('auth.wechatUnavailable'), icon: 'none' })
-    // #endif
-  } catch (err) {
-    // 1013 未绑定 openid 等业务错误：toast 展示后端 msg，引导注册/其他方式登录
-    showErr(err)
-  } finally {
-    loading.value = false
-  }
-}
 
 // ── 手机号验证码登录：60s 倒计时重发 ──
 const sending = ref(false)
@@ -178,16 +154,8 @@ onUnload(() => {
       </view>
     </view>
 
-    <!-- 微信一键登录（小程序主形态） -->
-    <view v-if="activeTab === 'wechat'" class="gacha-card form-card">
-      <view class="btn-primary" :class="{ disabled: loading }" @click="onWechatLogin">
-        {{ t('auth.wechatOneTap') }}
-      </view>
-      <view class="form-hint">{{ t('auth.wechatHint') }}</view>
-    </view>
-
     <!-- 手机号验证码登录 -->
-    <view v-else-if="activeTab === 'phone'" class="gacha-card form-card">
+    <view v-if="activeTab === 'phone'" class="gacha-card form-card">
       <view class="form-item">
         <view class="form-label">{{ t('auth.phone') }}</view>
         <input
