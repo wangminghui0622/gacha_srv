@@ -185,6 +185,9 @@ const championPending = computed(() => config.value?.champion.pendingIncome || '
 async function loadConfig() {
   try {
     config.value = await memoryMatchApi.getMemoryMatchConfig(configId.value)
+    if (config.value.config.name) {
+      uni.setNavigationBarTitle({ title: config.value.config.name })
+    }
     const app = config.value.appearance
     facePresetId.value = app.facePresetId
     backPresetId.value = app.backPresetId
