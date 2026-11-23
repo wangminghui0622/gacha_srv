@@ -12,32 +12,32 @@ USE `gacha_ops`;
 SET FOREIGN_KEY_CHECKS = 0;
 
 CREATE TABLE IF NOT EXISTS `console_accounts` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `tenant_id` bigint unsigned NOT NULL DEFAULT '1',
-  `username` varchar(64) NOT NULL,
-  `password_hash` varchar(255) NOT NULL,
-  `display_name` varchar(128) NOT NULL DEFAULT '',
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `tenant_id` bigint unsigned NOT NULL DEFAULT '1' COMMENT '租户ID',
+  `username` varchar(64) NOT NULL COMMENT '登录用户名',
+  `password_hash` varchar(255) NOT NULL COMMENT 'bcrypt 密码哈希',
+  `display_name` varchar(128) NOT NULL DEFAULT '' COMMENT '显示名称',
   `status` tinyint NOT NULL DEFAULT '1' COMMENT '1 启用 / 2 停用',
   `role_version` bigint unsigned NOT NULL DEFAULT '1' COMMENT '主体角色乐观锁版本（PutPrincipalRoles 用）',
   `totp_secret` varchar(64) NOT NULL DEFAULT '' COMMENT '空=未绑定 TOTP',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_tenant_username` (`tenant_id`,`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='控制台账号';
 
 CREATE TABLE IF NOT EXISTS `console_sessions` (
-  `jti` varchar(64) NOT NULL,
+  `jti` varchar(64) NOT NULL COMMENT 'JWT 唯一标识（主键）',
   `family_id` varchar(64) NOT NULL COMMENT 'refresh 旋转家族，泄露时整族吊销',
-  `account_id` bigint unsigned NOT NULL,
-  `tenant_id` bigint unsigned NOT NULL,
+  `account_id` bigint unsigned NOT NULL COMMENT '控制台账号ID',
+  `tenant_id` bigint unsigned NOT NULL COMMENT '租户ID',
   `refresh_hash` char(64) NOT NULL COMMENT 'SHA256(refresh_token) 十六进制',
   `previous_refresh_hash` char(64) NOT NULL DEFAULT '' COMMENT '上一枚 refresh 哈希（重放旧令牌 → 家族吊销）',
   `fingerprint_hash` char(64) NOT NULL COMMENT 'SHA256(client_fingerprint) 十六进制',
-  `expires_at` datetime NOT NULL,
-  `revoked_at` datetime DEFAULT NULL,
-  `compromised` tinyint NOT NULL DEFAULT '0',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` datetime NOT NULL COMMENT '过期时间',
+  `revoked_at` datetime DEFAULT NULL COMMENT '吊销时间（未吊销 NULL）',
+  `compromised` tinyint NOT NULL DEFAULT '0' COMMENT '是否已泄露：1 是 / 0 否',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`jti`),
   UNIQUE KEY `uk_refresh_hash` (`refresh_hash`),
   KEY `idx_account` (`account_id`),
@@ -45,36 +45,36 @@ CREATE TABLE IF NOT EXISTS `console_sessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='控制台会话（access=JWT jti / refresh=SHA256 存储）';
 
 CREATE TABLE IF NOT EXISTS `console_user_tabs` (
-  `tenant_id` bigint unsigned NOT NULL,
-  `account_id` bigint unsigned NOT NULL,
+  `tenant_id` bigint unsigned NOT NULL COMMENT '租户ID',
+  `account_id` bigint unsigned NOT NULL COMMENT '控制台账号ID',
   `tabs_json` text NOT NULL COMMENT '页签数组 JSON：[{path,titleKey}]',
   `active_path` varchar(512) NOT NULL DEFAULT '' COMMENT '当前激活页签路径',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`tenant_id`,`account_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='控制台账号页签';
 
 CREATE TABLE IF NOT EXISTS `ops_audit_logs` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `tenant_id` bigint unsigned NOT NULL DEFAULT '1',
-  `account_id` bigint unsigned NOT NULL DEFAULT '0',
-  `operation_id` varchar(128) NOT NULL,
-  `resource` varchar(64) NOT NULL,
-  `action` varchar(64) NOT NULL,
-  `target_id` varchar(64) NOT NULL DEFAULT '',
-  `request_id` varchar(64) NOT NULL DEFAULT '',
-  `detail_json` text NOT NULL,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `tenant_id` bigint unsigned NOT NULL DEFAULT '1' COMMENT '租户ID',
+  `account_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '操作账号ID',
+  `operation_id` varchar(128) NOT NULL COMMENT '操作目录ID',
+  `resource` varchar(64) NOT NULL COMMENT '资源标识',
+  `action` varchar(64) NOT NULL COMMENT '动作',
+  `target_id` varchar(64) NOT NULL DEFAULT '' COMMENT '操作对象ID',
+  `request_id` varchar(64) NOT NULL DEFAULT '' COMMENT '请求ID',
+  `detail_json` text NOT NULL COMMENT '操作详情 JSON',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `idx_created` (`created_at`),
   KEY `idx_account` (`account_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='管理操作审计日志';
 
 CREATE TABLE IF NOT EXISTS `principal_roles` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `account_id` bigint unsigned NOT NULL,
-  `role_id` bigint unsigned NOT NULL,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `account_id` bigint unsigned NOT NULL COMMENT '控制台账号ID',
+  `role_id` bigint unsigned NOT NULL COMMENT '角色ID',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '绑定时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_account_role` (`account_id`,`role_id`),
   KEY `idx_role` (`role_id`)
@@ -87,8 +87,8 @@ CREATE TABLE IF NOT EXISTS `reporting_dashboard` (
   `title` varchar(128) NOT NULL COMMENT '标题',
   `status` tinyint unsigned NOT NULL DEFAULT '1' COMMENT '1 DRAFT / 2 PUBLISHED / 3 ARCHIVED',
   `version` bigint unsigned NOT NULL DEFAULT '1' COMMENT '乐观锁版本（保存/发布均 +1）',
-  `created_at` datetime(3) NOT NULL,
-  `updated_at` datetime(3) NOT NULL,
+  `created_at` datetime(3) NOT NULL COMMENT '创建时间',
+  `updated_at` datetime(3) NOT NULL COMMENT '更新时间',
   `published_at` datetime(3) DEFAULT NULL COMMENT '发布时间（未发布 NULL）',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_reporting_dashboard_code` (`tenant_id`,`dashboard_code`),
@@ -105,12 +105,12 @@ CREATE TABLE IF NOT EXISTS `reporting_dashboard_widget` (
   `grain` tinyint unsigned NOT NULL COMMENT '1 HOUR / 2 DAY',
   `dimension_code` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '维度编码',
   `grid_x` int unsigned NOT NULL COMMENT '网格 x（24 列）',
-  `grid_y` int unsigned NOT NULL,
-  `grid_width` int unsigned NOT NULL,
-  `grid_height` int unsigned NOT NULL,
+  `grid_y` int unsigned NOT NULL COMMENT '网格 y 坐标',
+  `grid_width` int unsigned NOT NULL COMMENT '网格宽度',
+  `grid_height` int unsigned NOT NULL COMMENT '网格高度',
   `display_options` json NOT NULL COMMENT '展示选项（合法 JSON object，≤8192 字节）',
-  `created_at` datetime(3) NOT NULL,
-  `updated_at` datetime(3) NOT NULL,
+  `created_at` datetime(3) NOT NULL COMMENT '创建时间',
+  `updated_at` datetime(3) NOT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_reporting_dashboard_widget_code` (`dashboard_id`,`widget_code`),
   KEY `idx_reporting_dashboard_widget_metric` (`metric_code`,`dimension_code`)
@@ -120,22 +120,22 @@ CREATE TABLE IF NOT EXISTS `reporting_dimension_definition` (
   `dimension_code` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '维度编码',
   `title` varchar(128) NOT NULL COMMENT '标题',
   `status` tinyint unsigned NOT NULL DEFAULT '1' COMMENT '1 启用 / 0 停用',
-  `created_at` datetime(3) NOT NULL,
-  `updated_at` datetime(3) NOT NULL,
+  `created_at` datetime(3) NOT NULL COMMENT '创建时间',
+  `updated_at` datetime(3) NOT NULL COMMENT '更新时间',
   PRIMARY KEY (`dimension_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='报表维度定义';
 
 CREATE TABLE IF NOT EXISTS `reporting_metric_bucket` (
-  `tenant_id` bigint unsigned NOT NULL,
-  `provider_code` varchar(64) NOT NULL,
-  `external_account_id` varchar(128) NOT NULL,
-  `standard_metric` tinyint unsigned NOT NULL,
-  `bucket_seconds` int unsigned NOT NULL,
-  `bucket_start` datetime(3) NOT NULL,
-  `dimension_key` varchar(256) NOT NULL,
-  `currency` char(3) NOT NULL,
-  `value` bigint NOT NULL,
-  `updated_at` datetime(3) NOT NULL,
+  `tenant_id` bigint unsigned NOT NULL COMMENT '租户ID',
+  `provider_code` varchar(64) NOT NULL COMMENT '渠道编码',
+  `external_account_id` varchar(128) NOT NULL COMMENT '外部账号ID',
+  `standard_metric` tinyint unsigned NOT NULL COMMENT '标准指标 1-5',
+  `bucket_seconds` int unsigned NOT NULL COMMENT '时间桶长度（秒）',
+  `bucket_start` datetime(3) NOT NULL COMMENT '时间桶起点',
+  `dimension_key` varchar(256) NOT NULL COMMENT '维度键',
+  `currency` char(3) NOT NULL COMMENT '币种',
+  `value` bigint NOT NULL COMMENT '指标值',
+  `updated_at` datetime(3) NOT NULL COMMENT '更新时间',
   PRIMARY KEY (`tenant_id`,`provider_code`,`external_account_id`,`standard_metric`,`bucket_seconds`,`bucket_start`,`dimension_key`,`currency`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='指标桶聚合（看板查询数据源）';
 
@@ -146,68 +146,68 @@ CREATE TABLE IF NOT EXISTS `reporting_metric_definition` (
   `value_kind` tinyint unsigned NOT NULL COMMENT '1 COUNT / 2 MONEY',
   `supported_grains` set('hour','day') NOT NULL COMMENT '支持粒度',
   `status` tinyint unsigned NOT NULL DEFAULT '1' COMMENT '1 启用 / 0 停用',
-  `created_at` datetime(3) NOT NULL,
-  `updated_at` datetime(3) NOT NULL,
+  `created_at` datetime(3) NOT NULL COMMENT '创建时间',
+  `updated_at` datetime(3) NOT NULL COMMENT '更新时间',
   PRIMARY KEY (`metric_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='报表指标定义（全局目录）';
 
 CREATE TABLE IF NOT EXISTS `reporting_metric_dimension` (
-  `metric_code` varchar(96) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-  `dimension_code` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `metric_code` varchar(96) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '指标编码',
+  `dimension_code` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '维度编码',
   PRIMARY KEY (`metric_code`,`dimension_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='指标×维度能力表';
 
 CREATE TABLE IF NOT EXISTS `reporting_metric_inbox` (
   `event_id` bigint unsigned NOT NULL COMMENT '事件ID（outbox 行 id）',
-  `tenant_id` bigint unsigned NOT NULL,
+  `tenant_id` bigint unsigned NOT NULL COMMENT '租户ID',
   `event_type` varchar(128) NOT NULL COMMENT 'integration.metric.snapshot.changed.v1',
-  `source_revision` bigint unsigned NOT NULL,
-  `received_at` datetime(3) NOT NULL,
+  `source_revision` bigint unsigned NOT NULL COMMENT '来源修订号',
+  `received_at` datetime(3) NOT NULL COMMENT '接收时间',
   PRIMARY KEY (`event_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='指标事件 inbox（幂等去重）';
 
 CREATE TABLE IF NOT EXISTS `reporting_metric_snapshot` (
-  `tenant_id` bigint unsigned NOT NULL,
-  `provider_code` varchar(64) NOT NULL,
-  `external_account_id` varchar(128) NOT NULL,
-  `external_object_id` varchar(128) NOT NULL,
-  `standard_metric` tinyint unsigned NOT NULL,
-  `bucket_start` datetime(3) NOT NULL,
-  `bucket_seconds` int unsigned NOT NULL,
-  `dimension_key` varchar(256) NOT NULL,
-  `value` bigint NOT NULL,
-  `currency` char(3) NOT NULL DEFAULT '',
-  `source_revision` bigint unsigned NOT NULL,
+  `tenant_id` bigint unsigned NOT NULL COMMENT '租户ID',
+  `provider_code` varchar(64) NOT NULL COMMENT '渠道编码',
+  `external_account_id` varchar(128) NOT NULL COMMENT '外部账号ID',
+  `external_object_id` varchar(128) NOT NULL COMMENT '外部对象ID',
+  `standard_metric` tinyint unsigned NOT NULL COMMENT '标准指标 1-5',
+  `bucket_start` datetime(3) NOT NULL COMMENT '时间桶起点',
+  `bucket_seconds` int unsigned NOT NULL COMMENT '时间桶长度（秒）',
+  `dimension_key` varchar(256) NOT NULL COMMENT '维度键',
+  `value` bigint NOT NULL COMMENT '指标值',
+  `currency` char(3) NOT NULL DEFAULT '' COMMENT '币种',
+  `source_revision` bigint unsigned NOT NULL COMMENT '来源修订号',
   `event_id` bigint unsigned NOT NULL COMMENT '最新应用的事件ID',
-  `updated_at` datetime(3) NOT NULL,
+  `updated_at` datetime(3) NOT NULL COMMENT '更新时间',
   PRIMARY KEY (`tenant_id`,`provider_code`,`external_account_id`,`external_object_id`,`standard_metric`,`bucket_start`,`bucket_seconds`,`dimension_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='指标快照（槽位唯一，修订号守卫）';
 
 CREATE TABLE IF NOT EXISTS `role_permissions` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `role_id` bigint unsigned NOT NULL,
-  `resource` varchar(64) NOT NULL,
-  `action` varchar(64) NOT NULL,
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `role_id` bigint unsigned NOT NULL COMMENT '角色ID',
+  `resource` varchar(64) NOT NULL COMMENT '资源标识',
+  `action` varchar(64) NOT NULL COMMENT '动作',
   `data_scope` tinyint NOT NULL DEFAULT '6' COMMENT '1 SELF/2 TEAM/3 DEPARTMENT/4 ORGANIZATION/5 CUSTOM/6 ALL',
   `approval_mode` tinyint NOT NULL DEFAULT '1' COMMENT '1 NONE/2 SINGLE/3 DUAL_CONTROL',
   `condition_expr` varchar(512) NOT NULL DEFAULT '' COMMENT 'CEL 表达式（subject/resource/context 变量），空=无条件',
   `allowed_fields` text NOT NULL COMMENT 'JSON 字符串数组：字段白名单（交）',
   `denied_fields` text NOT NULL COMMENT 'JSON 字符串数组：字段黑名单（并）',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_role_resource_action` (`role_id`,`resource`,`action`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色权限（授权规则：rbac.<role_code>.<resource>.<action>）';
 
 CREATE TABLE IF NOT EXISTS `roles` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `tenant_id` bigint unsigned NOT NULL DEFAULT '1',
-  `code` varchar(64) NOT NULL,
-  `name` varchar(128) NOT NULL,
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `tenant_id` bigint unsigned NOT NULL DEFAULT '1' COMMENT '租户ID',
+  `code` varchar(64) NOT NULL COMMENT '角色编码',
+  `name` varchar(128) NOT NULL COMMENT '角色名称',
   `enabled` tinyint NOT NULL DEFAULT '1' COMMENT '1 启用 / 0 停用',
   `version` bigint unsigned NOT NULL DEFAULT '1' COMMENT '乐观锁版本',
   `created_by` bigint unsigned NOT NULL DEFAULT '0' COMMENT '创建者 account_id（OWNER 数据范围用）',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_tenant_code` (`tenant_id`,`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='控制台角色';
