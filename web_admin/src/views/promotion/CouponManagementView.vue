@@ -78,7 +78,6 @@
             <a-radio-group v-model:value="form.scope" class="coupon-radio-group">
               <a-radio v-for="option in scopeOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
             </a-radio-group>
-            <a-button v-if="form.scope" type="link" size="small" class="coupon-clear-btn" @click="form.scope = undefined">{{ $t('couponAdmin.clear') }}</a-button>
           </div>
         </div>
         <div v-if="form.scope === 'mode'" class="coupon-choice-block">
@@ -656,10 +655,6 @@ onMounted(() => {
 }
 .coupon-radio-group :deep(.ant-radio-wrapper) {
   margin-inline-end: 0;
-  font-size: 15px;
-}
-.coupon-clear-btn {
-  padding: 0;
   font-size: 15px;
 }
 </style>
