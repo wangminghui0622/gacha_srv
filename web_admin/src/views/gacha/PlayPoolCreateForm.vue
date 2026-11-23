@@ -150,12 +150,17 @@
 
             <div class="prize-inline">
               <a-select
+                v-if="form.mode !== 'memorymatch'"
                 v-model:value="prizeDraft.prizeGrade"
                 :options="gradeOptions"
-                :disabled="form.mode === 'memorymatch'"
                 style="width: 90px"
               />
-              <a-select v-model:value="prizeDraft.prizeType" :options="prizeTypeOptions" style="width: 85px" />
+              <a-select
+                v-if="form.mode !== 'memorymatch'"
+                v-model:value="prizeDraft.prizeType"
+                :options="prizeTypeOptions"
+                style="width: 85px"
+              />
               <div class="prize-picker">
                 <template v-if="prizeDraft.prizeType === 2">
                   <a-button @click="openSkuPicker()">选择赏品</a-button>
