@@ -149,7 +149,12 @@
             </div>
 
             <div class="prize-inline">
-              <a-select v-model:value="prizeDraft.prizeGrade" :options="gradeOptions" style="width: 90px" />
+              <a-select
+                v-model:value="prizeDraft.prizeGrade"
+                :options="gradeOptions"
+                :disabled="form.mode === 'memorymatch'"
+                style="width: 90px"
+              />
               <a-select v-model:value="prizeDraft.prizeType" :options="prizeTypeOptions" style="width: 85px" />
               <div class="prize-picker">
                 <template v-if="prizeDraft.prizeType === 2">
@@ -488,7 +493,11 @@ function applyInitial(initial?: PlayPoolCreateInitial | null) {
   form.isBargain = tags.has('捡漏')
   form.isPresale = tags.has('预售')
   if (initial.prizes?.length) {
-    prizes.value = initial.prizes.map((prize, index) => ({ ...prize, prizeIndex: index }))
+    prizes.value = initial.prizes.map((prize, index) => ({
+      ...prize,
+      prizeGrade: initialMode.value === 'memorymatch' ? 'PairCard' : prize.prizeGrade,
+      prizeIndex: index,
+    }))
   }
 }
 
@@ -525,6 +534,10 @@ const prizeDraft = reactive({
   childPoolId: 0,
   isPrize: true,
 })
+
+if (form.mode === 'memorymatch') {
+  prizeDraft.prizeGrade = 'PairCard'
+}
 
 // 对对碰奖档的目标碰数必须唯一；新加的赏品自动取当前未占用的最小值，避免全为 0。
 function nextMemoryTargetValue(): number {
@@ -600,9 +613,14 @@ const isGroupBuy = computed(() => form.mode === 'groupbuy')
 watch(
   () => form.mode,
   (mode, oldMode) => {
-    if (mode === 'memorymatch' && prizeDraft.prizeType === 3) {
-      prizeDraft.prizeType = 2
-      prizeDraft.childPoolId = 0
+    if (mode === 'memorymatch') {
+      prizeDraft.prizeGrade = 'PairCard'
+      if (prizeDraft.prizeType === 3) {
+        prizeDraft.prizeType = 2
+        prizeDraft.childPoolId = 0
+      }
+    } else if (prizeDraft.prizeGrade === 'PairCard') {
+      prizeDraft.prizeGrade = 'SP'
     }
     if (oldMode !== 'groupbuy' || mode === 'groupbuy') return
     if (!prizes.value.some((prize) => prize.hasParent)) return
@@ -628,6 +646,9 @@ const couponId = ref<number | null>(null)
 
 const ipOptions = computed(() => ips.value.filter((item) => item.ipId && item.name).map((item) => ({ label: item.name as string, value: item.ipId as string })))
 const gradeOptions = computed(() => {
+  if (form.mode === 'memorymatch') {
+    return [{ label: 'PairCard', value: 'PairCard' }]
+  }
   const source = grades.value.length > 0 ? grades.value.map((item) => item.code) : ['SP', 'SSR', 'SS', 'S', 'A', 'B', 'Last']
   return Array.from(new Set(source)).map((code) => ({ label: code, value: code }))
 })
@@ -1189,7 +1210,7 @@ function confirmSkuSelection() {
     const quantity = Math.max(1, Math.trunc(Number(skuQuantities.value[item.productId ?? ''] ?? 1)))
     prizes.value.push({
       prizeIndex: prizes.value.length,
-      prizeGrade: prizeDraft.prizeGrade,
+      prizeGrade: form.mode === 'memorymatch' ? 'PairCard' : prizeDraft.prizeGrade,
       specialKind: '',
       prizeType: 2,
       name: item.title?.trim() || `SKU ${id}`,
