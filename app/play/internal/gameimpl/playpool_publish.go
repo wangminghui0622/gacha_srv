@@ -45,11 +45,14 @@ func validatePlayPoolSKUs(ctx context.Context, svcCtx *svc.ServiceContext, poolI
 			continue
 		}
 		// 兼容后台按商品选择：prizes.skuId 存的是商品 ID。
-		product, productErr := svcCtx.CatalogRpc.GetProduct(ctx, &catalogClient.GetProductRequest{ProductId: uint64(p.SkuId)})
-		if productErr != nil {
+		reply, productErr := svcCtx.CatalogRpc.ListProducts(ctx, &catalogClient.ListProductsRequest{
+			AfterProductId: uint64(p.SkuId) - 1,
+			PageSize:       1,
+		})
+		if productErr != nil || len(reply.Products) == 0 || reply.Products[0].ProductId != uint64(p.SkuId) {
 			return status.Error(codes.InvalidArgument, fmt.Sprintf("奖品 %s 的商品 %d 不存在或不可用", p.Name, p.SkuId))
 		}
-		if product.Status != catalog.ProductStatus_PRODUCT_STATUS_ACTIVE {
+		if reply.Products[0].Status != catalog.ProductStatus_PRODUCT_STATUS_ACTIVE {
 			return status.Error(codes.InvalidArgument, fmt.Sprintf("奖品 %s 的商品未上架", p.Name))
 		}
 	}
