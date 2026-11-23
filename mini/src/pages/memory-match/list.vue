@@ -1,9 +1,5 @@
 <template>
   <view class="mm-list-page">
-    <view class="list-hero">
-      <text class="list-title">对对碰</text>
-    </view>
-
     <view v-if="loading" class="list-state">加载中…</view>
     <view v-else-if="configs.length === 0" class="list-state">暂无可玩主题</view>
     <view v-else class="theme-grid">
@@ -94,18 +90,6 @@ function open(configId: number) {
     radial-gradient(circle at 92% 96%, rgba(122, 84, 20, 0.22), transparent 48%),
     #080b09;
   color: #e9f2ec;
-}
-
-.list-hero {
-  padding: 10rpx 8rpx 30rpx;
-}
-
-.list-title {
-  display: block;
-  font-size: 56rpx;
-  font-weight: 900;
-  letter-spacing: 4rpx;
-  color: #ffffff;
 }
 
 .list-state {
