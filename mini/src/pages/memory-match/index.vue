@@ -11,6 +11,7 @@ import { randomUUID } from '@/utils/id'
 
 import type {
   DigPrizeItem,
+  MemoryMatchBackPreset,
   MemoryMatchConfigResponse,
   MemoryMatchFacePreset,
   MemoryMatchRoundActionResponse,
@@ -87,16 +88,31 @@ const displayMode = computed<'preview' | 'destiny' | 'board' | 'loading'>(() => 
   return 'preview'
 })
 
+// 当前生效的牌背预设（会话携带 or 默认 back1）
+const activeBackPreset = computed<MemoryMatchBackPreset | null>(() => {
+  const presets = config.value?.config.backPresets ?? []
+  if (presets.length === 0) return null
+  const bid =
+    session.value?.backPresetId ||
+    backPresetId.value ||
+    config.value?.config.defaultBackPresetId ||
+    presets[0]?.presetId
+  return presets.find((p) => p.presetId === bid) ?? presets[0] ?? null
+})
+
 const heroImage = computed(() => {
-  const backs = config.value?.config.backPresets ?? []
-  const bid = session.value?.backPresetId ?? backPresetId.value ?? config.value?.config.defaultBackPresetId ?? 0
-  const back = backs.find((b) => b.presetId === bid) ?? backs[0]
-  return back?.faceBackgroundImageUrl || back?.backImageUrl || faceOfPattern(1)?.imageUrl || ''
+  return (
+    activeBackPreset.value?.faceBackgroundImageUrl ||
+    activeBackPreset.value?.backImageUrl ||
+    faceOfPattern(1)?.imageUrl ||
+    ''
+  )
 })
 
 const luckyPatternId = computed(() => session.value?.destinyPatternId || round.value?.destinyPatternId || 1)
 const luckyCardImage = computed(() => faceOfPattern(luckyPatternId.value)?.imageUrl || faceOfPattern(1)?.imageUrl || '')
-const previewCardImage = computed(() => faceOfPattern(1)?.imageUrl || '')
+// 未开局时九宫格展示牌背（默认 back1），不是卡面图案。
+const previewCardImage = computed(() => activeBackPreset.value?.backImageUrl || activeBackPreset.value?.faceBackgroundImageUrl || '')
 
 const displayDestiny = computed(() => (displayMode.value === 'board' ? round.value?.availableDestiny ?? 0 : 0))
 const displayPairs = computed(() => (displayMode.value === 'board' ? round.value?.pairCount ?? 0 : 0))
