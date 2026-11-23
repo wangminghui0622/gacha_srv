@@ -626,7 +626,6 @@ onLoad(async (query?: Record<string, string | undefined>) => {
           <view v-for="i in 9" :key="`preview-${i}`" class="card-cell preview">
             <image v-if="previewCardImage" :src="previewCardImage" class="card-img" mode="aspectFill" />
             <text v-else class="card-glyph">{{ i }}</text>
-            <text class="pattern-badge">{{ i }}</text>
           </view>
         </template>
 
@@ -640,7 +639,6 @@ onLoad(async (query?: Record<string, string | undefined>) => {
           >
             <image v-if="p.imageUrl" :src="p.imageUrl" class="card-img" mode="aspectFill" />
             <text v-else class="card-glyph">{{ p.patternId }}</text>
-            <text class="pattern-badge">{{ p.patternId }}</text>
             <text class="destiny-name">{{ p.name }}</text>
           </view>
         </template>
@@ -661,7 +659,6 @@ onLoad(async (query?: Record<string, string | undefined>) => {
             />
             <text v-else-if="slot.card > 0" class="card-glyph">{{ patternOfCard(slot.card) }}</text>
             <view v-else class="card-empty"></view>
-            <text v-if="slot.card > 0" class="pattern-badge">{{ patternOfCard(slot.card) }}</text>
           </view>
         </template>
 
@@ -1129,26 +1126,6 @@ $muted: #8fb39d;
   background:
     radial-gradient(circle at 50% 40%, rgba(46, 130, 80, 0.18), transparent 60%),
     repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.015) 0 8rpx, transparent 8rpx 16rpx);
-}
-
-.pattern-badge {
-  position: absolute;
-  top: 8rpx;
-  right: 8rpx;
-  z-index: 5;
-  box-sizing: border-box;
-  display: block;
-  min-width: 34rpx;
-  height: 34rpx;
-  padding: 0 6rpx;
-  border-radius: 8rpx;
-  background: rgba(2, 10, 6, 0.88);
-  border: 1rpx solid rgba(243, 210, 122, 0.65);
-  color: $gold;
-  font-size: 22rpx;
-  font-weight: 700;
-  line-height: 34rpx;
-  text-align: center;
 }
 
 .destiny-name {
