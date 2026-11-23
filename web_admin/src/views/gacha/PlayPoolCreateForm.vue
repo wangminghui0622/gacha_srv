@@ -509,10 +509,22 @@ function applyInitial(initial?: PlayPoolCreateInitial | null) {
       ...prize,
       prizeGrade: initialMode.value === 'memorymatch' ? 'PairCard' : prize.prizeGrade,
       prizeIndex: index,
+      // 管理端 Get 返回的 proto int64 字段是字符串，统一转成数字，避免编辑时类型/目标碰数显示错误。
+      prizeType: Number(prize.prizeType ?? 1),
+      skuId: Number(prize.skuId ?? 0),
+      childPoolId: Number(prize.childPoolId ?? 0),
+      weight: Number(prize.weight ?? 1),
+      quantity: Number(prize.quantity ?? 1),
+      remaining: Number(prize.remaining ?? prize.quantity ?? 1),
+      targetValue: Number(prize.targetValue ?? 0),
+      costFen: Number(prize.costFen ?? 0),
+      cashFen: Number(prize.cashFen ?? 0),
+      pointsAmount: Number(prize.pointsAmount ?? 0),
+      parentIndex: Number(prize.parentIndex ?? -1),
     }))
   }
   if (initialMode.value === 'memorymatch') {
-    ensureMemoryMatchNoPrizeTier()
+    removeMemoryMatchNoPrizeTier()
     normalizeMemoryMatchQuantities()
   }
 }
@@ -555,10 +567,10 @@ if (form.mode === 'memorymatch') {
   prizeDraft.prizeGrade = 'PairCard'
 }
 
-// 对对碰奖档的目标碰数必须唯一；新加的赏品自动取当前未占用的最小值，避免全为 0。
+// 对对碰奖档的目标碰数必须唯一；新加的赏品自动取当前未占用的最小值（从 1 开始）。
 function nextMemoryTargetValue(): number {
   const used = new Set(prizes.value.map((prize) => Number(prize.targetValue ?? 0)))
-  let value = 0
+  let value = 1
   while (used.has(value)) value += 1
   return value
 }
@@ -572,7 +584,7 @@ function autoAssignTargets() {
   for (const prize of prizes.value) {
     let target = Number(prize.targetValue ?? 0)
     if (!Number.isInteger(target) || target < 0 || used.has(target)) {
-      target = 0
+      target = 1
       while (used.has(target)) target += 1
       prize.targetValue = target
     }
@@ -581,28 +593,19 @@ function autoAssignTargets() {
   message.success('已自动填充目标碰数')
 }
 
-// 对齐老系统：对对碰默认带一条 0 碰「谢谢参与」无奖档；
-// 它只做结算兜底，不参与目标碰数分配，概率显示 0.00。
-function ensureMemoryMatchNoPrizeTier() {
+// 对对碰不再自动生成 0 碰「谢谢参与」虚拟档；同时清掉历史草稿里残留的该行。
+function removeMemoryMatchNoPrizeTier() {
   if (form.mode !== 'memorymatch') return
-  if (prizes.value.some((prize) => Number(prize.targetValue ?? 0) === 0)) return
-  prizes.value.unshift({
-    prizeIndex: 0,
-    prizeGrade: 'PairCard',
-    specialKind: '',
-    prizeType: 1,
-    name: '谢谢参与',
-    skuId: 0,
-    childPoolId: 0,
-    imageUrl: '',
-    targetValue: 0,
-    weight: 1,
-    quantity: -1,
-    remaining: -1,
-    isPrize: false,
-    costFen: 0,
-  })
-  reindexPrizes()
+  const before = prizes.value.length
+  prizes.value = prizes.value.filter(
+    (prize) =>
+      !(
+        Number(prize.prizeType ?? 0) === 1 &&
+        Number(prize.targetValue ?? 0) === 0 &&
+        prize.name === '谢谢参与'
+      ),
+  )
+  if (prizes.value.length !== before) reindexPrizes()
 }
 const skuModalOpen = ref(false)
 const childParent = ref<PlayPoolPrize | null>(null)
@@ -659,7 +662,7 @@ watch(
         prizeDraft.prizeType = 2
         prizeDraft.childPoolId = 0
       }
-      ensureMemoryMatchNoPrizeTier()
+      removeMemoryMatchNoPrizeTier()
       normalizeMemoryMatchQuantities()
     } else if (prizeDraft.prizeGrade === 'PairCard') {
       prizeDraft.prizeGrade = 'SP'
@@ -1367,7 +1370,7 @@ async function submit() {
     return
   }
   if (form.mode === 'memorymatch' && !prizes.value.some((prize) => prize.isPrize !== false)) {
-    message.warning('请至少添加一个有奖档（商品），不能只有谢谢参与')
+    message.warning('请至少添加一个有奖档（商品）')
     return
   }
   const tags: string[] = []
