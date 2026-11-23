@@ -701,8 +701,8 @@ CREATE TABLE IF NOT EXISTS `play_pool_heads` (
   `periods` int unsigned NOT NULL DEFAULT '0' COMMENT '期数',
   `weight` int NOT NULL DEFAULT '0' COMMENT '权重/排序',
   `admin_json` mediumtext COMMENT '后台扩展字段 JSON（活动时间/开关/折扣/封面/优惠券）',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   KEY `idx_mode_id` (`mode`,`id`),
   KEY `idx_pool_ip` (`ip_id`),
@@ -719,14 +719,14 @@ CREATE TABLE IF NOT EXISTS `play_pool_versions` (
   `config_json` json NOT NULL COMMENT '玩法规则 JSON（座位数/车数/连击规则等）',
   `config_hash` char(64) NOT NULL DEFAULT '' COMMENT '配置哈希 SHA256',
   `published_at` datetime DEFAULT NULL COMMENT '发布时间',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`pool_id`,`version`),
   KEY `idx_status_published` (`status`,`published_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='统一玩赏池版本表';
 
 CREATE TABLE IF NOT EXISTS `play_pool_prizes` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
   `pool_id` bigint unsigned NOT NULL COMMENT '赏池ID',
   `version` bigint unsigned NOT NULL COMMENT '版本号',
   `prize_index` int NOT NULL COMMENT '奖品位序（0 起）',
@@ -748,28 +748,28 @@ CREATE TABLE IF NOT EXISTS `play_pool_prizes` (
   `image_url` varchar(255) NOT NULL DEFAULT '' COMMENT '缩略图',
   `parent_index` int NOT NULL DEFAULT '-1' COMMENT '父奖品位序（-1=无；拼团子奖等）',
   `extra_json` json NOT NULL DEFAULT (JSON_OBJECT()) COMMENT '玩法特有参数 JSON（连击阈值等）',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_pool_version_index` (`pool_id`,`version`,`prize_index`),
   KEY `idx_pool_version` (`pool_id`,`version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='统一玩赏品表';
 
 CREATE TABLE IF NOT EXISTS `play_pool_drafts` (
-  `idempotency_key` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-  `pool_id` bigint unsigned NOT NULL,
-  `version` bigint unsigned NOT NULL,
-  `request_hash` char(64) NOT NULL,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `idempotency_key` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '幂等键',
+  `pool_id` bigint unsigned NOT NULL COMMENT '赏池ID',
+  `version` bigint unsigned NOT NULL COMMENT '版本号',
+  `request_hash` char(64) NOT NULL COMMENT '请求哈希 SHA256',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`idempotency_key`),
   KEY `idx_pool_version` (`pool_id`,`version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='统一玩赏池草稿幂等表';
 
 CREATE TABLE IF NOT EXISTS `prize_grades` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
   `sort` int NOT NULL COMMENT '排序值（越大越靠前）',
   `code` varchar(64) NOT NULL COMMENT '名称/编码，如 PairCard、SSR、SP1',
   `category` varchar(64) NOT NULL COMMENT '赏别，如 碰碰赏、普通赏',
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_prize_grade_code` (`code`),
   KEY `idx_prize_grade_sort` (`sort`)
