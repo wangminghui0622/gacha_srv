@@ -206,13 +206,6 @@
           :message="`父赏：${childParent.name}`"
           style="margin-bottom: 12px"
         />
-        <a-alert
-          v-else-if="form.mode === 'memorymatch'"
-          type="info"
-          show-icon
-          message="对对碰：同一商品只能添加一次；数量为库存份数，牌桌不会展开成多行"
-          style="margin-bottom: 12px"
-        />
         <div class="sku-toolbar">
           <a-input
             v-model:value="skuFilters.keyword"
