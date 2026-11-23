@@ -124,7 +124,10 @@
     "refreshPermissions": "Refresh permissions",
     "permissionsUpdated": "Menu permissions updated",
     "openMenu": "Open navigation menu",
-    "closeAllTabs": "Close all"
+    "closeAllTabs": "Close all",
+    "closeTabsRight": "Close tabs to the right",
+    "closeTabsLeft": "Close tabs to the left",
+    "closeOtherTabs": "Close other tabs"
   },
   "catalogIp": {
     "searchPlaceholder": "IP",

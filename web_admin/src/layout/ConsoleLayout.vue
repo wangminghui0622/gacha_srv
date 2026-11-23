@@ -45,16 +45,28 @@
       </a-layout-header>
       <div class="tab-container">
         <div class="custom-tabs">
-          <div
+          <a-dropdown
             v-for="tab in tabs"
             :key="tab.path"
-            class="custom-tab"
-            :class="{ active: activeTab === tab.path }"
-            @click="handleTabChange(tab.path)"
+            class="tab-dropdown"
+            :trigger="['contextmenu']"
           >
-            <span class="tab-label">{{ $t(tab.titleKey) }}</span>
-            <CloseOutlined v-if="tabs.length > 1" class="tab-close" @click.stop="handleTabRemove(tab.path)" />
-          </div>
+            <div
+              class="custom-tab"
+              :class="{ active: activeTab === tab.path }"
+              @click="handleTabChange(tab.path)"
+            >
+              <span class="tab-label">{{ $t(tab.titleKey) }}</span>
+              <CloseOutlined v-if="tabs.length > 1" class="tab-close" @click.stop="handleTabRemove(tab.path)" />
+            </div>
+            <template #overlay>
+              <a-menu @click="(info: { key: string | number }) => handleTabContextMenu(String(info.key), tab.path)">
+                <a-menu-item key="right">{{ $t('layout.closeTabsRight') }}</a-menu-item>
+                <a-menu-item key="left">{{ $t('layout.closeTabsLeft') }}</a-menu-item>
+                <a-menu-item key="other">{{ $t('layout.closeOtherTabs') }}</a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
         </div>
         <button v-if="tabs.length > 1" type="button" class="tab-close-all" @click="closeAllTabs">
           <CloseOutlined />
@@ -295,6 +307,50 @@ function closeAllTabs() {
   void flushPersistTabs()
 }
 
+function ensureTabVisible(path: string) {
+  if (!tabs.value.some((tab) => tab.path === route.path)) {
+    router.push(path)
+  }
+}
+
+function closeTabsToRight(path: string) {
+  const index = tabs.value.findIndex((tab) => tab.path === path)
+  if (index < 0 || index >= tabs.value.length - 1) return
+  tabs.value = tabs.value.slice(0, index + 1)
+  ensureTabVisible(path)
+  schedulePersistTabs()
+}
+
+function closeTabsToLeft(path: string) {
+  const index = tabs.value.findIndex((tab) => tab.path === path)
+  if (index <= 0) return
+  tabs.value = tabs.value.slice(index)
+  ensureTabVisible(path)
+  schedulePersistTabs()
+}
+
+function closeOtherTabs(path: string) {
+  const target = tabs.value.find((tab) => tab.path === path)
+  if (!target) return
+  tabs.value = [target]
+  ensureTabVisible(path)
+  schedulePersistTabs()
+}
+
+function handleTabContextMenu(key: string, path: string) {
+  switch (key) {
+    case 'right':
+      closeTabsToRight(path)
+      break
+    case 'left':
+      closeTabsToLeft(path)
+      break
+    case 'other':
+      closeOtherTabs(path)
+      break
+  }
+}
+
 async function refreshPermissions() {
   try {
     await session.loadPermissions()
@@ -393,6 +449,7 @@ async function onLogout() {
   overflow-y: hidden;
 }
 .custom-tabs::-webkit-scrollbar { height: 0; }
+.custom-tabs :deep(.tab-dropdown) { display: inline-flex; flex-shrink: 0; }
 .custom-tab {
   position: relative;
   height: 32px;
