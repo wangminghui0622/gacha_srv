@@ -17,23 +17,23 @@ CREATE TABLE IF NOT EXISTS `console_accounts` (
   `username` varchar(64) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
   `display_name` varchar(128) NOT NULL DEFAULT '',
-  `status` tinyint NOT NULL DEFAULT '1' COMMENT '1 鍚?敤 / 2 鍋滅敤',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '1 启用 / 2 停用',
   `role_version` bigint unsigned NOT NULL DEFAULT '1' COMMENT '主体角色乐观锁版本（PutPrincipalRoles 用）',
-  `totp_secret` varchar(64) NOT NULL DEFAULT '' COMMENT '绌?鏈?粦瀹?TOTP',
+  `totp_secret` varchar(64) NOT NULL DEFAULT '' COMMENT '空=未绑定 TOTP',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_tenant_username` (`tenant_id`,`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='鎺у埗鍙拌处鍙';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='控制台账号';
 
 CREATE TABLE IF NOT EXISTS `console_sessions` (
   `jti` varchar(64) NOT NULL,
-  `family_id` varchar(64) NOT NULL COMMENT 'refresh 鏃嬭浆瀹舵棌锛屾硠闇叉椂鏁存棌鍚婇攢',
+  `family_id` varchar(64) NOT NULL COMMENT 'refresh 旋转家族，泄露时整族吊销',
   `account_id` bigint unsigned NOT NULL,
   `tenant_id` bigint unsigned NOT NULL,
-  `refresh_hash` char(64) NOT NULL COMMENT 'SHA256(refresh_token) 鍗佸叚杩涘埗',
+  `refresh_hash` char(64) NOT NULL COMMENT 'SHA256(refresh_token) 十六进制',
   `previous_refresh_hash` char(64) NOT NULL DEFAULT '' COMMENT '上一枚 refresh 哈希（重放旧令牌 → 家族吊销）',
-  `fingerprint_hash` char(64) NOT NULL COMMENT 'SHA256(client_fingerprint) 鍗佸叚杩涘埗',
+  `fingerprint_hash` char(64) NOT NULL COMMENT 'SHA256(client_fingerprint) 十六进制',
   `expires_at` datetime NOT NULL,
   `revoked_at` datetime DEFAULT NULL,
   `compromised` tinyint NOT NULL DEFAULT '0',
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `console_sessions` (
   UNIQUE KEY `uk_refresh_hash` (`refresh_hash`),
   KEY `idx_account` (`account_id`),
   KEY `idx_family` (`family_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='鎺у埗鍙颁細璇濓紙access=JWT jti / refresh=SHA256 瀛樺偍锛';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='控制台会话（access=JWT jti / refresh=SHA256 存储）';
 
 CREATE TABLE IF NOT EXISTS `console_user_tabs` (
   `tenant_id` bigint unsigned NOT NULL,
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS `ops_audit_logs` (
   PRIMARY KEY (`id`),
   KEY `idx_created` (`created_at`),
   KEY `idx_account` (`account_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='绠＄悊鎿嶄綔瀹¤?鏃ュ織';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='管理操作审计日志';
 
 CREATE TABLE IF NOT EXISTS `principal_roles` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
@@ -190,27 +190,27 @@ CREATE TABLE IF NOT EXISTS `role_permissions` (
   `action` varchar(64) NOT NULL,
   `data_scope` tinyint NOT NULL DEFAULT '6' COMMENT '1 SELF/2 TEAM/3 DEPARTMENT/4 ORGANIZATION/5 CUSTOM/6 ALL',
   `approval_mode` tinyint NOT NULL DEFAULT '1' COMMENT '1 NONE/2 SINGLE/3 DUAL_CONTROL',
-  `condition_expr` varchar(512) NOT NULL DEFAULT '' COMMENT 'CEL 琛ㄨ揪寮忥紙subject/resource/context 鍙橀噺锛夛紝绌?鏃犳潯浠',
-  `allowed_fields` text NOT NULL COMMENT 'JSON 瀛楃?涓叉暟缁勶細瀛楁?鐧藉悕鍗曪紙浜わ級',
-  `denied_fields` text NOT NULL COMMENT 'JSON 瀛楃?涓叉暟缁勶細瀛楁?榛戝悕鍗曪紙骞讹級',
+  `condition_expr` varchar(512) NOT NULL DEFAULT '' COMMENT 'CEL 表达式（subject/resource/context 变量），空=无条件',
+  `allowed_fields` text NOT NULL COMMENT 'JSON 字符串数组：字段白名单（交）',
+  `denied_fields` text NOT NULL COMMENT 'JSON 字符串数组：字段黑名单（并）',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_role_resource_action` (`role_id`,`resource`,`action`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='瑙掕壊鏉冮檺锛堟巿鏉冭?鍒欙細rbac.<role_code>.<resource>.<action>锛';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色权限（授权规则：rbac.<role_code>.<resource>.<action>）';
 
 CREATE TABLE IF NOT EXISTS `roles` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `tenant_id` bigint unsigned NOT NULL DEFAULT '1',
   `code` varchar(64) NOT NULL,
   `name` varchar(128) NOT NULL,
-  `enabled` tinyint NOT NULL DEFAULT '1' COMMENT '1 鍚?敤 / 0 鍋滅敤',
-  `version` bigint unsigned NOT NULL DEFAULT '1' COMMENT '涔愯?閿佺増鏈',
-  `created_by` bigint unsigned NOT NULL DEFAULT '0' COMMENT '鍒涘缓鑰?account_id锛圤WNER 鏁版嵁鑼冨洿鐢?級',
+  `enabled` tinyint NOT NULL DEFAULT '1' COMMENT '1 启用 / 0 停用',
+  `version` bigint unsigned NOT NULL DEFAULT '1' COMMENT '乐观锁版本',
+  `created_by` bigint unsigned NOT NULL DEFAULT '0' COMMENT '创建者 account_id（OWNER 数据范围用）',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_tenant_code` (`tenant_id`,`code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='鎺у埗鍙拌?鑹';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='控制台角色';
 
 CREATE TABLE IF NOT EXISTS `task_plan_head` (
   `singleton_id` tinyint unsigned NOT NULL COMMENT '恒为 1',
