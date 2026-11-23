@@ -101,7 +101,7 @@
         <div class="prize-section">
           <div class="prize-label">{{ form.mode === 'memorymatch' ? '奖档配置：' : '赏品配置：' }}</div>
           <div v-if="form.mode === 'memorymatch'" class="prize-hint">
-            <span>每个目标碰数对应一个奖档，必须唯一；总碰数上限 {{ memoryTargetMax }}；未配置的档位不会中奖。</span>
+            <span>每个目标碰数对应一个奖档（数量固定为 1），必须唯一；总碰数上限 {{ memoryTargetMax }}；未配置的档位不会中奖。</span>
             <a-button type="link" size="small" @click="autoAssignTargets">自动填目标碰数</a-button>
           </div>
           <div v-if="form.mode === 'memorymatch'" class="target-summary">
@@ -291,7 +291,9 @@
           </a-table-column>
           <a-table-column title="数量" :width="80" align="center">
             <template #default="{ record }">
+              <span v-if="form.mode === 'memorymatch'">1</span>
               <a-input-number
+                v-else
                 v-model:value="skuQuantities[record.productId ?? '']"
                 class="sku-qty-input"
                 :min="1"
@@ -506,6 +508,7 @@ function applyInitial(initial?: PlayPoolCreateInitial | null) {
   }
   if (initialMode.value === 'memorymatch') {
     ensureMemoryMatchNoPrizeTier()
+    normalizeMemoryMatchQuantities()
   }
 }
 
@@ -516,8 +519,8 @@ const displayPrizes = computed<DisplayPrize[]>(() => {
   let displayIndex = 0
   let badgeIndex = 0
   for (const prize of prizes.value) {
-    const total = Number(prize.quantity ?? 1)
-    const expanded = total > 1 && expandedPrizeIndexes.value.has(prize.prizeIndex)
+    const total = form.mode === 'memorymatch' ? 1 : Number(prize.quantity ?? 1)
+    const expanded = form.mode !== 'memorymatch' && total > 1 && expandedPrizeIndexes.value.has(prize.prizeIndex)
     const copies = expanded ? total : 1
     const prizeBadgeIndex = total > 1 ? badgeIndex++ : -1
     for (let copy = 0; copy < copies; copy += 1) {
@@ -652,6 +655,7 @@ watch(
         prizeDraft.childPoolId = 0
       }
       ensureMemoryMatchNoPrizeTier()
+      normalizeMemoryMatchQuantities()
     } else if (prizeDraft.prizeGrade === 'PairCard') {
       prizeDraft.prizeGrade = 'SP'
     }
@@ -784,7 +788,20 @@ function reindexPrizes() {
   expandedPrizeIndexes.value = new Set()
 }
 
+// 对对碰每个目标碰数只对应一件赏品，数量固定为 1，禁止展开多份。
+function normalizeMemoryMatchQuantities() {
+  if (form.mode !== 'memorymatch') return
+  expandedPrizeIndexes.value = new Set()
+  for (const prize of prizes.value) {
+    if (prize.prizeType === 2) {
+      prize.quantity = 1
+      prize.remaining = 1
+    }
+  }
+}
+
 function togglePrizeExpand(prize: PlayPoolPrize) {
+  if (form.mode === 'memorymatch') return
   if (Number(prize.quantity ?? 0) <= 1) return
   const next = new Set(expandedPrizeIndexes.value)
   if (next.has(prize.prizeIndex)) next.delete(prize.prizeIndex)
@@ -894,7 +911,9 @@ function syncSkuSelection(products: AdminProductItem[]) {
     skuProductCache.set(key, item)
     if (quantities[key] === undefined) {
       const prize = existing.get(Number(key))
-      quantities[key] = prize ? Math.max(1, Math.trunc(Number(prize.quantity ?? 1))) : 1
+      quantities[key] = form.mode === 'memorymatch'
+        ? 1
+        : prize ? Math.max(1, Math.trunc(Number(prize.quantity ?? 1))) : 1
     }
     if (!childMode && !skuTouchedKeys.has(key) && existing.has(Number(key))) {
       selected.add(key)
@@ -1246,7 +1265,9 @@ function confirmSkuSelection() {
     const id = Number(item.productId ?? 0)
     const prize = existing.get(id)
     if (!prize) continue
-    const quantity = Math.max(1, Math.trunc(Number(skuQuantities.value[item.productId ?? ''] ?? 1)))
+    const quantity = form.mode === 'memorymatch'
+      ? 1
+      : Math.max(1, Math.trunc(Number(skuQuantities.value[item.productId ?? ''] ?? 1)))
     prize.quantity = quantity
     prize.remaining = quantity
     prize.imageUrl = item.coverUrl || prize.imageUrl || ''
@@ -1265,7 +1286,9 @@ function confirmSkuSelection() {
   for (const item of selected) {
     const id = Number(item.productId ?? 0)
     if (!id || existing.has(id)) continue
-    const quantity = Math.max(1, Math.trunc(Number(skuQuantities.value[item.productId ?? ''] ?? 1)))
+    const quantity = form.mode === 'memorymatch'
+      ? 1
+      : Math.max(1, Math.trunc(Number(skuQuantities.value[item.productId ?? ''] ?? 1)))
     prizes.value.push({
       prizeIndex: prizes.value.length,
       prizeGrade: form.mode === 'memorymatch' ? 'PairCard' : prizeDraft.prizeGrade,
@@ -1379,13 +1402,23 @@ async function submit() {
       return
     }
     const maxTarget = Math.round(mmConfig.roundsPerPurchase) * Math.round(mmConfig.maxPairCount)
+    normalizeMemoryMatchQuantities()
     const usedTargets = new Map<number, number>()
+    const usedSkus = new Set<number>()
     for (let i = 0; i < prizes.value.length; i += 1) {
       const prize = prizes.value[i]
       if (!prize) continue
       if (Number(prize.prizeType ?? 0) === 3 || Number(prize.childPoolId ?? 0) > 0 || prize.hasParent) {
         message.error(`第 ${i + 1} 个奖档是箱子/子赏，对对碰不支持，请改成商品或删除`)
         return
+      }
+      const skuId = Number(prize.skuId ?? 0)
+      if (Number(prize.prizeType ?? 0) === 2 && skuId > 0) {
+        if (usedSkus.has(skuId)) {
+          message.error(`同一商品不能重复配置：${prize.name}`)
+          return
+        }
+        usedSkus.add(skuId)
       }
       const target = Number(prize.targetValue ?? 0)
       if (!Number.isInteger(target) || target < 0) {

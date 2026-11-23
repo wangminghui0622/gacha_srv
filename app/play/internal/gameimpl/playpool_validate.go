@@ -568,12 +568,22 @@ func validateMemoryMatchPool(in *play.CreatePlayPoolDraftReq) error {
 		return abortf("记忆翻牌全局规则非法: %v", err)
 	}
 	pairs := map[int64]bool{}
+	skus := map[int64]bool{}
 	for _, p := range in.Prizes {
 		if p.PrizeType == 3 || p.ChildPoolId > 0 || p.HasParent {
 			return abortf("记忆翻牌奖 %s 不支持子赏/箱子类型", p.Name)
 		}
 		if p.SpecialKind != "" {
 			return abortf("记忆翻牌不支持 specialKind=%s", p.SpecialKind)
+		}
+		if p.Quantity > 1 || p.Remaining > 1 {
+			return abortf("记忆翻牌奖 %s 的数量只能为 1（同一商品不能配置多份）", p.Name)
+		}
+		if p.PrizeType == 2 && p.SkuId > 0 {
+			if skus[p.SkuId] {
+				return abortf("记忆翻牌同一商品不能重复配置：%s", p.Name)
+			}
+			skus[p.SkuId] = true
 		}
 		maxTarget := cfg.RoundsPerPurchase * cfg.MaxPairCount
 		if p.TargetValue < 0 || p.TargetValue > maxTarget {
