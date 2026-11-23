@@ -350,14 +350,6 @@ function openRecords() {
   uni.navigateTo({ url: '/pages/records/index' })
 }
 
-function goBack() {
-  uni.navigateBack({ delta: 1 })
-}
-
-function onShare() {
-  uni.showToast({ title: '请使用右上角分享', icon: 'none' })
-}
-
 function openFacePicker() {
   faceModalOpen.value = true
 }
@@ -572,13 +564,6 @@ onLoad(async (query?: Record<string, string | undefined>) => {
 <template>
   <view class="mm-page">
     <template v-if="config">
-      <!-- 顶栏 -->
-      <view class="mm-topbar">
-        <view class="top-btn" @click="goBack">‹</view>
-        <text class="top-title">{{ config.config.name }}</text>
-        <view class="top-btn share" @click="onShare">↗</view>
-      </view>
-
       <!-- 主题英雄区 + 左右入口 -->
       <view class="hero-wrap">
         <view class="hero-ring"></view>
@@ -865,45 +850,6 @@ $muted: #8fb39d;
     radial-gradient(circle at 10% 35%, rgba(24, 80, 44, 0.35), transparent 45%),
     linear-gradient(180deg, #071a0f 0%, #04110a 55%, #020805 100%);
   color: $ink;
-}
-
-.mm-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24rpx;
-  height: 84rpx;
-}
-
-.top-btn {
-  width: 64rpx;
-  height: 64rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  border: 1rpx solid rgba(243, 210, 122, 0.45);
-  background: rgba(15, 45, 27, 0.75);
-  color: $gold;
-  font-size: 40rpx;
-  line-height: 1;
-}
-
-.top-btn.share {
-  font-size: 32rpx;
-}
-
-.top-title {
-  flex: 1;
-  min-width: 0;
-  text-align: center;
-  font-size: 36rpx;
-  font-weight: 800;
-  letter-spacing: 4rpx;
-  color: #ffffff;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .hero-wrap {
