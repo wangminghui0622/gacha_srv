@@ -65,23 +65,21 @@
       @ok="save"
     >
       <div class="coupon-choice-area">
-        <div class="coupon-choice-block">
-          <div class="coupon-choice-title">
-            <span class="coupon-choice-required">{{ $t('couponAdmin.typeLabel') }}</span>
+        <div class="coupon-choice-line">
+          <div class="coupon-choice-inline">
+            <span class="coupon-choice-title"><span class="coupon-choice-required">{{ $t('couponAdmin.typeLabel') }}</span></span>
+            <a-radio-group v-model:value="form.kind" class="coupon-radio-group">
+              <a-radio v-for="option in kindOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
+            </a-radio-group>
           </div>
-          <a-radio-group v-model:value="form.kind" class="coupon-radio-group">
-            <a-radio v-for="option in kindOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
-          </a-radio-group>
-        </div>
-        <div class="coupon-choice-block">
-          <div class="coupon-choice-title">{{ $t('couponAdmin.scopeLabel') }}</div>
-          <div class="coupon-scope-line">
+          <div class="coupon-choice-inline">
+            <span class="coupon-choice-title">{{ $t('couponAdmin.scopeLabel') }}</span>
             <a-radio-group v-model:value="form.scope" class="coupon-radio-group">
               <a-radio v-for="option in scopeOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
             </a-radio-group>
-            <a-button v-if="form.scope" type="link" size="small" class="coupon-clear-btn" @click="form.scope = undefined">{{ $t('couponAdmin.clear') }}</a-button>
           </div>
         </div>
+        <a-button v-if="form.scope" type="link" size="small" class="coupon-clear-btn" @click="form.scope = undefined">{{ $t('couponAdmin.clear') }}</a-button>
         <div v-if="form.scope === 'mode'" class="coupon-choice-block">
           <div class="coupon-choice-title">
             <span class="coupon-choice-required">{{ $t('couponAdmin.useMode') }}</span>
@@ -613,6 +611,24 @@ onMounted(() => {
   gap: 14px;
   margin: 4px 0 22px;
 }
+.coupon-choice-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 10px;
+  width: 100%;
+}
+.coupon-choice-inline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.coupon-choice-inline .coupon-choice-title {
+  width: 66px;
+  font-size: 11px;
+  text-align: right;
+}
 .coupon-choice-block {
   display: flex;
   flex-direction: column;
@@ -622,31 +638,24 @@ onMounted(() => {
 }
 .coupon-choice-title {
   color: #303133;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
+  white-space: nowrap;
 }
 .coupon-choice-required::before {
   content: '*';
   margin-right: 4px;
   color: #ff4d4f;
 }
-.coupon-scope-line {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
 .coupon-radio-group {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  justify-content: center;
-  gap: 10px 20px;
+  gap: 3px;
 }
 .coupon-radio-group :deep(.ant-radio-wrapper) {
   margin-inline-end: 0;
-  font-size: 14px;
+  font-size: 10.5px;
 }
 .coupon-clear-btn {
   padding: 0;
