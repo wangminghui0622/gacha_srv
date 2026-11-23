@@ -235,7 +235,7 @@
           />
         </div>
 
-        <div class="sku-table-wrap">
+        <div ref="skuTableWrap" class="sku-table-wrap">
         <a-table
           :data-source="skuItems"
           :loading="skuLoading"
@@ -551,6 +551,7 @@ function autoAssignTargets() {
 const skuModalOpen = ref(false)
 const childParent = ref<PlayPoolPrize | null>(null)
 const locatedSkuId = ref('')
+const skuTableWrap = ref<HTMLElement | null>(null)
 const boxLoading = ref(false)
 const skuLoading = ref(false)
 const skuItems = ref<AdminProductItem[]>([])
@@ -858,6 +859,19 @@ interface SkuPickerOptions {
   locatedSkuId?: string
 }
 
+function scrollToLocatedSku() {
+  if (!locatedSkuId.value) return
+  void nextTick(() => {
+    requestAnimationFrame(() => {
+      const wrap = skuTableWrap.value
+      if (!wrap) return
+      const located = wrap.querySelector('.sku-located-id')
+      const row = located?.closest('tr')
+      if (row) row.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    })
+  })
+}
+
 function openSkuPicker(options: SkuPickerOptions = {}) {
   childParent.value = options.childParent ?? null
   locatedSkuId.value = options.locatedSkuId ?? ''
@@ -869,7 +883,7 @@ function openSkuPicker(options: SkuPickerOptions = {}) {
   skuPage.value = options.page ?? 1
   resetSkuPickerState()
   if (!skuOptionsLoaded.value) void loadSkuOptions()
-  void loadSkuProducts()
+  void loadSkuProducts().then(() => scrollToLocatedSku())
 }
 
 function openChildPicker(record: PlayPoolPrize) {
