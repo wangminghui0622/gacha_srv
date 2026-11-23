@@ -289,11 +289,9 @@
               <span v-else>—</span>
             </template>
           </a-table-column>
-          <a-table-column title="数量" :width="80" align="center">
+          <a-table-column v-if="form.mode !== 'memorymatch'" title="数量" :width="80" align="center">
             <template #default="{ record }">
-              <span v-if="form.mode === 'memorymatch'">1</span>
               <a-input-number
-                v-else
                 v-model:value="skuQuantities[record.productId ?? '']"
                 class="sku-qty-input"
                 :min="1"
