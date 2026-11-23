@@ -948,6 +948,8 @@ message MemoryMatchEntryItem {
     int64  totalPairCount = 3;
     PrizeItem prize = 4;      // 谢谢参与 kind=0
     int64  remaining = 5;     // -1 不限量
+    string imageUrl = 6;      // 赏品图（来自赏池奖品配置，可能为空）
+    int64  weight = 7;        // 概率权重
 }
 
 message MemoryMatchChampionInfo {

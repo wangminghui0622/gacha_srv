@@ -65,7 +65,7 @@ func (l *GetMemoryMatchConfigLogic) GetMemoryMatchConfig(in *play.GetMemoryMatch
 	if err != nil {
 		return nil, errorx.NewCodeError(errorx.CodeDBError, "数据库错误")
 	}
-	item, err := mmConfigItem(cfg, rules, entries)
+	item, err := mmConfigItem(l.svcCtx.DB, cfg, rules, entries)
 	if err != nil {
 		return nil, err
 	}
@@ -376,7 +376,7 @@ func mmLoadConfig(db *gorm.DB, configID int64) (*gamemodel.MemoryMatchConfigs, *
 }
 
 // mmConfigItem 配置 + 奖档 → 响应视图
-func mmConfigItem(cfg *gamemodel.MemoryMatchConfigs, rules *mmRules, entries []gamemodel.MemoryMatchEntries) (*play.MemoryMatchConfigItem, error) {
+func mmConfigItem(db *gorm.DB, cfg *gamemodel.MemoryMatchConfigs, rules *mmRules, entries []gamemodel.MemoryMatchEntries) (*play.MemoryMatchConfigItem, error) {
 	faces, err := mmFacePresets(cfg)
 	if err != nil {
 		return nil, err
@@ -428,6 +428,7 @@ func mmConfigItem(cfg *gamemodel.MemoryMatchConfigs, rules *mmRules, entries []g
 			BackImageUrl: b.BackImageURL, FaceBackgroundImageUrl: b.FaceBackgroundImageURL,
 		})
 	}
+	entryImages := mmPoolEntryImages(db, cfg.Id)
 	for _, e := range entries {
 		item.Entries = append(item.Entries, &play.MemoryMatchEntryItem{
 			EntryId:        e.Id,
@@ -435,9 +436,30 @@ func mmConfigItem(cfg *gamemodel.MemoryMatchConfigs, rules *mmRules, entries []g
 			TotalPairCount: e.TotalPairCount,
 			Prize:          mmPrizeItem(e.PrizeKind, e.CashFen, e.PointsAmount, e.CouponTemplateNo, e.Name, e.SkuId),
 			Remaining:      e.Remaining,
+			ImageUrl:       entryImages[int32(e.TotalPairCount)],
+			Weight:         e.Weight,
 		})
 	}
 	return item, nil
+}
+
+// mmPoolEntryImages 读取赏池最新已发布版本的奖品图（按目标碰数匹配运行态奖档）。
+func mmPoolEntryImages(db *gorm.DB, poolID int64) map[int32]string {
+	var v gamemodelnc.PlayPoolVersion
+	if err := db.Where("pool_id = ? AND status = ?", poolID, 2).Order("version DESC").First(&v).Error; err != nil {
+		return nil
+	}
+	var prizes []gamemodelnc.PlayPoolPrize
+	if err := db.Where("pool_id = ? AND version = ?", poolID, v.Version).Find(&prizes).Error; err != nil {
+		return nil
+	}
+	out := make(map[int32]string, len(prizes))
+	for _, p := range prizes {
+		if p.ImageUrl != "" {
+			out[int32(p.TargetValue)] = p.ImageUrl
+		}
+	}
+	return out
 }
 
 // mmAppearanceView 当前选择（已存或默认）+ 已拥有正面预设（权益行存在即拥有；背面不校验权益）

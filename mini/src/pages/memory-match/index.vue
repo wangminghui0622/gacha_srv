@@ -171,6 +171,22 @@ function entryPrizeText(p: DigPrizeItem): string {
   return prizeText(p)
 }
 
+const entryWeightTotal = computed(() =>
+  (config.value?.config.entries ?? []).reduce((sum, e) => sum + Math.max(0, Number(e.weight ?? 0)), 0),
+)
+
+function entryProbability(e: { weight?: number }): string {
+  const total = entryWeightTotal.value
+  if (total <= 0) return '0.00'
+  return ((Math.max(0, Number(e.weight ?? 0)) / total) * 100).toFixed(2)
+}
+
+function entryImage(e: { imageUrl?: string }): string {
+  const url = (e.imageUrl ?? '').trim()
+  // 只展示可直接访问的绝对地址；旧数据里的 /covers/... 占位图在真机会 404。
+  return /^https?:\/\//i.test(url) ? url : ''
+}
+
 function championText(): string {
   const c = config.value?.champion
   if (!c || !c.exists) return t('memoryMatch.championNone')
@@ -773,16 +789,23 @@ onLoad(async (query?: Record<string, string | undefined>) => {
 
       <!-- 赏品列表弹层 -->
       <view v-if="prizeModalOpen" class="mm-modal-mask" @click="prizeModalOpen = false">
-        <view class="mm-modal" @click.stop>
-          <view class="mm-modal-head">
-            <text class="mm-modal-title">赏品列表</text>
-            <text class="mm-modal-close" @click="prizeModalOpen = false">×</text>
+        <view class="mm-modal prize-modal" @click.stop>
+          <view class="mm-modal-head prize-modal-head">
+            <text class="mm-modal-title prize-modal-title">赏品列表</text>
+            <text class="mm-modal-close prize-modal-close" @click="prizeModalOpen = false">×</text>
           </view>
-          <view class="entries-list">
-            <view v-for="e in config.config.entries" :key="e.entryId" class="entry-row">
-              <text class="entry-pairs">{{ t('memoryMatch.entryPairs', { n: e.totalPairCount }) }}</text>
-              <text class="entry-name">{{ e.name }} · {{ entryPrizeText(e.prize) }}</text>
-              <text class="entry-remain">{{ t('memoryMatch.entryRemain', { n: e.remaining }) }}</text>
+          <view class="prize-grid">
+            <view v-for="e in config.config.entries" :key="e.entryId" class="prize-card">
+              <view class="prize-card-media">
+                <image v-if="entryImage(e)" :src="entryImage(e)" class="prize-card-img" mode="aspectFill" />
+                <view v-else class="prize-card-fallback">{{ (e.name || '赏').slice(0, 1) }}</view>
+                <view class="prize-ribbon">碰碰赏</view>
+              </view>
+              <view class="prize-pair-pill">
+                <text class="prize-pair-num">{{ e.totalPairCount }}</text>
+                <text>碰获得</text>
+              </view>
+              <text class="prize-prob">概率：{{ entryProbability(e) }}%</text>
             </view>
           </view>
         </view>
@@ -1288,6 +1311,138 @@ $muted: #8fb39d;
   font-size: 34rpx;
 }
 
+.prize-modal {
+  max-width: 720rpx;
+  max-height: 84vh;
+  padding: 18rpx 22rpx 26rpx;
+  color: #1e2a23;
+  background: linear-gradient(180deg, #eef2ef 0%, #d8dfda 100%);
+  border: 4rpx solid #b8c1bb;
+  border-radius: 26rpx;
+  box-shadow: 0 24rpx 70rpx rgba(0, 0, 0, 0.55), inset 0 0 0 3rpx rgba(255, 255, 255, 0.55);
+}
+
+.prize-modal-head {
+  position: relative;
+  justify-content: center;
+  margin-bottom: 22rpx;
+}
+
+.prize-modal-title {
+  padding: 8rpx 34rpx;
+  color: #f7ffe9;
+  font-size: 40rpx;
+  font-weight: 900;
+  letter-spacing: 4rpx;
+  text-shadow: 0 2rpx 0 rgba(0, 0, 0, 0.18);
+  background: linear-gradient(180deg, #8ee06a 0%, #4dad3d 55%, #2c7c25 100%);
+  border: 3rpx solid #d7ffc0;
+  border-radius: 12rpx;
+  box-shadow: 0 4rpx 0 #1f5a19, inset 0 0 18rpx rgba(255, 255, 255, 0.35);
+}
+
+.prize-modal-close {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 56rpx;
+  height: 56rpx;
+  line-height: 52rpx;
+  color: #fff;
+  background: linear-gradient(180deg, #ff8b8b, #d93838);
+  border: 2rpx solid #ffe0e0;
+  box-shadow: 0 3rpx 0 #8e1d1d;
+  transform: translateY(-50%);
+}
+
+.prize-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18rpx 16rpx;
+  padding: 8rpx;
+}
+
+.prize-card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  padding: 8rpx 8rpx 12rpx;
+  background: linear-gradient(180deg, #ffffff 0%, #eef2ee 100%);
+  border: 4rpx solid #c6cec8;
+  border-radius: 16rpx;
+  box-shadow: inset 0 0 0 2rpx rgba(255, 255, 255, 0.8), 0 3rpx 0 rgba(0, 0, 0, 0.08);
+}
+
+.prize-card-media {
+  position: relative;
+  width: 100%;
+  height: 176rpx;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 35%, #3f8b4f 0%, #1e5a2c 70%);
+  border-radius: 10rpx;
+}
+
+.prize-card-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.prize-card-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: #eaffdd;
+  font-size: 70rpx;
+  font-weight: 900;
+  text-shadow: 0 4rpx 0 rgba(0, 0, 0, 0.25);
+}
+
+.prize-ribbon {
+  position: absolute;
+  bottom: 8rpx;
+  left: -2rpx;
+  padding: 2rpx 10rpx;
+  color: #fff;
+  font-size: 20rpx;
+  font-weight: 800;
+  background: linear-gradient(180deg, #ff8fce, #e63c8f);
+  border: 2rpx solid #ffd2e9;
+  border-radius: 4rpx;
+  box-shadow: 0 2rpx 0 rgba(120, 0, 60, 0.35);
+}
+
+.prize-pair-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  margin: 12rpx 2rpx 0;
+  padding: 4rpx 0;
+  color: #f2f8f3;
+  font-size: 22rpx;
+  font-weight: 700;
+  background: linear-gradient(180deg, #3a493f, #1b241d);
+  border: 2rpx solid #eaffdd;
+  border-radius: 6rpx;
+  box-shadow: 0 2rpx 0 rgba(0, 0, 0, 0.22);
+}
+
+.prize-pair-num {
+  color: #8ee06a;
+  font-size: 26rpx;
+  font-weight: 900;
+}
+
+.prize-prob {
+  margin-top: 8rpx;
+  color: #334238;
+  font-size: 21rpx;
+  text-align: center;
+}
+
 .preset-grid {
   display: flex;
   flex-wrap: wrap;
@@ -1334,44 +1489,6 @@ $muted: #8fb39d;
   top: 8rpx;
   right: 10rpx;
   font-size: 22rpx;
-}
-
-.entries-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10rpx;
-}
-
-.entry-row {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  padding: 14rpx 16rpx;
-  border-radius: 10rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.035);
-  font-size: 23rpx;
-}
-
-.entry-pairs {
-  flex-shrink: 0;
-  font-weight: 800;
-  color: $gold;
-}
-
-.entry-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #dcebe2;
-}
-
-.entry-remain {
-  flex-shrink: 0;
-  font-size: 20rpx;
-  color: $muted;
 }
 
 .champion-panel {

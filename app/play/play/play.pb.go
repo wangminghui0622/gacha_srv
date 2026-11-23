@@ -8312,6 +8312,8 @@ type MemoryMatchEntryItem struct {
 	TotalPairCount int64                  `protobuf:"varint,3,opt,name=totalPairCount,proto3" json:"totalPairCount,omitempty"`
 	Prize          *PrizeItem             `protobuf:"bytes,4,opt,name=prize,proto3" json:"prize,omitempty"`          // 谢谢参与 kind=0
 	Remaining      int64                  `protobuf:"varint,5,opt,name=remaining,proto3" json:"remaining,omitempty"` // -1 不限量
+	ImageUrl       string                 `protobuf:"bytes,6,opt,name=imageUrl,proto3" json:"imageUrl,omitempty"`    // 赏品图（来自赏池奖品配置，可能为空）
+	Weight         int64                  `protobuf:"varint,7,opt,name=weight,proto3" json:"weight,omitempty"`       // 概率权重
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -8377,6 +8379,20 @@ func (x *MemoryMatchEntryItem) GetPrize() *PrizeItem {
 func (x *MemoryMatchEntryItem) GetRemaining() int64 {
 	if x != nil {
 		return x.Remaining
+	}
+	return 0
+}
+
+func (x *MemoryMatchEntryItem) GetImageUrl() string {
+	if x != nil {
+		return x.ImageUrl
+	}
+	return ""
+}
+
+func (x *MemoryMatchEntryItem) GetWeight() int64 {
+	if x != nil {
+		return x.Weight
 	}
 	return 0
 }
@@ -13696,13 +13712,15 @@ const file_play_proto_rawDesc = "" +
 	"\bpresetId\x18\x01 \x01(\x05R\bpresetId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\"\n" +
 	"\fbackImageUrl\x18\x03 \x01(\tR\fbackImageUrl\x126\n" +
-	"\x16faceBackgroundImageUrl\x18\x04 \x01(\tR\x16faceBackgroundImageUrl\"\xb1\x01\n" +
+	"\x16faceBackgroundImageUrl\x18\x04 \x01(\tR\x16faceBackgroundImageUrl\"\xe5\x01\n" +
 	"\x14MemoryMatchEntryItem\x12\x18\n" +
 	"\aentryId\x18\x01 \x01(\x03R\aentryId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12&\n" +
 	"\x0etotalPairCount\x18\x03 \x01(\x03R\x0etotalPairCount\x12%\n" +
 	"\x05prize\x18\x04 \x01(\v2\x0f.play.PrizeItemR\x05prize\x12\x1c\n" +
-	"\tremaining\x18\x05 \x01(\x03R\tremaining\"\x97\x01\n" +
+	"\tremaining\x18\x05 \x01(\x03R\tremaining\x12\x1a\n" +
+	"\bimageUrl\x18\x06 \x01(\tR\bimageUrl\x12\x16\n" +
+	"\x06weight\x18\a \x01(\x03R\x06weight\"\x97\x01\n" +
 	"\x17MemoryMatchChampionInfo\x12\x16\n" +
 	"\x06exists\x18\x01 \x01(\bR\x06exists\x12\x16\n" +
 	"\x06userId\x18\x02 \x01(\x03R\x06userId\x12&\n" +

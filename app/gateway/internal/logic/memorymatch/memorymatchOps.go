@@ -107,6 +107,8 @@ func configToView(c *playClient.MemoryMatchConfigItem) types.MemoryMatchConfigDe
 			TotalPairCount: e.TotalPairCount,
 			Prize:          prizeToView(e.Prize),
 			Remaining:      e.Remaining,
+			ImageUrl:       e.ImageUrl,
+			Weight:         e.Weight,
 		})
 	}
 	return d

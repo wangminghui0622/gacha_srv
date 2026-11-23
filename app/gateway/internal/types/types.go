@@ -775,6 +775,8 @@ type MemoryMatchEntryItem struct {
 	TotalPairCount int64        `json:"totalPairCount"`
 	Prize          DigPrizeItem `json:"prize"` // 谢谢参与 kind=0
 	Remaining      int64        `json:"remaining"`
+	ImageUrl       string       `json:"imageUrl"`
+	Weight         int64        `json:"weight"`
 }
 
 // MemoryMatchChampionInfo 擂主信息

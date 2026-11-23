@@ -605,6 +605,8 @@ export interface MemoryMatchEntryItem {
   totalPairCount: number
   prize: DigPrizeItem
   remaining: number
+  imageUrl?: string
+  weight?: number
 }
 
 // 擂主信息
