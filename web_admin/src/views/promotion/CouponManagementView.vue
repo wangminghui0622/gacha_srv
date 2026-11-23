@@ -65,6 +65,43 @@
       @ok="save"
     >
       <a-form :label-col="{ span: 7 }" :wrapper-col="{ span: 16 }">
+        <a-form-item
+          :label="$t('couponAdmin.typeLabel')"
+          :label-col="{ span: 3 }"
+          :wrapper-col="{ span: 21 }"
+          required
+        >
+          <a-radio-group v-model:value="form.kind" :options="kindOptions" class="coupon-radio-row" />
+        </a-form-item>
+        <a-form-item
+          :label="$t('couponAdmin.scopeLabel')"
+          :label-col="{ span: 3 }"
+          :wrapper-col="{ span: 21 }"
+        >
+          <div class="coupon-scope-row">
+            <a-radio-group v-model:value="form.scope" :options="scopeOptions" class="coupon-radio-row" />
+            <a-button v-if="form.scope" type="link" size="small" @click="form.scope = undefined">{{ $t('couponAdmin.clear') }}</a-button>
+          </div>
+        </a-form-item>
+        <a-form-item
+          v-if="form.scope === 'mode'"
+          :label="$t('couponAdmin.useMode')"
+          :label-col="{ span: 3 }"
+          :wrapper-col="{ span: 21 }"
+          required
+        >
+          <a-select v-model:value="form.useMode" :options="useModeOptions" :placeholder="$t('couponAdmin.useMode')" style="max-width: 320px" />
+        </a-form-item>
+        <a-form-item
+          v-if="form.scope === 'pool'"
+          :label="$t('couponAdmin.poolId')"
+          :label-col="{ span: 3 }"
+          :wrapper-col="{ span: 21 }"
+          required
+        >
+          <a-input v-model:value="form.poolId" :placeholder="$t('couponAdmin.poolId')" inputmode="numeric" style="max-width: 320px" />
+        </a-form-item>
+
         <a-row :gutter="22">
           <a-col :span="12">
             <a-form-item :label="$t('couponAdmin.nameLabel')" required>
@@ -72,18 +109,6 @@
             </a-form-item>
             <a-form-item :label="$t('couponAdmin.descriptionLabel')" required>
               <a-input v-model:value="form.description" :placeholder="$t('couponAdmin.descriptionLabel')" :maxlength="512" />
-            </a-form-item>
-            <a-form-item :label="$t('couponAdmin.typeLabel')" required>
-              <a-select v-model:value="form.kind" :options="kindOptions" :placeholder="$t('couponAdmin.typeLabel')" />
-            </a-form-item>
-            <a-form-item :label="$t('couponAdmin.scopeLabel')">
-              <a-select v-model:value="form.scope" :options="scopeOptions" :placeholder="$t('couponAdmin.scopeLabel')" />
-            </a-form-item>
-            <a-form-item v-if="form.scope === 'mode'" :label="$t('couponAdmin.useMode')" required>
-              <a-select v-model:value="form.useMode" :options="useModeOptions" :placeholder="$t('couponAdmin.useMode')" />
-            </a-form-item>
-            <a-form-item v-if="form.scope === 'pool'" :label="$t('couponAdmin.poolId')" required>
-              <a-input v-model:value="form.poolId" :placeholder="$t('couponAdmin.poolId')" inputmode="numeric" />
             </a-form-item>
             <a-form-item :label="$t('couponAdmin.validityDaysLabel')" required>
               <a-input-number v-model:value="form.validityDays" :min="0" :precision="0" style="width: 100%" />
@@ -585,5 +610,21 @@ onMounted(() => {
 }
 .coupon-red-label {
   color: #ff4d4f;
+}
+.coupon-radio-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  white-space: nowrap;
+}
+.coupon-radio-row :deep(.ant-radio-wrapper) {
+  margin-inline-end: 0;
+  font-size: 12px;
+}
+.coupon-scope-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
 }
 </style>
