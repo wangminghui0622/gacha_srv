@@ -359,10 +359,7 @@ const modeOptions = [
   { label: '拼团赏', value: 'groupbuy' },
   { label: '对对碰', value: 'memorymatch' },
 ]
-const prizeTypeOptions = [
-  { label: '商品', value: 2 },
-  { label: '箱子', value: 3 },
-]
+
 
 const mmConfig = reactive({
   roundsPerPurchase: 3,
@@ -391,6 +388,12 @@ const form = reactive({
   coverImage: '',
   coverThumb: '',
 })
+
+// 对对碰没有子赏/箱子奖，类型只保留商品。
+const prizeTypeOptions = computed(() => [
+  { label: '商品', value: 2 },
+  ...(form.mode === 'memorymatch' ? [] : [{ label: '箱子', value: 3 }]),
+])
 
 const switchItems = [
   { key: 'isOnSale', label: '是否上架' },
@@ -597,6 +600,10 @@ const isGroupBuy = computed(() => form.mode === 'groupbuy')
 watch(
   () => form.mode,
   (mode, oldMode) => {
+    if (mode === 'memorymatch' && prizeDraft.prizeType === 3) {
+      prizeDraft.prizeType = 2
+      prizeDraft.childPoolId = 0
+    }
     if (oldMode !== 'groupbuy' || mode === 'groupbuy') return
     if (!prizes.value.some((prize) => prize.hasParent)) return
     Modal.confirm({
@@ -1293,6 +1300,10 @@ async function submit() {
     for (let i = 0; i < prizes.value.length; i += 1) {
       const prize = prizes.value[i]
       if (!prize) continue
+      if (Number(prize.prizeType ?? 0) === 3 || Number(prize.childPoolId ?? 0) > 0 || prize.hasParent) {
+        message.error(`第 ${i + 1} 个奖档是箱子/子赏，对对碰不支持，请改成商品或删除`)
+        return
+      }
       const target = Number(prize.targetValue ?? 0)
       if (!Number.isInteger(target) || target < 0) {
         message.warning(`第 ${i + 1} 个奖档的目标碰数必须是 0-${maxTarget} 的整数`)

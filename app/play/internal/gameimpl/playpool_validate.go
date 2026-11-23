@@ -569,6 +569,9 @@ func validateMemoryMatchPool(in *play.CreatePlayPoolDraftReq) error {
 	}
 	pairs := map[int64]bool{}
 	for _, p := range in.Prizes {
+		if p.PrizeType == 3 || p.ChildPoolId > 0 || p.HasParent {
+			return abortf("记忆翻牌奖 %s 不支持子赏/箱子类型", p.Name)
+		}
 		if p.SpecialKind != "" {
 			return abortf("记忆翻牌不支持 specialKind=%s", p.SpecialKind)
 		}
