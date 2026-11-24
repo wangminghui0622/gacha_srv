@@ -104,6 +104,7 @@ func (l *PublishCouponTemplateLogic) PublishCouponTemplate(in *marketing.Publish
 			ValidityDays:      int32(t.ValidityDays),
 			RewardTemplateID:  int64(t.RewardTemplateId),
 			RewardCount:       int32(t.RewardCount),
+			StartAt:           t.StartAtUnixMillis,
 			RequestID:         in.RequestId,
 			PublishedAt:       time.Now(),
 		}

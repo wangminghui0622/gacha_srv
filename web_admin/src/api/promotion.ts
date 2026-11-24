@@ -28,6 +28,7 @@ export interface CouponTemplate {
   enabled?: boolean
   rewardTemplateId?: string | number
   rewardCount?: number
+  startAtUnixMillis?: string | number
 }
 
 export interface UserCoupon {

@@ -70,17 +70,17 @@
           <a-table-column :title="$t('couponAdmin.id')" width="80" align="center">
             <template #default="{ record }">{{ record.templateId }}</template>
           </a-table-column>
-          <a-table-column :title="$t('couponAdmin.name')" min-width="220" align="center">
-            <template #default="{ record }">{{ record.name || '-' }}</template>
-          </a-table-column>
-          <a-table-column :title="$t('couponAdmin.drawCount')" width="160" align="center">
-            <template #default="{ record }">{{ record.minItemCount ?? 0 }}</template>
-          </a-table-column>
-          <a-table-column :title="$t('couponAdmin.rewardCoupon')" min-width="220" align="center">
+          <a-table-column :title="$t('couponAdmin.couponTemplateName')" min-width="220" align="center">
             <template #default="{ record }">{{ rewardCouponText(record) }}</template>
           </a-table-column>
-          <a-table-column :title="$t('couponAdmin.rewardCount')" width="110" align="center">
+          <a-table-column :title="$t('couponAdmin.couponCount')" width="110" align="center">
             <template #default="{ record }">{{ record.rewardCount ?? 0 }}</template>
+          </a-table-column>
+          <a-table-column :title="$t('couponAdmin.startTime')" min-width="180" align="center">
+            <template #default="{ record }">{{ startTimeText(record) }}</template>
+          </a-table-column>
+          <a-table-column :title="$t('couponAdmin.drawCount')" width="130" align="center">
+            <template #default="{ record }">{{ record.minItemCount ?? 0 }}</template>
           </a-table-column>
           <a-table-column :title="$t('couponAdmin.status')" width="110" align="center">
             <template #default="{ record }">
@@ -215,32 +215,23 @@
 
     <a-modal v-model:open="drawOpen" centered :title="$t('couponAdmin.grantRuleTitle')" width="720px" :footer="null">
       <a-form class="coupon-grant-form" :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }">
-        <a-form-item :label="$t('couponAdmin.nameLabel')" required>
-          <a-input v-model:value="drawForm.name" :placeholder="$t('couponAdmin.nameLabel')" :maxlength="128" />
-        </a-form-item>
-        <a-form-item :label="$t('couponAdmin.descriptionLabel')" required>
-          <a-input v-model:value="drawForm.description" :placeholder="$t('couponAdmin.descriptionLabel')" :maxlength="512" />
-        </a-form-item>
-        <a-form-item :label="$t('couponAdmin.validityDaysLabel')" required>
-          <a-input-number v-model:value="drawForm.validityDays" :min="0" :precision="0" style="width: 160px" />
-        </a-form-item>
-        <a-form-item :label="$t('couponAdmin.naturalDay')">
-          <a-switch v-model:checked="drawForm.naturalDay" />
-        </a-form-item>
-        <a-form-item :label="$t('couponAdmin.drawCount')" required>
-          <a-input-number v-model:value="drawForm.minItemCount" :min="1" :precision="0" style="width: 160px" />
-        </a-form-item>
-        <a-form-item :label="$t('couponAdmin.rewardCoupon')" required>
+        <a-form-item :label="$t('couponAdmin.couponTemplateName')" required>
           <a-select
             v-model:value="drawForm.rewardTemplateId"
             :options="drawCouponOptions"
             show-search
             option-filter-prop="label"
-            :placeholder="$t('couponAdmin.rewardCoupon')"
+            :placeholder="$t('couponAdmin.couponTemplateName')"
           />
         </a-form-item>
-        <a-form-item :label="$t('couponAdmin.rewardCount')" required>
+        <a-form-item :label="$t('couponAdmin.couponCount')" required>
           <a-input-number v-model:value="drawForm.rewardCount" :min="1" :max="100" :precision="0" style="width: 160px" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.startTime')" required>
+          <a-date-picker v-model:value="drawForm.startAt" show-time format="YYYY-MM-DD HH:mm:ss" style="width: 240px" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.drawCount')" required>
+          <a-input-number v-model:value="drawForm.minItemCount" :min="1" :precision="0" style="width: 160px" />
         </a-form-item>
       </a-form>
       <div class="coupon-modal-footer" style="display: flex; justify-content: center; gap: 12px">
@@ -254,6 +245,8 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
+import dayjs from 'dayjs'
+import type { Dayjs } from 'dayjs'
 import { useI18n } from 'vue-i18n'
 import { promotionClient } from '@/api/promotion'
 import type { CouponTemplate } from '@/api/promotion'
@@ -537,14 +530,10 @@ const drawOpen = ref(false)
 const drawSaving = ref(false)
 const drawForm = reactive({
   templateId: '',
-  name: '',
-  description: '',
-  validityDays: 0,
-  naturalDay: false,
-  minItemCount: 0,
-  maxItemCount: 0,
   rewardTemplateId: '',
   rewardCount: 1,
+  startAt: dayjs() as Dayjs | null,
+  minItemCount: 0,
   enabled: true,
 })
 const drawCouponOptions = computed(() =>
@@ -555,6 +544,9 @@ const drawCouponOptions = computed(() =>
       label: `${item.name || '-'} (ID ${item.templateId})`,
     })),
 )
+const drawSelectedCoupon = computed(() =>
+  latestTemplates.value.find((item) => String(item.templateId ?? '') === drawForm.rewardTemplateId),
+)
 
 function rewardCouponText(record: CouponTemplate) {
   const id = String(record.rewardTemplateId ?? '')
@@ -563,33 +555,31 @@ function rewardCouponText(record: CouponTemplate) {
   return coupon?.name ? `${coupon.name} (ID ${id})` : `ID ${id}`
 }
 
+function startTimeText(record: CouponTemplate) {
+  const ms = Number(record.startAtUnixMillis ?? 0)
+  return ms > 0 ? dayjs(ms).format('YYYY-MM-DD HH:mm:ss') : t('couponAdmin.immediate')
+}
+
 function openDrawCreate() {
   Object.assign(drawForm, {
     templateId: String(Math.max(0, ...latestTemplates.value.map((item) => Number(item.templateId ?? 0))) + 1),
-    name: '',
-    description: '',
-    validityDays: 0,
-    naturalDay: false,
-    minItemCount: 0,
-    maxItemCount: 0,
     rewardTemplateId: '',
     rewardCount: 1,
+    startAt: dayjs(),
+    minItemCount: 0,
     enabled: true,
   })
   drawOpen.value = true
 }
 
 function openDrawEdit(record: CouponTemplate) {
+  const startMs = Number(record.startAtUnixMillis ?? 0)
   Object.assign(drawForm, {
     templateId: String(record.templateId ?? ''),
-    name: String(record.name ?? ''),
-    description: String(record.description ?? ''),
-    validityDays: Number(record.validityDays ?? 0),
-    naturalDay: record.naturalDay === true,
-    minItemCount: Number(record.minItemCount ?? 0),
-    maxItemCount: Number(record.maxItemCount ?? 0),
     rewardTemplateId: String(record.rewardTemplateId ?? ''),
     rewardCount: Number(record.rewardCount ?? 1),
+    startAt: startMs > 0 ? dayjs(startMs) : dayjs(),
+    minItemCount: Number(record.minItemCount ?? 0),
     enabled: isEnabled(record),
   })
   drawOpen.value = true
@@ -597,30 +587,22 @@ function openDrawEdit(record: CouponTemplate) {
 
 async function submitDraw() {
   if (!canPublish.value) return
-  if (!drawForm.name.trim()) {
-    message.warning(t('couponAdmin.nameRequired'))
+  if (!drawForm.rewardTemplateId || !positiveId(drawForm.rewardTemplateId)) {
+    message.warning(t('couponAdmin.couponRequired'))
     return
   }
-  if (!drawForm.description.trim()) {
-    message.warning(t('couponAdmin.descriptionRequired'))
+  const rewardCount = Math.trunc(drawForm.rewardCount)
+  if (rewardCount <= 0) {
+    message.warning(t('couponAdmin.couponCountRequired'))
     return
   }
-  if (!Number.isInteger(drawForm.validityDays) || drawForm.validityDays < 0) {
-    message.warning(t('couponAdmin.validityRequired'))
+  if (!drawForm.startAt) {
+    message.warning(t('couponAdmin.startTimeRequired'))
     return
   }
   const minItemCount = Math.trunc(drawForm.minItemCount)
   if (minItemCount <= 0) {
     message.warning(t('couponAdmin.drawCountRequired'))
-    return
-  }
-  if (!drawForm.rewardTemplateId || !positiveId(drawForm.rewardTemplateId)) {
-    message.warning(t('couponAdmin.rewardCouponRequired'))
-    return
-  }
-  const rewardCount = Math.trunc(drawForm.rewardCount)
-  if (rewardCount <= 0) {
-    message.warning(t('couponAdmin.rewardCountRequired'))
     return
   }
   const templateId = drawForm.templateId || String(Math.max(0, ...latestTemplates.value.map((item) => Number(item.templateId ?? 0))) + 1)
@@ -634,8 +616,8 @@ async function submitDraw() {
       template: {
         templateId,
         tenantId: tenant(),
-        name: drawForm.name.trim(),
-        description: drawForm.description.trim(),
+        name: drawSelectedCoupon.value?.name || `券池-${templateId}`,
+        description: drawSelectedCoupon.value?.description || '',
         kind: 'COUPON_TEMPLATE_KIND_DRAW_REWARD',
         amountMinor: 0,
         percentBps: 0,
@@ -646,11 +628,12 @@ async function submitDraw() {
         maxItemCount: 0,
         currency: 'CNY',
         funder: 'DISCOUNT_FUNDER_PLATFORM',
-        validityDays: Math.trunc(drawForm.validityDays),
-        naturalDay: drawForm.naturalDay,
+        validityDays: 0,
+        naturalDay: false,
         enabled: drawForm.enabled,
         rewardTemplateId: drawForm.rewardTemplateId,
         rewardCount,
+        startAtUnixMillis: drawForm.startAt.valueOf(),
       },
     })
     message.success(t('couponAdmin.drawSaved'))
@@ -855,7 +838,8 @@ onMounted(() => {
 }
 .coupon-grant-form :deep(.ant-input),
 .coupon-grant-form :deep(.ant-input-number),
-.coupon-grant-form :deep(.ant-select) {
+.coupon-grant-form :deep(.ant-select),
+.coupon-grant-form :deep(.ant-picker) {
   font-size: 15px;
   height: 32px;
 }

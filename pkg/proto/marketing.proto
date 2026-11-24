@@ -496,6 +496,8 @@ message CouponTemplate {
     string description = 21;
     bool naturalDay = 22;
     bool enabled = 23;
+    // 券池/发券规则生效开始时间（毫秒时间戳，0=立即）
+    int64 startAtUnixMillis = 24;
 }
 
 message PublishCouponTemplateRequest {

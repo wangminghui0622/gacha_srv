@@ -52,6 +52,7 @@ type (
 		ValidityDays      int32  `gorm:"column:validity_days"`
 		RewardTemplateID  int64  `gorm:"column:reward_template_id"`
 		RewardCount       int32  `gorm:"column:reward_count"`
+		StartAt           int64  `gorm:"column:start_at"`
 		RequestID         string `gorm:"column:request_id"`
 		PublishedAt       time.Time
 	}
@@ -268,5 +269,6 @@ func (r *CouponTemplateVersionRow) ToProto() *marketing.CouponTemplate {
 		ValidityDays:      uint32(r.ValidityDays),
 		RewardTemplateId:  uint64(r.RewardTemplateID),
 		RewardCount:       uint32(r.RewardCount),
+		StartAtUnixMillis: r.StartAt,
 	}
 }

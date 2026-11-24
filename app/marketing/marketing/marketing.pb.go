@@ -3723,6 +3723,8 @@ type CouponTemplate struct {
 	Description       string                 `protobuf:"bytes,21,opt,name=description,proto3" json:"description,omitempty"`
 	NaturalDay        bool                   `protobuf:"varint,22,opt,name=naturalDay,proto3" json:"naturalDay,omitempty"`
 	Enabled           bool                   `protobuf:"varint,23,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	// 券池/发券规则生效开始时间（毫秒时间戳，0=立即）
+	StartAtUnixMillis int64 `protobuf:"varint,24,opt,name=startAtUnixMillis,proto3" json:"startAtUnixMillis,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -3916,6 +3918,13 @@ func (x *CouponTemplate) GetEnabled() bool {
 		return x.Enabled
 	}
 	return false
+}
+
+func (x *CouponTemplate) GetStartAtUnixMillis() int64 {
+	if x != nil {
+		return x.StartAtUnixMillis
+	}
+	return 0
 }
 
 type PublishCouponTemplateRequest struct {
@@ -4847,7 +4856,7 @@ const file_marketing_proto_rawDesc = "" +
 	"\btenantId\x18\x01 \x01(\x04R\btenantId\x12\x1e\n" +
 	"\n" +
 	"campaignId\x18\x02 \x01(\x04R\n" +
-	"campaignId\"\xed\x06\n" +
+	"campaignId\"\x9b\a\n" +
 	"\x0eCouponTemplate\x12\x1e\n" +
 	"\n" +
 	"templateId\x18\x01 \x01(\x04R\n" +
@@ -4878,7 +4887,8 @@ const file_marketing_proto_rawDesc = "" +
 	"\n" +
 	"naturalDay\x18\x16 \x01(\bR\n" +
 	"naturalDay\x12\x18\n" +
-	"\aenabled\x18\x17 \x01(\bR\aenabled\"s\n" +
+	"\aenabled\x18\x17 \x01(\bR\aenabled\x12,\n" +
+	"\x11startAtUnixMillis\x18\x18 \x01(\x03R\x11startAtUnixMillis\"s\n" +
 	"\x1cPublishCouponTemplateRequest\x12\x1c\n" +
 	"\trequestId\x18\x01 \x01(\tR\trequestId\x125\n" +
 	"\btemplate\x18\x02 \x01(\v2\x19.marketing.CouponTemplateR\btemplate\"V\n" +

@@ -209,6 +209,7 @@ CREATE TABLE IF NOT EXISTS `coupon_template_versions` (
   `validity_days` int unsigned NOT NULL DEFAULT '0' COMMENT '发券后有效天数，0=无期限',
   `reward_template_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT 'DRAW_REWARD 引用的券模板ID',
   `reward_count` int unsigned NOT NULL DEFAULT '0' COMMENT 'DRAW_REWARD 发放张数',
+  `start_at` bigint NOT NULL DEFAULT '0' COMMENT '券池生效开始时间（毫秒时间戳，0=立即）',
   `request_id` varchar(64) NOT NULL COMMENT '发布请求号（幂等键）',
   `published_at` datetime NOT NULL COMMENT '发布时间',
   PRIMARY KEY (`id`),
