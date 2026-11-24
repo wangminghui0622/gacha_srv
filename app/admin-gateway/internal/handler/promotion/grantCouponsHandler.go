@@ -6,10 +6,10 @@ package promotion
 import (
 	"net/http"
 
-	"gacha_srv/app/marketing/marketing"
 	"gacha_srv/app/admin-gateway/internal/logic/promotion"
 	"gacha_srv/app/admin-gateway/internal/restx"
 	"gacha_srv/app/admin-gateway/internal/svc"
+	"gacha_srv/app/marketing/marketing"
 )
 
 // GrantCoupons 发放优惠券（promotion.user_coupon:grant；requestId 取 X-Request-Id，
@@ -32,6 +32,8 @@ func GrantCouponsHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		req.TenantId = 1
 		req.RequestId = restx.RequestIdFrom(r.Context())
 		req.Source = marketing.CouponGrantSource_COUPON_GRANT_SOURCE_CONSOLE
+		// 控制台人工发券（客服补偿）允许忽略券池生效时间
+		req.IgnoreStartAt = true
 		resp, err := promotion.NewGrantCouponsLogic(r.Context(), svcCtx).GrantCoupons(&req)
 		if err != nil {
 			restx.Error(w, r, err)

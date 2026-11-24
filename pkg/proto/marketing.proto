@@ -649,6 +649,7 @@ message GrantCouponsRequest {
     CouponGrantSource source = 7;
     uint64 campaignId = 8;       // source=CAMPAIGN 时填写
     uint64 poolEntryId = 9;      // 从哪个券池记录扣库存；0=不扣库存（活动/任务发券）
+    bool ignoreStartAt = 10;     // 控制台人工发券可忽略券池生效时间
 }
 
 message GrantCouponsReply {

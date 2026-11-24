@@ -4983,8 +4983,9 @@ type GrantCouponsRequest struct {
 	Count             uint32                 `protobuf:"varint,5,opt,name=count,proto3" json:"count,omitempty"`
 	CustomAmountMinor int64                  `protobuf:"varint,6,opt,name=customAmountMinor,proto3" json:"customAmountMinor,omitempty"` // 仅 CUSTOM_MINOR，须 ≤ 模板 amountMinor
 	Source            CouponGrantSource      `protobuf:"varint,7,opt,name=source,proto3,enum=marketing.CouponGrantSource" json:"source,omitempty"`
-	CampaignId        uint64                 `protobuf:"varint,8,opt,name=campaignId,proto3" json:"campaignId,omitempty"`   // source=CAMPAIGN 时填写
-	PoolEntryId       uint64                 `protobuf:"varint,9,opt,name=poolEntryId,proto3" json:"poolEntryId,omitempty"` // 从哪个券池记录扣库存；0=不扣库存（活动/任务发券）
+	CampaignId        uint64                 `protobuf:"varint,8,opt,name=campaignId,proto3" json:"campaignId,omitempty"`        // source=CAMPAIGN 时填写
+	PoolEntryId       uint64                 `protobuf:"varint,9,opt,name=poolEntryId,proto3" json:"poolEntryId,omitempty"`      // 从哪个券池记录扣库存；0=不扣库存（活动/任务发券）
+	IgnoreStartAt     bool                   `protobuf:"varint,10,opt,name=ignoreStartAt,proto3" json:"ignoreStartAt,omitempty"` // 控制台人工发券可忽略券池生效时间
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -5080,6 +5081,13 @@ func (x *GrantCouponsRequest) GetPoolEntryId() uint64 {
 		return x.PoolEntryId
 	}
 	return 0
+}
+
+func (x *GrantCouponsRequest) GetIgnoreStartAt() bool {
+	if x != nil {
+		return x.IgnoreStartAt
+	}
+	return false
 }
 
 type GrantCouponsReply struct {
@@ -5693,7 +5701,7 @@ const file_marketing_proto_rawDesc = "" +
 	"\x13expiresAtUnixMillis\x18\b \x01(\x03R\x13expiresAtUnixMillis\x124\n" +
 	"\x06source\x18\t \x01(\x0e2\x1c.marketing.CouponGrantSourceR\x06source\x12\x1a\n" +
 	"\bsourceId\x18\n" +
-	" \x01(\tR\bsourceId\"\xc3\x02\n" +
+	" \x01(\tR\bsourceId\"\xe9\x02\n" +
 	"\x13GrantCouponsRequest\x12\x1c\n" +
 	"\trequestId\x18\x01 \x01(\tR\trequestId\x12\x1a\n" +
 	"\btenantId\x18\x02 \x01(\x04R\btenantId\x12\x16\n" +
@@ -5707,7 +5715,9 @@ const file_marketing_proto_rawDesc = "" +
 	"\n" +
 	"campaignId\x18\b \x01(\x04R\n" +
 	"campaignId\x12 \n" +
-	"\vpoolEntryId\x18\t \x01(\x04R\vpoolEntryId\"D\n" +
+	"\vpoolEntryId\x18\t \x01(\x04R\vpoolEntryId\x12$\n" +
+	"\rignoreStartAt\x18\n" +
+	" \x01(\bR\rignoreStartAt\"D\n" +
 	"\x11GrantCouponsReply\x12/\n" +
 	"\acoupons\x18\x01 \x03(\v2\x15.marketing.UserCouponR\acoupons\"\x8b\x01\n" +
 	"\x15TenantLoyaltyDefaults\x12\x1a\n" +

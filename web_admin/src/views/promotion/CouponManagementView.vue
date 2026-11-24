@@ -4,6 +4,7 @@
       <a-button class="coupon-query-btn" type="primary" :loading="loading" @click="reload">{{ $t('couponAdmin.query') }}</a-button>
       <a-button v-if="canPublish && activeTab === 'coupons'" class="coupon-create-btn" @click="openCreate">{{ $t('couponAdmin.create') }}</a-button>
       <a-button v-if="canPublish" class="coupon-grant-btn" @click="openDrawCreate">{{ $t('couponAdmin.grantRule') }}</a-button>
+      <a-button v-if="canGrant && activeTab === 'rules'" class="coupon-grant-user-btn" @click="openGrant()">{{ $t('couponAdmin.grantCoupon') }}</a-button>
       <a-button v-if="canPublish && activeTab === 'rules'" class="coupon-ledger-btn" @click="openLedger()">{{ $t('couponAdmin.allLedger') }}</a-button>
     </div>
 
@@ -329,6 +330,34 @@
         />
       </div>
     </a-modal>
+
+    <a-modal v-model:open="grantOpen" centered :title="$t('couponAdmin.grantCouponTitle')" width="520px" :style="{ maxWidth: '96vw' }" :footer="null">
+      <a-form class="coupon-grant-form" :label-col="{ span: 7 }" :wrapper-col="{ span: 17 }">
+        <a-form-item :label="$t('couponAdmin.poolBatch')" required>
+          <a-select
+            v-model:value="grantForm.poolEntryId"
+            :options="grantPoolOptions"
+            show-search
+            option-filter-prop="label"
+            :placeholder="$t('couponAdmin.poolBatchPlaceholder')"
+            style="width: 16em"
+          />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.grantUserId')" required>
+          <a-input v-model:value="grantForm.userId" inputmode="numeric" :placeholder="$t('couponAdmin.grantUserId')" style="width: 16em" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.grantCount')" required>
+          <a-input-number v-model:value="grantForm.count" :min="1" :max="1000" :precision="0" style="width: 16em" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.customAmountLabel')">
+          <a-input v-model:value="grantForm.customAmountMinor" inputmode="numeric" :placeholder="$t('couponAdmin.customAmountPlaceholder')" style="width: 16em" />
+        </a-form-item>
+      </a-form>
+      <div class="coupon-modal-footer" style="display: flex; justify-content: center; gap: 12px">
+        <a-button @click="grantOpen = false">{{ $t('couponAdmin.cancel') }}</a-button>
+        <a-button type="primary" :loading="grantSaving" @click="submitGrant">{{ $t('couponAdmin.confirm') }}</a-button>
+      </div>
+    </a-modal>
   </section>
 </template>
 
@@ -348,6 +377,7 @@ const session = useSessionStore()
 const { t } = useI18n()
 const canRead = computed(() => allows(session.permissionNodes, 'promotion.coupon_template', 'read'))
 const canPublish = computed(() => allows(session.permissionNodes, 'promotion.coupon_template', 'publish'))
+const canGrant = computed(() => allows(session.permissionNodes, 'promotion.user_coupon', 'grant'))
 const activeTab = ref('coupons')
 const drawPage = ref(1)
 const drawPageSize = ref(15)
@@ -939,6 +969,79 @@ function ledgerRefText(record: CouponLedgerEntry) {
   return '-'
 }
 
+const grantOpen = ref(false)
+const grantSaving = ref(false)
+const grantForm = reactive({
+  poolEntryId: undefined as string | undefined,
+  userId: '',
+  count: 1,
+  customAmountMinor: '',
+})
+const grantPoolOptions = computed(() =>
+  poolEntries.value
+    .filter((entry) => poolEnabled(entry) && Number(entry.remainingCount ?? 0) > 0)
+    .map((entry) => ({
+      value: String(entry.id ?? ''),
+      label: `${poolTemplateText(entry)} · ${t('couponAdmin.remainingCount')} ${entry.remainingCount ?? 0}`,
+    })),
+)
+
+function openGrant(record?: CouponPoolEntry) {
+  grantForm.userId = ''
+  grantForm.count = 1
+  grantForm.customAmountMinor = ''
+  grantForm.poolEntryId = record
+    ? String(record.id ?? '')
+    : grantPoolOptions.value[0]?.value
+  grantOpen.value = true
+}
+
+async function submitGrant() {
+  if (!canGrant.value) return
+  const pool = poolEntries.value.find((entry) => String(entry.id ?? '') === String(grantForm.poolEntryId ?? ''))
+  if (!pool) {
+    message.warning(t('couponAdmin.poolBatchRequired'))
+    return
+  }
+  const userId = grantForm.userId.trim()
+  if (!positiveId(userId)) {
+    message.warning(t('couponAdmin.userIdRequired'))
+    return
+  }
+  const count = Math.trunc(grantForm.count)
+  if (count <= 0 || count > 1000) {
+    message.warning(t('couponAdmin.grantCountInvalid'))
+    return
+  }
+  if (count > Number(pool.remainingCount ?? 0)) {
+    message.warning(t('couponAdmin.grantStockInsufficient'))
+    return
+  }
+  const custom = grantForm.customAmountMinor.trim()
+  if (custom && !/^\d+$/.test(custom)) {
+    message.warning(t('couponAdmin.customAmountInvalid'))
+    return
+  }
+  grantSaving.value = true
+  try {
+    await promotionClient(newRequestId()).GrantCoupons({
+      tenantId: tenant(),
+      userId,
+      templateId: String(pool.templateId),
+      count,
+      poolEntryId: String(pool.id),
+      customAmountMinor: custom || undefined,
+    })
+    message.success(t('couponAdmin.grantSuccess', { count }))
+    grantOpen.value = false
+    await load()
+  } catch {
+    // 错误提示由请求层统一处理
+  } finally {
+    grantSaving.value = false
+  }
+}
+
 function normalizeKind(kind: string | number | undefined) {
   switch (String(kind ?? '')) {
     case '1':
@@ -1102,7 +1205,8 @@ onMounted(() => {
   background: #1eaa59;
   border-color: #1eaa59;
 }
-.coupon-create-btn {
+.coupon-create-btn,
+.coupon-grant-user-btn {
   color: #1eaa59;
   border-color: #b7e4c7;
 }

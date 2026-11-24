@@ -81,7 +81,7 @@ func (l *GrantCouponsLogic) GrantCoupons(in *marketing.GrantCouponsRequest) (*ma
 			if pool.Enabled != 1 {
 				return errorx.NewCodeError(errorx.CodeCouponUnavailable, "券池已停用")
 			}
-			if pool.StartAt > 0 && time.Now().UnixMilli() < pool.StartAt {
+			if !in.IgnoreStartAt && pool.StartAt > 0 && time.Now().UnixMilli() < pool.StartAt {
 				return errorx.NewCodeError(errorx.CodeCouponUnavailable, "券池尚未生效")
 			}
 			if int64(pool.RemainingCount) < int64(in.Count) {
