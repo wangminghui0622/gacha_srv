@@ -188,6 +188,8 @@ const loading = ref(false)
 const page = ref(1)
 const pageSize = ref(15)
 
+// 优惠券列表完善：同一 templateId 仅展示最新版本，前端按 15 条/页分页；
+// 状态切换通过发布新版本实现（禁用态 status=2，兼容旧数据的 enabled 字段）。
 const latestTemplates = computed(() => {
   const latest = new Map<string, CouponTemplate>()
   for (const item of rawTemplates.value) {
