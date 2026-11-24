@@ -213,8 +213,8 @@
       </template>
     </a-modal>
 
-    <a-modal v-model:open="drawOpen" centered :title="$t('couponAdmin.grantRuleTitle')" width="720px" :footer="null">
-      <a-form class="coupon-grant-form" :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }">
+    <a-modal v-model:open="drawOpen" centered :title="$t('couponAdmin.grantRuleTitle')" width="520px" :style="{ maxWidth: '96vw' }" :footer="null">
+      <a-form class="coupon-grant-form" :label-col="{ span: 7 }" :wrapper-col="{ span: 17 }">
         <a-form-item :label="$t('couponAdmin.couponTemplateName')" required>
           <a-select
             v-model:value="drawForm.rewardTemplateId"
