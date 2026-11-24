@@ -1,6 +1,6 @@
 <template>
   <section class="coupon-page">
-    <a-tabs v-model:activeKey="activeTab" class="coupon-tabs" @change="onTabChange">
+    <a-tabs v-model:activeKey="activeTab" class="coupon-tabs" @change="onTabChange" @tabClick="onTabClick">
       <a-tab-pane key="templates" :tab="$t('couponAdmin.tabTemplateCreate')">
         <div class="coupon-tab-actions">
           <a-button v-if="canPublish" class="coupon-create-btn" @click="openCreate">{{ $t('couponAdmin.createTemplateAction') }}</a-button>
@@ -121,23 +121,9 @@
 
       
 
-      <a-tab-pane key="grant" :tab="$t('couponAdmin.tabGrantUser')">
-        <a-card class="coupon-inline-card" :title="$t('couponAdmin.grantCouponTitle')" :bordered="false">
-          <div class="coupon-action-panel">
-            <p class="coupon-action-hint">{{ $t('couponAdmin.grantActionHint') }}</p>
-            <a-button type="primary" @click="openGrant">{{ $t('couponAdmin.grantCoupon') }}</a-button>
-          </div>
-        </a-card>
-      </a-tab-pane>
+      <a-tab-pane key="grant" :tab="$t('couponAdmin.tabGrantUser')"></a-tab-pane>
 
-      <a-tab-pane key="batch" :tab="$t('couponAdmin.tabBatchGrant')">
-        <a-card class="coupon-inline-card" :title="$t('couponAdmin.batchGrantTitle')" :bordered="false">
-          <div class="coupon-action-panel">
-            <p class="coupon-action-hint">{{ $t('couponAdmin.batchActionHint') }}</p>
-            <a-button type="primary" @click="openBatchGrant">{{ $t('couponAdmin.batchGrant') }}</a-button>
-          </div>
-        </a-card>
-      </a-tab-pane>
+      <a-tab-pane key="batch" :tab="$t('couponAdmin.tabBatchGrant')"></a-tab-pane>
 
       <a-tab-pane key="ledger" :tab="$t('couponAdmin.tabLedger')">
         <a-card class="coupon-inline-card" :title="ledgerTitle" :bordered="false">
@@ -569,15 +555,17 @@ function reload() {
   }
 }
 
-function onTabChange(key: string) {
+function onTabClick(key: string | number) {
   if (key === 'grant') {
     openGrant()
     return
   }
   if (key === 'batch') {
     openBatchGrant()
-    return
   }
+}
+
+function onTabChange(key: string) {
   if (key === 'ledger') {
     void loadLedger()
     return
@@ -1469,15 +1457,7 @@ onMounted(async () => {
   gap: 12px;
   margin-top: 8px;
 }
-.coupon-action-panel {
-  padding: 24px 0;
-  text-align: center;
-}
-.coupon-action-hint {
-  margin-bottom: 16px;
-  color: #606266;
-  font-size: 14px;
-}
+
 .coupon-query-btn {
   background: #1eaa59;
   border-color: #1eaa59;

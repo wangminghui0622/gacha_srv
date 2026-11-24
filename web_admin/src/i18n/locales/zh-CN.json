@@ -979,8 +979,6 @@
     "tabCouponCreate": "创建优惠券",
     "tabGrantUser": "给用户发券",
     "tabBatchGrant": "批量发券",
-    "grantActionHint": "给单个用户发放优惠券（客服补偿）",
-    "batchActionHint": "按累计消费筛选人群，批量发放优惠券",
     "tabLedger": "券流水",
     "createTemplateAction": "新建模板",
     "createCouponAction": "新建优惠券",
