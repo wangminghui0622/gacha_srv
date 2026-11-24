@@ -884,7 +884,7 @@ onMounted(() => {
 .coupon-form-grid {
   display: grid;
   grid-template-columns: minmax(0, 349px) minmax(0, 1fr);
-  column-gap: 8px;
+  column-gap: 16px;
   align-items: start;
 }
 .coupon-form-left {
