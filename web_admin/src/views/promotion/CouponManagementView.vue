@@ -100,7 +100,7 @@
         <a-row :gutter="22">
           <a-col :span="12" class="coupon-form-left">
             <a-form-item :label="$t('couponAdmin.nameLabel')" required>
-              <a-input v-model:value="form.name" :placeholder="$t('couponAdmin.nameLabel')" :maxlength="128" style="width: 20em" />
+              <a-input v-model:value="form.name" :placeholder="$t('couponAdmin.nameLabel')" :maxlength="128" style="width: 15em" />
             </a-form-item>
             <a-form-item :label="$t('couponAdmin.descriptionLabel')" required>
               <a-input v-model:value="form.description" :placeholder="$t('couponAdmin.descriptionLabel')" :maxlength="512" />
