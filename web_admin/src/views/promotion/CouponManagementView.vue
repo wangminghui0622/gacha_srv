@@ -57,6 +57,7 @@
 
     <a-modal
       v-model:open="modalOpen"
+      centered
       :title="$t('couponAdmin.modalTitle')"
       width="760px"
       :style="{ maxWidth: '96vw' }"
