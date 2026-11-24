@@ -627,6 +627,7 @@ onMounted(() => {
   align-items: center;
   gap: 14px;
   margin: 4px 0 22px;
+  padding-top: 12px;
 }
 .coupon-form-grid {
   display: grid;
