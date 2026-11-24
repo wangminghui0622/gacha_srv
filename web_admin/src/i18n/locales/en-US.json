@@ -918,7 +918,7 @@
   },
   "couponAdmin": {
     "query": "Query",
-    "create": "Create",
+    "create": "Create coupon template",
     "id": "ID",
     "name": "Name",
     "type": "Type",

@@ -918,7 +918,7 @@
   },
   "couponAdmin": {
     "query": "查询",
-    "create": "创建",
+    "create": "创建优惠券模板",
     "id": "ID",
     "name": "名称",
     "type": "类型",
