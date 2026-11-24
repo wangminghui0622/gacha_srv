@@ -145,12 +145,12 @@
             <template #label><span class="coupon-red-label">数量</span>门槛上限</template>
             <a-input-number v-model:value="form.maxItemCount" :min="0" :precision="0" style="width: 100%" />
           </a-form-item>
-          <a-form-item class="coupon-form-left" :label="$t('couponAdmin.rewardCount')" :required="isDraw">
-            <a-input-number v-model:value="form.rewardCount" :min="0" :precision="0" style="width: 100%" />
-          </a-form-item>
           <a-form-item class="coupon-form-left" :required="itemThresholdRequired">
             <template #label><span class="coupon-red-label">数量</span>门槛下限</template>
             <a-input-number v-model:value="form.minItemCount" :min="0" :precision="0" style="width: 100%" />
+          </a-form-item>
+          <a-form-item class="coupon-form-left" :label="$t('couponAdmin.rewardCount')" :required="isDraw">
+            <a-input-number v-model:value="form.rewardCount" :min="0" :precision="0" style="width: 100%" />
           </a-form-item>
         </div>
       </a-form>
