@@ -142,7 +142,7 @@
           </a-form-item>
           <a-form-item
             v-if="form.scope === 'mode'"
-            class="coupon-form-right coupon-form-bottom"
+            class="coupon-form-right coupon-form-follow"
             :label="$t('couponAdmin.useMode')"
             required
           >
@@ -150,7 +150,7 @@
           </a-form-item>
           <a-form-item
             v-if="form.scope === 'pool'"
-            class="coupon-form-right coupon-form-bottom"
+            class="coupon-form-right coupon-form-follow"
             :label="$t('couponAdmin.poolId')"
             required
           >
@@ -627,8 +627,8 @@ onMounted(() => {
 .coupon-form-right {
   grid-column: 2;
 }
-.coupon-form-bottom {
-  grid-row: 8;
+.coupon-form-follow {
+  grid-row: 4;
 }
 .coupon-form :deep(.ant-form-item-label) {
   flex: 0 0 118px;
