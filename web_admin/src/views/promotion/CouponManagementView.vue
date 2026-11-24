@@ -636,7 +636,7 @@ async function submitDraw() {
         startAtUnixMillis: drawForm.startAt.valueOf(),
       },
     })
-    message.success(t('couponAdmin.drawSaved'))
+    message.success(t('couponAdmin.saved'))
     drawOpen.value = false
     activeTab.value = 'rules'
     await load()
