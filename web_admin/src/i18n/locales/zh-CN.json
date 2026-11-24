@@ -1003,6 +1003,7 @@
     "drawCountRequired": "满抽次数必须大于 0",
     "couponTemplateName": "优惠券模板名称",
     "couponTemplatePlaceholder": "请选择优惠券模板",
+    "enableLabel": "是否启用",
     "couponCount": "张数",
     "couponCountRequired": "张数必须大于 0",
     "startTime": "生效开始时间",

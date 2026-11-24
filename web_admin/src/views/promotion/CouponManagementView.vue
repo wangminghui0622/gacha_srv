@@ -234,6 +234,11 @@
         <a-form-item :label="$t('couponAdmin.drawCount')" required>
           <a-input-number v-model:value="drawForm.minItemCount" :min="1" :precision="0" style="width: 16em" />
         </a-form-item>
+        <a-form-item :label="$t('couponAdmin.enableLabel')">
+          <div class="coupon-switch-row">
+            <a-switch v-model:checked="drawForm.enabled" />
+          </div>
+        </a-form-item>
       </a-form>
       <div class="coupon-modal-footer" style="display: flex; justify-content: center; gap: 12px">
         <a-button @click="drawOpen = false">{{ $t('couponAdmin.cancel') }}</a-button>
@@ -855,6 +860,11 @@ onMounted(() => {
 }
 .coupon-grant-form :deep(.ant-radio-wrapper) {
   font-size: 15px;
+}
+.coupon-switch-row {
+  display: flex;
+  align-items: center;
+  height: 32px;
 }
 .coupon-red-label {
   color: #ff4d4f;
