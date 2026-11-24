@@ -1002,6 +1002,7 @@
     "drawCount": "Draw count",
     "drawCountRequired": "Draw count must be greater than 0",
     "couponTemplateName": "Coupon template",
+    "couponTemplatePlaceholder": "Select a coupon template",
     "couponCount": "Count",
     "couponCountRequired": "Count must be greater than 0",
     "startTime": "Effective start time",

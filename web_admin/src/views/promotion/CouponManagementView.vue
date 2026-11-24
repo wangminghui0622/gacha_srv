@@ -221,7 +221,7 @@
             :options="drawCouponOptions"
             show-search
             option-filter-prop="label"
-            :placeholder="$t('couponAdmin.couponTemplateName')"
+            :placeholder="$t('couponAdmin.couponTemplatePlaceholder')"
             style="width: 16em"
           />
         </a-form-item>
