@@ -71,7 +71,7 @@
             <span class="coupon-choice-mark">*</span>
             <span class="coupon-choice-text">{{ $t('couponAdmin.typeLabel') }}：</span>
           </span>
-          <a-radio-group v-model:value="form.kind" class="coupon-radio-group">
+          <a-radio-group v-model:value="form.kind" class="coupon-radio-group coupon-radio-group-type">
             <a-radio v-for="option in kindOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
           </a-radio-group>
           <span class="coupon-choice-title coupon-choice-label">
@@ -706,6 +706,11 @@ onMounted(() => {
   flex-wrap: nowrap;
   align-items: center;
   gap: 8px;
+}
+.coupon-radio-group-type {
+  width: 571px;
+  max-width: 100%;
+  justify-content: space-between;
 }
 .coupon-radio-group :deep(.ant-radio-wrapper) {
   margin-inline-end: 0;
