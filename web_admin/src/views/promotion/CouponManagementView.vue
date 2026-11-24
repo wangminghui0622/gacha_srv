@@ -98,7 +98,7 @@
 
       <a-form :label-col="{ span: 7 }" :wrapper-col="{ span: 17 }">
         <a-row :gutter="22">
-          <a-col :span="12">
+          <a-col :span="12" class="coupon-form-left">
             <a-form-item :label="$t('couponAdmin.nameLabel')" required>
               <a-input v-model:value="form.name" :placeholder="$t('couponAdmin.nameLabel')" :maxlength="128" />
             </a-form-item>
@@ -612,6 +612,10 @@ onMounted(() => {
   align-items: center;
   gap: 14px;
   margin: 4px 0 22px;
+}
+.coupon-form-left :deep(.ant-input),
+.coupon-form-left :deep(.ant-input-number) {
+  max-width: 300px;
 }
 .coupon-choice-grid {
   display: grid;
