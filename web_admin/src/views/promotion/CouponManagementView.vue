@@ -129,12 +129,12 @@
             <a-input-number v-model:value="form.rewardCount" :min="0" :precision="0" style="width: 15em" />
           </a-form-item>
           <a-form-item class="coupon-form-right coupon-form-row3" :required="itemThresholdRequired">
-            <template #label><span class="coupon-red-label">数量</span>门槛上限</template>
-            <a-input-number v-model:value="form.maxItemCount" :min="0" :precision="0" style="width: 15em" />
-          </a-form-item>
-          <a-form-item class="coupon-form-right coupon-form-row4" :required="itemThresholdRequired">
             <template #label><span class="coupon-red-label">数量</span>门槛下限</template>
             <a-input-number v-model:value="form.minItemCount" :min="0" :precision="0" style="width: 15em" />
+          </a-form-item>
+          <a-form-item class="coupon-form-right coupon-form-row4" :required="itemThresholdRequired">
+            <template #label><span class="coupon-red-label">数量</span>门槛上限</template>
+            <a-input-number v-model:value="form.maxItemCount" :min="0" :precision="0" style="width: 15em" />
           </a-form-item>
           <a-form-item
             v-if="form.scope === 'mode'"
