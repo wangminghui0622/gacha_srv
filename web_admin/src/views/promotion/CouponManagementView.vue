@@ -223,6 +223,7 @@
             option-filter-prop="label"
             :placeholder="$t('couponAdmin.couponTemplatePlaceholder')"
             style="width: 16em"
+            @change="onRewardTemplateChange"
           />
         </a-form-item>
         <a-form-item :label="$t('couponAdmin.couponCount')" required>
@@ -236,7 +237,7 @@
         </a-form-item>
         <a-form-item :label="$t('couponAdmin.enableLabel')">
           <div class="coupon-switch-row">
-            <a-switch v-model:checked="drawForm.enabled" />
+            <a-switch v-model:checked="drawForm.enabled" :disabled="!drawForm.rewardTemplateId" />
           </div>
         </a-form-item>
       </a-form>
@@ -545,7 +546,7 @@ const drawForm = reactive({
   rewardCount: 20,
   startAt: defaultDrawStartAt() as Dayjs | null,
   minItemCount: 1,
-  enabled: true,
+  enabled: false,
 })
 const drawCouponOptions = computed(() =>
   latestTemplates.value
@@ -573,6 +574,10 @@ function startTimeText(record: CouponTemplate) {
   return ms > 0 ? dayjs(ms).format('YYYY-MM-DD HH:mm:ss') : t('couponAdmin.immediate')
 }
 
+function onRewardTemplateChange(value: string | undefined) {
+  drawForm.enabled = !!value
+}
+
 function openDrawCreate() {
   Object.assign(drawForm, {
     templateId: String(Math.max(0, ...latestTemplates.value.map((item) => Number(item.templateId ?? 0))) + 1),
@@ -580,7 +585,7 @@ function openDrawCreate() {
     rewardCount: 20,
     startAt: defaultDrawStartAt(),
     minItemCount: 1,
-    enabled: true,
+    enabled: false,
   })
   drawOpen.value = true
 }
