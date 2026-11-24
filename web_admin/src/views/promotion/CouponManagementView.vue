@@ -263,15 +263,6 @@
         <a-form-item :label="$t('couponAdmin.rewardCount')" required>
           <a-input-number v-model:value="drawForm.rewardCount" :min="1" :max="100" :precision="0" style="width: 160px" />
         </a-form-item>
-        <a-form-item :label="$t('couponAdmin.scopeLabel')">
-          <a-radio-group v-model:value="drawForm.scope" :options="scopeOptions" />
-        </a-form-item>
-        <a-form-item v-if="drawForm.scope === 'mode'" :label="$t('couponAdmin.useMode')" required>
-          <a-select v-model:value="drawForm.useMode" :options="useModeOptions" :placeholder="$t('couponAdmin.useMode')" />
-        </a-form-item>
-        <a-form-item v-if="drawForm.scope === 'pool'" :label="$t('couponAdmin.poolId')" required>
-          <a-input v-model:value="drawForm.poolId" :placeholder="$t('couponAdmin.poolId')" inputmode="numeric" />
-        </a-form-item>
       </a-form>
       <div class="coupon-modal-footer" style="display: flex; justify-content: center; gap: 12px">
         <a-button @click="drawOpen = false">{{ $t('couponAdmin.cancel') }}</a-button>
@@ -584,9 +575,6 @@ const drawForm = reactive({
   maxItemCount: 0,
   rewardTemplateId: '',
   rewardCount: 1,
-  scope: 'unlimited' as string | undefined,
-  useMode: undefined as string | undefined,
-  poolId: '',
   enabled: true,
 })
 
@@ -637,16 +625,12 @@ function openDrawCreate() {
     maxItemCount: 0,
     rewardTemplateId: '',
     rewardCount: 1,
-    scope: 'unlimited',
-    useMode: undefined,
-    poolId: '',
     enabled: true,
   })
   drawOpen.value = true
 }
 
 function openDrawEdit(record: CouponTemplate) {
-  const scope = couponScope(record)
   Object.assign(drawForm, {
     templateId: String(record.templateId ?? ''),
     name: String(record.name ?? ''),
@@ -657,9 +641,6 @@ function openDrawEdit(record: CouponTemplate) {
     maxItemCount: Number(record.maxItemCount ?? 0),
     rewardTemplateId: String(record.rewardTemplateId ?? ''),
     rewardCount: Number(record.rewardCount ?? 1),
-    scope: scope.kind,
-    useMode: scope.kind === 'mode' ? scope.target : undefined,
-    poolId: scope.kind === 'pool' ? scope.target : '',
     enabled: isEnabled(record),
   })
   drawOpen.value = true
@@ -668,19 +649,6 @@ function openDrawEdit(record: CouponTemplate) {
 function onGrantMenu({ key }: { key: string | number }) {
   if (String(key) === 'custom') openCustomGrant()
   if (String(key) === 'draw') openDrawCreate()
-}
-
-function drawSceneForSave() {
-  if (drawForm.scope !== 'mode') return 0
-  if (drawForm.useMode === 'gashapon') return 1
-  if (drawForm.useMode === 'memorymatch') return 2
-  return 0
-}
-
-function drawTargetBusinessKeyForSave() {
-  if (drawForm.scope === 'mode' && drawForm.useMode) return `mode:${drawForm.useMode}`
-  if (drawForm.scope === 'pool' && drawForm.poolId.trim()) return `pool:${drawForm.poolId.trim()}`
-  return ''
 }
 
 async function submitGrant() {
@@ -757,14 +725,6 @@ async function submitDraw() {
     message.warning(t('couponAdmin.rewardCountRequired'))
     return
   }
-  if (drawForm.scope === 'mode' && !drawForm.useMode) {
-    message.warning(t('couponAdmin.useModeRequired'))
-    return
-  }
-  if (drawForm.scope === 'pool' && !positiveId(drawForm.poolId.trim())) {
-    message.warning(t('couponAdmin.poolIdRequired'))
-    return
-  }
   const templateId = drawForm.templateId || String(Math.max(0, ...latestTemplates.value.map((item) => Number(item.templateId ?? 0))) + 1)
   if (!positiveId(templateId)) {
     message.warning(t('couponAdmin.typeRequired'))
@@ -788,8 +748,6 @@ async function submitDraw() {
         maxItemCount,
         currency: 'CNY',
         funder: 'DISCOUNT_FUNDER_PLATFORM',
-        scene: drawSceneForSave(),
-        targetBusinessKey: drawTargetBusinessKeyForSave(),
         validityDays: Math.trunc(drawForm.validityDays),
         naturalDay: drawForm.naturalDay,
         enabled: drawForm.enabled,
