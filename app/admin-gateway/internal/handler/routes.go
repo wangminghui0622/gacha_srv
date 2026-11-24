@@ -541,6 +541,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: promotion.GrantCouponsHandler(serverCtx),
 				},
 				{
+					// 按累计消费区间批量发券（promotion.user_coupon:grant；X-Request-Id 为批次号）
+					Method:  http.MethodPost,
+					Path:    "/promotion/tenants/:tenantId/coupon-grants/batch",
+					Handler: promotion.BatchGrantCouponsHandler(serverCtx),
+				},
+				{
 					// 优惠券模板列表（promotion.coupon_template:read；游标分页）
 					Method:  http.MethodGet,
 					Path:    "/promotion/tenants/:tenantId/coupon-templates",

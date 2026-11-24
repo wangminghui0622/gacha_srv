@@ -5,6 +5,7 @@
       <a-button v-if="canPublish && activeTab === 'coupons'" class="coupon-create-btn" @click="openCreate">{{ $t('couponAdmin.create') }}</a-button>
       <a-button v-if="canPublish" class="coupon-grant-btn" @click="openDrawCreate">{{ $t('couponAdmin.grantRule') }}</a-button>
       <a-button v-if="canGrant && activeTab === 'rules'" class="coupon-grant-user-btn" @click="openGrant()">{{ $t('couponAdmin.grantCoupon') }}</a-button>
+      <a-button v-if="canGrant && activeTab === 'rules'" class="coupon-grant-user-btn" @click="openBatchGrant()">{{ $t('couponAdmin.batchGrant') }}</a-button>
       <a-button v-if="canPublish && activeTab === 'rules'" class="coupon-ledger-btn" @click="openLedger()">{{ $t('couponAdmin.allLedger') }}</a-button>
     </div>
 
@@ -356,6 +357,43 @@
       <div class="coupon-modal-footer" style="display: flex; justify-content: center; gap: 12px">
         <a-button @click="grantOpen = false">{{ $t('couponAdmin.cancel') }}</a-button>
         <a-button type="primary" :loading="grantSaving" @click="submitGrant">{{ $t('couponAdmin.confirm') }}</a-button>
+      </div>
+    </a-modal>
+
+    <a-modal v-model:open="batchGrantOpen" centered :title="$t('couponAdmin.batchGrantTitle')" width="560px" :style="{ maxWidth: '96vw' }" :footer="null">
+      <a-form class="coupon-grant-form" :label-col="{ span: 7 }" :wrapper-col="{ span: 17 }">
+        <a-form-item :label="$t('couponAdmin.poolBatch')" required>
+          <a-select
+            v-model:value="batchGrantForm.poolEntryId"
+            :options="grantPoolOptions"
+            show-search
+            option-filter-prop="label"
+            :placeholder="$t('couponAdmin.poolBatchPlaceholder')"
+            style="width: 16em"
+          />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.minSpend')" required>
+          <a-input-number v-model:value="batchGrantForm.minSpendYuan" :min="0" :precision="2" style="width: 16em" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.maxSpend')">
+          <a-input-number v-model:value="batchGrantForm.maxSpendYuan" :min="0" :precision="2" :placeholder="$t('couponAdmin.maxSpendHint')" style="width: 16em" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.perUserCount')" required>
+          <a-input-number v-model:value="batchGrantForm.perUserCount" :min="1" :max="1000" :precision="0" style="width: 16em" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.maxUsers')" required>
+          <a-input-number v-model:value="batchGrantForm.maxUsers" :min="1" :max="200" :precision="0" style="width: 16em" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.customAmountLabel')">
+          <a-input v-model:value="batchGrantForm.customAmountMinor" inputmode="numeric" :placeholder="$t('couponAdmin.customAmountPlaceholder')" style="width: 16em" />
+        </a-form-item>
+        <a-form-item>
+          <span class="coupon-batch-hint">{{ $t('couponAdmin.batchGrantHint') }}</span>
+        </a-form-item>
+      </a-form>
+      <div class="coupon-modal-footer" style="display: flex; justify-content: center; gap: 12px">
+        <a-button @click="batchGrantOpen = false">{{ $t('couponAdmin.cancel') }}</a-button>
+        <a-button type="primary" :loading="batchGrantSaving" @click="submitBatchGrant">{{ $t('couponAdmin.confirm') }}</a-button>
       </div>
     </a-modal>
   </section>
@@ -971,6 +1009,7 @@ function ledgerRefText(record: CouponLedgerEntry) {
 
 const grantOpen = ref(false)
 const grantSaving = ref(false)
+const grantRequestId = ref('')
 const grantForm = reactive({
   poolEntryId: undefined as string | undefined,
   userId: '',
@@ -987,6 +1026,7 @@ const grantPoolOptions = computed(() =>
 )
 
 function openGrant(record?: CouponPoolEntry) {
+  grantRequestId.value = newRequestId()
   grantForm.userId = ''
   grantForm.count = 1
   grantForm.customAmountMinor = ''
@@ -1024,7 +1064,7 @@ async function submitGrant() {
   }
   grantSaving.value = true
   try {
-    await promotionClient(newRequestId()).GrantCoupons({
+    await promotionClient(grantRequestId.value).GrantCoupons({
       tenantId: tenant(),
       userId,
       templateId: String(pool.templateId),
@@ -1033,12 +1073,100 @@ async function submitGrant() {
       customAmountMinor: custom || undefined,
     })
     message.success(t('couponAdmin.grantSuccess', { count }))
+    grantRequestId.value = ''
     grantOpen.value = false
     await load()
   } catch {
     // 错误提示由请求层统一处理
   } finally {
     grantSaving.value = false
+  }
+}
+
+const batchGrantOpen = ref(false)
+const batchGrantSaving = ref(false)
+const batchGrantRequestId = ref('')
+const batchGrantForm = reactive({
+  poolEntryId: undefined as string | undefined,
+  minSpendYuan: 0,
+  maxSpendYuan: 0,
+  perUserCount: 1,
+  maxUsers: 50,
+  customAmountMinor: '',
+})
+
+function openBatchGrant() {
+  batchGrantRequestId.value = newRequestId()
+  batchGrantForm.poolEntryId = grantPoolOptions.value[0]?.value
+  batchGrantForm.minSpendYuan = 0
+  batchGrantForm.maxSpendYuan = 0
+  batchGrantForm.perUserCount = 1
+  batchGrantForm.maxUsers = 50
+  batchGrantForm.customAmountMinor = ''
+  batchGrantOpen.value = true
+}
+
+async function submitBatchGrant() {
+  if (!canGrant.value) return
+  const pool = poolEntries.value.find((entry) => String(entry.id ?? '') === String(batchGrantForm.poolEntryId ?? ''))
+  if (!pool) {
+    message.warning(t('couponAdmin.poolBatchRequired'))
+    return
+  }
+  const minSpend = Math.max(0, Number(batchGrantForm.minSpendYuan ?? 0))
+  const maxSpend = Math.max(0, Number(batchGrantForm.maxSpendYuan ?? 0))
+  if (maxSpend > 0 && maxSpend < minSpend) {
+    message.warning(t('couponAdmin.spendRangeInvalid'))
+    return
+  }
+  const perUserCount = Math.trunc(batchGrantForm.perUserCount)
+  if (perUserCount <= 0 || perUserCount > 1000) {
+    message.warning(t('couponAdmin.grantCountInvalid'))
+    return
+  }
+  const maxUsers = Math.trunc(batchGrantForm.maxUsers)
+  if (maxUsers <= 0 || maxUsers > 200) {
+    message.warning(t('couponAdmin.maxUsersInvalid'))
+    return
+  }
+  const custom = batchGrantForm.customAmountMinor.trim()
+  if (custom && !/^\d+$/.test(custom)) {
+    message.warning(t('couponAdmin.customAmountInvalid'))
+    return
+  }
+  batchGrantSaving.value = true
+  try {
+    const reply = await promotionClient(batchGrantRequestId.value).BatchGrantCoupons({
+      tenantId: tenant(),
+      poolEntryId: String(pool.id),
+      minSpendMinor: yuanToFen(minSpend),
+      maxSpendMinor: yuanToFen(maxSpend),
+      perUserCount,
+      maxUsers,
+      customAmountMinor: custom ? Number(custom) : undefined,
+    })
+    const matched = Number(reply.matchedUsers ?? 0)
+    const granted = Number(reply.grantedUsers ?? 0)
+    const failed = Number(reply.failedUsers ?? 0)
+    const remaining = Number(reply.remainingCount ?? 0)
+    if (matched === 0) {
+      message.warning(t('couponAdmin.batchNoUsers'))
+      return
+    }
+    message.success(t('couponAdmin.batchGrantDone', { granted, failed, remaining }))
+    if (failed > 0) {
+      message.warning(t('couponAdmin.batchGrantPartial', { failed }))
+    }
+    if (reply.stoppedReason === 'stock_limited' || reply.stoppedReason === 'stock_exhausted') {
+      message.warning(t('couponAdmin.batchGrantStockLimited'))
+    }
+    batchGrantRequestId.value = ''
+    batchGrantOpen.value = false
+    await load()
+  } catch {
+    // 错误提示由请求层统一处理
+  } finally {
+    batchGrantSaving.value = false
   }
 }
 
@@ -1272,6 +1400,11 @@ onMounted(() => {
   font-weight: 600;
   line-height: 32px;
   color: #1eaa59;
+}
+.coupon-batch-hint {
+  font-size: 13px;
+  line-height: 20px;
+  color: #909399;
 }
 .coupon-red-label {
   color: #ff4d4f;

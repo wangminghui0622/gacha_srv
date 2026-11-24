@@ -22,6 +22,8 @@ type (
 	ClaimPassRewardResp   = task.ClaimPassRewardResp
 	ClaimTaskReq          = task.ClaimTaskReq
 	ClaimTaskResp         = task.ClaimTaskResp
+	ListMemberUserIdsReq  = task.ListMemberUserIdsReq
+	ListMemberUserIdsResp = task.ListMemberUserIdsResp
 	ListTasksReq          = task.ListTasksReq
 	ListTasksResp         = task.ListTasksResp
 	MemberTierView        = task.MemberTierView
@@ -44,6 +46,7 @@ type (
 		ClaimMemberReward(ctx context.Context, in *ClaimMemberRewardReq, opts ...grpc.CallOption) (*ClaimMemberRewardResp, error)
 		ApplyTaskProgress(ctx context.Context, in *ApplyTaskProgressReq, opts ...grpc.CallOption) (*ApplyTaskProgressResp, error)
 		UnlockPass(ctx context.Context, in *UnlockPassReq, opts ...grpc.CallOption) (*UnlockPassResp, error)
+		ListMemberUserIds(ctx context.Context, in *ListMemberUserIdsReq, opts ...grpc.CallOption) (*ListMemberUserIdsResp, error)
 	}
 
 	defaultTask struct {
@@ -91,4 +94,9 @@ func (m *defaultTask) ApplyTaskProgress(ctx context.Context, in *ApplyTaskProgre
 func (m *defaultTask) UnlockPass(ctx context.Context, in *UnlockPassReq, opts ...grpc.CallOption) (*UnlockPassResp, error) {
 	client := task.NewTaskClient(m.cli.Conn())
 	return client.UnlockPass(ctx, in, opts...)
+}
+
+func (m *defaultTask) ListMemberUserIds(ctx context.Context, in *ListMemberUserIdsReq, opts ...grpc.CallOption) (*ListMemberUserIdsResp, error) {
+	client := task.NewTaskClient(m.cli.Conn())
+	return client.ListMemberUserIds(ctx, in, opts...)
 }

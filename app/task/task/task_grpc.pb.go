@@ -26,6 +26,7 @@ const (
 	Task_ClaimMemberReward_FullMethodName = "/task.Task/ClaimMemberReward"
 	Task_ApplyTaskProgress_FullMethodName = "/task.Task/ApplyTaskProgress"
 	Task_UnlockPass_FullMethodName        = "/task.Task/UnlockPass"
+	Task_ListMemberUserIds_FullMethodName = "/task.Task/ListMemberUserIds"
 )
 
 // TaskClient is the client API for Task service.
@@ -40,6 +41,8 @@ type TaskClient interface {
 	ClaimMemberReward(ctx context.Context, in *ClaimMemberRewardReq, opts ...grpc.CallOption) (*ClaimMemberRewardResp, error)
 	ApplyTaskProgress(ctx context.Context, in *ApplyTaskProgressReq, opts ...grpc.CallOption) (*ApplyTaskProgressResp, error)
 	UnlockPass(ctx context.Context, in *UnlockPassReq, opts ...grpc.CallOption) (*UnlockPassResp, error)
+	// ListMemberUserIds 按累计消费区间分页列出会员用户ID（控制台批量发券人群筛选）
+	ListMemberUserIds(ctx context.Context, in *ListMemberUserIdsReq, opts ...grpc.CallOption) (*ListMemberUserIdsResp, error)
 }
 
 type taskClient struct {
@@ -113,6 +116,15 @@ func (c *taskClient) UnlockPass(ctx context.Context, in *UnlockPassReq, opts ...
 	return out, nil
 }
 
+func (c *taskClient) ListMemberUserIds(ctx context.Context, in *ListMemberUserIdsReq, opts ...grpc.CallOption) (*ListMemberUserIdsResp, error) {
+	out := new(ListMemberUserIdsResp)
+	err := c.cc.Invoke(ctx, Task_ListMemberUserIds_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TaskServer is the server API for Task service.
 // All implementations must embed UnimplementedTaskServer
 // for forward compatibility
@@ -125,6 +137,8 @@ type TaskServer interface {
 	ClaimMemberReward(context.Context, *ClaimMemberRewardReq) (*ClaimMemberRewardResp, error)
 	ApplyTaskProgress(context.Context, *ApplyTaskProgressReq) (*ApplyTaskProgressResp, error)
 	UnlockPass(context.Context, *UnlockPassReq) (*UnlockPassResp, error)
+	// ListMemberUserIds 按累计消费区间分页列出会员用户ID（控制台批量发券人群筛选）
+	ListMemberUserIds(context.Context, *ListMemberUserIdsReq) (*ListMemberUserIdsResp, error)
 	mustEmbedUnimplementedTaskServer()
 }
 
@@ -152,6 +166,9 @@ func (UnimplementedTaskServer) ApplyTaskProgress(context.Context, *ApplyTaskProg
 }
 func (UnimplementedTaskServer) UnlockPass(context.Context, *UnlockPassReq) (*UnlockPassResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UnlockPass not implemented")
+}
+func (UnimplementedTaskServer) ListMemberUserIds(context.Context, *ListMemberUserIdsReq) (*ListMemberUserIdsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListMemberUserIds not implemented")
 }
 func (UnimplementedTaskServer) mustEmbedUnimplementedTaskServer() {}
 
@@ -292,6 +309,24 @@ func _Task_UnlockPass_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Task_ListMemberUserIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMemberUserIdsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaskServer).ListMemberUserIds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Task_ListMemberUserIds_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaskServer).ListMemberUserIds(ctx, req.(*ListMemberUserIdsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Task_ServiceDesc is the grpc.ServiceDesc for Task service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -326,6 +361,10 @@ var Task_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UnlockPass",
 			Handler:    _Task_UnlockPass_Handler,
+		},
+		{
+			MethodName: "ListMemberUserIds",
+			Handler:    _Task_ListMemberUserIds_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

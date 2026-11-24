@@ -26,6 +26,8 @@ type Config struct {
 	BaseRpc zrpc.RpcClientConf
 	// 资金服务客户端（支付路由存管控制台；M14d）
 	MoneyRpc zrpc.RpcClientConf
+	// 任务服务客户端（会员累计消费人群筛选；批量发券）
+	TaskRpc zrpc.RpcClientConf
 	// 第三方服务客户端（OSS 文件上传）
 	ThirdpartyRpc zrpc.RpcClientConf
 

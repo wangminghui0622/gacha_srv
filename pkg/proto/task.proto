@@ -19,6 +19,8 @@ service Task {
     rpc ClaimMemberReward(ClaimMemberRewardReq) returns (ClaimMemberRewardResp);
     rpc ApplyTaskProgress(ApplyTaskProgressReq) returns (ApplyTaskProgressResp);
     rpc UnlockPass(UnlockPassReq) returns (UnlockPassResp);
+    // ListMemberUserIds 按累计消费区间分页列出会员用户ID（控制台批量发券人群筛选）
+    rpc ListMemberUserIds(ListMemberUserIdsReq) returns (ListMemberUserIdsResp);
 }
 
 enum TaskPeriod {
@@ -194,3 +196,15 @@ message UnlockPassReq {
 }
 
 message UnlockPassResp {}
+
+message ListMemberUserIdsReq {
+    int64  minSpendMinor = 1; // 最低累计消费（分，含）
+    int64  maxSpendMinor = 2; // 最高累计消费（分，含）；0=不限
+    int64  afterUserId = 3;   // 游标：上一页最后一个 user_id
+    uint32 limit = 4;         // 默认 100，上限 1000
+}
+
+message ListMemberUserIdsResp {
+    repeated int64 userIds = 1;
+    int64 nextAfterUserId = 2;
+}

@@ -58,3 +58,8 @@ func (s *TaskServer) UnlockPass(ctx context.Context, in *task.UnlockPassReq) (*t
 	l := logic.NewUnlockPassLogic(ctx, s.svcCtx)
 	return l.UnlockPass(in)
 }
+
+func (s *TaskServer) ListMemberUserIds(ctx context.Context, in *task.ListMemberUserIdsReq) (*task.ListMemberUserIdsResp, error) {
+	l := logic.NewListMemberUserIdsLogic(ctx, s.svcCtx)
+	return l.ListMemberUserIds(in)
+}

@@ -4858,6 +4858,190 @@ func (x *ListCouponLedgerReply) GetTotal() uint64 {
 	return 0
 }
 
+type BatchGrantCouponsRequest struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	TenantId          uint64                 `protobuf:"varint,1,opt,name=tenantId,proto3" json:"tenantId,omitempty"`
+	PoolEntryId       uint64                 `protobuf:"varint,2,opt,name=poolEntryId,proto3" json:"poolEntryId,omitempty"`
+	MinSpendMinor     int64                  `protobuf:"varint,3,opt,name=minSpendMinor,proto3" json:"minSpendMinor,omitempty"` // 最低累计消费（分，含）
+	MaxSpendMinor     int64                  `protobuf:"varint,4,opt,name=maxSpendMinor,proto3" json:"maxSpendMinor,omitempty"` // 最高累计消费（分，含）；0=不限
+	PerUserCount      uint32                 `protobuf:"varint,5,opt,name=perUserCount,proto3" json:"perUserCount,omitempty"`   // 每人发几张
+	MaxUsers          uint32                 `protobuf:"varint,6,opt,name=maxUsers,proto3" json:"maxUsers,omitempty"`           // 本批最多处理多少人
+	CustomAmountMinor int64                  `protobuf:"varint,7,opt,name=customAmountMinor,proto3" json:"customAmountMinor,omitempty"`
+	RequestId         string                 `protobuf:"bytes,8,opt,name=requestId,proto3" json:"requestId,omitempty"` // 批次号（X-Request-Id），用于每人发券幂等
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *BatchGrantCouponsRequest) Reset() {
+	*x = BatchGrantCouponsRequest{}
+	mi := &file_marketing_proto_msgTypes[61]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchGrantCouponsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchGrantCouponsRequest) ProtoMessage() {}
+
+func (x *BatchGrantCouponsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_marketing_proto_msgTypes[61]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchGrantCouponsRequest.ProtoReflect.Descriptor instead.
+func (*BatchGrantCouponsRequest) Descriptor() ([]byte, []int) {
+	return file_marketing_proto_rawDescGZIP(), []int{61}
+}
+
+func (x *BatchGrantCouponsRequest) GetTenantId() uint64 {
+	if x != nil {
+		return x.TenantId
+	}
+	return 0
+}
+
+func (x *BatchGrantCouponsRequest) GetPoolEntryId() uint64 {
+	if x != nil {
+		return x.PoolEntryId
+	}
+	return 0
+}
+
+func (x *BatchGrantCouponsRequest) GetMinSpendMinor() int64 {
+	if x != nil {
+		return x.MinSpendMinor
+	}
+	return 0
+}
+
+func (x *BatchGrantCouponsRequest) GetMaxSpendMinor() int64 {
+	if x != nil {
+		return x.MaxSpendMinor
+	}
+	return 0
+}
+
+func (x *BatchGrantCouponsRequest) GetPerUserCount() uint32 {
+	if x != nil {
+		return x.PerUserCount
+	}
+	return 0
+}
+
+func (x *BatchGrantCouponsRequest) GetMaxUsers() uint32 {
+	if x != nil {
+		return x.MaxUsers
+	}
+	return 0
+}
+
+func (x *BatchGrantCouponsRequest) GetCustomAmountMinor() int64 {
+	if x != nil {
+		return x.CustomAmountMinor
+	}
+	return 0
+}
+
+func (x *BatchGrantCouponsRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type BatchGrantCouponsReply struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	MatchedUsers   uint32                 `protobuf:"varint,1,opt,name=matchedUsers,proto3" json:"matchedUsers,omitempty"`
+	GrantedUsers   uint32                 `protobuf:"varint,2,opt,name=grantedUsers,proto3" json:"grantedUsers,omitempty"`
+	FailedUsers    uint32                 `protobuf:"varint,3,opt,name=failedUsers,proto3" json:"failedUsers,omitempty"`
+	FailedUserIds  []uint64               `protobuf:"varint,4,rep,packed,name=failedUserIds,proto3" json:"failedUserIds,omitempty"`
+	StoppedReason  string                 `protobuf:"bytes,5,opt,name=stoppedReason,proto3" json:"stoppedReason,omitempty"`
+	RemainingCount uint32                 `protobuf:"varint,6,opt,name=remainingCount,proto3" json:"remainingCount,omitempty"` // 批次处理后的券池剩余
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *BatchGrantCouponsReply) Reset() {
+	*x = BatchGrantCouponsReply{}
+	mi := &file_marketing_proto_msgTypes[62]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BatchGrantCouponsReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchGrantCouponsReply) ProtoMessage() {}
+
+func (x *BatchGrantCouponsReply) ProtoReflect() protoreflect.Message {
+	mi := &file_marketing_proto_msgTypes[62]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchGrantCouponsReply.ProtoReflect.Descriptor instead.
+func (*BatchGrantCouponsReply) Descriptor() ([]byte, []int) {
+	return file_marketing_proto_rawDescGZIP(), []int{62}
+}
+
+func (x *BatchGrantCouponsReply) GetMatchedUsers() uint32 {
+	if x != nil {
+		return x.MatchedUsers
+	}
+	return 0
+}
+
+func (x *BatchGrantCouponsReply) GetGrantedUsers() uint32 {
+	if x != nil {
+		return x.GrantedUsers
+	}
+	return 0
+}
+
+func (x *BatchGrantCouponsReply) GetFailedUsers() uint32 {
+	if x != nil {
+		return x.FailedUsers
+	}
+	return 0
+}
+
+func (x *BatchGrantCouponsReply) GetFailedUserIds() []uint64 {
+	if x != nil {
+		return x.FailedUserIds
+	}
+	return nil
+}
+
+func (x *BatchGrantCouponsReply) GetStoppedReason() string {
+	if x != nil {
+		return x.StoppedReason
+	}
+	return ""
+}
+
+func (x *BatchGrantCouponsReply) GetRemainingCount() uint32 {
+	if x != nil {
+		return x.RemainingCount
+	}
+	return 0
+}
+
 type UserCoupon struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	Id                  uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -4876,7 +5060,7 @@ type UserCoupon struct {
 
 func (x *UserCoupon) Reset() {
 	*x = UserCoupon{}
-	mi := &file_marketing_proto_msgTypes[61]
+	mi := &file_marketing_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4888,7 +5072,7 @@ func (x *UserCoupon) String() string {
 func (*UserCoupon) ProtoMessage() {}
 
 func (x *UserCoupon) ProtoReflect() protoreflect.Message {
-	mi := &file_marketing_proto_msgTypes[61]
+	mi := &file_marketing_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4901,7 +5085,7 @@ func (x *UserCoupon) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserCoupon.ProtoReflect.Descriptor instead.
 func (*UserCoupon) Descriptor() ([]byte, []int) {
-	return file_marketing_proto_rawDescGZIP(), []int{61}
+	return file_marketing_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *UserCoupon) GetId() uint64 {
@@ -4992,7 +5176,7 @@ type GrantCouponsRequest struct {
 
 func (x *GrantCouponsRequest) Reset() {
 	*x = GrantCouponsRequest{}
-	mi := &file_marketing_proto_msgTypes[62]
+	mi := &file_marketing_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5004,7 +5188,7 @@ func (x *GrantCouponsRequest) String() string {
 func (*GrantCouponsRequest) ProtoMessage() {}
 
 func (x *GrantCouponsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_marketing_proto_msgTypes[62]
+	mi := &file_marketing_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5017,7 +5201,7 @@ func (x *GrantCouponsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrantCouponsRequest.ProtoReflect.Descriptor instead.
 func (*GrantCouponsRequest) Descriptor() ([]byte, []int) {
-	return file_marketing_proto_rawDescGZIP(), []int{62}
+	return file_marketing_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *GrantCouponsRequest) GetRequestId() string {
@@ -5099,7 +5283,7 @@ type GrantCouponsReply struct {
 
 func (x *GrantCouponsReply) Reset() {
 	*x = GrantCouponsReply{}
-	mi := &file_marketing_proto_msgTypes[63]
+	mi := &file_marketing_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5111,7 +5295,7 @@ func (x *GrantCouponsReply) String() string {
 func (*GrantCouponsReply) ProtoMessage() {}
 
 func (x *GrantCouponsReply) ProtoReflect() protoreflect.Message {
-	mi := &file_marketing_proto_msgTypes[63]
+	mi := &file_marketing_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5124,7 +5308,7 @@ func (x *GrantCouponsReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrantCouponsReply.ProtoReflect.Descriptor instead.
 func (*GrantCouponsReply) Descriptor() ([]byte, []int) {
-	return file_marketing_proto_rawDescGZIP(), []int{63}
+	return file_marketing_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *GrantCouponsReply) GetCoupons() []*UserCoupon {
@@ -5145,7 +5329,7 @@ type TenantLoyaltyDefaults struct {
 
 func (x *TenantLoyaltyDefaults) Reset() {
 	*x = TenantLoyaltyDefaults{}
-	mi := &file_marketing_proto_msgTypes[64]
+	mi := &file_marketing_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5157,7 +5341,7 @@ func (x *TenantLoyaltyDefaults) String() string {
 func (*TenantLoyaltyDefaults) ProtoMessage() {}
 
 func (x *TenantLoyaltyDefaults) ProtoReflect() protoreflect.Message {
-	mi := &file_marketing_proto_msgTypes[64]
+	mi := &file_marketing_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5170,7 +5354,7 @@ func (x *TenantLoyaltyDefaults) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantLoyaltyDefaults.ProtoReflect.Descriptor instead.
 func (*TenantLoyaltyDefaults) Descriptor() ([]byte, []int) {
-	return file_marketing_proto_rawDescGZIP(), []int{64}
+	return file_marketing_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *TenantLoyaltyDefaults) GetTenantId() uint64 {
@@ -5203,7 +5387,7 @@ type GetTenantLoyaltyDefaultsRequest struct {
 
 func (x *GetTenantLoyaltyDefaultsRequest) Reset() {
 	*x = GetTenantLoyaltyDefaultsRequest{}
-	mi := &file_marketing_proto_msgTypes[65]
+	mi := &file_marketing_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5215,7 +5399,7 @@ func (x *GetTenantLoyaltyDefaultsRequest) String() string {
 func (*GetTenantLoyaltyDefaultsRequest) ProtoMessage() {}
 
 func (x *GetTenantLoyaltyDefaultsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_marketing_proto_msgTypes[65]
+	mi := &file_marketing_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5228,7 +5412,7 @@ func (x *GetTenantLoyaltyDefaultsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTenantLoyaltyDefaultsRequest.ProtoReflect.Descriptor instead.
 func (*GetTenantLoyaltyDefaultsRequest) Descriptor() ([]byte, []int) {
-	return file_marketing_proto_rawDescGZIP(), []int{65}
+	return file_marketing_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *GetTenantLoyaltyDefaultsRequest) GetTenantId() uint64 {
@@ -5247,7 +5431,7 @@ type PutTenantLoyaltyDefaultsRequest struct {
 
 func (x *PutTenantLoyaltyDefaultsRequest) Reset() {
 	*x = PutTenantLoyaltyDefaultsRequest{}
-	mi := &file_marketing_proto_msgTypes[66]
+	mi := &file_marketing_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5259,7 +5443,7 @@ func (x *PutTenantLoyaltyDefaultsRequest) String() string {
 func (*PutTenantLoyaltyDefaultsRequest) ProtoMessage() {}
 
 func (x *PutTenantLoyaltyDefaultsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_marketing_proto_msgTypes[66]
+	mi := &file_marketing_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5272,7 +5456,7 @@ func (x *PutTenantLoyaltyDefaultsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PutTenantLoyaltyDefaultsRequest.ProtoReflect.Descriptor instead.
 func (*PutTenantLoyaltyDefaultsRequest) Descriptor() ([]byte, []int) {
-	return file_marketing_proto_rawDescGZIP(), []int{66}
+	return file_marketing_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *PutTenantLoyaltyDefaultsRequest) GetDefaults() *TenantLoyaltyDefaults {
@@ -5686,7 +5870,23 @@ const file_marketing_proto_rawDesc = "" +
 	"\bpageSize\x18\a \x01(\rR\bpageSize\"e\n" +
 	"\x15ListCouponLedgerReply\x126\n" +
 	"\aentries\x18\x01 \x03(\v2\x1c.marketing.CouponLedgerEntryR\aentries\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x04R\x05total\"\x81\x03\n" +
+	"\x05total\x18\x02 \x01(\x04R\x05total\"\xb0\x02\n" +
+	"\x18BatchGrantCouponsRequest\x12\x1a\n" +
+	"\btenantId\x18\x01 \x01(\x04R\btenantId\x12 \n" +
+	"\vpoolEntryId\x18\x02 \x01(\x04R\vpoolEntryId\x12$\n" +
+	"\rminSpendMinor\x18\x03 \x01(\x03R\rminSpendMinor\x12$\n" +
+	"\rmaxSpendMinor\x18\x04 \x01(\x03R\rmaxSpendMinor\x12\"\n" +
+	"\fperUserCount\x18\x05 \x01(\rR\fperUserCount\x12\x1a\n" +
+	"\bmaxUsers\x18\x06 \x01(\rR\bmaxUsers\x12,\n" +
+	"\x11customAmountMinor\x18\a \x01(\x03R\x11customAmountMinor\x12\x1c\n" +
+	"\trequestId\x18\b \x01(\tR\trequestId\"\xf6\x01\n" +
+	"\x16BatchGrantCouponsReply\x12\"\n" +
+	"\fmatchedUsers\x18\x01 \x01(\rR\fmatchedUsers\x12\"\n" +
+	"\fgrantedUsers\x18\x02 \x01(\rR\fgrantedUsers\x12 \n" +
+	"\vfailedUsers\x18\x03 \x01(\rR\vfailedUsers\x12$\n" +
+	"\rfailedUserIds\x18\x04 \x03(\x04R\rfailedUserIds\x12$\n" +
+	"\rstoppedReason\x18\x05 \x01(\tR\rstoppedReason\x12&\n" +
+	"\x0eremainingCount\x18\x06 \x01(\rR\x0eremainingCount\"\x81\x03\n" +
 	"\n" +
 	"UserCoupon\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1a\n" +
@@ -5849,7 +6049,7 @@ func file_marketing_proto_rawDescGZIP() []byte {
 }
 
 var file_marketing_proto_enumTypes = make([]protoimpl.EnumInfo, 9)
-var file_marketing_proto_msgTypes = make([]protoimpl.MessageInfo, 67)
+var file_marketing_proto_msgTypes = make([]protoimpl.MessageInfo, 69)
 var file_marketing_proto_goTypes = []any{
 	(CampaignKind)(0),                         // 0: marketing.CampaignKind
 	(PrizeKind)(0),                            // 1: marketing.PrizeKind
@@ -5921,12 +6121,14 @@ var file_marketing_proto_goTypes = []any{
 	(*CouponLedgerEntry)(nil),                 // 67: marketing.CouponLedgerEntry
 	(*ListCouponLedgerRequest)(nil),           // 68: marketing.ListCouponLedgerRequest
 	(*ListCouponLedgerReply)(nil),             // 69: marketing.ListCouponLedgerReply
-	(*UserCoupon)(nil),                        // 70: marketing.UserCoupon
-	(*GrantCouponsRequest)(nil),               // 71: marketing.GrantCouponsRequest
-	(*GrantCouponsReply)(nil),                 // 72: marketing.GrantCouponsReply
-	(*TenantLoyaltyDefaults)(nil),             // 73: marketing.TenantLoyaltyDefaults
-	(*GetTenantLoyaltyDefaultsRequest)(nil),   // 74: marketing.GetTenantLoyaltyDefaultsRequest
-	(*PutTenantLoyaltyDefaultsRequest)(nil),   // 75: marketing.PutTenantLoyaltyDefaultsRequest
+	(*BatchGrantCouponsRequest)(nil),          // 70: marketing.BatchGrantCouponsRequest
+	(*BatchGrantCouponsReply)(nil),            // 71: marketing.BatchGrantCouponsReply
+	(*UserCoupon)(nil),                        // 72: marketing.UserCoupon
+	(*GrantCouponsRequest)(nil),               // 73: marketing.GrantCouponsRequest
+	(*GrantCouponsReply)(nil),                 // 74: marketing.GrantCouponsReply
+	(*TenantLoyaltyDefaults)(nil),             // 75: marketing.TenantLoyaltyDefaults
+	(*GetTenantLoyaltyDefaultsRequest)(nil),   // 76: marketing.GetTenantLoyaltyDefaultsRequest
+	(*PutTenantLoyaltyDefaultsRequest)(nil),   // 77: marketing.PutTenantLoyaltyDefaultsRequest
 }
 var file_marketing_proto_depIdxs = []int32{
 	24, // 0: marketing.ListUserCouponsResp.items:type_name -> marketing.CouponItem
@@ -5964,8 +6166,8 @@ var file_marketing_proto_depIdxs = []int32{
 	7,  // 32: marketing.UserCoupon.status:type_name -> marketing.UserCouponStatus
 	8,  // 33: marketing.UserCoupon.source:type_name -> marketing.CouponGrantSource
 	8,  // 34: marketing.GrantCouponsRequest.source:type_name -> marketing.CouponGrantSource
-	70, // 35: marketing.GrantCouponsReply.coupons:type_name -> marketing.UserCoupon
-	73, // 36: marketing.PutTenantLoyaltyDefaultsRequest.defaults:type_name -> marketing.TenantLoyaltyDefaults
+	72, // 35: marketing.GrantCouponsReply.coupons:type_name -> marketing.UserCoupon
+	75, // 36: marketing.PutTenantLoyaltyDefaultsRequest.defaults:type_name -> marketing.TenantLoyaltyDefaults
 	9,  // 37: marketing.Marketing.QuoteCheckout:input_type -> marketing.QuoteCheckoutReq
 	11, // 38: marketing.Marketing.LockQuote:input_type -> marketing.LockQuoteReq
 	18, // 39: marketing.Marketing.ReleaseQuote:input_type -> marketing.ReleaseQuoteReq
@@ -5984,9 +6186,9 @@ var file_marketing_proto_depIdxs = []int32{
 	65, // 52: marketing.Marketing.UpsertCouponPoolEntry:input_type -> marketing.UpsertCouponPoolEntryRequest
 	66, // 53: marketing.Marketing.AdjustCouponPoolEntry:input_type -> marketing.AdjustCouponPoolEntryRequest
 	68, // 54: marketing.Marketing.ListCouponLedger:input_type -> marketing.ListCouponLedgerRequest
-	71, // 55: marketing.Marketing.GrantCoupons:input_type -> marketing.GrantCouponsRequest
-	74, // 56: marketing.Marketing.GetTenantLoyaltyDefaults:input_type -> marketing.GetTenantLoyaltyDefaultsRequest
-	75, // 57: marketing.Marketing.PutTenantLoyaltyDefaults:input_type -> marketing.PutTenantLoyaltyDefaultsRequest
+	73, // 55: marketing.Marketing.GrantCoupons:input_type -> marketing.GrantCouponsRequest
+	76, // 56: marketing.Marketing.GetTenantLoyaltyDefaults:input_type -> marketing.GetTenantLoyaltyDefaultsRequest
+	77, // 57: marketing.Marketing.PutTenantLoyaltyDefaults:input_type -> marketing.PutTenantLoyaltyDefaultsRequest
 	32, // 58: marketing.Marketing.ListCampaigns:input_type -> marketing.ListCampaignsReq
 	35, // 59: marketing.Marketing.CampaignPreview:input_type -> marketing.CampaignPreviewReq
 	37, // 60: marketing.Marketing.CampaignParticipate:input_type -> marketing.CampaignParticipateReq
@@ -6013,9 +6215,9 @@ var file_marketing_proto_depIdxs = []int32{
 	61, // 81: marketing.Marketing.UpsertCouponPoolEntry:output_type -> marketing.CouponPoolEntry
 	61, // 82: marketing.Marketing.AdjustCouponPoolEntry:output_type -> marketing.CouponPoolEntry
 	69, // 83: marketing.Marketing.ListCouponLedger:output_type -> marketing.ListCouponLedgerReply
-	72, // 84: marketing.Marketing.GrantCoupons:output_type -> marketing.GrantCouponsReply
-	73, // 85: marketing.Marketing.GetTenantLoyaltyDefaults:output_type -> marketing.TenantLoyaltyDefaults
-	73, // 86: marketing.Marketing.PutTenantLoyaltyDefaults:output_type -> marketing.TenantLoyaltyDefaults
+	74, // 84: marketing.Marketing.GrantCoupons:output_type -> marketing.GrantCouponsReply
+	75, // 85: marketing.Marketing.GetTenantLoyaltyDefaults:output_type -> marketing.TenantLoyaltyDefaults
+	75, // 86: marketing.Marketing.PutTenantLoyaltyDefaults:output_type -> marketing.TenantLoyaltyDefaults
 	34, // 87: marketing.Marketing.ListCampaigns:output_type -> marketing.ListCampaignsResp
 	36, // 88: marketing.Marketing.CampaignPreview:output_type -> marketing.CampaignPreviewResp
 	38, // 89: marketing.Marketing.CampaignParticipate:output_type -> marketing.CampaignParticipateResp
@@ -6042,7 +6244,7 @@ func file_marketing_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_marketing_proto_rawDesc), len(file_marketing_proto_rawDesc)),
 			NumEnums:      9,
-			NumMessages:   67,
+			NumMessages:   69,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

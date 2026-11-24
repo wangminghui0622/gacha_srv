@@ -94,6 +94,15 @@ export interface ListCouponLedgerReply {
   total?: string
 }
 
+export interface BatchGrantCouponsReply {
+  matchedUsers?: number
+  grantedUsers?: number
+  failedUsers?: number
+  failedUserIds?: Array<string | number>
+  stoppedReason?: string
+  remainingCount?: number
+}
+
 export interface GrantCouponsReply {
   coupons?: UserCoupon[]
 }
@@ -176,6 +185,21 @@ export function promotionClient(requestId?: string) {
     }): Promise<GrantCouponsReply> {
       return http.post(
         `/console/v2/api/promotion/tenants/${encodeURIComponent(String(payload.tenantId))}/coupon-grants`,
+        payload,
+        { headers },
+      )
+    },
+    BatchGrantCoupons(payload: {
+      tenantId: string | number
+      poolEntryId: string | number
+      minSpendMinor: number
+      maxSpendMinor: number
+      perUserCount: number
+      maxUsers: number
+      customAmountMinor?: number
+    }): Promise<BatchGrantCouponsReply> {
+      return http.post(
+        `/console/v2/api/promotion/tenants/${encodeURIComponent(String(payload.tenantId))}/coupon-grants/batch`,
         payload,
         { headers },
       )

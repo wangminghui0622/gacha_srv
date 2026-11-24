@@ -16,6 +16,7 @@ import (
 	"gacha_srv/app/money/moneyClient"
 	"gacha_srv/app/ops/opsClient"
 	"gacha_srv/app/play/playClient"
+	"gacha_srv/app/task/taskClient"
 	"gacha_srv/app/thirdparty/thirdpartyClient"
 	"gacha_srv/pkg/utils/errorx"
 
@@ -34,6 +35,7 @@ type ServiceContext struct {
 	CatalogRpc    catalogClient.Catalog
 	BaseRpc       baseClient.Base
 	MoneyRpc      moneyClient.Money
+	TaskRpc       taskClient.Task
 	ThirdpartyRpc thirdpartyClient.Thirdparty
 	Rdb           *redis.Client
 	PubKey        ed25519.PublicKey
@@ -74,6 +76,8 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	// 资金服务客户端（M14d 支付路由存管控制台；同样还原业务码）
 	moneyRpc := moneyClient.NewMoney(zrpc.MustNewClient(c.MoneyRpc,
 		zrpc.WithUnaryClientInterceptor(errorx.ClientErrorInterceptor)))
+	taskRpc := taskClient.NewTask(zrpc.MustNewClient(c.TaskRpc,
+		zrpc.WithUnaryClientInterceptor(errorx.ClientErrorInterceptor)))
 	thirdpartyRpc := thirdpartyClient.NewThirdparty(zrpc.MustNewClient(c.ThirdpartyRpc,
 		zrpc.WithUnaryClientInterceptor(errorx.ClientErrorInterceptor),
 		zrpc.WithDialOption(grpc.WithDefaultCallOptions(
@@ -102,6 +106,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		CatalogRpc:       catalogRpc,
 		BaseRpc:          baseRpc,
 		MoneyRpc:         moneyRpc,
+		TaskRpc:          taskRpc,
 		ThirdpartyRpc:    thirdpartyRpc,
 		Rdb:              rdb,
 		PubKey:           ed25519.PublicKey(pub),

@@ -50,6 +50,13 @@ MoneyRpc:
       - 127.0.0.1:2379
     Key: money.rpc
 
+# 任务服务客户端（会员累计消费人群筛选；批量发券）
+TaskRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: task.rpc
+
 # 第三方服务客户端（OSS 文件上传）
 ThirdpartyRpc:
   Etcd:

@@ -611,6 +611,26 @@ message ListCouponLedgerReply {
     uint64 total = 2;
 }
 
+message BatchGrantCouponsRequest {
+    uint64 tenantId = 1;
+    uint64 poolEntryId = 2;
+    int64 minSpendMinor = 3;  // 最低累计消费（分，含）
+    int64 maxSpendMinor = 4;  // 最高累计消费（分，含）；0=不限
+    uint32 perUserCount = 5;  // 每人发几张
+    uint32 maxUsers = 6;      // 本批最多处理多少人
+    int64 customAmountMinor = 7;
+    string requestId = 8;     // 批次号（X-Request-Id），用于每人发券幂等
+}
+
+message BatchGrantCouponsReply {
+    uint32 matchedUsers = 1;
+    uint32 grantedUsers = 2;
+    uint32 failedUsers = 3;
+    repeated uint64 failedUserIds = 4;
+    string stoppedReason = 5;
+    uint32 remainingCount = 6; // 批次处理后的券池剩余
+}
+
 enum UserCouponStatus {
     USER_COUPON_STATUS_UNSPECIFIED = 0;
     USER_COUPON_STATUS_AVAILABLE = 1;
