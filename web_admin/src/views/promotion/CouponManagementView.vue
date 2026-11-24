@@ -222,16 +222,17 @@
             show-search
             option-filter-prop="label"
             :placeholder="$t('couponAdmin.couponTemplateName')"
+            style="width: 20em"
           />
         </a-form-item>
         <a-form-item :label="$t('couponAdmin.couponCount')" required>
-          <a-input-number v-model:value="drawForm.rewardCount" :min="1" :max="100" :precision="0" style="width: 100%" />
+          <a-input-number v-model:value="drawForm.rewardCount" :min="1" :max="100" :precision="0" style="width: 20em" />
         </a-form-item>
         <a-form-item :label="$t('couponAdmin.startTime')" required>
-          <a-date-picker v-model:value="drawForm.startAt" show-time format="YYYY-MM-DD HH:mm:ss" style="width: 100%" />
+          <a-date-picker v-model:value="drawForm.startAt" show-time format="YYYY-MM-DD HH:mm:ss" style="width: 20em" />
         </a-form-item>
         <a-form-item :label="$t('couponAdmin.drawCount')" required>
-          <a-input-number v-model:value="drawForm.minItemCount" :min="1" :precision="0" style="width: 100%" />
+          <a-input-number v-model:value="drawForm.minItemCount" :min="1" :precision="0" style="width: 20em" />
         </a-form-item>
       </a-form>
       <div class="coupon-modal-footer" style="display: flex; justify-content: center; gap: 12px">
