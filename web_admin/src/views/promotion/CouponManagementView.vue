@@ -106,16 +106,13 @@
           <a-form-item class="coupon-form-right coupon-form-row5" :label="$t('couponAdmin.rewardTemplateId')" :required="isDraw">
             <a-input v-model:value="form.rewardTemplateId" inputmode="numeric" style="width: 15em" />
           </a-form-item>
-          <a-form-item class="coupon-form-left" :label="$t('couponAdmin.totalThreshold')" :required="isFixedOrCustom">
-            <a-input-number v-model:value="form.minGrossYuan" :min="0" :precision="2" style="width: 15em" />
-          </a-form-item>
           <a-form-item
-            class="coupon-form-left"
-            :label="form.kind === 'COUPON_TEMPLATE_KIND_PERCENT_BPS' ? $t('couponAdmin.discountPercent') : $t('couponAdmin.rewardAmount')"
-            :required="amountRequired || isPercent"
+            v-if="isPercent"
+            class="coupon-form-right coupon-form-discount"
+            :label="$t('couponAdmin.discountPercent')"
+            required
           >
             <a-input-number
-              v-if="form.kind === 'COUPON_TEMPLATE_KIND_PERCENT_BPS'"
               v-model:value="form.discountPercent"
               :min="0.01"
               :max="100"
@@ -123,7 +120,12 @@
               :placeholder="$t('couponAdmin.discountPlaceholder')"
               style="width: 15em"
             />
-            <a-input-number v-else v-model:value="form.rewardAmountYuan" :min="0" :precision="2" style="width: 15em" />
+          </a-form-item>
+          <a-form-item class="coupon-form-left" :label="$t('couponAdmin.totalThreshold')" :required="isFixedOrCustom">
+            <a-input-number v-model:value="form.minGrossYuan" :min="0" :precision="2" style="width: 15em" />
+          </a-form-item>
+          <a-form-item class="coupon-form-left" :label="$t('couponAdmin.rewardAmount')" :required="amountRequired">
+            <a-input-number v-model:value="form.rewardAmountYuan" :min="0" :precision="2" style="width: 15em" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.rewardCount')" :required="isDraw">
             <a-input-number v-model:value="form.rewardCount" :min="0" :precision="0" style="width: 15em" />
@@ -139,6 +141,7 @@
           <a-form-item
             v-if="form.scope === 'mode'"
             class="coupon-form-right coupon-form-follow"
+            :class="{ 'coupon-form-row7': isPercent }"
             :label="$t('couponAdmin.useMode')"
             required
           >
@@ -147,6 +150,7 @@
           <a-form-item
             v-if="form.scope === 'pool'"
             class="coupon-form-right coupon-form-follow"
+            :class="{ 'coupon-form-row7': isPercent }"
             :label="$t('couponAdmin.poolId')"
             required
           >
@@ -649,8 +653,14 @@ onMounted(() => {
 .coupon-form-row5 {
   grid-row: 5;
 }
+.coupon-form-discount {
+  grid-row: 6;
+}
 .coupon-form-follow {
   grid-row: 6;
+}
+.coupon-form-follow.coupon-form-row7 {
+  grid-row: 7;
 }
 .coupon-form :deep(.ant-form-item-label) {
   flex: 0 0 118px;
