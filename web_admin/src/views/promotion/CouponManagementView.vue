@@ -152,6 +152,7 @@
           <a-form-item
             v-if="isPercent"
             class="coupon-form-right coupon-form-discount"
+            :class="{ 'coupon-form-discount-bottom': form.scope === 'mode' || form.scope === 'pool' }"
             :label="$t('couponAdmin.discountPercent')"
             required
           >
@@ -888,8 +889,11 @@ onMounted(() => {
 .coupon-form-discount {
   grid-row: 3;
 }
-.coupon-form-follow {
+.coupon-form-discount.coupon-form-discount-bottom {
   grid-row: 4;
+}
+.coupon-form-follow {
+  grid-row: 3;
 }
 .coupon-form :deep(.ant-form-item-label) {
   flex: 0 0 118px;
