@@ -531,7 +531,7 @@ const drawOpen = ref(false)
 const drawSaving = ref(false)
 const drawForm = reactive({
   templateId: '',
-  rewardTemplateId: '',
+  rewardTemplateId: undefined as string | undefined,
   rewardCount: 20,
   startAt: dayjs() as Dayjs | null,
   minItemCount: 1,
@@ -546,7 +546,9 @@ const drawCouponOptions = computed(() =>
     })),
 )
 const drawSelectedCoupon = computed(() =>
-  latestTemplates.value.find((item) => String(item.templateId ?? '') === drawForm.rewardTemplateId),
+  latestTemplates.value.find(
+    (item) => String(item.templateId ?? '') === String(drawForm.rewardTemplateId ?? ''),
+  ),
 )
 
 function rewardCouponText(record: CouponTemplate) {
@@ -564,7 +566,7 @@ function startTimeText(record: CouponTemplate) {
 function openDrawCreate() {
   Object.assign(drawForm, {
     templateId: String(Math.max(0, ...latestTemplates.value.map((item) => Number(item.templateId ?? 0))) + 1),
-    rewardTemplateId: '',
+    rewardTemplateId: undefined,
     rewardCount: 20,
     startAt: dayjs(),
     minItemCount: 1,
@@ -575,9 +577,10 @@ function openDrawCreate() {
 
 function openDrawEdit(record: CouponTemplate) {
   const startMs = Number(record.startAtUnixMillis ?? 0)
+  const rewardTemplateId = Number(record.rewardTemplateId ?? 0) > 0 ? String(record.rewardTemplateId) : undefined
   Object.assign(drawForm, {
     templateId: String(record.templateId ?? ''),
-    rewardTemplateId: String(record.rewardTemplateId ?? ''),
+    rewardTemplateId,
     rewardCount: Number(record.rewardCount ?? 1),
     startAt: startMs > 0 ? dayjs(startMs) : dayjs(),
     minItemCount: Number(record.minItemCount ?? 0),
@@ -588,7 +591,8 @@ function openDrawEdit(record: CouponTemplate) {
 
 async function submitDraw() {
   if (!canPublish.value) return
-  if (!drawForm.rewardTemplateId || !positiveId(drawForm.rewardTemplateId)) {
+  const rewardTemplateId = drawForm.rewardTemplateId ?? ''
+  if (!positiveId(rewardTemplateId)) {
     message.warning(t('couponAdmin.couponRequired'))
     return
   }
@@ -632,7 +636,7 @@ async function submitDraw() {
         validityDays: 0,
         naturalDay: false,
         enabled: drawForm.enabled,
-        rewardTemplateId: drawForm.rewardTemplateId,
+        rewardTemplateId,
         rewardCount,
         startAtUnixMillis: drawForm.startAt.valueOf(),
       },
