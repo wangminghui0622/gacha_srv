@@ -26,6 +26,7 @@ type (
 	CommitQuoteReq                    = marketing.CommitQuoteReq
 	CommitQuoteResp                   = marketing.CommitQuoteResp
 	CouponItem                        = marketing.CouponItem
+	CouponPoolEntry                   = marketing.CouponPoolEntry
 	CouponTemplate                    = marketing.CouponTemplate
 	CouponTemplateItem                = marketing.CouponTemplateItem
 	CreateCampaignDraftRequest        = marketing.CreateCampaignDraftRequest
@@ -33,6 +34,7 @@ type (
 	GetCampaignBoxEntitlementReq      = marketing.GetCampaignBoxEntitlementReq
 	GetCampaignBoxEntitlementResp     = marketing.GetCampaignBoxEntitlementResp
 	GetCampaignRequest                = marketing.GetCampaignRequest
+	GetCouponPoolEntryRequest         = marketing.GetCouponPoolEntryRequest
 	GetCouponTemplateByNoReq          = marketing.GetCouponTemplateByNoReq
 	GetCouponTemplateRequest          = marketing.GetCouponTemplateRequest
 	GetQuoteReq                       = marketing.GetQuoteReq
@@ -46,6 +48,8 @@ type (
 	ListCampaignBoxEntitlementsResp   = marketing.ListCampaignBoxEntitlementsResp
 	ListCampaignsReq                  = marketing.ListCampaignsReq
 	ListCampaignsResp                 = marketing.ListCampaignsResp
+	ListCouponPoolEntriesReply        = marketing.ListCouponPoolEntriesReply
+	ListCouponPoolEntriesRequest      = marketing.ListCouponPoolEntriesRequest
 	ListCouponTemplateVersionsReply   = marketing.ListCouponTemplateVersionsReply
 	ListCouponTemplateVersionsRequest = marketing.ListCouponTemplateVersionsRequest
 	ListCouponTemplatesReq            = marketing.ListCouponTemplatesReq
@@ -69,6 +73,7 @@ type (
 	SignInConfig                      = marketing.SignInConfig
 	SignInReward                      = marketing.SignInReward
 	TenantLoyaltyDefaults             = marketing.TenantLoyaltyDefaults
+	UpsertCouponPoolEntryRequest      = marketing.UpsertCouponPoolEntryRequest
 	UserCoupon                        = marketing.UserCoupon
 	WeightedSlot                      = marketing.WeightedSlot
 	WheelSlotItem                     = marketing.WheelSlotItem
@@ -98,6 +103,10 @@ type (
 		PublishCouponTemplate(ctx context.Context, in *PublishCouponTemplateRequest, opts ...grpc.CallOption) (*CouponTemplate, error)
 		GetCouponTemplate(ctx context.Context, in *GetCouponTemplateRequest, opts ...grpc.CallOption) (*CouponTemplate, error)
 		ListCouponTemplateVersions(ctx context.Context, in *ListCouponTemplateVersionsRequest, opts ...grpc.CallOption) (*ListCouponTemplateVersionsReply, error)
+		// ── M14d 券池（券池记录与券模板分离）──
+		ListCouponPoolEntries(ctx context.Context, in *ListCouponPoolEntriesRequest, opts ...grpc.CallOption) (*ListCouponPoolEntriesReply, error)
+		GetCouponPoolEntry(ctx context.Context, in *GetCouponPoolEntryRequest, opts ...grpc.CallOption) (*CouponPoolEntry, error)
+		UpsertCouponPoolEntry(ctx context.Context, in *UpsertCouponPoolEntryRequest, opts ...grpc.CallOption) (*CouponPoolEntry, error)
 		GrantCoupons(ctx context.Context, in *GrantCouponsRequest, opts ...grpc.CallOption) (*GrantCouponsReply, error)
 		GetTenantLoyaltyDefaults(ctx context.Context, in *GetTenantLoyaltyDefaultsRequest, opts ...grpc.CallOption) (*TenantLoyaltyDefaults, error)
 		PutTenantLoyaltyDefaults(ctx context.Context, in *PutTenantLoyaltyDefaultsRequest, opts ...grpc.CallOption) (*TenantLoyaltyDefaults, error)
@@ -201,6 +210,21 @@ func (m *defaultMarketing) GetCouponTemplate(ctx context.Context, in *GetCouponT
 func (m *defaultMarketing) ListCouponTemplateVersions(ctx context.Context, in *ListCouponTemplateVersionsRequest, opts ...grpc.CallOption) (*ListCouponTemplateVersionsReply, error) {
 	client := marketing.NewMarketingClient(m.cli.Conn())
 	return client.ListCouponTemplateVersions(ctx, in, opts...)
+}
+
+func (m *defaultMarketing) ListCouponPoolEntries(ctx context.Context, in *ListCouponPoolEntriesRequest, opts ...grpc.CallOption) (*ListCouponPoolEntriesReply, error) {
+	client := marketing.NewMarketingClient(m.cli.Conn())
+	return client.ListCouponPoolEntries(ctx, in, opts...)
+}
+
+func (m *defaultMarketing) GetCouponPoolEntry(ctx context.Context, in *GetCouponPoolEntryRequest, opts ...grpc.CallOption) (*CouponPoolEntry, error) {
+	client := marketing.NewMarketingClient(m.cli.Conn())
+	return client.GetCouponPoolEntry(ctx, in, opts...)
+}
+
+func (m *defaultMarketing) UpsertCouponPoolEntry(ctx context.Context, in *UpsertCouponPoolEntryRequest, opts ...grpc.CallOption) (*CouponPoolEntry, error) {
+	client := marketing.NewMarketingClient(m.cli.Conn())
+	return client.UpsertCouponPoolEntry(ctx, in, opts...)
 }
 
 func (m *defaultMarketing) GrantCoupons(ctx context.Context, in *GrantCouponsRequest, opts ...grpc.CallOption) (*GrantCouponsReply, error) {

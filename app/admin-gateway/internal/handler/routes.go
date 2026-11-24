@@ -559,6 +559,30 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: promotion.GetCouponTemplateHandler(serverCtx),
 				},
 				{
+					// 券池列表（promotion.coupon_pool:read；分页）
+					Method:  http.MethodGet,
+					Path:    "/promotion/tenants/:tenantId/coupon-pool-entries",
+					Handler: promotion.ListCouponPoolEntriesHandler(serverCtx),
+				},
+				{
+					// 创建券池记录（promotion.coupon_pool:create；body=entry 对象）
+					Method:  http.MethodPost,
+					Path:    "/promotion/tenants/:tenantId/coupon-pool-entries",
+					Handler: promotion.CreateCouponPoolEntryHandler(serverCtx),
+				},
+				{
+					// 查看券池记录（promotion.coupon_pool:read）
+					Method:  http.MethodGet,
+					Path:    "/promotion/tenants/:tenantId/coupon-pool-entries/:entryId",
+					Handler: promotion.GetCouponPoolEntryHandler(serverCtx),
+				},
+				{
+					// 编辑券池记录（promotion.coupon_pool:write；body=entry 对象）
+					Method:  http.MethodPut,
+					Path:    "/promotion/tenants/:tenantId/coupon-pool-entries/:entryId",
+					Handler: promotion.UpdateCouponPoolEntryHandler(serverCtx),
+				},
+				{
 					// 查看忠诚度默认值（promotion.tenant_loyalty:read）
 					Method:  http.MethodGet,
 					Path:    "/promotion/tenants/:tenantId/loyalty-defaults",

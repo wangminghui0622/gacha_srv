@@ -194,7 +194,7 @@ CREATE TABLE IF NOT EXISTS `coupon_template_versions` (
   `description` varchar(512) NOT NULL DEFAULT '' COMMENT '券描述',
   `natural_day` tinyint NOT NULL DEFAULT '0' COMMENT '有效期是否为自然日：1=是 0=否',
   `enabled` tinyint NOT NULL DEFAULT '1' COMMENT '启用状态：1=启用 0=禁用',
-  `kind` tinyint unsigned NOT NULL COMMENT '类型：1 FIXED_MINOR 2 PERCENT_BPS 3 FREE 4 CUSTOM_MINOR 5 DRAW_REWARD',
+  `kind` tinyint unsigned NOT NULL COMMENT '类型：1 FIXED_MINOR 2 PERCENT_BPS 3 FREE 4 CUSTOM_MINOR',
   `amount_minor` bigint NOT NULL DEFAULT '0' COMMENT '直减金额（分）',
   `percent_bps` int NOT NULL DEFAULT '0' COMMENT '折扣万分比（10000=100%）',
   `min_gross_minor` bigint NOT NULL DEFAULT '0' COMMENT '使用门槛（分）',
@@ -207,9 +207,6 @@ CREATE TABLE IF NOT EXISTS `coupon_template_versions` (
   `max_item_count` int unsigned NOT NULL DEFAULT '0' COMMENT '件数上限，0=不限',
   `target_business_key` varchar(64) NOT NULL DEFAULT '' COMMENT '业务键匹配（空=全匹配）',
   `validity_days` int unsigned NOT NULL DEFAULT '0' COMMENT '发券后有效天数，0=无期限',
-  `reward_template_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT 'DRAW_REWARD 引用的券模板ID',
-  `reward_count` int unsigned NOT NULL DEFAULT '0' COMMENT 'DRAW_REWARD 发放张数',
-  `start_at` bigint NOT NULL DEFAULT '0' COMMENT '券池生效开始时间（毫秒时间戳，0=立即）',
   `request_id` varchar(64) NOT NULL COMMENT '发布请求号（幂等键）',
   `published_at` datetime NOT NULL COMMENT '发布时间',
   PRIMARY KEY (`id`),
@@ -218,11 +215,25 @@ CREATE TABLE IF NOT EXISTS `coupon_template_versions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='券模板版本表（不可变，发布即生效）';
 
 
+CREATE TABLE IF NOT EXISTS `coupon_pool_entries` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `template_id` bigint unsigned NOT NULL COMMENT '引用的优惠券模板ID',
+  `count` int unsigned NOT NULL DEFAULT '0' COMMENT '发放张数',
+  `draw_count` int unsigned NOT NULL DEFAULT '0' COMMENT '满抽次数',
+  `start_at` bigint NOT NULL DEFAULT '0' COMMENT '生效开始时间（毫秒时间戳，0=立即）',
+  `enabled` tinyint NOT NULL DEFAULT '1' COMMENT '是否启用：1=启用 0=禁用',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_template_id` (`template_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='券池记录表（创建优惠券，独立于券模板版本）';
+
+
 CREATE TABLE IF NOT EXISTS `coupon_templates` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
   `template_no` varchar(64) NOT NULL COMMENT '模板单号（uk，确定性）',
   `name` varchar(128) NOT NULL DEFAULT '' COMMENT '券名称',
-  `kind` tinyint NOT NULL DEFAULT '1' COMMENT '类型：1 FIXED_MINOR 2 PERCENT_BPS 3 FREE 4 CUSTOM_MINOR 5 DRAW_REWARD',
+  `kind` tinyint NOT NULL DEFAULT '1' COMMENT '类型：1 FIXED_MINOR 2 PERCENT_BPS 3 FREE 4 CUSTOM_MINOR',
   `value` bigint NOT NULL DEFAULT '0' COMMENT '面值：kind1/4=直减金额（分）；kind2=折扣 bps（万分比，如 5000=5折）；kind3=0',
   `min_gross` bigint NOT NULL DEFAULT '0' COMMENT '使用门槛：订单原价下限（分），0=无门槛',
   `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态：0 草稿 1 已发布 2 已停用',

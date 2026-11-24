@@ -60,31 +60,31 @@
       </a-tab-pane>
       <a-tab-pane key="rules" :tab="$t('couponAdmin.tabGrantRules')">
         <a-table
-          :data-source="pagedDrawTemplates"
+          :data-source="pagedPoolEntries"
           :loading="loading"
           :pagination="false"
-          :row-key="(row: CouponTemplate) => String(row.templateId)"
+          :row-key="(row: CouponPoolEntry) => String(row.id)"
           :scroll="{ x: 980 }"
           size="middle"
         >
           <a-table-column :title="$t('couponAdmin.id')" width="80" align="center">
-            <template #default="{ record }">{{ record.templateId }}</template>
+            <template #default="{ record }">{{ record.id }}</template>
           </a-table-column>
           <a-table-column :title="$t('couponAdmin.couponTemplateName')" min-width="220" align="center">
-            <template #default="{ record }">{{ rewardCouponText(record) }}</template>
+            <template #default="{ record }">{{ poolTemplateText(record) }}</template>
           </a-table-column>
           <a-table-column :title="$t('couponAdmin.couponCount')" width="110" align="center">
-            <template #default="{ record }">{{ record.rewardCount ?? 0 }}</template>
+            <template #default="{ record }">{{ record.count ?? 0 }}</template>
           </a-table-column>
           <a-table-column :title="$t('couponAdmin.startTime')" min-width="180" align="center">
-            <template #default="{ record }">{{ startTimeText(record) }}</template>
+            <template #default="{ record }">{{ poolStartTimeText(record) }}</template>
           </a-table-column>
           <a-table-column :title="$t('couponAdmin.drawCount')" width="130" align="center">
-            <template #default="{ record }">{{ record.minItemCount ?? 0 }}</template>
+            <template #default="{ record }">{{ record.drawCount ?? 0 }}</template>
           </a-table-column>
           <a-table-column :title="$t('couponAdmin.status')" width="110" align="center">
             <template #default="{ record }">
-              <a class="coupon-status-link" @click="toggleStatus(record)">{{ isEnabled(record) ? $t('couponAdmin.enabled') : $t('couponAdmin.disabled') }}</a>
+              <a class="coupon-status-link" @click="togglePoolStatus(record)">{{ poolEnabled(record) ? $t('couponAdmin.enabled') : $t('couponAdmin.disabled') }}</a>
             </template>
           </a-table-column>
           <a-table-column :title="$t('couponAdmin.action')" width="110" align="center" fixed="right">
@@ -98,7 +98,7 @@
           <a-pagination
             v-model:current="drawPage"
             v-model:page-size="drawPageSize"
-            :total="latestDrawTemplates.length"
+            :total="poolEntries.length"
             :page-size-options="['15', '30', '50']"
             show-size-changer
             show-less-items
@@ -227,13 +227,13 @@
           />
         </a-form-item>
         <a-form-item :label="$t('couponAdmin.couponCount')" required>
-          <a-input-number v-model:value="drawForm.rewardCount" :min="1" :max="100" :precision="0" style="width: 16em" />
+          <a-input-number v-model:value="drawForm.count" :min="1" :max="1000" :precision="0" style="width: 16em" />
         </a-form-item>
         <a-form-item :label="$t('couponAdmin.startTime')" required>
           <a-date-picker v-model:value="drawForm.startAt" show-time format="YYYY-MM-DD HH:mm:ss" style="width: 16em" />
         </a-form-item>
         <a-form-item :label="$t('couponAdmin.drawCount')" required>
-          <a-input-number v-model:value="drawForm.minItemCount" :min="1" :precision="0" style="width: 16em" />
+          <a-input-number v-model:value="drawForm.drawCount" :min="1" :precision="0" style="width: 16em" />
         </a-form-item>
         <a-form-item :label="$t('couponAdmin.enableLabel')">
           <div class="coupon-switch-row">
@@ -256,7 +256,7 @@ import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 import { useI18n } from 'vue-i18n'
 import { promotionClient } from '@/api/promotion'
-import type { CouponTemplate } from '@/api/promotion'
+import type { CouponPoolEntry, CouponTemplate } from '@/api/promotion'
 import { allows } from '@/access/grants'
 import { useSessionStore } from '@/stores/session'
 import { newRequestId } from '@/utils/requestId'
@@ -270,6 +270,7 @@ const drawPage = ref(1)
 const drawPageSize = ref(15)
 
 const rawTemplates = ref<CouponTemplate[]>([])
+const poolEntries = ref<CouponPoolEntry[]>([])
 const loading = ref(false)
 const page = ref(1)
 const pageSize = ref(15)
@@ -285,19 +286,32 @@ const latestTemplates = computed(() => {
   }
   return [...latest.values()].sort((a, b) => Number(b.templateId ?? 0) - Number(a.templateId ?? 0))
 })
+function isRealCouponKind(kind: string | number | undefined) {
+  switch (String(kind ?? '')) {
+    case '1':
+    case 'COUPON_TEMPLATE_KIND_FIXED_MINOR':
+    case '2':
+    case 'COUPON_TEMPLATE_KIND_PERCENT_BPS':
+    case '3':
+    case 'COUPON_TEMPLATE_KIND_FREE':
+    case '4':
+    case 'COUPON_TEMPLATE_KIND_CUSTOM_MINOR':
+      return true
+    default:
+      return false
+  }
+}
+
 const latestCouponTemplates = computed(() =>
-  latestTemplates.value.filter((item) => normalizeKind(item.kind) !== 'COUPON_TEMPLATE_KIND_DRAW_REWARD'),
-)
-const latestDrawTemplates = computed(() =>
-  latestTemplates.value.filter((item) => normalizeKind(item.kind) === 'COUPON_TEMPLATE_KIND_DRAW_REWARD'),
+  latestTemplates.value.filter((item) => isRealCouponKind(item.kind)),
 )
 const pagedTemplates = computed(() => {
   const start = (page.value - 1) * pageSize.value
   return latestCouponTemplates.value.slice(start, start + pageSize.value)
 })
-const pagedDrawTemplates = computed(() => {
+const pagedPoolEntries = computed(() => {
   const start = (drawPage.value - 1) * drawPageSize.value
-  return latestDrawTemplates.value.slice(start, start + drawPageSize.value)
+  return poolEntries.value.slice(start, start + drawPageSize.value)
 })
 
 function tenant() {
@@ -305,30 +319,53 @@ function tenant() {
   return String(session.tenantId)
 }
 
+async function loadAllTemplates() {
+  const all: CouponTemplate[] = []
+  let afterTemplateId = '0'
+  let afterVersion = '0'
+  for (let i = 0; i < 20; i += 1) {
+    const result = await promotionClient().ListCouponTemplates({
+      tenantId: tenant(),
+      afterTemplateId,
+      afterVersion,
+      pageSize: 100,
+    })
+    all.push(...(result.templates ?? []))
+    const nextId = result.nextAfterTemplateId && result.nextAfterTemplateId !== '0' ? result.nextAfterTemplateId : ''
+    if (!nextId) break
+    afterTemplateId = nextId
+    afterVersion = result.nextAfterVersion ?? '0'
+  }
+  return all
+}
+
+async function loadAllPoolEntries() {
+  const all: CouponPoolEntry[] = []
+  let pageNo = 1
+  for (let i = 0; i < 20; i += 1) {
+    const result = await promotionClient().ListCouponPoolEntries({
+      tenantId: tenant(),
+      page: pageNo,
+      pageSize: 100,
+    })
+    const entries = result.entries ?? []
+    all.push(...entries)
+    if (entries.length === 0 || all.length >= Number(result.total ?? 0)) break
+    pageNo += 1
+  }
+  return all
+}
+
 async function load() {
   if (!canRead.value) return
   loading.value = true
   try {
-    const all: CouponTemplate[] = []
-    let afterTemplateId = '0'
-    let afterVersion = '0'
-    for (let i = 0; i < 20; i += 1) {
-      const result = await promotionClient().ListCouponTemplates({
-        tenantId: tenant(),
-        afterTemplateId,
-        afterVersion,
-        pageSize: 100,
-      })
-      all.push(...(result.templates ?? []))
-      const nextId = result.nextAfterTemplateId && result.nextAfterTemplateId !== '0' ? result.nextAfterTemplateId : ''
-      if (!nextId) break
-      afterTemplateId = nextId
-      afterVersion = result.nextAfterVersion ?? '0'
-    }
-    rawTemplates.value = all
+    const [templates, pools] = await Promise.all([loadAllTemplates(), loadAllPoolEntries()])
+    rawTemplates.value = templates
+    poolEntries.value = pools
     const maxPage = Math.max(1, Math.ceil(latestCouponTemplates.value.length / pageSize.value))
     if (page.value > maxPage) page.value = maxPage
-    const maxDrawPage = Math.max(1, Math.ceil(latestDrawTemplates.value.length / drawPageSize.value))
+    const maxDrawPage = Math.max(1, Math.ceil(poolEntries.value.length / drawPageSize.value))
     if (drawPage.value > maxDrawPage) drawPage.value = maxDrawPage
   } catch {
     message.error(t('couponAdmin.loadFailed'))
@@ -357,9 +394,6 @@ function kindText(kind: string | number | undefined) {
     case '4':
     case 'COUPON_TEMPLATE_KIND_CUSTOM_MINOR':
       return t('couponAdmin.kindCustom')
-    case '5':
-    case 'COUPON_TEMPLATE_KIND_DRAW_REWARD':
-      return t('couponAdmin.kindDrawReward')
     default:
       return '-'
   }
@@ -430,12 +464,8 @@ const form = reactive({
   minGrossYuan: 0,
   minUnitPriceYuan: 0,
   maxUnitPriceYuan: 0,
-  minItemCount: 0,
-  maxItemCount: 0,
   rewardAmountYuan: 0,
   discountPercent: undefined as number | undefined,
-  rewardCount: 0,
-  rewardTemplateId: '0',
   enabled: true,
 })
 
@@ -496,12 +526,8 @@ function openCreate() {
     minGrossYuan: 0,
     minUnitPriceYuan: 5,
     maxUnitPriceYuan: 100,
-    minItemCount: 0,
-    maxItemCount: 0,
     rewardAmountYuan: 0,
     discountPercent: undefined,
-    rewardCount: 0,
-    rewardTemplateId: '0',
     enabled: true,
   })
   modalOpen.value = true
@@ -522,12 +548,8 @@ function openEdit(record: CouponTemplate) {
     minGrossYuan: fenToYuan(record.minGrossMinor),
     minUnitPriceYuan: fenToYuan(record.minUnitPriceMinor),
     maxUnitPriceYuan: fenToYuan(record.maxUnitPriceMinor),
-    minItemCount: Number(record.minItemCount ?? 0),
-    maxItemCount: Number(record.maxItemCount ?? 0),
     rewardAmountYuan: fenToYuan(record.amountMinor),
     discountPercent: Number(record.percentBps ?? 0) / 100,
-    rewardCount: Number(record.rewardCount ?? 0),
-    rewardTemplateId: String(record.rewardTemplateId ?? '0'),
     enabled: isEnabled(record),
   })
   modalOpen.value = true
@@ -541,65 +563,69 @@ function defaultDrawStartAt() {
 }
 
 const drawForm = reactive({
-  templateId: '',
+  id: '',
   rewardTemplateId: undefined as string | undefined,
-  rewardCount: 20,
+  count: 20,
   startAt: defaultDrawStartAt() as Dayjs | null,
-  minItemCount: 1,
+  drawCount: 1,
   enabled: false,
 })
 const drawCouponOptions = computed(() =>
-  latestTemplates.value
-    .filter((item) => normalizeKind(item.kind) !== 'COUPON_TEMPLATE_KIND_DRAW_REWARD')
-    .map((item) => ({
-      value: String(item.templateId ?? ''),
-      label: `${item.name || '-'} (ID ${item.templateId})`,
-    })),
-)
-const drawSelectedCoupon = computed(() =>
-  latestTemplates.value.find(
-    (item) => String(item.templateId ?? '') === String(drawForm.rewardTemplateId ?? ''),
-  ),
+  latestCouponTemplates.value.map((item) => ({
+    value: String(item.templateId ?? ''),
+    label: `${item.name || '-'} (ID ${item.templateId})`,
+  })),
 )
 
-function rewardCouponText(record: CouponTemplate) {
-  const id = String(record.rewardTemplateId ?? '')
+function poolTemplateText(record: CouponPoolEntry) {
+  const id = String(record.templateId ?? '')
   if (!id || id === '0') return '-'
-  const coupon = latestTemplates.value.find((item) => String(item.templateId ?? '') === id)
-  return coupon?.name ? `${coupon.name} (ID ${id})` : `ID ${id}`
+  const coupon = latestCouponTemplates.value.find((item) => String(item.templateId ?? '') === id)
+  const name = String(record.templateName || coupon?.name || '')
+  return name ? `${name} (ID ${id})` : `ID ${id}`
 }
 
-function startTimeText(record: CouponTemplate) {
+function poolStartTimeText(record: CouponPoolEntry) {
   const ms = Number(record.startAtUnixMillis ?? 0)
   return ms > 0 ? dayjs(ms).format('YYYY-MM-DD HH:mm:ss') : t('couponAdmin.immediate')
 }
 
+function poolEnabled(record: CouponPoolEntry) {
+  // protojson 省略 false 标量字段：缺省即视为禁用
+  return record.enabled === true
+}
+
 function onRewardTemplateChange(value: string | undefined) {
-  drawForm.enabled = !!value
+  if (!value) {
+    drawForm.enabled = false
+    return
+  }
+  // 新建时选中模板即默认启用；编辑时保留原有启用状态
+  if (!drawForm.id) drawForm.enabled = true
 }
 
 function openDrawCreate() {
   Object.assign(drawForm, {
-    templateId: String(Math.max(0, ...latestTemplates.value.map((item) => Number(item.templateId ?? 0))) + 1),
+    id: '',
     rewardTemplateId: undefined,
-    rewardCount: 20,
+    count: 20,
     startAt: defaultDrawStartAt(),
-    minItemCount: 1,
+    drawCount: 1,
     enabled: false,
   })
   drawOpen.value = true
 }
 
-function openDrawEdit(record: CouponTemplate) {
+function openDrawEdit(record: CouponPoolEntry) {
   const startMs = Number(record.startAtUnixMillis ?? 0)
-  const rewardTemplateId = Number(record.rewardTemplateId ?? 0) > 0 ? String(record.rewardTemplateId) : undefined
+  const rewardTemplateId = Number(record.templateId ?? 0) > 0 ? String(record.templateId) : undefined
   Object.assign(drawForm, {
-    templateId: String(record.templateId ?? ''),
+    id: String(record.id ?? ''),
     rewardTemplateId,
-    rewardCount: Number(record.rewardCount ?? 1),
+    count: Number(record.count ?? 1),
     startAt: startMs > 0 ? dayjs(startMs) : defaultDrawStartAt(),
-    minItemCount: Number(record.minItemCount ?? 0),
-    enabled: isEnabled(record),
+    drawCount: Number(record.drawCount ?? 1),
+    enabled: poolEnabled(record),
   })
   drawOpen.value = true
 }
@@ -611,8 +637,8 @@ async function submitDraw() {
     message.warning(t('couponAdmin.couponRequired'))
     return
   }
-  const rewardCount = Math.trunc(drawForm.rewardCount)
-  if (rewardCount <= 0) {
+  const count = Math.trunc(drawForm.count)
+  if (count <= 0) {
     message.warning(t('couponAdmin.couponCountRequired'))
     return
   }
@@ -620,42 +646,29 @@ async function submitDraw() {
     message.warning(t('couponAdmin.startTimeRequired'))
     return
   }
-  const minItemCount = Math.trunc(drawForm.minItemCount)
-  if (minItemCount <= 0) {
+  const drawCount = Math.trunc(drawForm.drawCount)
+  if (drawCount <= 0) {
     message.warning(t('couponAdmin.drawCountRequired'))
     return
   }
-  const templateId = drawForm.templateId || String(Math.max(0, ...latestTemplates.value.map((item) => Number(item.templateId ?? 0))) + 1)
-  if (!positiveId(templateId)) {
-    message.warning(t('couponAdmin.typeRequired'))
-    return
+  const entry: CouponPoolEntry = {
+    templateId: rewardTemplateId,
+    count,
+    drawCount,
+    startAtUnixMillis: drawForm.startAt.valueOf(),
+    enabled: drawForm.enabled,
   }
   drawSaving.value = true
   try {
-    await promotionClient(newRequestId()).PublishCouponTemplate({
-      template: {
-        templateId,
+    if (drawForm.id && positiveId(drawForm.id)) {
+      await promotionClient(newRequestId()).UpdateCouponPoolEntry({
         tenantId: tenant(),
-        name: drawSelectedCoupon.value?.name || `券池-${templateId}`,
-        description: drawSelectedCoupon.value?.description || '',
-        kind: 'COUPON_TEMPLATE_KIND_DRAW_REWARD',
-        amountMinor: 0,
-        percentBps: 0,
-        minGrossMinor: 0,
-        minUnitPriceMinor: 0,
-        maxUnitPriceMinor: 0,
-        minItemCount,
-        maxItemCount: 0,
-        currency: 'CNY',
-        funder: 'DISCOUNT_FUNDER_PLATFORM',
-        validityDays: 0,
-        naturalDay: false,
-        enabled: drawForm.enabled,
-        rewardTemplateId,
-        rewardCount,
-        startAtUnixMillis: drawForm.startAt.valueOf(),
-      },
-    })
+        entryId: drawForm.id,
+        entry,
+      })
+    } else {
+      await promotionClient(newRequestId()).CreateCouponPoolEntry({ tenantId: tenant(), entry })
+    }
     message.success(t('couponAdmin.saved'))
     drawOpen.value = false
     activeTab.value = 'rules'
@@ -677,8 +690,6 @@ function normalizeKind(kind: string | number | undefined) {
       return 'COUPON_TEMPLATE_KIND_FREE'
     case '4':
       return 'COUPON_TEMPLATE_KIND_CUSTOM_MINOR'
-    case '5':
-      return 'COUPON_TEMPLATE_KIND_DRAW_REWARD'
     default:
       return String(kind ?? 'COUPON_TEMPLATE_KIND_FIXED_MINOR')
   }
@@ -753,8 +764,6 @@ async function save() {
     validityDays: Math.trunc(form.validityDays),
     naturalDay: form.naturalDay,
     enabled: form.enabled,
-    rewardTemplateId: form.rewardTemplateId.trim() || '0',
-    rewardCount: Math.max(0, Math.trunc(form.rewardCount)),
   }
   saving.value = true
   try {
@@ -786,6 +795,30 @@ async function toggleStatus(record: CouponTemplate) {
     await load()
   } finally {
     togglingId.value = ''
+  }
+}
+
+async function togglePoolStatus(record: CouponPoolEntry) {
+  if (!canPublish.value) return
+  const id = String(record.id ?? '')
+  if (!id || !positiveId(id)) return
+  drawSaving.value = true
+  try {
+    await promotionClient(newRequestId()).UpdateCouponPoolEntry({
+      tenantId: tenant(),
+      entryId: id,
+      entry: {
+        templateId: record.templateId,
+        count: Number(record.count ?? 0),
+        drawCount: Number(record.drawCount ?? 0),
+        startAtUnixMillis: Number(record.startAtUnixMillis ?? 0),
+        enabled: !poolEnabled(record),
+      },
+    })
+    message.success(t('couponAdmin.statusSaved'))
+    await load()
+  } finally {
+    drawSaving.value = false
   }
 }
 

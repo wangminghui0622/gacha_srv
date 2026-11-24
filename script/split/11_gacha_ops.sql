@@ -276,6 +276,9 @@ FROM roles r
 JOIN (
   SELECT 'promotion.coupon_template' AS resource, 'read' AS action
   UNION ALL SELECT 'promotion.coupon_template', 'publish'
+  UNION ALL SELECT 'promotion.coupon_pool', 'read'
+  UNION ALL SELECT 'promotion.coupon_pool', 'create'
+  UNION ALL SELECT 'promotion.coupon_pool', 'write'
   UNION ALL SELECT 'promotion.tenant_loyalty', 'read'
   UNION ALL SELECT 'promotion.tenant_loyalty', 'write'
   UNION ALL SELECT 'promotion.user_coupon', 'grant'

@@ -32,6 +32,9 @@ const (
 	Marketing_PublishCouponTemplate_FullMethodName       = "/marketing.Marketing/PublishCouponTemplate"
 	Marketing_GetCouponTemplate_FullMethodName           = "/marketing.Marketing/GetCouponTemplate"
 	Marketing_ListCouponTemplateVersions_FullMethodName  = "/marketing.Marketing/ListCouponTemplateVersions"
+	Marketing_ListCouponPoolEntries_FullMethodName       = "/marketing.Marketing/ListCouponPoolEntries"
+	Marketing_GetCouponPoolEntry_FullMethodName          = "/marketing.Marketing/GetCouponPoolEntry"
+	Marketing_UpsertCouponPoolEntry_FullMethodName       = "/marketing.Marketing/UpsertCouponPoolEntry"
 	Marketing_GrantCoupons_FullMethodName                = "/marketing.Marketing/GrantCoupons"
 	Marketing_GetTenantLoyaltyDefaults_FullMethodName    = "/marketing.Marketing/GetTenantLoyaltyDefaults"
 	Marketing_PutTenantLoyaltyDefaults_FullMethodName    = "/marketing.Marketing/PutTenantLoyaltyDefaults"
@@ -74,6 +77,13 @@ type MarketingClient interface {
 	PublishCouponTemplate(ctx context.Context, in *PublishCouponTemplateRequest, opts ...grpc.CallOption) (*CouponTemplate, error)
 	GetCouponTemplate(ctx context.Context, in *GetCouponTemplateRequest, opts ...grpc.CallOption) (*CouponTemplate, error)
 	ListCouponTemplateVersions(ctx context.Context, in *ListCouponTemplateVersionsRequest, opts ...grpc.CallOption) (*ListCouponTemplateVersionsReply, error)
+	// ── M14d 券池（券池记录与券模板分离）──
+	// ListCouponPoolEntries 券池列表（关联最新券模板名称）
+	ListCouponPoolEntries(ctx context.Context, in *ListCouponPoolEntriesRequest, opts ...grpc.CallOption) (*ListCouponPoolEntriesReply, error)
+	// GetCouponPoolEntry 查看券池记录
+	GetCouponPoolEntry(ctx context.Context, in *GetCouponPoolEntryRequest, opts ...grpc.CallOption) (*CouponPoolEntry, error)
+	// UpsertCouponPoolEntry 创建/编辑券池记录（id=0 创建，id>0 编辑）
+	UpsertCouponPoolEntry(ctx context.Context, in *UpsertCouponPoolEntryRequest, opts ...grpc.CallOption) (*CouponPoolEntry, error)
 	GrantCoupons(ctx context.Context, in *GrantCouponsRequest, opts ...grpc.CallOption) (*GrantCouponsReply, error)
 	GetTenantLoyaltyDefaults(ctx context.Context, in *GetTenantLoyaltyDefaultsRequest, opts ...grpc.CallOption) (*TenantLoyaltyDefaults, error)
 	PutTenantLoyaltyDefaults(ctx context.Context, in *PutTenantLoyaltyDefaultsRequest, opts ...grpc.CallOption) (*TenantLoyaltyDefaults, error)
@@ -218,6 +228,33 @@ func (c *marketingClient) ListCouponTemplateVersions(ctx context.Context, in *Li
 	return out, nil
 }
 
+func (c *marketingClient) ListCouponPoolEntries(ctx context.Context, in *ListCouponPoolEntriesRequest, opts ...grpc.CallOption) (*ListCouponPoolEntriesReply, error) {
+	out := new(ListCouponPoolEntriesReply)
+	err := c.cc.Invoke(ctx, Marketing_ListCouponPoolEntries_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *marketingClient) GetCouponPoolEntry(ctx context.Context, in *GetCouponPoolEntryRequest, opts ...grpc.CallOption) (*CouponPoolEntry, error) {
+	out := new(CouponPoolEntry)
+	err := c.cc.Invoke(ctx, Marketing_GetCouponPoolEntry_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *marketingClient) UpsertCouponPoolEntry(ctx context.Context, in *UpsertCouponPoolEntryRequest, opts ...grpc.CallOption) (*CouponPoolEntry, error) {
+	out := new(CouponPoolEntry)
+	err := c.cc.Invoke(ctx, Marketing_UpsertCouponPoolEntry_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *marketingClient) GrantCoupons(ctx context.Context, in *GrantCouponsRequest, opts ...grpc.CallOption) (*GrantCouponsReply, error) {
 	out := new(GrantCouponsReply)
 	err := c.cc.Invoke(ctx, Marketing_GrantCoupons_FullMethodName, in, out, opts...)
@@ -346,6 +383,13 @@ type MarketingServer interface {
 	PublishCouponTemplate(context.Context, *PublishCouponTemplateRequest) (*CouponTemplate, error)
 	GetCouponTemplate(context.Context, *GetCouponTemplateRequest) (*CouponTemplate, error)
 	ListCouponTemplateVersions(context.Context, *ListCouponTemplateVersionsRequest) (*ListCouponTemplateVersionsReply, error)
+	// ── M14d 券池（券池记录与券模板分离）──
+	// ListCouponPoolEntries 券池列表（关联最新券模板名称）
+	ListCouponPoolEntries(context.Context, *ListCouponPoolEntriesRequest) (*ListCouponPoolEntriesReply, error)
+	// GetCouponPoolEntry 查看券池记录
+	GetCouponPoolEntry(context.Context, *GetCouponPoolEntryRequest) (*CouponPoolEntry, error)
+	// UpsertCouponPoolEntry 创建/编辑券池记录（id=0 创建，id>0 编辑）
+	UpsertCouponPoolEntry(context.Context, *UpsertCouponPoolEntryRequest) (*CouponPoolEntry, error)
 	GrantCoupons(context.Context, *GrantCouponsRequest) (*GrantCouponsReply, error)
 	GetTenantLoyaltyDefaults(context.Context, *GetTenantLoyaltyDefaultsRequest) (*TenantLoyaltyDefaults, error)
 	PutTenantLoyaltyDefaults(context.Context, *PutTenantLoyaltyDefaultsRequest) (*TenantLoyaltyDefaults, error)
@@ -408,6 +452,15 @@ func (UnimplementedMarketingServer) GetCouponTemplate(context.Context, *GetCoupo
 }
 func (UnimplementedMarketingServer) ListCouponTemplateVersions(context.Context, *ListCouponTemplateVersionsRequest) (*ListCouponTemplateVersionsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCouponTemplateVersions not implemented")
+}
+func (UnimplementedMarketingServer) ListCouponPoolEntries(context.Context, *ListCouponPoolEntriesRequest) (*ListCouponPoolEntriesReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListCouponPoolEntries not implemented")
+}
+func (UnimplementedMarketingServer) GetCouponPoolEntry(context.Context, *GetCouponPoolEntryRequest) (*CouponPoolEntry, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCouponPoolEntry not implemented")
+}
+func (UnimplementedMarketingServer) UpsertCouponPoolEntry(context.Context, *UpsertCouponPoolEntryRequest) (*CouponPoolEntry, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpsertCouponPoolEntry not implemented")
 }
 func (UnimplementedMarketingServer) GrantCoupons(context.Context, *GrantCouponsRequest) (*GrantCouponsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GrantCoupons not implemented")
@@ -689,6 +742,60 @@ func _Marketing_ListCouponTemplateVersions_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Marketing_ListCouponPoolEntries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCouponPoolEntriesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MarketingServer).ListCouponPoolEntries(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Marketing_ListCouponPoolEntries_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MarketingServer).ListCouponPoolEntries(ctx, req.(*ListCouponPoolEntriesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Marketing_GetCouponPoolEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCouponPoolEntryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MarketingServer).GetCouponPoolEntry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Marketing_GetCouponPoolEntry_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MarketingServer).GetCouponPoolEntry(ctx, req.(*GetCouponPoolEntryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Marketing_UpsertCouponPoolEntry_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpsertCouponPoolEntryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MarketingServer).UpsertCouponPoolEntry(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Marketing_UpsertCouponPoolEntry_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MarketingServer).UpsertCouponPoolEntry(ctx, req.(*UpsertCouponPoolEntryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Marketing_GrantCoupons_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GrantCouponsRequest)
 	if err := dec(in); err != nil {
@@ -945,6 +1052,18 @@ var Marketing_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCouponTemplateVersions",
 			Handler:    _Marketing_ListCouponTemplateVersions_Handler,
+		},
+		{
+			MethodName: "ListCouponPoolEntries",
+			Handler:    _Marketing_ListCouponPoolEntries_Handler,
+		},
+		{
+			MethodName: "GetCouponPoolEntry",
+			Handler:    _Marketing_GetCouponPoolEntry_Handler,
+		},
+		{
+			MethodName: "UpsertCouponPoolEntry",
+			Handler:    _Marketing_UpsertCouponPoolEntry_Handler,
 		},
 		{
 			MethodName: "GrantCoupons",

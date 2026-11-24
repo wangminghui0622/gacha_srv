@@ -16,7 +16,6 @@ const (
 	PlayerTplKindPercentBps  int32 = 2
 	PlayerTplKindFree        int32 = 3
 	PlayerTplKindCustomMinor int32 = 4
-	PlayerTplKindDrawReward  int32 = 5
 )
 
 type (
@@ -50,11 +49,21 @@ type (
 		MaxItemCount      int32  `gorm:"column:max_item_count"`
 		TargetBusinessKey string `gorm:"column:target_business_key"`
 		ValidityDays      int32  `gorm:"column:validity_days"`
-		RewardTemplateID  int64  `gorm:"column:reward_template_id"`
-		RewardCount       int32  `gorm:"column:reward_count"`
-		StartAt           int64  `gorm:"column:start_at"`
 		RequestID         string `gorm:"column:request_id"`
 		PublishedAt       time.Time
+	}
+
+	// CouponPoolEntryRow coupon_pool_entries 表行（券池记录，独立于模板版本）
+	CouponPoolEntryRow struct {
+		ID           int64     `gorm:"column:id;primaryKey;autoIncrement"`
+		TemplateID   int64     `gorm:"column:template_id"`
+		Count        int32     `gorm:"column:count"`
+		DrawCount    int32     `gorm:"column:draw_count"`
+		StartAt      int64     `gorm:"column:start_at"`
+		Enabled      int32     `gorm:"column:enabled"`
+		CreatedAt    time.Time `gorm:"column:created_at"`
+		UpdatedAt    time.Time `gorm:"column:updated_at"`
+		TemplateName string    `gorm:"column:template_name;->"`
 	}
 
 	// PlayerCouponTemplateRow player coupon_templates 物化行（玩家折扣计算读该表）
@@ -87,6 +96,7 @@ type (
 
 func (CouponTemplateHeadRow) TableName() string    { return "coupon_template_heads" }
 func (CouponTemplateVersionRow) TableName() string { return "coupon_template_versions" }
+func (CouponPoolEntryRow) TableName() string       { return "coupon_pool_entries" }
 func (UserCouponGrantRow) TableName() string       { return "user_coupons" }
 
 // GetCouponTemplateHead 读 head（不加锁）；未找到返回 gorm.ErrRecordNotFound。
@@ -175,6 +185,59 @@ func ListCouponTemplateVersions(tx *gorm.DB, afterTemplateID, afterVersion int64
 		return nil, err
 	}
 	return rows, nil
+}
+
+// ListCouponPoolEntries 券池分页（id 倒序，关联引用模板的最新版本名称）。
+func ListCouponPoolEntries(tx *gorm.DB, offset, limit int) ([]CouponPoolEntryRow, int64, error) {
+	var total int64
+	if err := tx.Model(&CouponPoolEntryRow{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	var rows []CouponPoolEntryRow
+	err := tx.Table("coupon_pool_entries AS e").
+		Select("e.id, e.template_id, e.count, e.draw_count, e.start_at, e.enabled, e.created_at, e.updated_at, " +
+			"COALESCE(v.name, '') AS template_name").
+		Joins("LEFT JOIN coupon_template_versions v ON v.template_id = e.template_id " +
+			"AND v.version = (SELECT MAX(v2.version) FROM coupon_template_versions v2 WHERE v2.template_id = e.template_id)").
+		Order("e.id DESC").Limit(limit).Offset(offset).Scan(&rows).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	return rows, total, nil
+}
+
+// GetCouponPoolEntry 读单条券池记录（含最新模板名称）；未找到返回 gorm.ErrRecordNotFound。
+func GetCouponPoolEntry(tx *gorm.DB, id int64) (*CouponPoolEntryRow, error) {
+	var row CouponPoolEntryRow
+	err := tx.Table("coupon_pool_entries AS e").
+		Select("e.id, e.template_id, e.count, e.draw_count, e.start_at, e.enabled, e.created_at, e.updated_at, "+
+			"COALESCE(v.name, '') AS template_name").
+		Joins("LEFT JOIN coupon_template_versions v ON v.template_id = e.template_id "+
+			"AND v.version = (SELECT MAX(v2.version) FROM coupon_template_versions v2 WHERE v2.template_id = e.template_id)").
+		Where("e.id = ?", id).Limit(1).Scan(&row).Error
+	if err != nil {
+		return nil, err
+	}
+	if row.ID == 0 {
+		return nil, gorm.ErrRecordNotFound
+	}
+	return &row, nil
+}
+
+// InsertCouponPoolEntry 创建券池记录（ID 由自增回填）。
+func InsertCouponPoolEntry(tx *gorm.DB, row *CouponPoolEntryRow) error {
+	return tx.Create(row).Error
+}
+
+// UpdateCouponPoolEntry 编辑券池记录（仅可编辑业务字段）。
+func UpdateCouponPoolEntry(tx *gorm.DB, row *CouponPoolEntryRow) error {
+	return tx.Model(&CouponPoolEntryRow{}).Where("id = ?", row.ID).Updates(map[string]any{
+		"template_id": row.TemplateID,
+		"count":       row.Count,
+		"draw_count":  row.DrawCount,
+		"start_at":    row.StartAt,
+		"enabled":     row.Enabled,
+	}).Error
 }
 
 // UpsertPlayerCouponTemplate 物化 player coupon_templates 行（template_no uk；已存在则更新）。
@@ -267,8 +330,27 @@ func (r *CouponTemplateVersionRow) ToProto() *marketing.CouponTemplate {
 		MaxItemCount:      uint32(r.MaxItemCount),
 		TargetBusinessKey: r.TargetBusinessKey,
 		ValidityDays:      uint32(r.ValidityDays),
-		RewardTemplateId:  uint64(r.RewardTemplateID),
-		RewardCount:       uint32(r.RewardCount),
-		StartAtUnixMillis: r.StartAt,
 	}
+}
+
+// ToProto 券池行 → console CouponPoolEntry。
+func (r *CouponPoolEntryRow) ToProto() *marketing.CouponPoolEntry {
+	return &marketing.CouponPoolEntry{
+		Id:                  uint64(r.ID),
+		TemplateId:          uint64(r.TemplateID),
+		TemplateName:        r.TemplateName,
+		Count:               uint32(r.Count),
+		DrawCount:           uint32(r.DrawCount),
+		StartAtUnixMillis:   r.StartAt,
+		Enabled:             r.Enabled == 1,
+		CreatedAtUnixMillis: timeToUnixMillis(r.CreatedAt),
+		UpdatedAtUnixMillis: timeToUnixMillis(r.UpdatedAt),
+	}
+}
+
+func timeToUnixMillis(t time.Time) uint64 {
+	if t.IsZero() {
+		return 0
+	}
+	return uint64(t.UnixMilli())
 }

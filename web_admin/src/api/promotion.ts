@@ -26,9 +26,18 @@ export interface CouponTemplate {
   validityDays?: number
   naturalDay?: boolean
   enabled?: boolean
-  rewardTemplateId?: string | number
-  rewardCount?: number
+}
+
+export interface CouponPoolEntry {
+  id?: string | number
+  templateId?: string | number
+  templateName?: string
+  count?: number
+  drawCount?: number
   startAtUnixMillis?: string | number
+  enabled?: boolean
+  createdAtUnixMillis?: string | number
+  updatedAtUnixMillis?: string | number
 }
 
 export interface UserCoupon {
@@ -56,6 +65,11 @@ export interface ListCouponTemplatesReply {
   nextAfterVersion?: string
 }
 
+export interface ListCouponPoolEntriesReply {
+  entries?: CouponPoolEntry[]
+  total?: string
+}
+
 export interface GrantCouponsReply {
   coupons?: UserCoupon[]
 }
@@ -78,6 +92,25 @@ export function promotionClient(requestId?: string) {
       return http.post(
         `/console/v2/api/promotion/tenants/${encodeURIComponent(String(template.tenantId ?? 1))}/coupon-templates`,
         template,
+        { headers },
+      )
+    },
+    ListCouponPoolEntries({ tenantId, page, pageSize }: { tenantId: string | number; page?: number; pageSize?: number }): Promise<ListCouponPoolEntriesReply> {
+      return http.get(`/console/v2/api/promotion/tenants/${encodeURIComponent(String(tenantId))}/coupon-pool-entries`, {
+        params: { page: page ?? 1, pageSize: pageSize ?? 20 },
+      })
+    },
+    CreateCouponPoolEntry({ tenantId, entry }: { tenantId: string | number; entry: CouponPoolEntry }): Promise<CouponPoolEntry> {
+      return http.post(
+        `/console/v2/api/promotion/tenants/${encodeURIComponent(String(tenantId))}/coupon-pool-entries`,
+        entry,
+        { headers },
+      )
+    },
+    UpdateCouponPoolEntry({ tenantId, entryId, entry }: { tenantId: string | number; entryId: string; entry: CouponPoolEntry }): Promise<CouponPoolEntry> {
+      return http.put(
+        `/console/v2/api/promotion/tenants/${encodeURIComponent(String(tenantId))}/coupon-pool-entries/${encodeURIComponent(entryId)}`,
+        entry,
         { headers },
       )
     },

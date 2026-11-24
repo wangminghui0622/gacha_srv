@@ -50,16 +50,11 @@ func TestValidateCouponTemplate(t *testing.T) {
 	if err := ValidateCouponTemplate(fixedBps); err == nil {
 		t.Error("FIXED_MINOR 券 percentBps≠0 应报错")
 	}
-	// DRAW_REWARD 缺引用
+	// DRAW_REWARD 已迁出券模板（券池独立表），模板发布必须拒绝
 	dr := validTemplate()
 	dr.Kind = marketing.CouponTemplateKind_COUPON_TEMPLATE_KIND_DRAW_REWARD
 	if err := ValidateCouponTemplate(dr); err == nil {
-		t.Error("DRAW_REWARD 缺 rewardTemplateId 应报错")
-	}
-	dr.RewardTemplateId = 3
-	dr.RewardCount = 1
-	if err := ValidateCouponTemplate(dr); err != nil {
-		t.Fatalf("DRAW_REWARD 完整模板应合法: %v", err)
+		t.Error("DRAW_REWARD 不应再作为券模板发布")
 	}
 	// 通用校验
 	bad := validTemplate()

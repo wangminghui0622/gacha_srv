@@ -99,6 +99,21 @@ func (s *MarketingServer) ListCouponTemplateVersions(ctx context.Context, in *ma
 	return l.ListCouponTemplateVersions(in)
 }
 
+func (s *MarketingServer) ListCouponPoolEntries(ctx context.Context, in *marketing.ListCouponPoolEntriesRequest) (*marketing.ListCouponPoolEntriesReply, error) {
+	l := logic.NewListCouponPoolEntriesLogic(ctx, s.svcCtx)
+	return l.ListCouponPoolEntries(in)
+}
+
+func (s *MarketingServer) GetCouponPoolEntry(ctx context.Context, in *marketing.GetCouponPoolEntryRequest) (*marketing.CouponPoolEntry, error) {
+	l := logic.NewGetCouponPoolEntryLogic(ctx, s.svcCtx)
+	return l.GetCouponPoolEntry(in)
+}
+
+func (s *MarketingServer) UpsertCouponPoolEntry(ctx context.Context, in *marketing.UpsertCouponPoolEntryRequest) (*marketing.CouponPoolEntry, error) {
+	l := logic.NewUpsertCouponPoolEntryLogic(ctx, s.svcCtx)
+	return l.UpsertCouponPoolEntry(in)
+}
+
 func (s *MarketingServer) GrantCoupons(ctx context.Context, in *marketing.GrantCouponsRequest) (*marketing.GrantCouponsReply, error) {
 	l := logic.NewGrantCouponsLogic(ctx, s.svcCtx)
 	return l.GrantCoupons(in)

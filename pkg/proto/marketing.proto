@@ -36,6 +36,13 @@ service Marketing {
     rpc PublishCouponTemplate(PublishCouponTemplateRequest) returns (CouponTemplate);
     rpc GetCouponTemplate(GetCouponTemplateRequest) returns (CouponTemplate);
     rpc ListCouponTemplateVersions(ListCouponTemplateVersionsRequest) returns (ListCouponTemplateVersionsReply);
+    // ── M14d 券池（券池记录与券模板分离）──
+    // ListCouponPoolEntries 券池列表（关联最新券模板名称）
+    rpc ListCouponPoolEntries(ListCouponPoolEntriesRequest) returns (ListCouponPoolEntriesReply);
+    // GetCouponPoolEntry 查看券池记录
+    rpc GetCouponPoolEntry(GetCouponPoolEntryRequest) returns (CouponPoolEntry);
+    // UpsertCouponPoolEntry 创建/编辑券池记录（id=0 创建，id>0 编辑）
+    rpc UpsertCouponPoolEntry(UpsertCouponPoolEntryRequest) returns (CouponPoolEntry);
     rpc GrantCoupons(GrantCouponsRequest) returns (GrantCouponsReply);
     rpc GetTenantLoyaltyDefaults(GetTenantLoyaltyDefaultsRequest) returns (TenantLoyaltyDefaults);
     rpc PutTenantLoyaltyDefaults(PutTenantLoyaltyDefaultsRequest) returns (TenantLoyaltyDefaults);
@@ -490,14 +497,12 @@ message CouponTemplate {
     uint32 maxItemCount = 15;
     string targetBusinessKey = 16;
     uint32 validityDays = 17;
-    uint64 rewardTemplateId = 18;
-    uint32 rewardCount = 19;
     string name = 20;
     string description = 21;
     bool naturalDay = 22;
     bool enabled = 23;
-    // 券池/发券规则生效开始时间（毫秒时间戳，0=立即）
-    int64 startAtUnixMillis = 24;
+    reserved 18, 19, 24;
+    reserved "rewardTemplateId", "rewardCount", "startAtUnixMillis";
 }
 
 message PublishCouponTemplateRequest {
@@ -521,6 +526,42 @@ message ListCouponTemplateVersionsReply {
     repeated CouponTemplate templates = 1;
     uint64 nextAfterTemplateId = 2;
     uint64 nextAfterVersion = 3;
+}
+
+// ── 券池（coupon_pool_entries，独立于 coupon_template_versions）──
+
+message CouponPoolEntry {
+    uint64 id = 1;
+    uint64 templateId = 2;       // 引用的优惠券模板 ID
+    string templateName = 3;     // 引用模板的最新名称（只读）
+    uint32 count = 4;            // 张数
+    uint32 drawCount = 5;        // 满抽次数
+    int64 startAtUnixMillis = 6; // 生效开始时间（毫秒时间戳，0=立即）
+    bool enabled = 7;            // 是否启用
+    uint64 createdAtUnixMillis = 8;
+    uint64 updatedAtUnixMillis = 9;
+}
+
+message ListCouponPoolEntriesRequest {
+    uint64 tenantId = 1;
+    uint32 page = 2;     // 从 1 开始
+    uint32 pageSize = 3; // 默认 20，上限 100
+}
+
+message ListCouponPoolEntriesReply {
+    repeated CouponPoolEntry entries = 1;
+    uint64 total = 2;
+}
+
+message GetCouponPoolEntryRequest {
+    uint64 tenantId = 1;
+    uint64 id = 2;
+}
+
+message UpsertCouponPoolEntryRequest {
+    string requestId = 1; // 保留：控制台请求号
+    uint64 tenantId = 2;
+    CouponPoolEntry entry = 3;
 }
 
 enum UserCouponStatus {

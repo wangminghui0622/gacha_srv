@@ -66,15 +66,6 @@ func (l *PublishCouponTemplateLogic) PublishCouponTemplate(in *marketing.Publish
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
-		// DRAW_REWARD：引用的券模板须已发布（latest 存在）
-		if t.Kind == marketing.CouponTemplateKind_COUPON_TEMPLATE_KIND_DRAW_REWARD {
-			if _, err := repo.GetLatestCouponTemplateVersion(tx, int64(t.RewardTemplateId)); err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					return errorx.NewCodeError(errorx.CodeCouponInvalid, "rewardTemplateId 指向的券模板未发布")
-				}
-				return err
-			}
-		}
 		if err := repo.EnsureCouponTemplateHead(tx, int64(t.TemplateId)); err != nil {
 			return err
 		}
@@ -102,9 +93,6 @@ func (l *PublishCouponTemplateLogic) PublishCouponTemplate(in *marketing.Publish
 			MaxItemCount:      int32(t.MaxItemCount),
 			TargetBusinessKey: t.TargetBusinessKey,
 			ValidityDays:      int32(t.ValidityDays),
-			RewardTemplateID:  int64(t.RewardTemplateId),
-			RewardCount:       int32(t.RewardCount),
-			StartAt:           t.StartAtUnixMillis,
 			RequestID:         in.RequestId,
 			PublishedAt:       time.Now(),
 		}

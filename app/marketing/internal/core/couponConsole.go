@@ -86,16 +86,6 @@ func ValidateCouponTemplate(t *marketing.CouponTemplate) error {
 		if t.PercentBps != 0 {
 			return fmt.Errorf("CUSTOM_MINOR 券 percentBps 必须为 0")
 		}
-	case marketing.CouponTemplateKind_COUPON_TEMPLATE_KIND_DRAW_REWARD:
-		if t.RewardTemplateId == 0 {
-			return fmt.Errorf("DRAW_REWARD 券 rewardTemplateId 必须大于 0")
-		}
-		if t.RewardCount == 0 {
-			return fmt.Errorf("DRAW_REWARD 券 rewardCount 必须大于 0")
-		}
-		if t.TemplateId != 0 && t.RewardTemplateId == t.TemplateId {
-			return fmt.Errorf("DRAW_REWARD 券 rewardTemplateId 不能指向自身")
-		}
 	default:
 		return fmt.Errorf("不支持的 CouponTemplateKind: %s", t.Kind)
 	}
