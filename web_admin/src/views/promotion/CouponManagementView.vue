@@ -532,9 +532,9 @@ const drawSaving = ref(false)
 const drawForm = reactive({
   templateId: '',
   rewardTemplateId: '',
-  rewardCount: 1,
+  rewardCount: 20,
   startAt: dayjs() as Dayjs | null,
-  minItemCount: 0,
+  minItemCount: 1,
   enabled: true,
 })
 const drawCouponOptions = computed(() =>
@@ -565,9 +565,9 @@ function openDrawCreate() {
   Object.assign(drawForm, {
     templateId: String(Math.max(0, ...latestTemplates.value.map((item) => Number(item.templateId ?? 0))) + 1),
     rewardTemplateId: '',
-    rewardCount: 1,
+    rewardCount: 20,
     startAt: dayjs(),
-    minItemCount: 0,
+    minItemCount: 1,
     enabled: true,
   })
   drawOpen.value = true
