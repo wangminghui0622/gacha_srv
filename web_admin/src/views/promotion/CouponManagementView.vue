@@ -66,19 +66,15 @@
       @ok="save"
     >
       <div class="coupon-choice-area">
-        <div class="coupon-choice-line">
-          <div class="coupon-choice-inline">
-            <span class="coupon-choice-title"><span class="coupon-choice-required">{{ $t('couponAdmin.typeLabel') }}</span>：</span>
-            <a-radio-group v-model:value="form.kind" class="coupon-radio-group">
-              <a-radio v-for="option in kindOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
-            </a-radio-group>
-          </div>
-          <div class="coupon-choice-inline">
-            <span class="coupon-choice-title">{{ $t('couponAdmin.scopeLabel') }}：</span>
-            <a-radio-group v-model:value="form.scope" class="coupon-radio-group">
-              <a-radio v-for="option in scopeOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
-            </a-radio-group>
-          </div>
+        <div class="coupon-choice-grid">
+          <span class="coupon-choice-title coupon-choice-label"><span class="coupon-choice-required">{{ $t('couponAdmin.typeLabel') }}</span>：</span>
+          <a-radio-group v-model:value="form.kind" class="coupon-radio-group">
+            <a-radio v-for="option in kindOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
+          </a-radio-group>
+          <span class="coupon-choice-title coupon-choice-label">{{ $t('couponAdmin.scopeLabel') }}：</span>
+          <a-radio-group v-model:value="form.scope" class="coupon-radio-group">
+            <a-radio v-for="option in scopeOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
+          </a-radio-group>
         </div>
         <div v-if="form.scope === 'mode'" class="coupon-choice-block">
           <div class="coupon-choice-title">
@@ -611,20 +607,15 @@ onMounted(() => {
   gap: 14px;
   margin: 4px 0 22px;
 }
-.coupon-choice-line {
-  display: flex;
-  flex-wrap: wrap;
+.coupon-choice-grid {
+  display: grid;
+  grid-template-columns: auto auto;
   align-items: center;
   justify-content: center;
-  gap: 12px 24px;
+  gap: 14px 10px;
   width: 100%;
 }
-.coupon-choice-inline {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.coupon-choice-inline .coupon-choice-title {
+.coupon-choice-label {
   width: 100px;
   font-size: 15px;
   text-align: right;
