@@ -9,7 +9,7 @@
             :placeholder="$t('couponAdmin.templateSearchPlaceholder')"
             allow-clear
           />
-          <a-button v-if="canPublish" class="coupon-create-btn" @click="openCreate">{{ $t('couponAdmin.createTemplateAction') }}</a-button>
+          <a-button v-if="canPublish" @click="openCreate">{{ $t('couponAdmin.createTemplateAction') }}</a-button>
         </div>
         <a-table
           :data-source="pagedTemplates"
@@ -1492,15 +1492,6 @@ onMounted(async () => {
   margin-top: 8px;
 }
 
-.coupon-query-btn {
-  background: #1eaa59;
-  border-color: #1eaa59;
-}
-.coupon-create-btn,
-.coupon-grant-user-btn {
-  color: #1eaa59;
-  border-color: #b7e4c7;
-}
 .coupon-status-link {
   color: #303133;
   cursor: pointer;
