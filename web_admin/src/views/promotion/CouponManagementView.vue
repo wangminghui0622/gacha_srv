@@ -125,7 +125,7 @@
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.validityDaysLabel')" required>
             <div class="coupon-validity-row">
-              <a-input-number v-model:value="form.validityDays" :min="0" :precision="0" style="width: 3em" />
+              <a-input-number v-model:value="form.validityDays" :min="0" :precision="0" :controls="false" style="width: 4em" />
               <span class="coupon-inline-label">{{ $t('couponAdmin.naturalDay') }}</span>
               <a-switch v-model:checked="form.naturalDay" />
             </div>
