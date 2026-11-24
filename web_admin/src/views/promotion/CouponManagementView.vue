@@ -82,12 +82,6 @@
             <a-radio v-for="option in scopeOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
           </a-radio-group>
         </div>
-        <div v-if="form.scope === 'pool'" class="coupon-choice-block">
-          <div class="coupon-choice-title">
-            <span class="coupon-choice-required">{{ $t('couponAdmin.poolId') }}</span>
-          </div>
-          <a-input v-model:value="form.poolId" :placeholder="$t('couponAdmin.poolId')" inputmode="numeric" style="width: 320px" />
-        </div>
       </div>
 
       <a-form class="coupon-form" :label-col="{ span: 7 }" :wrapper-col="{ span: 17 }">
@@ -153,6 +147,14 @@
             required
           >
             <a-select v-model:value="form.useMode" :options="useModeOptions" :placeholder="$t('couponAdmin.useMode')" style="width: 100%" />
+          </a-form-item>
+          <a-form-item
+            v-if="form.scope === 'pool'"
+            class="coupon-form-right coupon-form-bottom"
+            :label="$t('couponAdmin.poolId')"
+            required
+          >
+            <a-input v-model:value="form.poolId" :placeholder="$t('couponAdmin.poolId')" inputmode="numeric" style="width: 100%" />
           </a-form-item>
         </div>
       </a-form>
@@ -678,23 +680,11 @@ onMounted(() => {
   text-align: justify;
   text-align-last: justify;
 }
-.coupon-choice-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-}
 .coupon-choice-title {
   color: #303133;
   font-size: 15px;
   font-weight: 500;
   white-space: nowrap;
-}
-.coupon-choice-required::before {
-  content: '*';
-  margin-right: 4px;
-  color: #ff4d4f;
 }
 .coupon-radio-group {
   display: flex;
