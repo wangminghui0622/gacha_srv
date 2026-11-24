@@ -637,7 +637,8 @@ onMounted(() => {
 .coupon-form :deep(.ant-form-item-label > label) {
   position: relative;
   display: inline-block;
-  width: 97px;
+  width: 104px;
+  font-size: 15px;
   white-space: nowrap;
   text-align: justify;
   text-align-last: justify;
