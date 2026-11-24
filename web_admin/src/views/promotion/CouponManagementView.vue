@@ -58,7 +58,7 @@
     <a-modal
       v-model:open="modalOpen"
       :title="$t('couponAdmin.modalTitle')"
-      width="1180px"
+      width="920px"
       :style="{ maxWidth: '96vw' }"
       :confirm-loading="saving"
       :ok-text="$t('couponAdmin.confirm')"
@@ -617,7 +617,7 @@ onMounted(() => {
 }
 .coupon-form-grid {
   display: grid;
-  grid-template-columns: minmax(0, 621px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 390px) minmax(0, 1fr);
   column-gap: 22px;
   align-items: start;
 }
