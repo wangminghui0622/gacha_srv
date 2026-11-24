@@ -979,6 +979,8 @@
     "tabCouponCreate": "Create coupon",
     "tabGrantUser": "Grant to user",
     "tabBatchGrant": "Batch grant",
+    "grantActionHint": "Issue a coupon to a single user (customer service compensation)",
+    "batchActionHint": "Filter users by cumulative spend and issue coupons in batch",
     "tabLedger": "Coupon ledger",
     "createTemplateAction": "New template",
     "createCouponAction": "New coupon",

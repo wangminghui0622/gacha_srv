@@ -117,71 +117,24 @@
         </div>
       </a-tab-pane>
 
+      
+
+      
+
       <a-tab-pane key="grant" :tab="$t('couponAdmin.tabGrantUser')">
         <a-card class="coupon-inline-card" :title="$t('couponAdmin.grantCouponTitle')" :bordered="false">
-          <a-form class="coupon-grant-form coupon-inline-form" :label-col="{ span: 5 }" :wrapper-col="{ span: 12 }">
-            <a-form-item :label="$t('couponAdmin.poolBatch')" required>
-              <a-select
-                v-model:value="grantForm.poolEntryId"
-                :options="grantPoolOptions"
-                show-search
-                option-filter-prop="label"
-                :placeholder="$t('couponAdmin.poolBatchPlaceholder')"
-                style="width: 16em"
-              />
-            </a-form-item>
-            <a-form-item :label="$t('couponAdmin.grantUserId')" required>
-              <a-input v-model:value="grantForm.userId" inputmode="numeric" :placeholder="$t('couponAdmin.grantUserId')" style="width: 16em" />
-            </a-form-item>
-            <a-form-item :label="$t('couponAdmin.grantCount')" required>
-              <a-input-number v-model:value="grantForm.count" :min="1" :max="1000" :precision="0" style="width: 16em" />
-            </a-form-item>
-            <a-form-item v-if="grantNeedsCustomAmount" :label="$t('couponAdmin.customAmountLabel')">
-              <a-input v-model:value="grantForm.customAmountMinor" inputmode="numeric" :placeholder="$t('couponAdmin.customAmountPlaceholder')" style="width: 16em" />
-            </a-form-item>
-          </a-form>
-          <div class="coupon-form-actions">
-            <a-button @click="resetGrantForm">{{ $t('couponAdmin.reset') }}</a-button>
-            <a-button type="primary" :loading="grantSaving" @click="submitGrant">{{ $t('couponAdmin.confirm') }}</a-button>
+          <div class="coupon-action-panel">
+            <p class="coupon-action-hint">{{ $t('couponAdmin.grantActionHint') }}</p>
+            <a-button type="primary" @click="openGrant">{{ $t('couponAdmin.grantCoupon') }}</a-button>
           </div>
         </a-card>
       </a-tab-pane>
 
       <a-tab-pane key="batch" :tab="$t('couponAdmin.tabBatchGrant')">
         <a-card class="coupon-inline-card" :title="$t('couponAdmin.batchGrantTitle')" :bordered="false">
-          <a-form class="coupon-grant-form coupon-inline-form" :label-col="{ span: 5 }" :wrapper-col="{ span: 12 }">
-            <a-form-item :label="$t('couponAdmin.poolBatch')" required>
-              <a-select
-                v-model:value="batchGrantForm.poolEntryId"
-                :options="grantPoolOptions"
-                show-search
-                option-filter-prop="label"
-                :placeholder="$t('couponAdmin.poolBatchPlaceholder')"
-                style="width: 16em"
-              />
-            </a-form-item>
-            <a-form-item :label="$t('couponAdmin.minSpend')" required>
-              <a-input-number v-model:value="batchGrantForm.minSpendYuan" :min="0" :precision="2" style="width: 16em" />
-            </a-form-item>
-            <a-form-item :label="$t('couponAdmin.maxSpend')">
-              <a-input-number v-model:value="batchGrantForm.maxSpendYuan" :min="0" :precision="2" :placeholder="$t('couponAdmin.maxSpendHint')" style="width: 16em" />
-            </a-form-item>
-            <a-form-item :label="$t('couponAdmin.perUserCount')" required>
-              <a-input-number v-model:value="batchGrantForm.perUserCount" :min="1" :max="1000" :precision="0" style="width: 16em" />
-            </a-form-item>
-            <a-form-item :label="$t('couponAdmin.maxUsers')" required>
-              <a-input-number v-model:value="batchGrantForm.maxUsers" :min="1" :max="200" :precision="0" style="width: 16em" />
-            </a-form-item>
-            <a-form-item v-if="batchGrantNeedsCustomAmount" :label="$t('couponAdmin.customAmountLabel')">
-              <a-input v-model:value="batchGrantForm.customAmountMinor" inputmode="numeric" :placeholder="$t('couponAdmin.customAmountPlaceholder')" style="width: 16em" />
-            </a-form-item>
-            <a-form-item>
-              <span class="coupon-batch-hint">{{ $t('couponAdmin.batchGrantHint') }}</span>
-            </a-form-item>
-          </a-form>
-          <div class="coupon-form-actions">
-            <a-button @click="resetBatchGrantForm">{{ $t('couponAdmin.reset') }}</a-button>
-            <a-button type="primary" :loading="batchGrantSaving" @click="submitBatchGrant">{{ $t('couponAdmin.confirm') }}</a-button>
+          <div class="coupon-action-panel">
+            <p class="coupon-action-hint">{{ $t('couponAdmin.batchActionHint') }}</p>
+            <a-button type="primary" @click="openBatchGrant">{{ $t('couponAdmin.batchGrant') }}</a-button>
           </div>
         </a-card>
       </a-tab-pane>
@@ -412,7 +365,72 @@
     
 
     
-  </section>
+  
+    <a-modal v-model:open="grantOpen" centered :title="$t('couponAdmin.grantCouponTitle')" width="520px" :style="{ maxWidth: '96vw' }" :footer="null">
+      <a-form class="coupon-grant-form" :label-col="{ span: 7 }" :wrapper-col="{ span: 17 }">
+        <a-form-item :label="$t('couponAdmin.poolBatch')" required>
+          <a-select
+            v-model:value="grantForm.poolEntryId"
+            :options="grantPoolOptions"
+            show-search
+            option-filter-prop="label"
+            :placeholder="$t('couponAdmin.poolBatchPlaceholder')"
+            style="width: 16em"
+          />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.grantUserId')" required>
+          <a-input v-model:value="grantForm.userId" inputmode="numeric" :placeholder="$t('couponAdmin.grantUserId')" style="width: 16em" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.grantCount')" required>
+          <a-input-number v-model:value="grantForm.count" :min="1" :max="1000" :precision="0" style="width: 16em" />
+        </a-form-item>
+        <a-form-item v-if="grantNeedsCustomAmount" :label="$t('couponAdmin.customAmountLabel')">
+          <a-input v-model:value="grantForm.customAmountMinor" inputmode="numeric" :placeholder="$t('couponAdmin.customAmountPlaceholder')" style="width: 16em" />
+        </a-form-item>
+      </a-form>
+      <div class="coupon-modal-footer" style="display: flex; justify-content: center; gap: 12px">
+        <a-button @click="grantOpen = false">{{ $t('couponAdmin.cancel') }}</a-button>
+        <a-button type="primary" :loading="grantSaving" @click="submitGrant">{{ $t('couponAdmin.confirm') }}</a-button>
+      </div>
+    </a-modal>
+
+    <a-modal v-model:open="batchGrantOpen" centered :title="$t('couponAdmin.batchGrantTitle')" width="560px" :style="{ maxWidth: '96vw' }" :footer="null">
+      <a-form class="coupon-grant-form" :label-col="{ span: 7 }" :wrapper-col="{ span: 17 }">
+        <a-form-item :label="$t('couponAdmin.poolBatch')" required>
+          <a-select
+            v-model:value="batchGrantForm.poolEntryId"
+            :options="grantPoolOptions"
+            show-search
+            option-filter-prop="label"
+            :placeholder="$t('couponAdmin.poolBatchPlaceholder')"
+            style="width: 16em"
+          />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.minSpend')" required>
+          <a-input-number v-model:value="batchGrantForm.minSpendYuan" :min="0" :precision="2" style="width: 16em" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.maxSpend')">
+          <a-input-number v-model:value="batchGrantForm.maxSpendYuan" :min="0" :precision="2" :placeholder="$t('couponAdmin.maxSpendHint')" style="width: 16em" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.perUserCount')" required>
+          <a-input-number v-model:value="batchGrantForm.perUserCount" :min="1" :max="1000" :precision="0" style="width: 16em" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.maxUsers')" required>
+          <a-input-number v-model:value="batchGrantForm.maxUsers" :min="1" :max="200" :precision="0" style="width: 16em" />
+        </a-form-item>
+        <a-form-item v-if="batchGrantNeedsCustomAmount" :label="$t('couponAdmin.customAmountLabel')">
+          <a-input v-model:value="batchGrantForm.customAmountMinor" inputmode="numeric" :placeholder="$t('couponAdmin.customAmountPlaceholder')" style="width: 16em" />
+        </a-form-item>
+        <a-form-item>
+          <span class="coupon-batch-hint">{{ $t('couponAdmin.batchGrantHint') }}</span>
+        </a-form-item>
+      </a-form>
+      <div class="coupon-modal-footer" style="display: flex; justify-content: center; gap: 12px">
+        <a-button @click="batchGrantOpen = false">{{ $t('couponAdmin.cancel') }}</a-button>
+        <a-button type="primary" :loading="batchGrantSaving" @click="submitBatchGrant">{{ $t('couponAdmin.confirm') }}</a-button>
+      </div>
+    </a-modal>
+</section>
 </template>
 
 <script setup lang="ts">
@@ -552,6 +570,14 @@ function reload() {
 }
 
 function onTabChange(key: string) {
+  if (key === 'grant') {
+    openGrant()
+    return
+  }
+  if (key === 'batch') {
+    openBatchGrant()
+    return
+  }
   if (key === 'ledger') {
     void loadLedger()
     return
@@ -1048,6 +1074,7 @@ function ledgerRefText(record: CouponLedgerEntry) {
   return '-'
 }
 
+const grantOpen = ref(false)
 const grantSaving = ref(false)
 const grantRequestId = ref('')
 const grantForm = reactive({
@@ -1097,6 +1124,11 @@ function resetGrantForm() {
   grantForm.poolEntryId = grantPoolOptions.value[0]?.value
 }
 
+function openGrant() {
+  resetGrantForm()
+  grantOpen.value = true
+}
+
 async function submitGrant() {
   if (!canGrant.value) return
   const pool = poolEntries.value.find((entry) => String(entry.id ?? '') === String(grantForm.poolEntryId ?? ''))
@@ -1135,6 +1167,7 @@ async function submitGrant() {
     })
     message.success(t('couponAdmin.grantSuccess', { count }))
     grantRequestId.value = ''
+    grantOpen.value = false
     resetGrantForm()
     await load()
   } catch {
@@ -1144,6 +1177,7 @@ async function submitGrant() {
   }
 }
 
+const batchGrantOpen = ref(false)
 const batchGrantSaving = ref(false)
 const batchGrantRequestId = ref('')
 const batchGrantForm = reactive({
@@ -1169,6 +1203,11 @@ function resetBatchGrantForm() {
   batchGrantForm.perUserCount = 1
   batchGrantForm.maxUsers = 50
   batchGrantForm.customAmountMinor = ''
+}
+
+function openBatchGrant() {
+  resetBatchGrantForm()
+  batchGrantOpen.value = true
 }
 
 async function submitBatchGrant() {
@@ -1226,6 +1265,7 @@ async function submitBatchGrant() {
       message.warning(t('couponAdmin.batchGrantStockLimited'))
     }
     batchGrantRequestId.value = ''
+    batchGrantOpen.value = false
     resetBatchGrantForm()
     await load()
   } catch {
@@ -1428,6 +1468,15 @@ onMounted(async () => {
   justify-content: center;
   gap: 12px;
   margin-top: 8px;
+}
+.coupon-action-panel {
+  padding: 24px 0;
+  text-align: center;
+}
+.coupon-action-hint {
+  margin-bottom: 16px;
+  color: #606266;
+  font-size: 14px;
 }
 .coupon-query-btn {
   background: #1eaa59;
