@@ -703,6 +703,11 @@ onMounted(() => {
 .coupon-form :deep(.ant-select) {
   font-size: 15px;
 }
+.coupon-form :deep(.ant-input),
+.coupon-form :deep(.ant-input-number),
+.coupon-form :deep(.ant-select) {
+  height: 32px;
+}
 .coupon-form-left :deep(.ant-input),
 .coupon-form-left :deep(.ant-input-number) {
   max-width: 300px;
