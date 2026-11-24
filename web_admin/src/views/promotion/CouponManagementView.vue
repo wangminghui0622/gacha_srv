@@ -149,14 +149,14 @@
               <a-switch v-model:checked="form.naturalDay" />
             </div>
           </a-form-item>
-          <div class="coupon-form-left coupon-price-row">
-            <div class="coupon-price-pair">
-              <span class="coupon-price-label">{{ $t('couponAdmin.priceMinShort') }}：</span>
-              <a-input-number v-model:value="form.minUnitPriceYuan" :min="0" :precision="0" :controls="false" style="width: 70px" />
+          <div class="coupon-form-left coupon-price-row" style="padding-left: 14px; box-sizing: border-box">
+            <div class="coupon-price-pair" style="gap: 13px">
+              <span class="coupon-price-label" style="display: inline-block; width: 90.7px; text-align: justify; text-align-last: justify">{{ $t('couponAdmin.priceMinShort') }}：</span>
+              <a-input-number v-model:value="form.minUnitPriceYuan" :min="0" :precision="0" :controls="false" style="width: 60px" />
             </div>
-            <div class="coupon-price-pair">
-              <span class="coupon-price-label">{{ $t('couponAdmin.priceMaxShort') }}：</span>
-              <a-input-number v-model:value="form.maxUnitPriceYuan" :min="0" :precision="0" :controls="false" style="width: 70px" />
+            <div class="coupon-price-pair" style="gap: 13px">
+              <span class="coupon-price-label" style="display: inline-block; width: 90.7px; text-align: justify; text-align-last: justify">{{ $t('couponAdmin.priceMaxShort') }}：</span>
+              <a-input-number v-model:value="form.maxUnitPriceYuan" :min="0" :precision="0" :controls="false" style="width: 60px" />
             </div>
           </div>
           <a-form-item
@@ -963,19 +963,24 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 4px;
   width: 100%;
   margin-bottom: 24px;
+  padding-left: 14px;
 }
 .coupon-price-pair {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 13px;
   white-space: nowrap;
 }
 .coupon-price-label {
+  display: inline-block;
+  width: 90.7px;
   color: rgba(0, 0, 0, 0.88);
   font-size: 15px;
+  text-align: justify;
+  text-align-last: justify;
 }
 .coupon-inline-label {
   color: rgba(0, 0, 0, 0.88);
