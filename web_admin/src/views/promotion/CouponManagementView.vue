@@ -96,7 +96,7 @@
         </div>
       </div>
 
-      <a-form :label-col="{ span: 7 }" :wrapper-col="{ span: 16 }">
+      <a-form :label-col="{ span: 7 }" :wrapper-col="{ span: 17 }">
         <a-row :gutter="22">
           <a-col :span="12">
             <a-form-item :label="$t('couponAdmin.nameLabel')" required>
