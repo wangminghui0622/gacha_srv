@@ -1018,6 +1018,8 @@
     "immediate": "Immediate",
     "initialCount": "Initial count",
     "remainingCount": "Remaining",
+    "remainingShort": "Remaining",
+    "batchShort": "Batch",
     "adjustStock": "Adjust stock",
     "ledger": "Ledger",
     "allLedger": "All ledger",

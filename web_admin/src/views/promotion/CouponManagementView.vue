@@ -263,7 +263,7 @@
     <a-modal v-model:open="adjustOpen" centered :title="$t('couponAdmin.adjustTitle')" width="460px" :style="{ maxWidth: '96vw' }" :footer="null">
       <a-form class="coupon-grant-form" :label-col="{ span: 7 }" :wrapper-col="{ span: 17 }">
         <a-form-item :label="$t('couponAdmin.couponTemplateName')">
-          <span>{{ adjustTarget ? poolTemplateText(adjustTarget) : '-' }}</span>
+          <span>{{ adjustTarget ? poolTemplateName(adjustTarget) : '-' }}</span>
         </a-form-item>
         <a-form-item :label="$t('couponAdmin.remainingCount')">
           <span class="coupon-remaining-text">{{ adjustTarget?.remainingCount ?? 0 }}</span>
@@ -732,12 +732,18 @@ const drawCouponOptions = computed(() =>
   })),
 )
 
-function poolTemplateText(record: CouponPoolEntry) {
+function poolTemplateName(record: CouponPoolEntry) {
   const id = String(record.templateId ?? '')
   if (!id || id === '0') return '-'
   const coupon = latestCouponTemplates.value.find((item) => String(item.templateId ?? '') === id)
-  const name = String(record.templateName || coupon?.name || '')
-  return name ? `${name} (ID ${id})` : `ID ${id}`
+  return String(record.templateName || coupon?.name || `ID ${id}`)
+}
+
+function poolTemplateText(record: CouponPoolEntry) {
+  const id = String(record.templateId ?? '')
+  const name = poolTemplateName(record)
+  if (name === '-') return '-'
+  return `${name} (ID ${id})`
 }
 
 function poolStartTimeText(record: CouponPoolEntry) {
@@ -1016,14 +1022,24 @@ const grantForm = reactive({
   count: 1,
   customAmountMinor: '',
 })
-const grantPoolOptions = computed(() =>
-  poolEntries.value
-    .filter((entry) => poolEnabled(entry) && Number(entry.remainingCount ?? 0) > 0)
-    .map((entry) => ({
+const grantPoolOptions = computed(() => {
+  const eligible = poolEntries.value.filter(
+    (entry) => poolEnabled(entry) && Number(entry.remainingCount ?? 0) > 0,
+  )
+  const nameCounts = new Map<string, number>()
+  for (const entry of eligible) {
+    const name = poolTemplateName(entry)
+    nameCounts.set(name, (nameCounts.get(name) ?? 0) + 1)
+  }
+  return eligible.map((entry) => {
+    const name = poolTemplateName(entry)
+    const suffix = (nameCounts.get(name) ?? 0) > 1 ? `（${t('couponAdmin.batchShort')} ${entry.id}）` : ''
+    return {
       value: String(entry.id ?? ''),
-      label: `${poolTemplateText(entry)} · ${t('couponAdmin.remainingCount')} ${entry.remainingCount ?? 0}`,
-    })),
-)
+      label: `${name}${suffix}（${t('couponAdmin.remainingShort')} ${entry.remainingCount ?? 0} 张）`,
+    }
+  })
+})
 
 function openGrant(record?: CouponPoolEntry) {
   grantRequestId.value = newRequestId()

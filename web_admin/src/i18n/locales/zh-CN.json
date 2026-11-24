@@ -1018,6 +1018,8 @@
     "immediate": "立即",
     "initialCount": "初始张数",
     "remainingCount": "剩余张数",
+    "remainingShort": "剩余",
+    "batchShort": "批次",
     "adjustStock": "增减库存",
     "ledger": "流水",
     "allLedger": "全部流水",
