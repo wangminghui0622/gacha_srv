@@ -83,18 +83,18 @@
       <a-form class="coupon-form" :label-col="{ span: 7 }" :wrapper-col="{ span: 17 }">
         <div class="coupon-form-grid">
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.nameLabel')" required>
-            <a-input v-model:value="form.name" :placeholder="$t('couponAdmin.nameLabel')" :maxlength="128" style="width: 15em" />
+            <a-input v-model:value="form.name" :placeholder="$t('couponAdmin.nameLabel')" :maxlength="128" style="width: 210px" />
           </a-form-item>
           <a-form-item class="coupon-form-right coupon-form-row1">
             <template #label><span class="coupon-red-label">单价</span>门槛下限</template>
-            <a-input-number v-model:value="form.minUnitPriceYuan" :min="0" :precision="2" style="width: 15em" />
+            <a-input-number v-model:value="form.minUnitPriceYuan" :min="0" :precision="2" style="width: 210px" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.descriptionLabel')" required>
-            <a-input v-model:value="form.description" :placeholder="$t('couponAdmin.descriptionLabel')" :maxlength="512" style="width: 15em" />
+            <a-input v-model:value="form.description" :placeholder="$t('couponAdmin.descriptionLabel')" :maxlength="512" style="width: 210px" />
           </a-form-item>
           <a-form-item class="coupon-form-right coupon-form-row2">
             <template #label><span class="coupon-red-label">单价</span>门槛上限</template>
-            <a-input-number v-model:value="form.maxUnitPriceYuan" :min="0" :precision="2" style="width: 15em" />
+            <a-input-number v-model:value="form.maxUnitPriceYuan" :min="0" :precision="2" style="width: 210px" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.validityDaysLabel')" required>
             <div class="coupon-validity-row">
@@ -104,7 +104,7 @@
             </div>
           </a-form-item>
           <a-form-item class="coupon-form-right coupon-form-row5" :label="$t('couponAdmin.rewardTemplateId')" :required="isDraw">
-            <a-input v-model:value="form.rewardTemplateId" inputmode="numeric" style="width: 15em" />
+            <a-input v-model:value="form.rewardTemplateId" inputmode="numeric" style="width: 210px" />
           </a-form-item>
           <a-form-item
             v-if="isPercent"
@@ -118,25 +118,25 @@
               :max="100"
               :precision="2"
               :placeholder="$t('couponAdmin.discountPlaceholder')"
-              style="width: 15em"
+              style="width: 210px"
             />
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.totalThreshold')" :required="isFixedOrCustom">
-            <a-input-number v-model:value="form.minGrossYuan" :min="0" :precision="2" style="width: 15em" />
+            <a-input-number v-model:value="form.minGrossYuan" :min="0" :precision="2" style="width: 210px" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.rewardAmount')" :required="amountRequired">
-            <a-input-number v-model:value="form.rewardAmountYuan" :min="0" :precision="2" style="width: 15em" />
+            <a-input-number v-model:value="form.rewardAmountYuan" :min="0" :precision="2" style="width: 210px" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.rewardCount')" :required="isDraw">
-            <a-input-number v-model:value="form.rewardCount" :min="0" :precision="0" style="width: 15em" />
+            <a-input-number v-model:value="form.rewardCount" :min="0" :precision="0" style="width: 210px" />
           </a-form-item>
           <a-form-item class="coupon-form-right coupon-form-row3" :required="itemThresholdRequired">
             <template #label><span class="coupon-red-label">数量</span>门槛下限</template>
-            <a-input-number v-model:value="form.minItemCount" :min="0" :precision="0" style="width: 15em" />
+            <a-input-number v-model:value="form.minItemCount" :min="0" :precision="0" style="width: 210px" />
           </a-form-item>
           <a-form-item class="coupon-form-right coupon-form-row4" :required="itemThresholdRequired">
             <template #label><span class="coupon-red-label">数量</span>门槛上限</template>
-            <a-input-number v-model:value="form.maxItemCount" :min="0" :precision="0" style="width: 15em" />
+            <a-input-number v-model:value="form.maxItemCount" :min="0" :precision="0" style="width: 210px" />
           </a-form-item>
           <a-form-item
             v-if="form.scope === 'mode'"
@@ -145,7 +145,7 @@
             :label="$t('couponAdmin.useMode')"
             required
           >
-            <a-select v-model:value="form.useMode" :options="useModeOptions" :placeholder="$t('couponAdmin.useMode')" style="width: 15em" />
+            <a-select v-model:value="form.useMode" :options="useModeOptions" :placeholder="$t('couponAdmin.useMode')" style="width: 210px" />
           </a-form-item>
           <a-form-item
             v-if="form.scope === 'pool'"
@@ -154,7 +154,7 @@
             :label="$t('couponAdmin.poolId')"
             required
           >
-            <a-input v-model:value="form.poolId" :placeholder="$t('couponAdmin.poolId')" inputmode="numeric" style="width: 15em" />
+            <a-input v-model:value="form.poolId" :placeholder="$t('couponAdmin.poolId')" inputmode="numeric" style="width: 210px" />
           </a-form-item>
         </div>
       </a-form>
@@ -618,6 +618,9 @@ onMounted(() => {
   justify-content: center;
   gap: 12px;
 }
+.coupon-modal-footer :deep(.ant-btn) {
+  font-size: 15px;
+}
 .coupon-red-label {
   color: #ff4d4f;
 }
@@ -689,6 +692,12 @@ onMounted(() => {
   min-width: 0;
   max-width: 100%;
 }
+.coupon-form :deep(.ant-input),
+.coupon-form :deep(.ant-input-number),
+.coupon-form :deep(.ant-input-number-input),
+.coupon-form :deep(.ant-select) {
+  font-size: 15px;
+}
 .coupon-form-left :deep(.ant-input),
 .coupon-form-left :deep(.ant-input-number) {
   max-width: 300px;
@@ -700,7 +709,7 @@ onMounted(() => {
 }
 .coupon-inline-label {
   color: rgba(0, 0, 0, 0.88);
-  font-size: 14px;
+  font-size: 15px;
   white-space: nowrap;
 }
 .coupon-choice-grid {
@@ -733,7 +742,7 @@ onMounted(() => {
 .coupon-choice-title {
   color: #303133;
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 400;
   white-space: nowrap;
 }
 .coupon-radio-group {
