@@ -672,12 +672,16 @@ onMounted(() => {
 .coupon-form :deep(.ant-form-item-label) {
   flex: 0 0 118px;
   max-width: 118px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 .coupon-form :deep(.ant-form-item-label > label) {
   position: relative;
   display: inline-block;
   width: 104px;
   font-size: 15px;
+  line-height: 32px;
   white-space: nowrap;
   text-align: justify;
   text-align-last: justify;
