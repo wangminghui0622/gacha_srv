@@ -147,16 +147,8 @@
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.nameLabel')" required>
             <a-input v-model:value="form.name" :placeholder="$t('couponAdmin.nameLabel')" :maxlength="128" style="width: 210px" />
           </a-form-item>
-          <a-form-item class="coupon-form-right coupon-form-row1">
-            <template #label><span class="coupon-red-label">单价</span>门槛下限</template>
-            <a-input-number v-model:value="form.minUnitPriceYuan" :min="0" :precision="2" style="width: 210px" />
-          </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.descriptionLabel')" required>
             <a-input v-model:value="form.description" :placeholder="$t('couponAdmin.descriptionLabel')" :maxlength="512" style="width: 210px" />
-          </a-form-item>
-          <a-form-item class="coupon-form-right coupon-form-row2">
-            <template #label><span class="coupon-red-label">单价</span>门槛上限</template>
-            <a-input-number v-model:value="form.maxUnitPriceYuan" :min="0" :precision="2" style="width: 210px" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.validityDaysLabel')" required>
             <div class="coupon-validity-row">
@@ -180,19 +172,11 @@
               style="width: 210px"
             />
           </a-form-item>
-          <a-form-item class="coupon-form-left" :label="$t('couponAdmin.totalThreshold')" :required="isFixedOrCustom">
+          <a-form-item class="coupon-form-right coupon-form-row1" :label="$t('couponAdmin.totalThreshold')" :required="isFixedOrCustom">
             <a-input-number v-model:value="form.minGrossYuan" :min="0" :precision="2" style="width: 210px" />
           </a-form-item>
-          <a-form-item class="coupon-form-left" :label="$t('couponAdmin.rewardAmount')" :required="amountRequired">
+          <a-form-item class="coupon-form-right coupon-form-row2" :label="$t('couponAdmin.rewardAmount')" :required="amountRequired">
             <a-input-number v-model:value="form.rewardAmountYuan" :min="0" :precision="2" style="width: 210px" />
-          </a-form-item>
-          <a-form-item class="coupon-form-right coupon-form-row3" :required="itemThresholdRequired">
-            <template #label><span class="coupon-red-label">数量</span>门槛下限</template>
-            <a-input-number v-model:value="form.minItemCount" :min="0" :precision="0" style="width: 210px" />
-          </a-form-item>
-          <a-form-item class="coupon-form-right coupon-form-row4" :required="itemThresholdRequired">
-            <template #label><span class="coupon-red-label">数量</span>门槛上限</template>
-            <a-input-number v-model:value="form.maxItemCount" :min="0" :precision="0" style="width: 210px" />
           </a-form-item>
           <a-form-item
             v-if="form.scope === 'mode'"
@@ -458,9 +442,7 @@ const useModeOptions = computed(() => [
 const isFixedOrCustom = computed(
   () => form.kind === 'COUPON_TEMPLATE_KIND_FIXED_MINOR' || form.kind === 'COUPON_TEMPLATE_KIND_CUSTOM_MINOR',
 )
-const isFree = computed(() => form.kind === 'COUPON_TEMPLATE_KIND_FREE')
 const isPercent = computed(() => form.kind === 'COUPON_TEMPLATE_KIND_PERCENT_BPS')
-const itemThresholdRequired = computed(() => isFree.value)
 const amountRequired = computed(() => isFixedOrCustom.value)
 
 const modalOpen = ref(false)
@@ -886,10 +868,6 @@ async function save() {
     message.warning(t('couponAdmin.discountMustBePositive'))
     return
   }
-  if (itemThresholdRequired.value && (Math.trunc(form.minItemCount) <= 0 || Math.trunc(form.maxItemCount) <= 0)) {
-    message.warning(t('couponAdmin.itemThresholdRequired'))
-    return
-  }
   const template: CouponTemplate = {
     templateId,
     tenantId: tenant(),
@@ -899,10 +877,10 @@ async function save() {
     amountMinor: isFixedOrCustom.value ? yuanToFen(form.rewardAmountYuan) : 0,
     percentBps: isPercent.value ? Math.round((form.discountPercent ?? 0) * 100) : 0,
     minGrossMinor: yuanToFen(form.minGrossYuan),
-    minUnitPriceMinor: yuanToFen(form.minUnitPriceYuan),
-    maxUnitPriceMinor: yuanToFen(form.maxUnitPriceYuan),
-    minItemCount: Math.max(0, Math.trunc(form.minItemCount)),
-    maxItemCount: Math.max(0, Math.trunc(form.maxItemCount)),
+    minUnitPriceMinor: 0,
+    maxUnitPriceMinor: 0,
+    minItemCount: 0,
+    maxItemCount: 0,
     currency: 'CNY',
     funder: 'DISCOUNT_FUNDER_PLATFORM',
     scene: sceneForSave(),
@@ -1061,10 +1039,10 @@ onMounted(() => {
   grid-row: 5;
 }
 .coupon-form-discount {
-  grid-row: 5;
+  grid-row: 3;
 }
 .coupon-form-follow {
-  grid-row: 6;
+  grid-row: 4;
 }
 .coupon-form :deep(.ant-form-item-label) {
   flex: 0 0 118px;
