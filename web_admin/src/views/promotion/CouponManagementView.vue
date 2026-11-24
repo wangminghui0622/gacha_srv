@@ -617,8 +617,8 @@ onMounted(() => {
 }
 .coupon-form-grid {
   display: grid;
-  grid-template-columns: minmax(0, 390px) minmax(0, 1fr);
-  column-gap: 22px;
+  grid-template-columns: minmax(0, 349px) minmax(0, 1fr);
+  column-gap: 8px;
   align-items: start;
 }
 .coupon-form-left {
@@ -631,8 +631,8 @@ onMounted(() => {
   grid-row: 8;
 }
 .coupon-form :deep(.ant-form-item-label) {
-  flex: 0 0 159px;
-  max-width: 159px;
+  flex: 0 0 118px;
+  max-width: 118px;
 }
 .coupon-form :deep(.ant-form-item-label > label) {
   position: relative;
