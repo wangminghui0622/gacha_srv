@@ -48,7 +48,7 @@
           <a-pagination
             v-model:current="page"
             v-model:page-size="pageSize"
-            :total="latestCouponTemplates.length"
+            :total="latestTemplates.length"
             :page-size-options="['15', '30', '50']"
             show-size-changer
             show-less-items
@@ -112,15 +112,36 @@
               style="width: 210px"
             />
           </a-form-item>
-          <a-form-item class="coupon-form-right coupon-form-row1" :label="$t('couponAdmin.totalThreshold')" :required="isFixedOrCustom">
+          <a-form-item v-if="!isDraw" class="coupon-form-right coupon-form-row1" :label="$t('couponAdmin.totalThreshold')" :required="isFixedOrCustom">
             <a-input-number v-model:value="form.minGrossYuan" :min="0" :precision="2" style="width: 210px" />
           </a-form-item>
-          <a-form-item class="coupon-form-right coupon-form-row2" :label="$t('couponAdmin.rewardAmount')" :required="amountRequired">
+          <a-form-item v-if="!isDraw" class="coupon-form-right coupon-form-row2" :label="$t('couponAdmin.rewardAmount')" :required="amountRequired">
             <a-input-number v-model:value="form.rewardAmountYuan" :min="0" :precision="2" style="width: 210px" />
+          </a-form-item>
+          <a-form-item v-if="isDraw" class="coupon-form-right coupon-form-row1" :required="itemThresholdRequired">
+            <template #label><span class="coupon-red-label">数量</span>门槛下限</template>
+            <a-input-number v-model:value="form.minItemCount" :min="0" :precision="0" style="width: 210px" />
+          </a-form-item>
+          <a-form-item v-if="isDraw" class="coupon-form-right coupon-form-row2" :required="itemThresholdRequired">
+            <template #label><span class="coupon-red-label">数量</span>门槛上限</template>
+            <a-input-number v-model:value="form.maxItemCount" :min="0" :precision="0" style="width: 210px" />
+          </a-form-item>
+          <a-form-item v-if="isDraw" class="coupon-form-right coupon-form-row3" :label="$t('couponAdmin.rewardTemplateId')" required>
+            <a-select
+              v-model:value="form.rewardTemplateId"
+              :options="drawCouponOptions"
+              show-search
+              option-filter-prop="label"
+              style="width: 210px"
+            />
+          </a-form-item>
+          <a-form-item v-if="isDraw" class="coupon-form-right coupon-form-row4" :label="$t('couponAdmin.rewardCount')" required>
+            <a-input-number v-model:value="form.rewardCount" :min="0" :precision="0" style="width: 210px" />
           </a-form-item>
           <a-form-item
             v-if="form.scope === 'mode'"
             class="coupon-form-right coupon-form-follow"
+            :class="{ 'coupon-form-follow-draw': isDraw }"
             :label="$t('couponAdmin.useMode')"
             required
           >
@@ -129,6 +150,7 @@
           <a-form-item
             v-if="form.scope === 'pool'"
             class="coupon-form-right coupon-form-follow"
+            :class="{ 'coupon-form-follow-draw': isDraw }"
             :label="$t('couponAdmin.poolId')"
             required
           >
@@ -206,12 +228,9 @@ const latestTemplates = computed(() => {
   }
   return [...latest.values()].sort((a, b) => Number(b.templateId ?? 0) - Number(a.templateId ?? 0))
 })
-const latestCouponTemplates = computed(() =>
-  latestTemplates.value.filter((item) => normalizeKind(item.kind) !== 'COUPON_TEMPLATE_KIND_DRAW_REWARD'),
-)
 const pagedTemplates = computed(() => {
   const start = (page.value - 1) * pageSize.value
-  return latestCouponTemplates.value.slice(start, start + pageSize.value)
+  return latestTemplates.value.slice(start, start + pageSize.value)
 })
 
 function tenant() {
@@ -240,7 +259,7 @@ async function load() {
       afterVersion = result.nextAfterVersion ?? '0'
     }
     rawTemplates.value = all
-    const maxPage = Math.max(1, Math.ceil(latestCouponTemplates.value.length / pageSize.value))
+    const maxPage = Math.max(1, Math.ceil(latestTemplates.value.length / pageSize.value))
     if (page.value > maxPage) page.value = maxPage
   } catch {
     message.error(t('couponAdmin.loadFailed'))
@@ -302,6 +321,7 @@ function targetBusinessKey(record: CouponTemplate) {
 
 const kindOptions = computed(() => [
   { value: 'COUPON_TEMPLATE_KIND_FIXED_MINOR', label: t('couponAdmin.kindFixed') },
+  { value: 'COUPON_TEMPLATE_KIND_DRAW_REWARD', label: t('couponAdmin.kindDrawReward') },
   { value: 'COUPON_TEMPLATE_KIND_CUSTOM_MINOR', label: t('couponAdmin.kindCustom') },
   { value: 'COUPON_TEMPLATE_KIND_FREE', label: t('couponAdmin.kindFree') },
   { value: 'COUPON_TEMPLATE_KIND_PERCENT_BPS', label: t('couponAdmin.kindPercent') },
@@ -323,6 +343,8 @@ const isFixedOrCustom = computed(
   () => form.kind === 'COUPON_TEMPLATE_KIND_FIXED_MINOR' || form.kind === 'COUPON_TEMPLATE_KIND_CUSTOM_MINOR',
 )
 const isPercent = computed(() => form.kind === 'COUPON_TEMPLATE_KIND_PERCENT_BPS')
+const isDraw = computed(() => form.kind === 'COUPON_TEMPLATE_KIND_DRAW_REWARD')
+const itemThresholdRequired = computed(() => isDraw.value)
 const amountRequired = computed(() => isFixedOrCustom.value)
 
 const modalOpen = ref(false)
@@ -461,6 +483,14 @@ const grantCouponOptions = computed(() =>
       label: `${item.name || '-'} (ID ${item.templateId})`,
     })),
 )
+const drawCouponOptions = computed(() =>
+  latestTemplates.value
+    .filter((item) => normalizeKind(item.kind) !== 'COUPON_TEMPLATE_KIND_DRAW_REWARD')
+    .map((item) => ({
+      value: String(item.templateId ?? ''),
+      label: `${item.name || '-'} (ID ${item.templateId})`,
+    })),
+)
 const grantSelected = computed(() =>
   latestTemplates.value.find((item) => String(item.templateId ?? '') === grantForm.templateId),
 )
@@ -574,6 +604,24 @@ async function save() {
     message.warning(t('couponAdmin.discountMustBePositive'))
     return
   }
+  if (isDraw.value) {
+    if (Math.trunc(form.minItemCount) <= 0 || Math.trunc(form.maxItemCount) <= 0) {
+      message.warning(t('couponAdmin.itemThresholdRequired'))
+      return
+    }
+    if (Math.trunc(form.minItemCount) > Math.trunc(form.maxItemCount)) {
+      message.warning(t('couponAdmin.thresholdOrderInvalid'))
+      return
+    }
+    if (!positiveId(form.rewardTemplateId.trim())) {
+      message.warning(t('couponAdmin.rewardCouponRequired'))
+      return
+    }
+    if (Math.trunc(form.rewardCount) <= 0) {
+      message.warning(t('couponAdmin.rewardCountRequired'))
+      return
+    }
+  }
   const template: CouponTemplate = {
     templateId,
     tenantId: tenant(),
@@ -582,11 +630,11 @@ async function save() {
     kind,
     amountMinor: isFixedOrCustom.value ? yuanToFen(form.rewardAmountYuan) : 0,
     percentBps: isPercent.value ? Math.round((form.discountPercent ?? 0) * 100) : 0,
-    minGrossMinor: yuanToFen(form.minGrossYuan),
+    minGrossMinor: isDraw.value ? 0 : yuanToFen(form.minGrossYuan),
     minUnitPriceMinor: 0,
     maxUnitPriceMinor: 0,
-    minItemCount: 0,
-    maxItemCount: 0,
+    minItemCount: isDraw.value ? Math.max(0, Math.trunc(form.minItemCount)) : 0,
+    maxItemCount: isDraw.value ? Math.max(0, Math.trunc(form.maxItemCount)) : 0,
     currency: 'CNY',
     funder: 'DISCOUNT_FUNDER_PLATFORM',
     scene: sceneForSave(),
@@ -594,8 +642,8 @@ async function save() {
     validityDays: Math.trunc(form.validityDays),
     naturalDay: form.naturalDay,
     enabled: form.enabled,
-    rewardTemplateId: form.rewardTemplateId.trim() || '0',
-    rewardCount: Math.max(0, Math.trunc(form.rewardCount)),
+    rewardTemplateId: isDraw.value ? form.rewardTemplateId.trim() : '0',
+    rewardCount: isDraw.value ? Math.max(0, Math.trunc(form.rewardCount)) : 0,
   }
   saving.value = true
   try {
@@ -747,6 +795,9 @@ onMounted(() => {
 .coupon-form-follow {
   grid-row: 4;
 }
+.coupon-form-follow.coupon-form-follow-draw {
+  grid-row: 5;
+}
 .coupon-form :deep(.ant-form-item-label) {
   flex: 0 0 118px;
   max-width: 118px;
@@ -846,8 +897,8 @@ onMounted(() => {
 }
 .coupon-radio-group-scope {
   display: grid;
-  grid-template-columns: repeat(3, 174.7px);
-  width: 524.1px;
+  grid-template-columns: repeat(3, 131px);
+  width: 393px;
   max-width: 100%;
   gap: 0;
 }
