@@ -85,14 +85,14 @@
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.nameLabel')" required>
             <a-input v-model:value="form.name" :placeholder="$t('couponAdmin.nameLabel')" :maxlength="128" style="width: 15em" />
           </a-form-item>
-          <a-form-item class="coupon-form-right">
+          <a-form-item class="coupon-form-right coupon-form-row1">
             <template #label><span class="coupon-red-label">单价</span>门槛下限</template>
             <a-input-number v-model:value="form.minUnitPriceYuan" :min="0" :precision="2" style="width: 15em" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.descriptionLabel')" required>
             <a-input v-model:value="form.description" :placeholder="$t('couponAdmin.descriptionLabel')" :maxlength="512" style="width: 15em" />
           </a-form-item>
-          <a-form-item class="coupon-form-right">
+          <a-form-item class="coupon-form-right coupon-form-row2">
             <template #label><span class="coupon-red-label">单价</span>门槛上限</template>
             <a-input-number v-model:value="form.maxUnitPriceYuan" :min="0" :precision="2" style="width: 15em" />
           </a-form-item>
@@ -103,7 +103,7 @@
               <a-switch v-model:checked="form.naturalDay" />
             </div>
           </a-form-item>
-          <a-form-item class="coupon-form-right" :label="$t('couponAdmin.rewardTemplateId')" :required="isDraw">
+          <a-form-item class="coupon-form-right coupon-form-row5" :label="$t('couponAdmin.rewardTemplateId')" :required="isDraw">
             <a-input v-model:value="form.rewardTemplateId" inputmode="numeric" style="width: 15em" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.rewardCount')" :required="isDraw">
@@ -128,11 +128,11 @@
             />
             <a-input-number v-else v-model:value="form.rewardAmountYuan" :min="0" :precision="2" style="width: 15em" />
           </a-form-item>
-          <a-form-item class="coupon-form-left" :required="itemThresholdRequired">
+          <a-form-item class="coupon-form-right coupon-form-row3" :required="itemThresholdRequired">
             <template #label><span class="coupon-red-label">数量</span>门槛上限</template>
             <a-input-number v-model:value="form.maxItemCount" :min="0" :precision="0" style="width: 15em" />
           </a-form-item>
-          <a-form-item class="coupon-form-left" :required="itemThresholdRequired">
+          <a-form-item class="coupon-form-right coupon-form-row4" :required="itemThresholdRequired">
             <template #label><span class="coupon-red-label">数量</span>门槛下限</template>
             <a-input-number v-model:value="form.minItemCount" :min="0" :precision="0" style="width: 15em" />
           </a-form-item>
@@ -634,8 +634,23 @@ onMounted(() => {
 .coupon-form-right {
   grid-column: 2;
 }
-.coupon-form-follow {
+.coupon-form-row1 {
+  grid-row: 1;
+}
+.coupon-form-row2 {
+  grid-row: 2;
+}
+.coupon-form-row3 {
+  grid-row: 3;
+}
+.coupon-form-row4 {
   grid-row: 4;
+}
+.coupon-form-row5 {
+  grid-row: 5;
+}
+.coupon-form-follow {
+  grid-row: 6;
 }
 .coupon-form :deep(.ant-form-item-label) {
   flex: 0 0 118px;
