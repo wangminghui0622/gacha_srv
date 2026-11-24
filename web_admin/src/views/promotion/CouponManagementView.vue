@@ -611,7 +611,7 @@ onMounted(() => {
   display: grid;
   grid-template-columns: auto auto;
   align-items: center;
-  justify-content: center;
+  justify-content: start;
   gap: 14px 10px;
   width: 100%;
 }
