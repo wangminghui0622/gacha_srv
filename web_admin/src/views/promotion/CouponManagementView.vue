@@ -90,7 +90,7 @@
             <a-input v-model:value="form.name" :placeholder="$t('couponAdmin.nameLabel')" :maxlength="128" style="width: 15em" />
           </a-form-item>
           <a-form-item class="coupon-form-right" :label="$t('couponAdmin.totalThreshold')" :required="isFixedOrCustom">
-            <a-input-number v-model:value="form.minGrossYuan" :min="0" :precision="2" style="width: 100%" />
+            <a-input-number v-model:value="form.minGrossYuan" :min="0" :precision="2" style="width: 15em" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.descriptionLabel')" required>
             <a-input v-model:value="form.description" :placeholder="$t('couponAdmin.descriptionLabel')" :maxlength="512" style="width: 15em" />
@@ -107,9 +107,9 @@
               :max="100"
               :precision="2"
               :placeholder="$t('couponAdmin.discountPlaceholder')"
-              style="width: 100%"
+              style="width: 15em"
             />
-            <a-input-number v-else v-model:value="form.rewardAmountYuan" :min="0" :precision="2" style="width: 100%" />
+            <a-input-number v-else v-model:value="form.rewardAmountYuan" :min="0" :precision="2" style="width: 15em" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.validityDaysLabel')" required>
             <div class="coupon-validity-row">
@@ -119,7 +119,7 @@
             </div>
           </a-form-item>
           <a-form-item class="coupon-form-right" :label="$t('couponAdmin.rewardTemplateId')" :required="isDraw">
-            <a-input v-model:value="form.rewardTemplateId" inputmode="numeric" />
+            <a-input v-model:value="form.rewardTemplateId" inputmode="numeric" style="width: 15em" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.rewardCount')" :required="isDraw">
             <a-input-number v-model:value="form.rewardCount" :min="0" :precision="0" style="width: 15em" />
@@ -146,7 +146,7 @@
             :label="$t('couponAdmin.useMode')"
             required
           >
-            <a-select v-model:value="form.useMode" :options="useModeOptions" :placeholder="$t('couponAdmin.useMode')" style="width: 100%" />
+            <a-select v-model:value="form.useMode" :options="useModeOptions" :placeholder="$t('couponAdmin.useMode')" style="width: 15em" />
           </a-form-item>
           <a-form-item
             v-if="form.scope === 'pool'"
@@ -154,7 +154,7 @@
             :label="$t('couponAdmin.poolId')"
             required
           >
-            <a-input v-model:value="form.poolId" :placeholder="$t('couponAdmin.poolId')" inputmode="numeric" style="width: 100%" />
+            <a-input v-model:value="form.poolId" :placeholder="$t('couponAdmin.poolId')" inputmode="numeric" style="width: 15em" />
           </a-form-item>
         </div>
       </a-form>
