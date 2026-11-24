@@ -67,11 +67,17 @@
     >
       <div class="coupon-choice-area">
         <div class="coupon-choice-grid">
-          <span class="coupon-choice-title coupon-choice-label"><span class="coupon-choice-required">{{ $t('couponAdmin.typeLabel') }}</span>：</span>
+          <span class="coupon-choice-title coupon-choice-label">
+            <span class="coupon-choice-mark">*</span>
+            <span class="coupon-choice-text">{{ $t('couponAdmin.typeLabel') }}：</span>
+          </span>
           <a-radio-group v-model:value="form.kind" class="coupon-radio-group">
             <a-radio v-for="option in kindOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
           </a-radio-group>
-          <span class="coupon-choice-title coupon-choice-label">{{ $t('couponAdmin.scopeLabel') }}：</span>
+          <span class="coupon-choice-title coupon-choice-label">
+            <span class="coupon-choice-mark"></span>
+            <span class="coupon-choice-text">{{ $t('couponAdmin.scopeLabel') }}：</span>
+          </span>
           <a-radio-group v-model:value="form.scope" class="coupon-radio-group">
             <a-radio v-for="option in scopeOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
           </a-radio-group>
@@ -616,9 +622,23 @@ onMounted(() => {
   width: 100%;
 }
 .coupon-choice-label {
-  width: 100px;
+  display: flex;
+  align-items: center;
+  width: 104px;
   font-size: 15px;
-  text-align: right;
+}
+.coupon-choice-mark {
+  flex: none;
+  width: 10px;
+  margin-right: 4px;
+  color: #ff4d4f;
+  text-align: center;
+}
+.coupon-choice-text {
+  flex: 1;
+  white-space: nowrap;
+  text-align: justify;
+  text-align-last: justify;
 }
 .coupon-choice-block {
   display: flex;
