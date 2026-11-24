@@ -106,7 +106,11 @@
               <a-input v-model:value="form.description" :placeholder="$t('couponAdmin.descriptionLabel')" :maxlength="512" />
             </a-form-item>
             <a-form-item :label="$t('couponAdmin.validityDaysLabel')" required>
-              <a-input-number v-model:value="form.validityDays" :min="0" :precision="0" style="width: 100%" />
+              <div class="coupon-validity-row">
+                <a-input-number v-model:value="form.validityDays" :min="0" :precision="0" style="width: 200px" />
+                <span class="coupon-inline-label">{{ $t('couponAdmin.naturalDay') }}</span>
+                <a-switch v-model:checked="form.naturalDay" />
+              </div>
             </a-form-item>
             <a-form-item>
               <template #label><span class="coupon-red-label">单价</span>门槛下限</template>
@@ -129,9 +133,6 @@
             </a-form-item>
           </a-col>
           <a-col :span="12">
-            <a-form-item :label="$t('couponAdmin.naturalDay')">
-              <a-switch v-model:checked="form.naturalDay" />
-            </a-form-item>
             <a-form-item :label="$t('couponAdmin.totalThreshold')" :required="isFixedOrCustom">
               <a-input-number v-model:value="form.minGrossYuan" :min="0" :precision="2" style="width: 100%" />
             </a-form-item>
@@ -616,6 +617,16 @@ onMounted(() => {
 .coupon-form-left :deep(.ant-input),
 .coupon-form-left :deep(.ant-input-number) {
   max-width: 300px;
+}
+.coupon-validity-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.coupon-inline-label {
+  color: rgba(0, 0, 0, 0.88);
+  font-size: 14px;
+  white-space: nowrap;
 }
 .coupon-choice-grid {
   display: grid;
