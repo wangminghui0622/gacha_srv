@@ -1387,6 +1387,9 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .coupon-page {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 128px);
   padding: 16px;
   background: #fff;
   border: 1px solid #e4e7ed;
@@ -1465,8 +1468,27 @@ onMounted(async () => {
 .coupon-modal-footer :deep(.ant-btn) {
   font-size: 15px;
 }
+.coupon-tabs {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
 .coupon-tabs :deep(.ant-tabs-nav) {
+  flex: none;
   margin-bottom: 12px;
+}
+.coupon-tabs :deep(.ant-tabs-content-holder) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+.coupon-tabs :deep(.ant-tabs-content) {
+  flex: 1;
+  min-height: 0;
+}
+.coupon-tabs :deep(.ant-tabs-tabpane) {
+  flex: 1;
+  min-height: 0;
 }
 .coupon-grant-form :deep(.ant-form-item-label) {
   display: flex;
