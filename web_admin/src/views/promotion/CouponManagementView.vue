@@ -1,16 +1,11 @@
 <template>
   <section class="coupon-page">
-    <div class="coupon-toolbar">
-      <a-button class="coupon-query-btn" type="primary" :loading="loading" @click="reload">{{ $t('couponAdmin.query') }}</a-button>
-      <a-button v-if="canPublish && activeTab === 'coupons'" class="coupon-create-btn" @click="openCreate">{{ $t('couponAdmin.create') }}</a-button>
-      <a-button v-if="canPublish" class="coupon-grant-btn" @click="openDrawCreate">{{ $t('couponAdmin.grantRule') }}</a-button>
-      <a-button v-if="canGrant && activeTab === 'rules'" class="coupon-grant-user-btn" @click="openGrant()">{{ $t('couponAdmin.grantCoupon') }}</a-button>
-      <a-button v-if="canGrant && activeTab === 'rules'" class="coupon-grant-user-btn" @click="openBatchGrant()">{{ $t('couponAdmin.batchGrant') }}</a-button>
-      <a-button v-if="canPublish && activeTab === 'rules'" class="coupon-ledger-btn" @click="openLedger()">{{ $t('couponAdmin.allLedger') }}</a-button>
-    </div>
-
-    <a-tabs v-model:activeKey="activeTab" class="coupon-tabs">
-      <a-tab-pane key="coupons" :tab="$t('couponAdmin.tabCoupons')">
+    <a-tabs v-model:activeKey="activeTab" class="coupon-tabs" @change="onTabChange">
+      <a-tab-pane key="templates" :tab="$t('couponAdmin.tabTemplateCreate')">
+        <div class="coupon-tab-actions">
+          <a-button v-if="canPublish" class="coupon-create-btn" @click="openCreate">{{ $t('couponAdmin.createTemplateAction') }}</a-button>
+          <a-button class="coupon-query-btn" :loading="loading" @click="reload">{{ $t('couponAdmin.query') }}</a-button>
+        </div>
         <a-table
           :data-source="pagedTemplates"
           :loading="loading"
@@ -61,7 +56,12 @@
           />
         </div>
       </a-tab-pane>
-      <a-tab-pane key="rules" :tab="$t('couponAdmin.tabGrantRules')">
+
+      <a-tab-pane key="pool" :tab="$t('couponAdmin.tabCouponCreate')">
+        <div class="coupon-tab-actions">
+          <a-button v-if="canPublish" class="coupon-grant-btn" @click="openDrawCreate">{{ $t('couponAdmin.createCouponAction') }}</a-button>
+          <a-button class="coupon-query-btn" :loading="loading" @click="reload">{{ $t('couponAdmin.query') }}</a-button>
+        </div>
         <a-table
           :data-source="pagedPoolEntries"
           :loading="loading"
@@ -98,7 +98,7 @@
               <a-space>
                 <a-button class="coupon-edit-btn" size="small" @click="openDrawEdit(record)">{{ $t('couponAdmin.edit') }}</a-button>
                 <a-button size="small" @click="openAdjust(record)">{{ $t('couponAdmin.adjustStock') }}</a-button>
-                <a-button size="small" @click="openLedger(record)">{{ $t('couponAdmin.ledger') }}</a-button>
+                <a-button size="small" @click="showLedgerForEntry(record)">{{ $t('couponAdmin.ledger') }}</a-button>
               </a-space>
             </template>
           </a-table-column>
@@ -116,7 +116,127 @@
           />
         </div>
       </a-tab-pane>
+
+      <a-tab-pane key="grant" :tab="$t('couponAdmin.tabGrantUser')">
+        <a-card class="coupon-inline-card" :title="$t('couponAdmin.grantCouponTitle')" :bordered="false">
+          <a-form class="coupon-grant-form coupon-inline-form" :label-col="{ span: 5 }" :wrapper-col="{ span: 12 }">
+            <a-form-item :label="$t('couponAdmin.poolBatch')" required>
+              <a-select
+                v-model:value="grantForm.poolEntryId"
+                :options="grantPoolOptions"
+                show-search
+                option-filter-prop="label"
+                :placeholder="$t('couponAdmin.poolBatchPlaceholder')"
+                style="width: 16em"
+              />
+            </a-form-item>
+            <a-form-item :label="$t('couponAdmin.grantUserId')" required>
+              <a-input v-model:value="grantForm.userId" inputmode="numeric" :placeholder="$t('couponAdmin.grantUserId')" style="width: 16em" />
+            </a-form-item>
+            <a-form-item :label="$t('couponAdmin.grantCount')" required>
+              <a-input-number v-model:value="grantForm.count" :min="1" :max="1000" :precision="0" style="width: 16em" />
+            </a-form-item>
+            <a-form-item v-if="grantNeedsCustomAmount" :label="$t('couponAdmin.customAmountLabel')">
+              <a-input v-model:value="grantForm.customAmountMinor" inputmode="numeric" :placeholder="$t('couponAdmin.customAmountPlaceholder')" style="width: 16em" />
+            </a-form-item>
+          </a-form>
+          <div class="coupon-form-actions">
+            <a-button @click="resetGrantForm">{{ $t('couponAdmin.reset') }}</a-button>
+            <a-button type="primary" :loading="grantSaving" @click="submitGrant">{{ $t('couponAdmin.confirm') }}</a-button>
+          </div>
+        </a-card>
+      </a-tab-pane>
+
+      <a-tab-pane key="batch" :tab="$t('couponAdmin.tabBatchGrant')">
+        <a-card class="coupon-inline-card" :title="$t('couponAdmin.batchGrantTitle')" :bordered="false">
+          <a-form class="coupon-grant-form coupon-inline-form" :label-col="{ span: 5 }" :wrapper-col="{ span: 12 }">
+            <a-form-item :label="$t('couponAdmin.poolBatch')" required>
+              <a-select
+                v-model:value="batchGrantForm.poolEntryId"
+                :options="grantPoolOptions"
+                show-search
+                option-filter-prop="label"
+                :placeholder="$t('couponAdmin.poolBatchPlaceholder')"
+                style="width: 16em"
+              />
+            </a-form-item>
+            <a-form-item :label="$t('couponAdmin.minSpend')" required>
+              <a-input-number v-model:value="batchGrantForm.minSpendYuan" :min="0" :precision="2" style="width: 16em" />
+            </a-form-item>
+            <a-form-item :label="$t('couponAdmin.maxSpend')">
+              <a-input-number v-model:value="batchGrantForm.maxSpendYuan" :min="0" :precision="2" :placeholder="$t('couponAdmin.maxSpendHint')" style="width: 16em" />
+            </a-form-item>
+            <a-form-item :label="$t('couponAdmin.perUserCount')" required>
+              <a-input-number v-model:value="batchGrantForm.perUserCount" :min="1" :max="1000" :precision="0" style="width: 16em" />
+            </a-form-item>
+            <a-form-item :label="$t('couponAdmin.maxUsers')" required>
+              <a-input-number v-model:value="batchGrantForm.maxUsers" :min="1" :max="200" :precision="0" style="width: 16em" />
+            </a-form-item>
+            <a-form-item v-if="batchGrantNeedsCustomAmount" :label="$t('couponAdmin.customAmountLabel')">
+              <a-input v-model:value="batchGrantForm.customAmountMinor" inputmode="numeric" :placeholder="$t('couponAdmin.customAmountPlaceholder')" style="width: 16em" />
+            </a-form-item>
+            <a-form-item>
+              <span class="coupon-batch-hint">{{ $t('couponAdmin.batchGrantHint') }}</span>
+            </a-form-item>
+          </a-form>
+          <div class="coupon-form-actions">
+            <a-button @click="resetBatchGrantForm">{{ $t('couponAdmin.reset') }}</a-button>
+            <a-button type="primary" :loading="batchGrantSaving" @click="submitBatchGrant">{{ $t('couponAdmin.confirm') }}</a-button>
+          </div>
+        </a-card>
+      </a-tab-pane>
+
+      <a-tab-pane key="ledger" :tab="$t('couponAdmin.tabLedger')">
+        <a-card class="coupon-inline-card" :title="ledgerTitle" :bordered="false">
+          <div v-if="ledgerEntryId" class="coupon-tab-actions">
+            <a-button @click="clearLedgerFilter">{{ $t('couponAdmin.viewAllLedger') }}</a-button>
+          </div>
+          <a-table
+            :data-source="ledgerEntries"
+            :loading="ledgerLoading"
+            :pagination="false"
+            :row-key="(row: CouponLedgerEntry) => String(row.id)"
+            :scroll="{ x: 900 }"
+            size="small"
+          >
+            <a-table-column :title="$t('couponAdmin.ledgerTime')" width="170" align="center">
+              <template #default="{ record }">{{ ledgerTimeText(record) }}</template>
+            </a-table-column>
+            <a-table-column :title="$t('couponAdmin.ledgerEvent')" width="120" align="center">
+              <template #default="{ record }">{{ ledgerEventText(record.eventType) }}</template>
+            </a-table-column>
+            <a-table-column :title="$t('couponAdmin.ledgerDelta')" width="90" align="center">
+              <template #default="{ record }">{{ ledgerDeltaText(record) }}</template>
+            </a-table-column>
+            <a-table-column :title="$t('couponAdmin.ledgerBeforeAfter')" width="150" align="center">
+              <template #default="{ record }">{{ ledgerBeforeAfterText(record) }}</template>
+            </a-table-column>
+            <a-table-column :title="$t('couponAdmin.ledgerOperator')" width="150" align="center">
+              <template #default="{ record }">{{ ledgerOperatorText(record) }}</template>
+            </a-table-column>
+            <a-table-column :title="$t('couponAdmin.ledgerRef')" min-width="150" align="center">
+              <template #default="{ record }">{{ ledgerRefText(record) }}</template>
+            </a-table-column>
+            <a-table-column :title="$t('couponAdmin.remark')" min-width="160" align="center">
+              <template #default="{ record }">{{ record.remark || '-' }}</template>
+            </a-table-column>
+          </a-table>
+          <div class="coupon-footer">
+            <a-pagination
+              v-model:current="ledgerPage"
+              v-model:page-size="ledgerPageSize"
+              :total="ledgerTotal"
+              :page-size-options="['20', '50', '100']"
+              show-size-changer
+              show-less-items
+              :locale="{ items_per_page: $t('couponAdmin.itemsPerPage') }"
+              @change="loadLedger"
+            />
+          </div>
+        </a-card>
+      </a-tab-pane>
     </a-tabs>
+
 
     <a-modal
       v-model:open="modalOpen"
@@ -287,115 +407,11 @@
       </div>
     </a-modal>
 
-    <a-modal v-model:open="ledgerOpen" centered :title="ledgerTitle" width="980px" :style="{ maxWidth: '96vw' }" :footer="null">
-      <a-table
-        :data-source="ledgerEntries"
-        :loading="ledgerLoading"
-        :pagination="false"
-        :row-key="(row: CouponLedgerEntry) => String(row.id)"
-        :scroll="{ x: 900 }"
-        size="small"
-      >
-        <a-table-column :title="$t('couponAdmin.ledgerTime')" width="170" align="center">
-          <template #default="{ record }">{{ ledgerTimeText(record) }}</template>
-        </a-table-column>
-        <a-table-column :title="$t('couponAdmin.ledgerEvent')" width="120" align="center">
-          <template #default="{ record }">{{ ledgerEventText(record.eventType) }}</template>
-        </a-table-column>
-        <a-table-column :title="$t('couponAdmin.ledgerDelta')" width="90" align="center">
-          <template #default="{ record }">{{ ledgerDeltaText(record) }}</template>
-        </a-table-column>
-        <a-table-column :title="$t('couponAdmin.ledgerBeforeAfter')" width="150" align="center">
-          <template #default="{ record }">{{ ledgerBeforeAfterText(record) }}</template>
-        </a-table-column>
-        <a-table-column :title="$t('couponAdmin.ledgerOperator')" width="150" align="center">
-          <template #default="{ record }">{{ ledgerOperatorText(record) }}</template>
-        </a-table-column>
-        <a-table-column :title="$t('couponAdmin.ledgerRef')" min-width="150" align="center">
-          <template #default="{ record }">{{ ledgerRefText(record) }}</template>
-        </a-table-column>
-        <a-table-column :title="$t('couponAdmin.remark')" min-width="160" align="center">
-          <template #default="{ record }">{{ record.remark || '-' }}</template>
-        </a-table-column>
-      </a-table>
-      <div class="coupon-footer">
-        <a-pagination
-          v-model:current="ledgerPage"
-          v-model:page-size="ledgerPageSize"
-          :total="ledgerTotal"
-          :page-size-options="['20', '50', '100']"
-          show-size-changer
-          show-less-items
-          :locale="{ items_per_page: $t('couponAdmin.itemsPerPage') }"
-          @change="loadLedger"
-        />
-      </div>
-    </a-modal>
+    
 
-    <a-modal v-model:open="grantOpen" centered :title="$t('couponAdmin.grantCouponTitle')" width="520px" :style="{ maxWidth: '96vw' }" :footer="null">
-      <a-form class="coupon-grant-form" :label-col="{ span: 7 }" :wrapper-col="{ span: 17 }">
-        <a-form-item :label="$t('couponAdmin.poolBatch')" required>
-          <a-select
-            v-model:value="grantForm.poolEntryId"
-            :options="grantPoolOptions"
-            show-search
-            option-filter-prop="label"
-            :placeholder="$t('couponAdmin.poolBatchPlaceholder')"
-            style="width: 16em"
-          />
-        </a-form-item>
-        <a-form-item :label="$t('couponAdmin.grantUserId')" required>
-          <a-input v-model:value="grantForm.userId" inputmode="numeric" :placeholder="$t('couponAdmin.grantUserId')" style="width: 16em" />
-        </a-form-item>
-        <a-form-item :label="$t('couponAdmin.grantCount')" required>
-          <a-input-number v-model:value="grantForm.count" :min="1" :max="1000" :precision="0" style="width: 16em" />
-        </a-form-item>
-        <a-form-item v-if="grantNeedsCustomAmount" :label="$t('couponAdmin.customAmountLabel')">
-          <a-input v-model:value="grantForm.customAmountMinor" inputmode="numeric" :placeholder="$t('couponAdmin.customAmountPlaceholder')" style="width: 16em" />
-        </a-form-item>
-      </a-form>
-      <div class="coupon-modal-footer" style="display: flex; justify-content: center; gap: 12px">
-        <a-button @click="grantOpen = false">{{ $t('couponAdmin.cancel') }}</a-button>
-        <a-button type="primary" :loading="grantSaving" @click="submitGrant">{{ $t('couponAdmin.confirm') }}</a-button>
-      </div>
-    </a-modal>
+    
 
-    <a-modal v-model:open="batchGrantOpen" centered :title="$t('couponAdmin.batchGrantTitle')" width="560px" :style="{ maxWidth: '96vw' }" :footer="null">
-      <a-form class="coupon-grant-form" :label-col="{ span: 7 }" :wrapper-col="{ span: 17 }">
-        <a-form-item :label="$t('couponAdmin.poolBatch')" required>
-          <a-select
-            v-model:value="batchGrantForm.poolEntryId"
-            :options="grantPoolOptions"
-            show-search
-            option-filter-prop="label"
-            :placeholder="$t('couponAdmin.poolBatchPlaceholder')"
-            style="width: 16em"
-          />
-        </a-form-item>
-        <a-form-item :label="$t('couponAdmin.minSpend')" required>
-          <a-input-number v-model:value="batchGrantForm.minSpendYuan" :min="0" :precision="2" style="width: 16em" />
-        </a-form-item>
-        <a-form-item :label="$t('couponAdmin.maxSpend')">
-          <a-input-number v-model:value="batchGrantForm.maxSpendYuan" :min="0" :precision="2" :placeholder="$t('couponAdmin.maxSpendHint')" style="width: 16em" />
-        </a-form-item>
-        <a-form-item :label="$t('couponAdmin.perUserCount')" required>
-          <a-input-number v-model:value="batchGrantForm.perUserCount" :min="1" :max="1000" :precision="0" style="width: 16em" />
-        </a-form-item>
-        <a-form-item :label="$t('couponAdmin.maxUsers')" required>
-          <a-input-number v-model:value="batchGrantForm.maxUsers" :min="1" :max="200" :precision="0" style="width: 16em" />
-        </a-form-item>
-        <a-form-item v-if="batchGrantNeedsCustomAmount" :label="$t('couponAdmin.customAmountLabel')">
-          <a-input v-model:value="batchGrantForm.customAmountMinor" inputmode="numeric" :placeholder="$t('couponAdmin.customAmountPlaceholder')" style="width: 16em" />
-        </a-form-item>
-        <a-form-item>
-          <span class="coupon-batch-hint">{{ $t('couponAdmin.batchGrantHint') }}</span>
-        </a-form-item>
-      </a-form>
-      <div class="coupon-modal-footer" style="display: flex; justify-content: center; gap: 12px">
-        <a-button @click="batchGrantOpen = false">{{ $t('couponAdmin.cancel') }}</a-button>
-        <a-button type="primary" :loading="batchGrantSaving" @click="submitBatchGrant">{{ $t('couponAdmin.confirm') }}</a-button>
-      </div>
-    </a-modal>
+    
   </section>
 </template>
 
@@ -416,7 +432,7 @@ const { t } = useI18n()
 const canRead = computed(() => allows(session.permissionNodes, 'promotion.coupon_template', 'read'))
 const canPublish = computed(() => allows(session.permissionNodes, 'promotion.coupon_template', 'publish'))
 const canGrant = computed(() => allows(session.permissionNodes, 'promotion.user_coupon', 'grant'))
-const activeTab = ref('coupons')
+const activeTab = ref('templates')
 const drawPage = ref(1)
 const drawPageSize = ref(15)
 
@@ -529,6 +545,20 @@ function reload() {
   page.value = 1
   drawPage.value = 1
   void load()
+  if (activeTab.value === 'ledger') {
+    ledgerPage.value = 1
+    void loadLedger()
+  }
+}
+
+function onTabChange(key: string) {
+  if (key === 'ledger') {
+    void loadLedger()
+    return
+  }
+  if (key === 'templates' || key === 'pool') {
+    void load()
+  }
 }
 
 function kindText(kind: string | number | undefined) {
@@ -887,7 +917,6 @@ async function submitAdjust() {
   }
 }
 
-const ledgerOpen = ref(false)
 const ledgerLoading = ref(false)
 const ledgerEntries = ref<CouponLedgerEntry[]>([])
 const ledgerTotal = ref(0)
@@ -900,15 +929,21 @@ const ledgerTitle = computed(() =>
     : t('couponAdmin.allLedger'),
 )
 
-function openLedger(record?: CouponPoolEntry) {
-  ledgerEntryId.value = record ? String(record.id ?? '') : ''
+function showLedgerForEntry(record: CouponPoolEntry) {
+  ledgerEntryId.value = String(record.id ?? '')
   ledgerPage.value = 1
-  ledgerOpen.value = true
+  activeTab.value = 'ledger'
+  void loadLedger()
+}
+
+function clearLedgerFilter() {
+  ledgerEntryId.value = ''
+  ledgerPage.value = 1
   void loadLedger()
 }
 
 async function loadLedger() {
-  if (!canPublish.value) return
+  if (!canRead.value) return
   ledgerLoading.value = true
   try {
     const result = await promotionClient().ListCouponLedger({
@@ -1013,7 +1048,6 @@ function ledgerRefText(record: CouponLedgerEntry) {
   return '-'
 }
 
-const grantOpen = ref(false)
 const grantSaving = ref(false)
 const grantRequestId = ref('')
 const grantForm = reactive({
@@ -1055,15 +1089,12 @@ const grantNeedsCustomAmount = computed(
   () => poolTemplateKind(grantSelectedPool.value) === 'COUPON_TEMPLATE_KIND_CUSTOM_MINOR',
 )
 
-function openGrant(record?: CouponPoolEntry) {
+function resetGrantForm() {
   grantRequestId.value = newRequestId()
   grantForm.userId = ''
   grantForm.count = 1
   grantForm.customAmountMinor = ''
-  grantForm.poolEntryId = record
-    ? String(record.id ?? '')
-    : grantPoolOptions.value[0]?.value
-  grantOpen.value = true
+  grantForm.poolEntryId = grantPoolOptions.value[0]?.value
 }
 
 async function submitGrant() {
@@ -1104,7 +1135,7 @@ async function submitGrant() {
     })
     message.success(t('couponAdmin.grantSuccess', { count }))
     grantRequestId.value = ''
-    grantOpen.value = false
+    resetGrantForm()
     await load()
   } catch {
     // 错误提示由请求层统一处理
@@ -1113,7 +1144,6 @@ async function submitGrant() {
   }
 }
 
-const batchGrantOpen = ref(false)
 const batchGrantSaving = ref(false)
 const batchGrantRequestId = ref('')
 const batchGrantForm = reactive({
@@ -1131,7 +1161,7 @@ const batchGrantNeedsCustomAmount = computed(
   () => poolTemplateKind(batchGrantSelectedPool.value) === 'COUPON_TEMPLATE_KIND_CUSTOM_MINOR',
 )
 
-function openBatchGrant() {
+function resetBatchGrantForm() {
   batchGrantRequestId.value = newRequestId()
   batchGrantForm.poolEntryId = grantPoolOptions.value[0]?.value
   batchGrantForm.minSpendYuan = 0
@@ -1139,7 +1169,6 @@ function openBatchGrant() {
   batchGrantForm.perUserCount = 1
   batchGrantForm.maxUsers = 50
   batchGrantForm.customAmountMinor = ''
-  batchGrantOpen.value = true
 }
 
 async function submitBatchGrant() {
@@ -1197,7 +1226,7 @@ async function submitBatchGrant() {
       message.warning(t('couponAdmin.batchGrantStockLimited'))
     }
     batchGrantRequestId.value = ''
-    batchGrantOpen.value = false
+    resetBatchGrantForm()
     await load()
   } catch {
     // 错误提示由请求层统一处理
@@ -1348,8 +1377,11 @@ async function togglePoolStatus(record: CouponPoolEntry) {
   }
 }
 
-onMounted(() => {
-  if (canRead.value) void load()
+onMounted(async () => {
+  if (!canRead.value) return
+  await load()
+  resetGrantForm()
+  resetBatchGrantForm()
 })
 </script>
 
@@ -1364,6 +1396,35 @@ onMounted(() => {
   display: flex;
   gap: 10px;
   margin-bottom: 14px;
+}
+.coupon-tab-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.coupon-inline-card {
+  background: transparent;
+}
+.coupon-inline-card :deep(.ant-card-head) {
+  min-height: auto;
+  padding: 0 0 14px;
+  border-bottom: none;
+}
+.coupon-inline-card :deep(.ant-card-head-title) {
+  font-size: 16px;
+  font-weight: 600;
+}
+.coupon-inline-card :deep(.ant-card-body) {
+  padding: 0;
+}
+.coupon-inline-form {
+  max-width: 640px;
+}
+.coupon-form-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
 }
 .coupon-query-btn {
   background: #1eaa59;
