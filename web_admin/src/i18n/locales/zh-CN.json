@@ -980,7 +980,7 @@
     "tabGrantUser": "给用户发券",
     "tabBatchGrant": "批量发券",
     "tabLedger": "券流水",
-    "createTemplateAction": "新建模板",
+    "createTemplateAction": "新建优惠券模板",
     "createCouponAction": "新建优惠券",
     "reset": "重置",
     "viewAllLedger": "查看全部流水",

@@ -980,7 +980,7 @@
     "tabGrantUser": "Grant to user",
     "tabBatchGrant": "Batch grant",
     "tabLedger": "Coupon ledger",
-    "createTemplateAction": "New template",
+    "createTemplateAction": "New coupon template",
     "createCouponAction": "New coupon",
     "reset": "Reset",
     "viewAllLedger": "View all ledger",
