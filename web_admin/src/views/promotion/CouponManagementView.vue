@@ -3,8 +3,13 @@
     <a-tabs v-model:activeKey="activeTab" class="coupon-tabs" @change="onTabChange" @tabClick="onTabClick">
       <a-tab-pane key="templates" :tab="$t('couponAdmin.tabTemplateCreate')">
         <div class="coupon-tab-actions">
+          <a-input
+            v-model:value="templateKeyword"
+            class="coupon-search-input"
+            :placeholder="$t('couponAdmin.templateSearchPlaceholder')"
+            allow-clear
+          />
           <a-button v-if="canPublish" class="coupon-create-btn" @click="openCreate">{{ $t('couponAdmin.createTemplateAction') }}</a-button>
-          <a-button class="coupon-query-btn" :loading="loading" @click="reload">{{ $t('couponAdmin.query') }}</a-button>
         </div>
         <a-table
           :data-source="pagedTemplates"
@@ -48,7 +53,7 @@
           <a-pagination
             v-model:current="page"
             v-model:page-size="pageSize"
-            :total="latestCouponTemplates.length"
+            :total="filteredCouponTemplates.length"
             :page-size-options="['15', '30', '50']"
             show-size-changer
             show-less-items
@@ -59,8 +64,13 @@
 
       <a-tab-pane key="pool" :tab="$t('couponAdmin.tabCouponCreate')">
         <div class="coupon-tab-actions">
+          <a-input
+            v-model:value="poolKeyword"
+            class="coupon-search-input"
+            :placeholder="$t('couponAdmin.poolSearchPlaceholder')"
+            allow-clear
+          />
           <a-button v-if="canPublish" class="coupon-grant-btn" @click="openDrawCreate">{{ $t('couponAdmin.createCouponAction') }}</a-button>
-          <a-button class="coupon-query-btn" :loading="loading" @click="reload">{{ $t('couponAdmin.query') }}</a-button>
         </div>
         <a-table
           :data-source="pagedPoolEntries"
@@ -108,7 +118,7 @@
           <a-pagination
             v-model:current="drawPage"
             v-model:page-size="drawPageSize"
-            :total="poolEntries.length"
+            :total="filteredPoolEntries.length"
             :page-size-options="['15', '30', '50']"
             show-size-changer
             show-less-items
@@ -420,7 +430,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
@@ -437,6 +447,8 @@ const canRead = computed(() => allows(session.permissionNodes, 'promotion.coupon
 const canPublish = computed(() => allows(session.permissionNodes, 'promotion.coupon_template', 'publish'))
 const canGrant = computed(() => allows(session.permissionNodes, 'promotion.user_coupon', 'grant'))
 const activeTab = ref('templates')
+const templateKeyword = ref('')
+const poolKeyword = ref('')
 const drawPage = ref(1)
 const drawPageSize = ref(15)
 
@@ -476,13 +488,39 @@ function isRealCouponKind(kind: string | number | undefined) {
 const latestCouponTemplates = computed(() =>
   latestTemplates.value.filter((item) => isRealCouponKind(item.kind)),
 )
+watch(templateKeyword, () => {
+  page.value = 1
+})
+watch(poolKeyword, () => {
+  drawPage.value = 1
+})
+
+const filteredCouponTemplates = computed(() => {
+  const keyword = templateKeyword.value.trim().toLowerCase()
+  if (!keyword) return latestCouponTemplates.value
+  return latestCouponTemplates.value.filter(
+    (item) =>
+      String(item.templateId ?? '').includes(keyword) ||
+      String(item.name ?? '').toLowerCase().includes(keyword),
+  )
+})
+const filteredPoolEntries = computed(() => {
+  const keyword = poolKeyword.value.trim().toLowerCase()
+  if (!keyword) return poolEntries.value
+  return poolEntries.value.filter(
+    (item) =>
+      String(item.id ?? '').includes(keyword) ||
+      String(item.templateId ?? '').includes(keyword) ||
+      String(item.templateName ?? '').toLowerCase().includes(keyword),
+  )
+})
 const pagedTemplates = computed(() => {
   const start = (page.value - 1) * pageSize.value
-  return latestCouponTemplates.value.slice(start, start + pageSize.value)
+  return filteredCouponTemplates.value.slice(start, start + pageSize.value)
 })
 const pagedPoolEntries = computed(() => {
   const start = (drawPage.value - 1) * drawPageSize.value
-  return poolEntries.value.slice(start, start + drawPageSize.value)
+  return filteredPoolEntries.value.slice(start, start + drawPageSize.value)
 })
 
 function tenant() {
@@ -534,24 +572,14 @@ async function load() {
     const [templates, pools] = await Promise.all([loadAllTemplates(), loadAllPoolEntries()])
     rawTemplates.value = templates
     poolEntries.value = pools
-    const maxPage = Math.max(1, Math.ceil(latestCouponTemplates.value.length / pageSize.value))
+    const maxPage = Math.max(1, Math.ceil(filteredCouponTemplates.value.length / pageSize.value))
     if (page.value > maxPage) page.value = maxPage
-    const maxDrawPage = Math.max(1, Math.ceil(poolEntries.value.length / drawPageSize.value))
+    const maxDrawPage = Math.max(1, Math.ceil(filteredPoolEntries.value.length / drawPageSize.value))
     if (drawPage.value > maxDrawPage) drawPage.value = maxDrawPage
   } catch {
     message.error(t('couponAdmin.loadFailed'))
   } finally {
     loading.value = false
-  }
-}
-
-function reload() {
-  page.value = 1
-  drawPage.value = 1
-  void load()
-  if (activeTab.value === 'ledger') {
-    ledgerPage.value = 1
-    void loadLedger()
   }
 }
 
@@ -1430,8 +1458,14 @@ onMounted(async () => {
 }
 .coupon-tab-actions {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
   margin-bottom: 14px;
+}
+.coupon-search-input {
+  width: 280px;
+  max-width: 100%;
 }
 .coupon-inline-card {
   background: transparent;

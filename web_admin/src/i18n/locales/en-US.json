@@ -982,6 +982,8 @@
     "tabLedger": "Coupon ledger",
     "createTemplateAction": "New coupon template",
     "createCouponAction": "New coupon",
+    "templateSearchPlaceholder": "Search by template name or ID",
+    "poolSearchPlaceholder": "Search by coupon name or ID",
     "reset": "Reset",
     "viewAllLedger": "View all ledger",
     "grantRuleTitle": "Create coupon",

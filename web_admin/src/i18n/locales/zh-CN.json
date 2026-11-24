@@ -982,6 +982,8 @@
     "tabLedger": "券流水",
     "createTemplateAction": "新建优惠券模板",
     "createCouponAction": "新建优惠券",
+    "templateSearchPlaceholder": "请输入模板名称或 ID",
+    "poolSearchPlaceholder": "请输入券名称或 ID",
     "reset": "重置",
     "viewAllLedger": "查看全部流水",
     "grantRuleTitle": "创建优惠券",
