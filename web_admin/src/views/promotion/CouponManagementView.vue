@@ -149,6 +149,16 @@
               <a-switch v-model:checked="form.naturalDay" />
             </div>
           </a-form-item>
+          <div class="coupon-form-left coupon-price-row">
+            <div class="coupon-price-pair">
+              <span class="coupon-price-label">{{ $t('couponAdmin.priceMinShort') }}：</span>
+              <a-input-number v-model:value="form.minUnitPriceYuan" :min="0" :precision="0" :controls="false" style="width: 70px" />
+            </div>
+            <div class="coupon-price-pair">
+              <span class="coupon-price-label">{{ $t('couponAdmin.priceMaxShort') }}：</span>
+              <a-input-number v-model:value="form.maxUnitPriceYuan" :min="0" :precision="0" :controls="false" style="width: 70px" />
+            </div>
+          </div>
           <a-form-item
             v-if="isPercent"
             class="coupon-form-right coupon-form-discount"
@@ -481,8 +491,8 @@ function openCreate() {
     validityDays: 0,
     naturalDay: false,
     minGrossYuan: 0,
-    minUnitPriceYuan: 0,
-    maxUnitPriceYuan: 0,
+    minUnitPriceYuan: 5,
+    maxUnitPriceYuan: 100,
     minItemCount: 0,
     maxItemCount: 0,
     rewardAmountYuan: 0,
@@ -716,6 +726,12 @@ async function save() {
     message.warning(t('couponAdmin.discountMustBePositive'))
     return
   }
+  const minUnitPriceMinor = yuanToFen(form.minUnitPriceYuan)
+  const maxUnitPriceMinor = yuanToFen(form.maxUnitPriceYuan)
+  if (maxUnitPriceMinor > 0 && minUnitPriceMinor > maxUnitPriceMinor) {
+    message.warning(t('couponAdmin.unitPriceOrderInvalid'))
+    return
+  }
   const template: CouponTemplate = {
     templateId,
     tenantId: tenant(),
@@ -725,8 +741,8 @@ async function save() {
     amountMinor: isFixedOrCustom.value ? yuanToFen(form.rewardAmountYuan) : 0,
     percentBps: isPercent.value ? Math.round((form.discountPercent ?? 0) * 100) : 0,
     minGrossMinor: yuanToFen(form.minGrossYuan),
-    minUnitPriceMinor: 0,
-    maxUnitPriceMinor: 0,
+    minUnitPriceMinor,
+    maxUnitPriceMinor,
     minItemCount: 0,
     maxItemCount: 0,
     currency: 'CNY',
@@ -942,6 +958,24 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+.coupon-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+.coupon-price-pair {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.coupon-price-label {
+  color: rgba(0, 0, 0, 0.88);
+  font-size: 15px;
 }
 .coupon-inline-label {
   color: rgba(0, 0, 0, 0.88);
