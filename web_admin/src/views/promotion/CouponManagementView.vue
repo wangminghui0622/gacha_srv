@@ -630,7 +630,7 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 14px;
-  margin: 4px 0 22px;
+  margin: 4px 0 24px;
   padding-top: 12px;
 }
 .coupon-form-grid {
@@ -718,7 +718,7 @@ onMounted(() => {
   grid-template-columns: auto auto;
   align-items: center;
   justify-content: start;
-  gap: 14px 10px;
+  gap: 24px 10px;
   width: 100%;
 }
 .coupon-choice-label {
