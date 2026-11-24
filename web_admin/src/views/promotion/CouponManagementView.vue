@@ -78,7 +78,7 @@
             <span class="coupon-choice-mark"></span>
             <span class="coupon-choice-text">{{ $t('couponAdmin.scopeLabel') }}：</span>
           </span>
-          <a-radio-group v-model:value="form.scope" class="coupon-radio-group">
+          <a-radio-group v-model:value="form.scope" class="coupon-radio-group coupon-radio-group-scope">
             <a-radio v-for="option in scopeOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
           </a-radio-group>
         </div>
@@ -711,6 +711,16 @@ onMounted(() => {
   width: 571px;
   max-width: 100%;
   justify-content: space-between;
+}
+.coupon-radio-group-scope {
+  display: grid;
+  grid-template-columns: repeat(3, 131px);
+  width: 393px;
+  max-width: 100%;
+  gap: 0;
+}
+.coupon-radio-group-scope :deep(.ant-radio-wrapper) {
+  justify-self: start;
 }
 .coupon-radio-group :deep(.ant-radio-wrapper) {
   margin-inline-end: 0;
