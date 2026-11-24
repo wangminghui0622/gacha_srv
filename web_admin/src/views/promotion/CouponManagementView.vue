@@ -108,14 +108,6 @@
             <a-form-item :label="$t('couponAdmin.validityDaysLabel')" required>
               <a-input-number v-model:value="form.validityDays" :min="0" :precision="0" style="width: 100%" />
             </a-form-item>
-            <a-form-item :label="$t('couponAdmin.naturalDay')">
-              <a-switch v-model:checked="form.naturalDay" />
-            </a-form-item>
-            <a-form-item :label="$t('couponAdmin.totalThreshold')" :required="isFixedOrCustom">
-              <a-input-number v-model:value="form.minGrossYuan" :min="0" :precision="2" style="width: 100%" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
             <a-form-item>
               <template #label><span class="coupon-red-label">单价</span>门槛下限</template>
               <a-input-number v-model:value="form.minUnitPriceYuan" :min="0" :precision="2" style="width: 100%" />
@@ -132,6 +124,17 @@
               <template #label><span class="coupon-red-label">数量</span>门槛上限</template>
               <a-input-number v-model:value="form.maxItemCount" :min="0" :precision="0" style="width: 100%" />
             </a-form-item>
+            <a-form-item :label="$t('couponAdmin.rewardCount')" :required="isDraw">
+              <a-input-number v-model:value="form.rewardCount" :min="0" :precision="0" style="width: 100%" />
+            </a-form-item>
+          </a-col>
+          <a-col :span="12">
+            <a-form-item :label="$t('couponAdmin.naturalDay')">
+              <a-switch v-model:checked="form.naturalDay" />
+            </a-form-item>
+            <a-form-item :label="$t('couponAdmin.totalThreshold')" :required="isFixedOrCustom">
+              <a-input-number v-model:value="form.minGrossYuan" :min="0" :precision="2" style="width: 100%" />
+            </a-form-item>
             <a-form-item
               :label="form.kind === 'COUPON_TEMPLATE_KIND_PERCENT_BPS' ? $t('couponAdmin.discountPercent') : $t('couponAdmin.rewardAmount')"
               :required="amountRequired || isPercent"
@@ -146,9 +149,6 @@
                 style="width: 100%"
               />
               <a-input-number v-else v-model:value="form.rewardAmountYuan" :min="0" :precision="2" style="width: 100%" />
-            </a-form-item>
-            <a-form-item :label="$t('couponAdmin.rewardCount')" :required="isDraw">
-              <a-input-number v-model:value="form.rewardCount" :min="0" :precision="0" style="width: 100%" />
             </a-form-item>
             <a-form-item :label="$t('couponAdmin.rewardTemplateId')" :required="isDraw">
               <a-input v-model:value="form.rewardTemplateId" inputmode="numeric" />
