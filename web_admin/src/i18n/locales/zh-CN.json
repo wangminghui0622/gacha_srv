@@ -999,6 +999,8 @@
     "rewardCoupon": "赠送优惠券",
     "rewardCouponRequired": "请选择赠送优惠券",
     "drawThreshold": "数量门槛",
+    "drawCount": "满抽次数",
+    "drawCountRequired": "满抽次数必须大于 0",
     "thresholdOrderInvalid": "数量门槛下限不能大于上限",
     "drawSaved": "满抽规则已保存",
     "saved": "优惠券已保存",

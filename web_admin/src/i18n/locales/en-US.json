@@ -999,6 +999,8 @@
     "rewardCoupon": "Reward coupon",
     "rewardCouponRequired": "Select a reward coupon",
     "drawThreshold": "Quantity threshold",
+    "drawCount": "Draw count",
+    "drawCountRequired": "Draw count must be greater than 0",
     "thresholdOrderInvalid": "Min quantity cannot exceed max quantity",
     "drawSaved": "Draw rule saved",
     "saved": "Coupon saved",

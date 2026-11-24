@@ -73,8 +73,8 @@
           <a-table-column :title="$t('couponAdmin.name')" min-width="220" align="center">
             <template #default="{ record }">{{ record.name || '-' }}</template>
           </a-table-column>
-          <a-table-column :title="$t('couponAdmin.drawThreshold')" width="160" align="center">
-            <template #default="{ record }">{{ record.minItemCount ?? 0 }} - {{ record.maxItemCount ?? 0 }}</template>
+          <a-table-column :title="$t('couponAdmin.drawCount')" width="160" align="center">
+            <template #default="{ record }">{{ record.minItemCount ?? 0 }}</template>
           </a-table-column>
           <a-table-column :title="$t('couponAdmin.rewardCoupon')" min-width="220" align="center">
             <template #default="{ record }">{{ rewardCouponText(record) }}</template>
@@ -227,11 +227,8 @@
         <a-form-item :label="$t('couponAdmin.naturalDay')">
           <a-switch v-model:checked="drawForm.naturalDay" />
         </a-form-item>
-        <a-form-item :label="$t('couponAdmin.minItemCount')" required>
+        <a-form-item :label="$t('couponAdmin.drawCount')" required>
           <a-input-number v-model:value="drawForm.minItemCount" :min="1" :precision="0" style="width: 160px" />
-        </a-form-item>
-        <a-form-item :label="$t('couponAdmin.maxItemCount')" required>
-          <a-input-number v-model:value="drawForm.maxItemCount" :min="1" :precision="0" style="width: 160px" />
         </a-form-item>
         <a-form-item :label="$t('couponAdmin.rewardCoupon')" required>
           <a-select
@@ -613,13 +610,8 @@ async function submitDraw() {
     return
   }
   const minItemCount = Math.trunc(drawForm.minItemCount)
-  const maxItemCount = Math.trunc(drawForm.maxItemCount)
-  if (minItemCount <= 0 || maxItemCount <= 0) {
-    message.warning(t('couponAdmin.itemThresholdRequired'))
-    return
-  }
-  if (minItemCount > maxItemCount) {
-    message.warning(t('couponAdmin.thresholdOrderInvalid'))
+  if (minItemCount <= 0) {
+    message.warning(t('couponAdmin.drawCountRequired'))
     return
   }
   if (!drawForm.rewardTemplateId || !positiveId(drawForm.rewardTemplateId)) {
@@ -651,7 +643,7 @@ async function submitDraw() {
         minUnitPriceMinor: 0,
         maxUnitPriceMinor: 0,
         minItemCount,
-        maxItemCount,
+        maxItemCount: 0,
         currency: 'CNY',
         funder: 'DISCOUNT_FUNDER_PLATFORM',
         validityDays: Math.trunc(drawForm.validityDays),
