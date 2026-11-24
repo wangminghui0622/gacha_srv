@@ -92,21 +92,9 @@
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.descriptionLabel')" required>
             <a-input v-model:value="form.description" :placeholder="$t('couponAdmin.descriptionLabel')" :maxlength="512" style="width: 15em" />
           </a-form-item>
-          <a-form-item
-            class="coupon-form-right"
-            :label="form.kind === 'COUPON_TEMPLATE_KIND_PERCENT_BPS' ? $t('couponAdmin.discountPercent') : $t('couponAdmin.rewardAmount')"
-            :required="amountRequired || isPercent"
-          >
-            <a-input-number
-              v-if="form.kind === 'COUPON_TEMPLATE_KIND_PERCENT_BPS'"
-              v-model:value="form.discountPercent"
-              :min="0.01"
-              :max="100"
-              :precision="2"
-              :placeholder="$t('couponAdmin.discountPlaceholder')"
-              style="width: 15em"
-            />
-            <a-input-number v-else v-model:value="form.rewardAmountYuan" :min="0" :precision="2" style="width: 15em" />
+          <a-form-item class="coupon-form-right">
+            <template #label><span class="coupon-red-label">单价</span>门槛上限</template>
+            <a-input-number v-model:value="form.maxUnitPriceYuan" :min="0" :precision="2" style="width: 15em" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.validityDaysLabel')" required>
             <div class="coupon-validity-row">
@@ -124,9 +112,21 @@
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.totalThreshold')" :required="isFixedOrCustom">
             <a-input-number v-model:value="form.minGrossYuan" :min="0" :precision="2" style="width: 15em" />
           </a-form-item>
-          <a-form-item class="coupon-form-left">
-            <template #label><span class="coupon-red-label">单价</span>门槛上限</template>
-            <a-input-number v-model:value="form.maxUnitPriceYuan" :min="0" :precision="2" style="width: 15em" />
+          <a-form-item
+            class="coupon-form-left"
+            :label="form.kind === 'COUPON_TEMPLATE_KIND_PERCENT_BPS' ? $t('couponAdmin.discountPercent') : $t('couponAdmin.rewardAmount')"
+            :required="amountRequired || isPercent"
+          >
+            <a-input-number
+              v-if="form.kind === 'COUPON_TEMPLATE_KIND_PERCENT_BPS'"
+              v-model:value="form.discountPercent"
+              :min="0.01"
+              :max="100"
+              :precision="2"
+              :placeholder="$t('couponAdmin.discountPlaceholder')"
+              style="width: 15em"
+            />
+            <a-input-number v-else v-model:value="form.rewardAmountYuan" :min="0" :precision="2" style="width: 15em" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :required="itemThresholdRequired">
             <template #label><span class="coupon-red-label">数量</span>门槛上限</template>
