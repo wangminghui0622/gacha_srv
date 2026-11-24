@@ -529,11 +529,16 @@ function openEdit(record: CouponTemplate) {
 
 const drawOpen = ref(false)
 const drawSaving = ref(false)
+function defaultDrawStartAt() {
+  // 当前时间向上取整到下一小时，再延后 6 小时
+  return dayjs().startOf('hour').add(7, 'hour')
+}
+
 const drawForm = reactive({
   templateId: '',
   rewardTemplateId: undefined as string | undefined,
   rewardCount: 20,
-  startAt: dayjs() as Dayjs | null,
+  startAt: defaultDrawStartAt() as Dayjs | null,
   minItemCount: 1,
   enabled: true,
 })
@@ -568,7 +573,7 @@ function openDrawCreate() {
     templateId: String(Math.max(0, ...latestTemplates.value.map((item) => Number(item.templateId ?? 0))) + 1),
     rewardTemplateId: undefined,
     rewardCount: 20,
-    startAt: dayjs(),
+    startAt: defaultDrawStartAt(),
     minItemCount: 1,
     enabled: true,
   })
@@ -582,7 +587,7 @@ function openDrawEdit(record: CouponTemplate) {
     templateId: String(record.templateId ?? ''),
     rewardTemplateId,
     rewardCount: Number(record.rewardCount ?? 1),
-    startAt: startMs > 0 ? dayjs(startMs) : dayjs(),
+    startAt: startMs > 0 ? dayjs(startMs) : defaultDrawStartAt(),
     minItemCount: Number(record.minItemCount ?? 0),
     enabled: isEnabled(record),
   })
