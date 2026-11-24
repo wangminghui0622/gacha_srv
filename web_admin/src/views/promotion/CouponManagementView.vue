@@ -85,8 +85,9 @@
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.nameLabel')" required>
             <a-input v-model:value="form.name" :placeholder="$t('couponAdmin.nameLabel')" :maxlength="128" style="width: 15em" />
           </a-form-item>
-          <a-form-item class="coupon-form-right" :label="$t('couponAdmin.totalThreshold')" :required="isFixedOrCustom">
-            <a-input-number v-model:value="form.minGrossYuan" :min="0" :precision="2" style="width: 15em" />
+          <a-form-item class="coupon-form-right">
+            <template #label><span class="coupon-red-label">单价</span>门槛下限</template>
+            <a-input-number v-model:value="form.minUnitPriceYuan" :min="0" :precision="2" style="width: 15em" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.descriptionLabel')" required>
             <a-input v-model:value="form.description" :placeholder="$t('couponAdmin.descriptionLabel')" :maxlength="512" style="width: 15em" />
@@ -120,9 +121,8 @@
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.rewardCount')" :required="isDraw">
             <a-input-number v-model:value="form.rewardCount" :min="0" :precision="0" style="width: 15em" />
           </a-form-item>
-          <a-form-item class="coupon-form-left">
-            <template #label><span class="coupon-red-label">单价</span>门槛下限</template>
-            <a-input-number v-model:value="form.minUnitPriceYuan" :min="0" :precision="2" style="width: 15em" />
+          <a-form-item class="coupon-form-left" :label="$t('couponAdmin.totalThreshold')" :required="isFixedOrCustom">
+            <a-input-number v-model:value="form.minGrossYuan" :min="0" :precision="2" style="width: 15em" />
           </a-form-item>
           <a-form-item class="coupon-form-left">
             <template #label><span class="coupon-red-label">单价</span>门槛上限</template>
