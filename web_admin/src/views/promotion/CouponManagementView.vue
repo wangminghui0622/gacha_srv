@@ -58,7 +58,7 @@
     <a-modal
       v-model:open="modalOpen"
       :title="$t('couponAdmin.modalTitle')"
-      width="920px"
+      width="760px"
       :style="{ maxWidth: '96vw' }"
     >
       <div class="coupon-choice-area">
