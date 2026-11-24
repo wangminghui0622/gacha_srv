@@ -150,12 +150,18 @@
             </div>
           </a-form-item>
           <div class="coupon-form-left coupon-price-row" style="padding-left: 14px; box-sizing: border-box">
-            <div class="coupon-price-pair" style="gap: 13px">
-              <span class="coupon-price-label" style="display: inline-block; width: 90.7px; text-align: justify; text-align-last: justify">{{ $t('couponAdmin.priceMinShort') }}：</span>
+            <div class="coupon-price-pair" style="gap: 0; flex: none">
+              <span class="coupon-price-label" style="display: inline-flex; align-items: center; white-space: nowrap; flex: none; width: auto">
+                <span style="display: inline-block; flex: 0 0 90.7px; width: 90.7px; text-align: justify; text-align-last: justify">{{ $t('couponAdmin.priceMinShort') }}</span>
+                <span style="margin-left: 2px; margin-right: 8px">:</span>
+              </span>
               <a-input-number v-model:value="form.minUnitPriceYuan" :min="0" :precision="0" :controls="false" style="width: 60px" />
             </div>
-            <div class="coupon-price-pair" style="gap: 13px">
-              <span class="coupon-price-label" style="display: inline-block; width: 90.7px; text-align: justify; text-align-last: justify">{{ $t('couponAdmin.priceMaxShort') }}：</span>
+            <div class="coupon-price-pair" style="gap: 0; flex: none">
+              <span class="coupon-price-label" style="display: inline-flex; align-items: center; white-space: nowrap; flex: none; width: auto">
+                <span style="display: inline-block; flex: 0 0 90.7px; width: 90.7px; text-align: justify; text-align-last: justify">{{ $t('couponAdmin.priceMaxShort') }}</span>
+                <span style="margin-left: 2px; margin-right: 8px">:</span>
+              </span>
               <a-input-number v-model:value="form.maxUnitPriceYuan" :min="0" :precision="0" :controls="false" style="width: 60px" />
             </div>
           </div>
