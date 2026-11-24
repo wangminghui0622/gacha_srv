@@ -137,10 +137,10 @@
       <a-form class="coupon-form" :label-col="{ span: 7 }" :wrapper-col="{ span: 17 }">
         <div class="coupon-form-grid">
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.nameLabel')" required>
-            <a-input v-model:value="form.name" :placeholder="$t('couponAdmin.nameLabel')" :maxlength="128" style="width: 210px" />
+            <a-input v-model:value="form.name" :placeholder="$t('couponAdmin.nameLabel')" :maxlength="128" style="width: 100%" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.descriptionLabel')" required>
-            <a-input v-model:value="form.description" :placeholder="$t('couponAdmin.descriptionLabel')" :maxlength="512" style="width: 210px" />
+            <a-input v-model:value="form.description" :placeholder="$t('couponAdmin.descriptionLabel')" :maxlength="512" style="width: 100%" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.validityDaysLabel')" required>
             <div class="coupon-validity-row">
