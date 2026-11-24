@@ -106,9 +106,6 @@
           <a-form-item class="coupon-form-right coupon-form-row5" :label="$t('couponAdmin.rewardTemplateId')" :required="isDraw">
             <a-input v-model:value="form.rewardTemplateId" inputmode="numeric" style="width: 15em" />
           </a-form-item>
-          <a-form-item class="coupon-form-left" :label="$t('couponAdmin.rewardCount')" :required="isDraw">
-            <a-input-number v-model:value="form.rewardCount" :min="0" :precision="0" style="width: 15em" />
-          </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.totalThreshold')" :required="isFixedOrCustom">
             <a-input-number v-model:value="form.minGrossYuan" :min="0" :precision="2" style="width: 15em" />
           </a-form-item>
@@ -127,6 +124,9 @@
               style="width: 15em"
             />
             <a-input-number v-else v-model:value="form.rewardAmountYuan" :min="0" :precision="2" style="width: 15em" />
+          </a-form-item>
+          <a-form-item class="coupon-form-left" :label="$t('couponAdmin.rewardCount')" :required="isDraw">
+            <a-input-number v-model:value="form.rewardCount" :min="0" :precision="0" style="width: 15em" />
           </a-form-item>
           <a-form-item class="coupon-form-right coupon-form-row3" :required="itemThresholdRequired">
             <template #label><span class="coupon-red-label">数量</span>门槛上限</template>
