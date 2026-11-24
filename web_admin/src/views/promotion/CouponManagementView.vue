@@ -82,12 +82,6 @@
             <a-radio v-for="option in scopeOptions" :key="option.value" :value="option.value">{{ option.label }}</a-radio>
           </a-radio-group>
         </div>
-        <div v-if="form.scope === 'mode'" class="coupon-choice-block">
-          <div class="coupon-choice-title">
-            <span class="coupon-choice-required">{{ $t('couponAdmin.useMode') }}</span>
-          </div>
-          <a-select v-model:value="form.useMode" :options="useModeOptions" :placeholder="$t('couponAdmin.useMode')" style="width: 320px" />
-        </div>
         <div v-if="form.scope === 'pool'" class="coupon-choice-block">
           <div class="coupon-choice-title">
             <span class="coupon-choice-required">{{ $t('couponAdmin.poolId') }}</span>
@@ -151,6 +145,14 @@
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.rewardCount')" :required="isDraw">
             <a-input-number v-model:value="form.rewardCount" :min="0" :precision="0" style="width: 100%" />
+          </a-form-item>
+          <a-form-item
+            v-if="form.scope === 'mode'"
+            class="coupon-form-right coupon-form-bottom"
+            :label="$t('couponAdmin.useMode')"
+            required
+          >
+            <a-select v-model:value="form.useMode" :options="useModeOptions" :placeholder="$t('couponAdmin.useMode')" style="width: 100%" />
           </a-form-item>
         </div>
       </a-form>
@@ -622,6 +624,9 @@ onMounted(() => {
 }
 .coupon-form-right {
   grid-column: 2;
+}
+.coupon-form-bottom {
+  grid-row: 8;
 }
 .coupon-form :deep(.ant-form-item-label) {
   flex: 0 0 159px;
