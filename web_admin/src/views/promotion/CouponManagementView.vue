@@ -2,58 +2,119 @@
   <section class="coupon-page">
     <div class="coupon-toolbar">
       <a-button class="coupon-query-btn" type="primary" :loading="loading" @click="reload">{{ $t('couponAdmin.query') }}</a-button>
-      <a-button v-if="canPublish" class="coupon-create-btn" @click="openCreate">{{ $t('couponAdmin.create') }}</a-button>
+      <a-button v-if="canPublish && activeTab === 'coupons'" class="coupon-create-btn" @click="openCreate">{{ $t('couponAdmin.create') }}</a-button>
+      <a-dropdown v-if="canGrant || canPublish" :trigger="['click']" placement="bottomLeft">
+        <a-button class="coupon-grant-btn">{{ $t('couponAdmin.grant') }} ▾</a-button>
+        <template #overlay>
+          <a-menu @click="onGrantMenu">
+            <a-menu-item v-if="canGrant" key="custom">{{ $t('couponAdmin.customGrant') }}</a-menu-item>
+            <a-menu-item v-if="canPublish" key="draw">{{ $t('couponAdmin.drawGrant') }}</a-menu-item>
+          </a-menu>
+        </template>
+      </a-dropdown>
     </div>
 
-    <a-table
-      :data-source="pagedTemplates"
-      :loading="loading"
-      :pagination="false"
-      :row-key="(row: CouponTemplate) => String(row.templateId)"
-      :scroll="{ x: 1180 }"
-      size="middle"
-    >
-      <a-table-column :title="$t('couponAdmin.id')" width="80" align="center">
-        <template #default="{ record }">{{ record.templateId }}</template>
-      </a-table-column>
-      <a-table-column :title="$t('couponAdmin.name')" min-width="300" align="center">
-        <template #default="{ record }">{{ record.name || '-' }}</template>
-      </a-table-column>
-      <a-table-column :title="$t('couponAdmin.type')" width="160" align="center">
-        <template #default="{ record }">{{ kindText(record.kind) }}</template>
-      </a-table-column>
-      <a-table-column :title="$t('couponAdmin.usageLimit')" width="130" align="center">
-        <template #default="{ record }">{{ usageLimitText(record) }}</template>
-      </a-table-column>
-      <a-table-column :title="$t('couponAdmin.limitTarget')" width="150" align="center">
-        <template #default="{ record }">{{ limitTargetText(record) }}</template>
-      </a-table-column>
-      <a-table-column :title="$t('couponAdmin.status')" width="110" align="center">
-        <template #default="{ record }">
-          <a class="coupon-status-link" @click="toggleStatus(record)">{{ isEnabled(record) ? $t('couponAdmin.enabled') : $t('couponAdmin.disabled') }}</a>
-        </template>
-      </a-table-column>
-      <a-table-column :title="$t('couponAdmin.validityDays')" width="120" align="center">
-        <template #default="{ record }">{{ record.validityDays ?? 0 }}</template>
-      </a-table-column>
-      <a-table-column :title="$t('couponAdmin.action')" width="130" align="center" fixed="right">
-        <template #default="{ record }">
-          <a-button class="coupon-edit-btn" size="small" @click="openEdit(record)">{{ $t('couponAdmin.edit') }}</a-button>
-        </template>
-      </a-table-column>
-    </a-table>
+    <a-tabs v-model:activeKey="activeTab" class="coupon-tabs">
+      <a-tab-pane key="coupons" :tab="$t('couponAdmin.tabCoupons')">
+        <a-table
+          :data-source="pagedTemplates"
+          :loading="loading"
+          :pagination="false"
+          :row-key="(row: CouponTemplate) => String(row.templateId)"
+          :scroll="{ x: 1180 }"
+          size="middle"
+        >
+          <a-table-column :title="$t('couponAdmin.id')" width="80" align="center">
+            <template #default="{ record }">{{ record.templateId }}</template>
+          </a-table-column>
+          <a-table-column :title="$t('couponAdmin.name')" min-width="300" align="center">
+            <template #default="{ record }">{{ record.name || '-' }}</template>
+          </a-table-column>
+          <a-table-column :title="$t('couponAdmin.type')" width="160" align="center">
+            <template #default="{ record }">{{ kindText(record.kind) }}</template>
+          </a-table-column>
+          <a-table-column :title="$t('couponAdmin.usageLimit')" width="130" align="center">
+            <template #default="{ record }">{{ usageLimitText(record) }}</template>
+          </a-table-column>
+          <a-table-column :title="$t('couponAdmin.limitTarget')" width="150" align="center">
+            <template #default="{ record }">{{ limitTargetText(record) }}</template>
+          </a-table-column>
+          <a-table-column :title="$t('couponAdmin.status')" width="110" align="center">
+            <template #default="{ record }">
+              <a class="coupon-status-link" @click="toggleStatus(record)">{{ isEnabled(record) ? $t('couponAdmin.enabled') : $t('couponAdmin.disabled') }}</a>
+            </template>
+          </a-table-column>
+          <a-table-column :title="$t('couponAdmin.validityDays')" width="120" align="center">
+            <template #default="{ record }">{{ record.validityDays ?? 0 }}</template>
+          </a-table-column>
+          <a-table-column :title="$t('couponAdmin.action')" width="130" align="center" fixed="right">
+            <template #default="{ record }">
+              <a-button class="coupon-edit-btn" size="small" @click="openEdit(record)">{{ $t('couponAdmin.edit') }}</a-button>
+            </template>
+          </a-table-column>
+        </a-table>
 
-    <div class="coupon-footer">
-      <a-pagination
-        v-model:current="page"
-        v-model:page-size="pageSize"
-        :total="latestTemplates.length"
-        :page-size-options="['15', '30', '50']"
-        show-size-changer
-        show-less-items
-        :locale="{ items_per_page: $t('couponAdmin.itemsPerPage') }"
-      />
-    </div>
+        <div class="coupon-footer">
+          <a-pagination
+            v-model:current="page"
+            v-model:page-size="pageSize"
+            :total="latestCouponTemplates.length"
+            :page-size-options="['15', '30', '50']"
+            show-size-changer
+            show-less-items
+            :locale="{ items_per_page: $t('couponAdmin.itemsPerPage') }"
+          />
+        </div>
+      </a-tab-pane>
+      <a-tab-pane key="draws" :tab="$t('couponAdmin.tabDraws')">
+        <a-table
+          :data-source="pagedDrawTemplates"
+          :loading="loading"
+          :pagination="false"
+          :row-key="(row: CouponTemplate) => String(row.templateId)"
+          :scroll="{ x: 980 }"
+          size="middle"
+        >
+          <a-table-column :title="$t('couponAdmin.id')" width="80" align="center">
+            <template #default="{ record }">{{ record.templateId }}</template>
+          </a-table-column>
+          <a-table-column :title="$t('couponAdmin.name')" min-width="220" align="center">
+            <template #default="{ record }">{{ record.name || '-' }}</template>
+          </a-table-column>
+          <a-table-column :title="$t('couponAdmin.drawThreshold')" width="160" align="center">
+            <template #default="{ record }">{{ record.minItemCount ?? 0 }} - {{ record.maxItemCount ?? 0 }}</template>
+          </a-table-column>
+          <a-table-column :title="$t('couponAdmin.rewardCoupon')" min-width="220" align="center">
+            <template #default="{ record }">{{ rewardCouponText(record) }}</template>
+          </a-table-column>
+          <a-table-column :title="$t('couponAdmin.rewardCount')" width="110" align="center">
+            <template #default="{ record }">{{ record.rewardCount ?? 0 }}</template>
+          </a-table-column>
+          <a-table-column :title="$t('couponAdmin.status')" width="110" align="center">
+            <template #default="{ record }">
+              <a class="coupon-status-link" @click="toggleStatus(record)">{{ isEnabled(record) ? $t('couponAdmin.enabled') : $t('couponAdmin.disabled') }}</a>
+            </template>
+          </a-table-column>
+          <a-table-column :title="$t('couponAdmin.action')" width="110" align="center" fixed="right">
+            <template #default="{ record }">
+              <a-button class="coupon-edit-btn" size="small" @click="openDrawEdit(record)">{{ $t('couponAdmin.edit') }}</a-button>
+            </template>
+          </a-table-column>
+        </a-table>
+
+        <div class="coupon-footer">
+          <a-pagination
+            v-model:current="drawPage"
+            v-model:page-size="drawPageSize"
+            :total="latestDrawTemplates.length"
+            :page-size-options="['15', '30', '50']"
+            show-size-changer
+            show-less-items
+            :locale="{ items_per_page: $t('couponAdmin.itemsPerPage') }"
+          />
+        </div>
+      </a-tab-pane>
+    </a-tabs>
 
     <a-modal
       v-model:open="modalOpen"
@@ -104,9 +165,6 @@
               <a-switch v-model:checked="form.naturalDay" />
             </div>
           </a-form-item>
-          <a-form-item class="coupon-form-right coupon-form-row5" :label="$t('couponAdmin.rewardTemplateId')" :required="isDraw">
-            <a-input v-model:value="form.rewardTemplateId" inputmode="numeric" style="width: 210px" />
-          </a-form-item>
           <a-form-item
             v-if="isPercent"
             class="coupon-form-right coupon-form-discount"
@@ -128,9 +186,6 @@
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.rewardAmount')" :required="amountRequired">
             <a-input-number v-model:value="form.rewardAmountYuan" :min="0" :precision="2" style="width: 210px" />
           </a-form-item>
-          <a-form-item class="coupon-form-left" :label="$t('couponAdmin.rewardCount')" :required="isDraw">
-            <a-input-number v-model:value="form.rewardCount" :min="0" :precision="0" style="width: 210px" />
-          </a-form-item>
           <a-form-item class="coupon-form-right coupon-form-row3" :required="itemThresholdRequired">
             <template #label><span class="coupon-red-label">数量</span>门槛下限</template>
             <a-input-number v-model:value="form.minItemCount" :min="0" :precision="0" style="width: 210px" />
@@ -142,7 +197,6 @@
           <a-form-item
             v-if="form.scope === 'mode'"
             class="coupon-form-right coupon-form-follow"
-            :class="{ 'coupon-form-row7': isPercent }"
             :label="$t('couponAdmin.useMode')"
             required
           >
@@ -151,7 +205,6 @@
           <a-form-item
             v-if="form.scope === 'pool'"
             class="coupon-form-right coupon-form-follow"
-            :class="{ 'coupon-form-row7': isPercent }"
             :label="$t('couponAdmin.poolId')"
             required
           >
@@ -165,6 +218,81 @@
           <a-button type="primary" :loading="saving" @click="save">{{ $t('couponAdmin.confirm') }}</a-button>
         </div>
       </template>
+    </a-modal>
+
+    <a-modal v-model:open="grantOpen" centered :title="$t('couponAdmin.customGrant')" width="520px" :footer="null">
+      <a-form class="coupon-grant-form" :label-col="{ span: 7 }" :wrapper-col="{ span: 17 }">
+        <a-form-item :label="$t('couponAdmin.couponToGrant')" required>
+          <a-select
+            v-model:value="grantForm.templateId"
+            :options="grantCouponOptions"
+            show-search
+            option-filter-prop="label"
+            :placeholder="$t('couponAdmin.couponToGrant')"
+          />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.grantUserId')" required>
+          <a-input v-model:value="grantForm.userId" inputmode="numeric" :placeholder="$t('couponAdmin.grantUserId')" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.grantCount')" required>
+          <a-input-number v-model:value="grantForm.count" :min="1" :max="100" :precision="0" style="width: 100%" />
+        </a-form-item>
+        <a-form-item v-if="grantNeedsCustomAmount" :label="$t('couponAdmin.customAmount')" required>
+          <a-input-number v-model:value="grantForm.customAmountYuan" :min="0.01" :precision="2" style="width: 100%" />
+        </a-form-item>
+      </a-form>
+      <div class="coupon-modal-footer" style="display: flex; justify-content: center; gap: 12px">
+        <a-button @click="grantOpen = false">{{ $t('couponAdmin.cancel') }}</a-button>
+        <a-button type="primary" :loading="grantSaving" @click="submitGrant">{{ $t('couponAdmin.confirm') }}</a-button>
+      </div>
+    </a-modal>
+
+    <a-modal v-model:open="drawOpen" centered :title="$t('couponAdmin.drawGrant')" width="720px" :footer="null">
+      <a-form class="coupon-grant-form" :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }">
+        <a-form-item :label="$t('couponAdmin.nameLabel')" required>
+          <a-input v-model:value="drawForm.name" :placeholder="$t('couponAdmin.nameLabel')" :maxlength="128" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.descriptionLabel')" required>
+          <a-input v-model:value="drawForm.description" :placeholder="$t('couponAdmin.descriptionLabel')" :maxlength="512" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.validityDaysLabel')" required>
+          <a-input-number v-model:value="drawForm.validityDays" :min="0" :precision="0" style="width: 160px" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.naturalDay')">
+          <a-switch v-model:checked="drawForm.naturalDay" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.minItemCount')" required>
+          <a-input-number v-model:value="drawForm.minItemCount" :min="1" :precision="0" style="width: 160px" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.maxItemCount')" required>
+          <a-input-number v-model:value="drawForm.maxItemCount" :min="1" :precision="0" style="width: 160px" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.rewardCoupon')" required>
+          <a-select
+            v-model:value="drawForm.rewardTemplateId"
+            :options="drawCouponOptions"
+            show-search
+            option-filter-prop="label"
+            :placeholder="$t('couponAdmin.rewardCoupon')"
+          />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.rewardCount')" required>
+          <a-input-number v-model:value="drawForm.rewardCount" :min="1" :max="100" :precision="0" style="width: 160px" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.scopeLabel')">
+          <a-radio-group v-model:value="drawForm.scope" :options="scopeOptions" />
+        </a-form-item>
+        <a-form-item v-if="drawForm.scope === 'mode'" :label="$t('couponAdmin.useMode')" required>
+          <a-select v-model:value="drawForm.useMode" :options="useModeOptions" :placeholder="$t('couponAdmin.useMode')" />
+        </a-form-item>
+        <a-form-item v-if="drawForm.scope === 'pool'" :label="$t('couponAdmin.poolId')" required>
+          <a-input v-model:value="drawForm.poolId" :placeholder="$t('couponAdmin.poolId')" inputmode="numeric" />
+        </a-form-item>
+      </a-form>
+      <div class="coupon-modal-footer" style="display: flex; justify-content: center; gap: 12px">
+        <a-button @click="drawOpen = false">{{ $t('couponAdmin.cancel') }}</a-button>
+        <a-button type="primary" :loading="drawSaving" @click="submitDraw">{{ $t('couponAdmin.confirm') }}</a-button>
+      </div>
     </a-modal>
   </section>
 </template>
@@ -183,6 +311,10 @@ const session = useSessionStore()
 const { t } = useI18n()
 const canRead = computed(() => allows(session.permissionNodes, 'promotion.coupon_template', 'read'))
 const canPublish = computed(() => allows(session.permissionNodes, 'promotion.coupon_template', 'publish'))
+const canGrant = computed(() => allows(session.permissionNodes, 'promotion.user_coupon', 'grant'))
+const activeTab = ref('coupons')
+const drawPage = ref(1)
+const drawPageSize = ref(15)
 
 const rawTemplates = ref<CouponTemplate[]>([])
 const loading = ref(false)
@@ -200,9 +332,19 @@ const latestTemplates = computed(() => {
   }
   return [...latest.values()].sort((a, b) => Number(b.templateId ?? 0) - Number(a.templateId ?? 0))
 })
+const latestCouponTemplates = computed(() =>
+  latestTemplates.value.filter((item) => normalizeKind(item.kind) !== 'COUPON_TEMPLATE_KIND_DRAW_REWARD'),
+)
+const latestDrawTemplates = computed(() =>
+  latestTemplates.value.filter((item) => normalizeKind(item.kind) === 'COUPON_TEMPLATE_KIND_DRAW_REWARD'),
+)
 const pagedTemplates = computed(() => {
   const start = (page.value - 1) * pageSize.value
-  return latestTemplates.value.slice(start, start + pageSize.value)
+  return latestCouponTemplates.value.slice(start, start + pageSize.value)
+})
+const pagedDrawTemplates = computed(() => {
+  const start = (drawPage.value - 1) * drawPageSize.value
+  return latestDrawTemplates.value.slice(start, start + drawPageSize.value)
 })
 
 function tenant() {
@@ -231,8 +373,10 @@ async function load() {
       afterVersion = result.nextAfterVersion ?? '0'
     }
     rawTemplates.value = all
-    const maxPage = Math.max(1, Math.ceil(latestTemplates.value.length / pageSize.value))
+    const maxPage = Math.max(1, Math.ceil(latestCouponTemplates.value.length / pageSize.value))
     if (page.value > maxPage) page.value = maxPage
+    const maxDrawPage = Math.max(1, Math.ceil(latestDrawTemplates.value.length / drawPageSize.value))
+    if (drawPage.value > maxDrawPage) drawPage.value = maxDrawPage
   } catch {
     message.error(t('couponAdmin.loadFailed'))
   } finally {
@@ -242,6 +386,7 @@ async function load() {
 
 function reload() {
   page.value = 1
+  drawPage.value = 1
   void load()
 }
 
@@ -293,7 +438,6 @@ function targetBusinessKey(record: CouponTemplate) {
 
 const kindOptions = computed(() => [
   { value: 'COUPON_TEMPLATE_KIND_FIXED_MINOR', label: t('couponAdmin.kindFixed') },
-  { value: 'COUPON_TEMPLATE_KIND_DRAW_REWARD', label: t('couponAdmin.kindDrawReward') },
   { value: 'COUPON_TEMPLATE_KIND_CUSTOM_MINOR', label: t('couponAdmin.kindCustom') },
   { value: 'COUPON_TEMPLATE_KIND_FREE', label: t('couponAdmin.kindFree') },
   { value: 'COUPON_TEMPLATE_KIND_PERCENT_BPS', label: t('couponAdmin.kindPercent') },
@@ -314,10 +458,9 @@ const useModeOptions = computed(() => [
 const isFixedOrCustom = computed(
   () => form.kind === 'COUPON_TEMPLATE_KIND_FIXED_MINOR' || form.kind === 'COUPON_TEMPLATE_KIND_CUSTOM_MINOR',
 )
-const isDraw = computed(() => form.kind === 'COUPON_TEMPLATE_KIND_DRAW_REWARD')
 const isFree = computed(() => form.kind === 'COUPON_TEMPLATE_KIND_FREE')
 const isPercent = computed(() => form.kind === 'COUPON_TEMPLATE_KIND_PERCENT_BPS')
-const itemThresholdRequired = computed(() => isDraw.value || isFree.value)
+const itemThresholdRequired = computed(() => isFree.value)
 const amountRequired = computed(() => isFixedOrCustom.value)
 
 const modalOpen = ref(false)
@@ -439,6 +582,250 @@ function openEdit(record: CouponTemplate) {
   modalOpen.value = true
 }
 
+const grantOpen = ref(false)
+const grantSaving = ref(false)
+const grantForm = reactive({
+  templateId: '',
+  userId: '',
+  count: 1,
+  customAmountYuan: 0,
+})
+const drawOpen = ref(false)
+const drawSaving = ref(false)
+const drawForm = reactive({
+  templateId: '',
+  name: '',
+  description: '',
+  validityDays: 0,
+  naturalDay: false,
+  minItemCount: 0,
+  maxItemCount: 0,
+  rewardTemplateId: '',
+  rewardCount: 1,
+  scope: 'unlimited' as string | undefined,
+  useMode: undefined as string | undefined,
+  poolId: '',
+  enabled: true,
+})
+
+const grantCouponOptions = computed(() =>
+  latestTemplates.value
+    .filter((item) => normalizeKind(item.kind) !== 'COUPON_TEMPLATE_KIND_DRAW_REWARD')
+    .filter((item) => isEnabled(item))
+    .map((item) => ({
+      value: String(item.templateId ?? ''),
+      label: `${item.name || '-'} (ID ${item.templateId})`,
+    })),
+)
+const drawCouponOptions = computed(() =>
+  latestTemplates.value
+    .filter((item) => normalizeKind(item.kind) !== 'COUPON_TEMPLATE_KIND_DRAW_REWARD')
+    .map((item) => ({
+      value: String(item.templateId ?? ''),
+      label: `${item.name || '-'} (ID ${item.templateId})`,
+    })),
+)
+const grantSelected = computed(() =>
+  latestTemplates.value.find((item) => String(item.templateId ?? '') === grantForm.templateId),
+)
+const grantNeedsCustomAmount = computed(
+  () => normalizeKind(grantSelected.value?.kind) === 'COUPON_TEMPLATE_KIND_CUSTOM_MINOR',
+)
+
+function rewardCouponText(record: CouponTemplate) {
+  const id = String(record.rewardTemplateId ?? '')
+  if (!id || id === '0') return '-'
+  const coupon = latestTemplates.value.find((item) => String(item.templateId ?? '') === id)
+  return coupon?.name ? `${coupon.name} (ID ${id})` : `ID ${id}`
+}
+
+function openCustomGrant() {
+  Object.assign(grantForm, { templateId: '', userId: '', count: 1, customAmountYuan: 0 })
+  grantOpen.value = true
+}
+
+function openDrawCreate() {
+  Object.assign(drawForm, {
+    templateId: String(Math.max(0, ...latestTemplates.value.map((item) => Number(item.templateId ?? 0))) + 1),
+    name: '',
+    description: '',
+    validityDays: 0,
+    naturalDay: false,
+    minItemCount: 0,
+    maxItemCount: 0,
+    rewardTemplateId: '',
+    rewardCount: 1,
+    scope: 'unlimited',
+    useMode: undefined,
+    poolId: '',
+    enabled: true,
+  })
+  drawOpen.value = true
+}
+
+function openDrawEdit(record: CouponTemplate) {
+  const scope = couponScope(record)
+  Object.assign(drawForm, {
+    templateId: String(record.templateId ?? ''),
+    name: String(record.name ?? ''),
+    description: String(record.description ?? ''),
+    validityDays: Number(record.validityDays ?? 0),
+    naturalDay: record.naturalDay === true,
+    minItemCount: Number(record.minItemCount ?? 0),
+    maxItemCount: Number(record.maxItemCount ?? 0),
+    rewardTemplateId: String(record.rewardTemplateId ?? ''),
+    rewardCount: Number(record.rewardCount ?? 1),
+    scope: scope.kind,
+    useMode: scope.kind === 'mode' ? scope.target : undefined,
+    poolId: scope.kind === 'pool' ? scope.target : '',
+    enabled: isEnabled(record),
+  })
+  drawOpen.value = true
+}
+
+function onGrantMenu({ key }: { key: string | number }) {
+  if (String(key) === 'custom') openCustomGrant()
+  if (String(key) === 'draw') openDrawCreate()
+}
+
+function drawSceneForSave() {
+  if (drawForm.scope !== 'mode') return 0
+  if (drawForm.useMode === 'gashapon') return 1
+  if (drawForm.useMode === 'memorymatch') return 2
+  return 0
+}
+
+function drawTargetBusinessKeyForSave() {
+  if (drawForm.scope === 'mode' && drawForm.useMode) return `mode:${drawForm.useMode}`
+  if (drawForm.scope === 'pool' && drawForm.poolId.trim()) return `pool:${drawForm.poolId.trim()}`
+  return ''
+}
+
+async function submitGrant() {
+  if (!canGrant.value) return
+  if (!grantForm.templateId) {
+    message.warning(t('couponAdmin.couponRequired'))
+    return
+  }
+  if (!positiveId(grantForm.userId.trim())) {
+    message.warning(t('couponAdmin.userIdRequired'))
+    return
+  }
+  const count = Math.trunc(Number(grantForm.count ?? 0))
+  if (count < 1 || count > 100) {
+    message.warning(t('couponAdmin.grantCountInvalid'))
+    return
+  }
+  const customAmountMinor = grantNeedsCustomAmount.value ? yuanToFen(grantForm.customAmountYuan) : 0
+  if (grantNeedsCustomAmount.value) {
+    const maxAmountMinor = Number(grantSelected.value?.amountMinor ?? 0)
+    if (customAmountMinor <= 0 || customAmountMinor > maxAmountMinor) {
+      message.warning(t('couponAdmin.customAmountInvalid'))
+      return
+    }
+  }
+  grantSaving.value = true
+  try {
+    await promotionClient(newRequestId()).GrantCoupons({
+      tenantId: tenant(),
+      userId: grantForm.userId.trim(),
+      templateId: grantForm.templateId,
+      count,
+      customAmountMinor,
+    })
+    message.success(t('couponAdmin.grantSuccess', { count }))
+    grantOpen.value = false
+  } catch {
+    message.error(t('couponAdmin.grantFailed'))
+  } finally {
+    grantSaving.value = false
+  }
+}
+
+async function submitDraw() {
+  if (!canPublish.value) return
+  if (!drawForm.name.trim()) {
+    message.warning(t('couponAdmin.nameRequired'))
+    return
+  }
+  if (!drawForm.description.trim()) {
+    message.warning(t('couponAdmin.descriptionRequired'))
+    return
+  }
+  if (!Number.isInteger(drawForm.validityDays) || drawForm.validityDays < 0) {
+    message.warning(t('couponAdmin.validityRequired'))
+    return
+  }
+  const minItemCount = Math.trunc(drawForm.minItemCount)
+  const maxItemCount = Math.trunc(drawForm.maxItemCount)
+  if (minItemCount <= 0 || maxItemCount <= 0) {
+    message.warning(t('couponAdmin.itemThresholdRequired'))
+    return
+  }
+  if (minItemCount > maxItemCount) {
+    message.warning(t('couponAdmin.thresholdOrderInvalid'))
+    return
+  }
+  if (!drawForm.rewardTemplateId || !positiveId(drawForm.rewardTemplateId)) {
+    message.warning(t('couponAdmin.rewardCouponRequired'))
+    return
+  }
+  const rewardCount = Math.trunc(drawForm.rewardCount)
+  if (rewardCount <= 0) {
+    message.warning(t('couponAdmin.rewardCountRequired'))
+    return
+  }
+  if (drawForm.scope === 'mode' && !drawForm.useMode) {
+    message.warning(t('couponAdmin.useModeRequired'))
+    return
+  }
+  if (drawForm.scope === 'pool' && !positiveId(drawForm.poolId.trim())) {
+    message.warning(t('couponAdmin.poolIdRequired'))
+    return
+  }
+  const templateId = drawForm.templateId || String(Math.max(0, ...latestTemplates.value.map((item) => Number(item.templateId ?? 0))) + 1)
+  if (!positiveId(templateId)) {
+    message.warning(t('couponAdmin.typeRequired'))
+    return
+  }
+  drawSaving.value = true
+  try {
+    await promotionClient(newRequestId()).PublishCouponTemplate({
+      template: {
+        templateId,
+        tenantId: tenant(),
+        name: drawForm.name.trim(),
+        description: drawForm.description.trim(),
+        kind: 'COUPON_TEMPLATE_KIND_DRAW_REWARD',
+        amountMinor: 0,
+        percentBps: 0,
+        minGrossMinor: 0,
+        minUnitPriceMinor: 0,
+        maxUnitPriceMinor: 0,
+        minItemCount,
+        maxItemCount,
+        currency: 'CNY',
+        funder: 'DISCOUNT_FUNDER_PLATFORM',
+        scene: drawSceneForSave(),
+        targetBusinessKey: drawTargetBusinessKeyForSave(),
+        validityDays: Math.trunc(drawForm.validityDays),
+        naturalDay: drawForm.naturalDay,
+        enabled: drawForm.enabled,
+        rewardTemplateId: drawForm.rewardTemplateId,
+        rewardCount,
+      },
+    })
+    message.success(t('couponAdmin.drawSaved'))
+    drawOpen.value = false
+    activeTab.value = 'draws'
+    await load()
+  } catch {
+    // 错误提示由请求层统一处理
+  } finally {
+    drawSaving.value = false
+  }
+}
+
 function normalizeKind(kind: string | number | undefined) {
   switch (String(kind ?? '')) {
     case '1':
@@ -501,14 +888,6 @@ async function save() {
   }
   if (itemThresholdRequired.value && (Math.trunc(form.minItemCount) <= 0 || Math.trunc(form.maxItemCount) <= 0)) {
     message.warning(t('couponAdmin.itemThresholdRequired'))
-    return
-  }
-  if (isDraw.value && Math.trunc(form.rewardCount) <= 0) {
-    message.warning(t('couponAdmin.rewardCountRequired'))
-    return
-  }
-  if (isDraw.value && !positiveId(form.rewardTemplateId.trim())) {
-    message.warning(t('couponAdmin.rewardTemplateId'))
     return
   }
   const template: CouponTemplate = {
@@ -622,6 +1001,27 @@ onMounted(() => {
 .coupon-modal-footer :deep(.ant-btn) {
   font-size: 15px;
 }
+.coupon-grant-form :deep(.ant-form-item-label) {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.coupon-grant-form :deep(.ant-form-item-label > label) {
+  font-size: 15px;
+  line-height: 32px;
+}
+.coupon-grant-form :deep(.ant-input),
+.coupon-grant-form :deep(.ant-input-number),
+.coupon-grant-form :deep(.ant-select) {
+  font-size: 15px;
+  height: 32px;
+}
+.coupon-grant-form :deep(.ant-radio-wrapper) {
+  font-size: 15px;
+}
+.coupon-tabs :deep(.ant-tabs-nav) {
+  margin-bottom: 12px;
+}
 .coupon-red-label {
   color: #ff4d4f;
 }
@@ -661,13 +1061,10 @@ onMounted(() => {
   grid-row: 5;
 }
 .coupon-form-discount {
-  grid-row: 6;
+  grid-row: 5;
 }
 .coupon-form-follow {
   grid-row: 6;
-}
-.coupon-form-follow.coupon-form-row7 {
-  grid-row: 7;
 }
 .coupon-form :deep(.ant-form-item-label) {
   flex: 0 0 118px;
@@ -768,8 +1165,8 @@ onMounted(() => {
 }
 .coupon-radio-group-scope {
   display: grid;
-  grid-template-columns: repeat(3, 131px);
-  width: 393px;
+  grid-template-columns: repeat(3, 174.7px);
+  width: 524.1px;
   max-width: 100%;
   gap: 0;
 }
