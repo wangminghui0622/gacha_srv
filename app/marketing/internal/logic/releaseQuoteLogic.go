@@ -5,9 +5,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
+
 	"gacha_srv/pkg/utils/txutil"
 
 	"gacha_srv/app/dtm/client/dtmgrpc"
+	"gacha_srv/app/marketing/internal/repo"
 	"gacha_srv/app/marketing/internal/svc"
 	"gacha_srv/app/marketing/marketing"
 	gamemodelnc "gacha_srv/pkg/model_nocache/gacha_marketing"
@@ -97,10 +100,28 @@ func (l *ReleaseQuoteLogic) ReleaseQuote(in *marketing.ReleaseQuoteReq) (*market
 				return err
 			}
 			if err == nil && coupon.Status == couponLocked && coupon.LockedBy == in.QuoteToken {
-				if err := db.Model(&gamemodelnc.UserCoupons{}).
+				res := db.Model(&gamemodelnc.UserCoupons{}).
 					Where("coupon_no = ? AND status = ?", quote.CouponNo, couponLocked).
-					Updates(map[string]interface{}{"status": couponAvailable, "locked_by": ""}).Error; err != nil {
-					return err
+					Updates(map[string]interface{}{"status": couponAvailable, "locked_by": ""})
+				if res.Error != nil {
+					return res.Error
+				}
+				if res.RowsAffected == 1 {
+					if err := repo.InsertCouponLedger(db, &repo.CouponLedgerRow{
+						EntryID:      coupon.PoolEntryId,
+						UserCouponID: coupon.Id,
+						UserID:       coupon.UserId,
+						EventType:    "RELEASE",
+						BeforeStatus: couponLocked,
+						AfterStatus:  couponAvailable,
+						OperatorType: "USER",
+						OperatorID:   coupon.UserId,
+						OrderID:      in.QuoteToken,
+						Remark:       "取消/超时退回",
+						CreatedAt:    time.Now(),
+					}); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -169,10 +190,33 @@ func (l *ReleaseQuoteLogic) ReleaseQuote(in *marketing.ReleaseQuoteReq) (*market
 // 03 补偿到来时 quote=USED。locked_by 仍指向本报价，作归属校验防误回退他人资源。
 func (l *ReleaseQuoteLogic) uncommitOrphanQuote(db *gorm.DB, quote *gamemodelnc.QuoteLocks) error {
 	if quote.CouponNo != "" {
-		if err := db.Model(&gamemodelnc.UserCoupons{}).
+		res := db.Model(&gamemodelnc.UserCoupons{}).
 			Where("coupon_no = ? AND status = ? AND locked_by = ?", quote.CouponNo, couponUsed, quote.QuoteToken).
-			Updates(map[string]interface{}{"status": couponAvailable, "locked_by": ""}).Error; err != nil {
-			return err
+			Updates(map[string]interface{}{"status": couponAvailable, "locked_by": ""})
+		if res.Error != nil {
+			return res.Error
+		}
+		if res.RowsAffected == 1 {
+			var coupon gamemodelnc.UserCoupons
+			if err := db.Where("coupon_no = ?", quote.CouponNo).First(&coupon).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+			if coupon.Id > 0 {
+				if err := repo.InsertCouponLedger(db, &repo.CouponLedgerRow{
+					EntryID:      coupon.PoolEntryId,
+					UserCouponID: coupon.Id,
+					UserID:       coupon.UserId,
+					EventType:    "RELEASE",
+					BeforeStatus: couponUsed,
+					AfterStatus:  couponAvailable,
+					OperatorType: "SYSTEM",
+					OrderID:      quote.QuoteToken,
+					Remark:       "孤儿核销回退",
+					CreatedAt:    time.Now(),
+				}); err != nil {
+					return err
+				}
+			}
 		}
 	}
 	if quote.EntitlementNo != "" {

@@ -126,6 +126,8 @@ func All() []Operation {
 		{ID: "console.promotion.getcouponpoolentry", Resource: "promotion.coupon_pool", Action: "read", Method: "GET", Path: "/promotion/tenants/:tenantId/coupon-pool-entries/:entryId", Title: "查看券池记录"},
 		{ID: "console.promotion.createcouponpoolentry", Resource: "promotion.coupon_pool", Action: "create", Method: "POST", Path: "/promotion/tenants/:tenantId/coupon-pool-entries", Title: "创建券池记录"},
 		{ID: "console.promotion.updatecouponpoolentry", Resource: "promotion.coupon_pool", Action: "write", Method: "PUT", Path: "/promotion/tenants/:tenantId/coupon-pool-entries/:entryId", Title: "编辑券池记录"},
+		{ID: "console.promotion.adjustcouponpoolentry", Resource: "promotion.coupon_pool", Action: "write", Method: "POST", Path: "/promotion/tenants/:tenantId/coupon-pool-entries/:entryId/adjust", Title: "增减券池库存"},
+		{ID: "console.promotion.listcouponledger", Resource: "promotion.coupon_pool", Action: "read", Method: "GET", Path: "/promotion/tenants/:tenantId/coupon-ledger", Title: "券池流水"},
 		{ID: "console.promotion.grantcoupons", Resource: "promotion.user_coupon", Action: "grant", Method: "POST", Path: "/promotion/tenants/:tenantId/coupon-grants", Title: "发放优惠券"},
 		{ID: "console.promotion.getloyalty", Resource: "promotion.tenant_loyalty", Action: "read", Method: "GET", Path: "/promotion/tenants/:tenantId/loyalty-defaults", Title: "查看忠诚度默认值"},
 		{ID: "console.promotion.putloyalty", Resource: "promotion.tenant_loyalty", Action: "write", Method: "PUT", Path: "/promotion/tenants/:tenantId/loyalty-defaults", Title: "配置忠诚度默认值"},

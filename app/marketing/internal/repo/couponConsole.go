@@ -55,15 +55,35 @@ type (
 
 	// CouponPoolEntryRow coupon_pool_entries 表行（券池记录，独立于模板版本）
 	CouponPoolEntryRow struct {
+		ID             int64     `gorm:"column:id;primaryKey;autoIncrement"`
+		TemplateID     int64     `gorm:"column:template_id"`
+		Count          int32     `gorm:"column:count"`
+		RemainingCount int32     `gorm:"column:remaining_count"`
+		DrawCount      int32     `gorm:"column:draw_count"`
+		StartAt        int64     `gorm:"column:start_at"`
+		Enabled        int32     `gorm:"column:enabled"`
+		CreatedAt      time.Time `gorm:"column:created_at"`
+		UpdatedAt      time.Time `gorm:"column:updated_at"`
+		TemplateName   string    `gorm:"column:template_name;->"`
+	}
+
+	// CouponLedgerRow coupon_ledger 表行（库存调整 + 用户券状态事件）
+	CouponLedgerRow struct {
 		ID           int64     `gorm:"column:id;primaryKey;autoIncrement"`
-		TemplateID   int64     `gorm:"column:template_id"`
-		Count        int32     `gorm:"column:count"`
-		DrawCount    int32     `gorm:"column:draw_count"`
-		StartAt      int64     `gorm:"column:start_at"`
-		Enabled      int32     `gorm:"column:enabled"`
+		EntryID      int64     `gorm:"column:entry_id"`
+		UserCouponID int64     `gorm:"column:user_coupon_id"`
+		UserID       int64     `gorm:"column:user_id"`
+		EventType    string    `gorm:"column:event_type"`
+		Delta        int32     `gorm:"column:delta"`
+		BeforeCount  int32     `gorm:"column:before_count"`
+		AfterCount   int32     `gorm:"column:after_count"`
+		BeforeStatus int32     `gorm:"column:before_status"`
+		AfterStatus  int32     `gorm:"column:after_status"`
+		OperatorType string    `gorm:"column:operator_type"`
+		OperatorID   int64     `gorm:"column:operator_id"`
+		OrderID      string    `gorm:"column:order_id"`
+		Remark       string    `gorm:"column:remark"`
 		CreatedAt    time.Time `gorm:"column:created_at"`
-		UpdatedAt    time.Time `gorm:"column:updated_at"`
-		TemplateName string    `gorm:"column:template_name;->"`
 	}
 
 	// PlayerCouponTemplateRow player coupon_templates 物化行（玩家折扣计算读该表）
@@ -82,6 +102,7 @@ type (
 		CouponNo          string     `gorm:"column:coupon_no"` // gc_<requestId>#<n>（uk 幂等）
 		UserID            int64      `gorm:"column:user_id"`
 		TemplateNo        string     `gorm:"column:template_no"`
+		PoolEntryID       int64      `gorm:"column:pool_entry_id"`
 		CustomAmountMinor int64      `gorm:"column:custom_amount_minor"`
 		Status            int32      `gorm:"column:status"`
 		ExpiresAt         *time.Time `gorm:"column:expires_at"`
@@ -97,6 +118,7 @@ type (
 func (CouponTemplateHeadRow) TableName() string    { return "coupon_template_heads" }
 func (CouponTemplateVersionRow) TableName() string { return "coupon_template_versions" }
 func (CouponPoolEntryRow) TableName() string       { return "coupon_pool_entries" }
+func (CouponLedgerRow) TableName() string          { return "coupon_ledger" }
 func (UserCouponGrantRow) TableName() string       { return "user_coupons" }
 
 // GetCouponTemplateHead 读 head（不加锁）；未找到返回 gorm.ErrRecordNotFound。
@@ -195,7 +217,7 @@ func ListCouponPoolEntries(tx *gorm.DB, offset, limit int) ([]CouponPoolEntryRow
 	}
 	var rows []CouponPoolEntryRow
 	err := tx.Table("coupon_pool_entries AS e").
-		Select("e.id, e.template_id, e.count, e.draw_count, e.start_at, e.enabled, e.created_at, e.updated_at, " +
+		Select("e.id, e.template_id, e.count, e.remaining_count, e.draw_count, e.start_at, e.enabled, e.created_at, e.updated_at, " +
 			"COALESCE(v.name, '') AS template_name").
 		Joins("LEFT JOIN coupon_template_versions v ON v.template_id = e.template_id " +
 			"AND v.version = (SELECT MAX(v2.version) FROM coupon_template_versions v2 WHERE v2.template_id = e.template_id)").
@@ -210,7 +232,7 @@ func ListCouponPoolEntries(tx *gorm.DB, offset, limit int) ([]CouponPoolEntryRow
 func GetCouponPoolEntry(tx *gorm.DB, id int64) (*CouponPoolEntryRow, error) {
 	var row CouponPoolEntryRow
 	err := tx.Table("coupon_pool_entries AS e").
-		Select("e.id, e.template_id, e.count, e.draw_count, e.start_at, e.enabled, e.created_at, e.updated_at, "+
+		Select("e.id, e.template_id, e.count, e.remaining_count, e.draw_count, e.start_at, e.enabled, e.created_at, e.updated_at, "+
 			"COALESCE(v.name, '') AS template_name").
 		Joins("LEFT JOIN coupon_template_versions v ON v.template_id = e.template_id "+
 			"AND v.version = (SELECT MAX(v2.version) FROM coupon_template_versions v2 WHERE v2.template_id = e.template_id)").
@@ -229,15 +251,69 @@ func InsertCouponPoolEntry(tx *gorm.DB, row *CouponPoolEntryRow) error {
 	return tx.Create(row).Error
 }
 
-// UpdateCouponPoolEntry 编辑券池记录（仅可编辑业务字段）。
+// UpdateCouponPoolEntry 编辑券池记录（库存由 AdjustCouponPoolEntry 单独调整）。
 func UpdateCouponPoolEntry(tx *gorm.DB, row *CouponPoolEntryRow) error {
 	return tx.Model(&CouponPoolEntryRow{}).Where("id = ?", row.ID).Updates(map[string]any{
 		"template_id": row.TemplateID,
-		"count":       row.Count,
 		"draw_count":  row.DrawCount,
 		"start_at":    row.StartAt,
 		"enabled":     row.Enabled,
 	}).Error
+}
+
+// LockCouponPoolEntry 锁券池行（FOR UPDATE），用于管理员库存调整。
+func LockCouponPoolEntry(tx *gorm.DB, id int64) (*CouponPoolEntryRow, error) {
+	var row CouponPoolEntryRow
+	res := tx.Raw(
+		"SELECT id, template_id, count, remaining_count, draw_count, start_at, enabled, created_at, updated_at "+
+			"FROM coupon_pool_entries WHERE id = ? FOR UPDATE", id).Scan(&row)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 || row.ID == 0 {
+		return nil, gorm.ErrRecordNotFound
+	}
+	return &row, nil
+}
+
+// UpdateCouponPoolRemaining 写入库存调整结果（调用方已持有行锁）。
+func UpdateCouponPoolRemaining(tx *gorm.DB, id int64, remaining int32) error {
+	return tx.Model(&CouponPoolEntryRow{}).Where("id = ?", id).
+		Update("remaining_count", remaining).Error
+}
+
+// InsertCouponLedger 写券池/用户券变动流水。
+func InsertCouponLedger(tx *gorm.DB, row *CouponLedgerRow) error {
+	return tx.Create(row).Error
+}
+
+// ListCouponLedger 流水分页（id 倒序）。筛选条件为 0/空 时不过滤。
+func ListCouponLedger(tx *gorm.DB, entryID, userCouponID, userID int64, orderID string, offset, limit int) ([]CouponLedgerRow, int64, error) {
+	query := func() *gorm.DB {
+		db := tx.Model(&CouponLedgerRow{})
+		if entryID > 0 {
+			db = db.Where("entry_id = ?", entryID)
+		}
+		if userCouponID > 0 {
+			db = db.Where("user_coupon_id = ?", userCouponID)
+		}
+		if userID > 0 {
+			db = db.Where("user_id = ?", userID)
+		}
+		if orderID != "" {
+			db = db.Where("order_id = ?", orderID)
+		}
+		return db
+	}
+	var total int64
+	if err := query().Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	var rows []CouponLedgerRow
+	if err := query().Order("id DESC").Limit(limit).Offset(offset).Find(&rows).Error; err != nil {
+		return nil, 0, err
+	}
+	return rows, total, nil
 }
 
 // UpsertPlayerCouponTemplate 物化 player coupon_templates 行（template_no uk；已存在则更新）。
@@ -345,6 +421,28 @@ func (r *CouponPoolEntryRow) ToProto() *marketing.CouponPoolEntry {
 		Enabled:             r.Enabled == 1,
 		CreatedAtUnixMillis: timeToUnixMillis(r.CreatedAt),
 		UpdatedAtUnixMillis: timeToUnixMillis(r.UpdatedAt),
+		RemainingCount:      uint32(r.RemainingCount),
+	}
+}
+
+// ToProto 流水行 → console CouponLedgerEntry。
+func (r *CouponLedgerRow) ToProto() *marketing.CouponLedgerEntry {
+	return &marketing.CouponLedgerEntry{
+		Id:                  uint64(r.ID),
+		EntryId:             uint64(r.EntryID),
+		UserCouponId:        uint64(r.UserCouponID),
+		UserId:              uint64(r.UserID),
+		EventType:           r.EventType,
+		Delta:               r.Delta,
+		BeforeCount:         uint32(r.BeforeCount),
+		AfterCount:          uint32(r.AfterCount),
+		BeforeStatus:        r.BeforeStatus,
+		AfterStatus:         r.AfterStatus,
+		OperatorType:        r.OperatorType,
+		OperatorId:          uint64(r.OperatorID),
+		OrderId:             r.OrderID,
+		Remark:              r.Remark,
+		CreatedAtUnixMillis: timeToUnixMillis(r.CreatedAt),
 	}
 }
 

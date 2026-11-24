@@ -37,6 +37,7 @@ type (
 		CouponNo          string     `gorm:"column:coupon_no"`           // 券号："uc_"+claimRequestId 确定性派生
 		UserId            int64      `gorm:"column:user_id"`             // 用户ID
 		TemplateNo        string     `gorm:"column:template_no"`         // 券模板单号
+		PoolEntryId       int64      `gorm:"column:pool_entry_id"`       // 来源券池记录ID；0=非券池发券
 		CustomAmountMinor int64      `gorm:"column:custom_amount_minor"` // 自定义面额（分，CUSTOM_MINOR 券；0=用模板面额）
 		Status            int64      `gorm:"column:status"`              // 状态：1 AVAILABLE 2 LOCKED 3 USED 4 EXPIRED
 		LockedBy          string     `gorm:"column:locked_by"`           // 锁定方 quote_token（LOCKED 时非空）

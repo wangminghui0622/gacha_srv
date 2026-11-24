@@ -334,6 +334,10 @@ func mapCodeError(ce *errorx.CodeError) (int, string) {
 		return http.StatusConflict, "COUPON_TEMPLATE_CONFLICT"
 	case errorx.CodeCouponInvalid:
 		return http.StatusBadRequest, "COUPON_INVALID"
+	case errorx.CodeCouponUnavailable:
+		return http.StatusConflict, "COUPON_UNAVAILABLE"
+	case errorx.CodeCouponPoolNotFound:
+		return http.StatusNotFound, "COUPON_POOL_NOT_FOUND"
 	// ── M14d 条件政策/风控控制台（base 域 5000 段）──
 	case errorx.CodePolicyNotFound:
 		return http.StatusNotFound, "POLICY_NOT_FOUND"

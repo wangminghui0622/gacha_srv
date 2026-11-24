@@ -43,6 +43,10 @@ service Marketing {
     rpc GetCouponPoolEntry(GetCouponPoolEntryRequest) returns (CouponPoolEntry);
     // UpsertCouponPoolEntry 创建/编辑券池记录（id=0 创建，id>0 编辑）
     rpc UpsertCouponPoolEntry(UpsertCouponPoolEntryRequest) returns (CouponPoolEntry);
+    // AdjustCouponPoolEntry 管理员增加/减少券池库存（写流水）
+    rpc AdjustCouponPoolEntry(AdjustCouponPoolEntryRequest) returns (CouponPoolEntry);
+    // ListCouponLedger 券池/用户券变动流水
+    rpc ListCouponLedger(ListCouponLedgerRequest) returns (ListCouponLedgerReply);
     rpc GrantCoupons(GrantCouponsRequest) returns (GrantCouponsReply);
     rpc GetTenantLoyaltyDefaults(GetTenantLoyaltyDefaultsRequest) returns (TenantLoyaltyDefaults);
     rpc PutTenantLoyaltyDefaults(PutTenantLoyaltyDefaultsRequest) returns (TenantLoyaltyDefaults);
@@ -534,12 +538,13 @@ message CouponPoolEntry {
     uint64 id = 1;
     uint64 templateId = 2;       // 引用的优惠券模板 ID
     string templateName = 3;     // 引用模板的最新名称（只读）
-    uint32 count = 4;            // 张数
+    uint32 count = 4;            // 初始张数
     uint32 drawCount = 5;        // 满抽次数
     int64 startAtUnixMillis = 6; // 生效开始时间（毫秒时间戳，0=立即）
     bool enabled = 7;            // 是否启用
     uint64 createdAtUnixMillis = 8;
     uint64 updatedAtUnixMillis = 9;
+    uint32 remainingCount = 10;  // 当前剩余张数（并发扣减）
 }
 
 message ListCouponPoolEntriesRequest {
@@ -562,6 +567,48 @@ message UpsertCouponPoolEntryRequest {
     string requestId = 1; // 保留：控制台请求号
     uint64 tenantId = 2;
     CouponPoolEntry entry = 3;
+}
+
+message AdjustCouponPoolEntryRequest {
+    uint64 tenantId = 1;
+    uint64 entryId = 2;
+    int32 delta = 3;          // 正数增加，负数减少
+    string remark = 4;        // 调整原因
+    uint64 operatorId = 5;    // 操作管理员ID
+    string operatorType = 6;  // 固定 ADMIN
+}
+
+message CouponLedgerEntry {
+    uint64 id = 1;
+    uint64 entryId = 2;       // 券池记录ID；0=非券池库存事件
+    uint64 userCouponId = 3;  // 用户券ID；0=纯库存事件
+    uint64 userId = 4;
+    string eventType = 5;     // ADMIN_ADD/ADMIN_SUB/GRANT/LOCK/USE/RELEASE/EXPIRE
+    int32 delta = 6;          // 库存变化；用户券事件为0
+    uint32 beforeCount = 7;
+    uint32 afterCount = 8;
+    int32 beforeStatus = 9;   // 用户券状态
+    int32 afterStatus = 10;
+    string operatorType = 11; // ADMIN/USER/SYSTEM
+    uint64 operatorId = 12;
+    string orderId = 13;      // 订单号/报价令牌
+    string remark = 14;
+    uint64 createdAtUnixMillis = 15;
+}
+
+message ListCouponLedgerRequest {
+    uint64 tenantId = 1;
+    uint64 entryId = 2;      // 0=全部
+    uint64 userCouponId = 3; // 0=全部
+    uint64 userId = 4;       // 0=全部
+    string orderId = 5;      // 空=全部
+    uint32 page = 6;
+    uint32 pageSize = 7;
+}
+
+message ListCouponLedgerReply {
+    repeated CouponLedgerEntry entries = 1;
+    uint64 total = 2;
 }
 
 enum UserCouponStatus {
@@ -601,6 +648,7 @@ message GrantCouponsRequest {
     int64 customAmountMinor = 6; // 仅 CUSTOM_MINOR，须 ≤ 模板 amountMinor
     CouponGrantSource source = 7;
     uint64 campaignId = 8;       // source=CAMPAIGN 时填写
+    uint64 poolEntryId = 9;      // 从哪个券池记录扣库存；0=不扣库存（活动/任务发券）
 }
 
 message GrantCouponsReply {

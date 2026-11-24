@@ -114,6 +114,16 @@ func (s *MarketingServer) UpsertCouponPoolEntry(ctx context.Context, in *marketi
 	return l.UpsertCouponPoolEntry(in)
 }
 
+func (s *MarketingServer) AdjustCouponPoolEntry(ctx context.Context, in *marketing.AdjustCouponPoolEntryRequest) (*marketing.CouponPoolEntry, error) {
+	l := logic.NewAdjustCouponPoolEntryLogic(ctx, s.svcCtx)
+	return l.AdjustCouponPoolEntry(in)
+}
+
+func (s *MarketingServer) ListCouponLedger(ctx context.Context, in *marketing.ListCouponLedgerRequest) (*marketing.ListCouponLedgerReply, error) {
+	l := logic.NewListCouponLedgerLogic(ctx, s.svcCtx)
+	return l.ListCouponLedger(in)
+}
+
 func (s *MarketingServer) GrantCoupons(ctx context.Context, in *marketing.GrantCouponsRequest) (*marketing.GrantCouponsReply, error) {
 	l := logic.NewGrantCouponsLogic(ctx, s.svcCtx)
 	return l.GrantCoupons(in)

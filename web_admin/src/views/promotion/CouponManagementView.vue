@@ -4,6 +4,7 @@
       <a-button class="coupon-query-btn" type="primary" :loading="loading" @click="reload">{{ $t('couponAdmin.query') }}</a-button>
       <a-button v-if="canPublish && activeTab === 'coupons'" class="coupon-create-btn" @click="openCreate">{{ $t('couponAdmin.create') }}</a-button>
       <a-button v-if="canPublish" class="coupon-grant-btn" @click="openDrawCreate">{{ $t('couponAdmin.grantRule') }}</a-button>
+      <a-button v-if="canPublish && activeTab === 'rules'" class="coupon-ledger-btn" @click="openLedger()">{{ $t('couponAdmin.allLedger') }}</a-button>
     </div>
 
     <a-tabs v-model:activeKey="activeTab" class="coupon-tabs">
@@ -64,7 +65,7 @@
           :loading="loading"
           :pagination="false"
           :row-key="(row: CouponPoolEntry) => String(row.id)"
-          :scroll="{ x: 980 }"
+          :scroll="{ x: 1180 }"
           size="middle"
         >
           <a-table-column :title="$t('couponAdmin.id')" width="80" align="center">
@@ -73,8 +74,11 @@
           <a-table-column :title="$t('couponAdmin.couponTemplateName')" min-width="220" align="center">
             <template #default="{ record }">{{ poolTemplateText(record) }}</template>
           </a-table-column>
-          <a-table-column :title="$t('couponAdmin.couponCount')" width="110" align="center">
+          <a-table-column :title="$t('couponAdmin.initialCount')" width="110" align="center">
             <template #default="{ record }">{{ record.count ?? 0 }}</template>
+          </a-table-column>
+          <a-table-column :title="$t('couponAdmin.remainingCount')" width="110" align="center">
+            <template #default="{ record }">{{ record.remainingCount ?? 0 }}</template>
           </a-table-column>
           <a-table-column :title="$t('couponAdmin.startTime')" min-width="180" align="center">
             <template #default="{ record }">{{ poolStartTimeText(record) }}</template>
@@ -87,9 +91,13 @@
               <a class="coupon-status-link" @click="togglePoolStatus(record)">{{ poolEnabled(record) ? $t('couponAdmin.enabled') : $t('couponAdmin.disabled') }}</a>
             </template>
           </a-table-column>
-          <a-table-column :title="$t('couponAdmin.action')" width="110" align="center" fixed="right">
+          <a-table-column :title="$t('couponAdmin.action')" width="280" align="center" fixed="right">
             <template #default="{ record }">
-              <a-button class="coupon-edit-btn" size="small" @click="openDrawEdit(record)">{{ $t('couponAdmin.edit') }}</a-button>
+              <a-space>
+                <a-button class="coupon-edit-btn" size="small" @click="openDrawEdit(record)">{{ $t('couponAdmin.edit') }}</a-button>
+                <a-button size="small" @click="openAdjust(record)">{{ $t('couponAdmin.adjustStock') }}</a-button>
+                <a-button size="small" @click="openLedger(record)">{{ $t('couponAdmin.ledger') }}</a-button>
+              </a-space>
             </template>
           </a-table-column>
         </a-table>
@@ -213,7 +221,7 @@
       </template>
     </a-modal>
 
-    <a-modal v-model:open="drawOpen" centered :title="$t('couponAdmin.grantRuleTitle')" width="520px" :style="{ maxWidth: '96vw' }" :footer="null">
+    <a-modal v-model:open="drawOpen" centered :title="drawModalTitle" width="520px" :style="{ maxWidth: '96vw' }" :footer="null">
       <a-form class="coupon-grant-form" :label-col="{ span: 7 }" :wrapper-col="{ span: 17 }">
         <a-form-item :label="$t('couponAdmin.couponTemplateName')" required>
           <a-select
@@ -227,7 +235,10 @@
           />
         </a-form-item>
         <a-form-item :label="$t('couponAdmin.couponCount')" required>
-          <a-input-number v-model:value="drawForm.count" :min="1" :max="1000" :precision="0" style="width: 16em" />
+          <a-input-number v-model:value="drawForm.count" :min="1" :max="1000" :precision="0" :disabled="!!drawForm.id" style="width: 16em" />
+        </a-form-item>
+        <a-form-item v-if="drawForm.id" :label="$t('couponAdmin.remainingCount')">
+          <span class="coupon-remaining-text">{{ drawForm.remainingCount }}</span>
         </a-form-item>
         <a-form-item :label="$t('couponAdmin.startTime')" required>
           <a-date-picker v-model:value="drawForm.startAt" show-time format="YYYY-MM-DD HH:mm:ss" style="width: 16em" />
@@ -246,6 +257,78 @@
         <a-button type="primary" :loading="drawSaving" @click="submitDraw">{{ $t('couponAdmin.confirm') }}</a-button>
       </div>
     </a-modal>
+
+    <a-modal v-model:open="adjustOpen" centered :title="$t('couponAdmin.adjustTitle')" width="460px" :style="{ maxWidth: '96vw' }" :footer="null">
+      <a-form class="coupon-grant-form" :label-col="{ span: 7 }" :wrapper-col="{ span: 17 }">
+        <a-form-item :label="$t('couponAdmin.couponTemplateName')">
+          <span>{{ adjustTarget ? poolTemplateText(adjustTarget) : '-' }}</span>
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.remainingCount')">
+          <span class="coupon-remaining-text">{{ adjustTarget?.remainingCount ?? 0 }}</span>
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.adjustMode')" required>
+          <a-radio-group v-model:value="adjustForm.mode">
+            <a-radio value="add">{{ $t('couponAdmin.adjustAdd') }}</a-radio>
+            <a-radio value="sub">{{ $t('couponAdmin.adjustSub') }}</a-radio>
+          </a-radio-group>
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.adjustAmount')" required>
+          <a-input-number v-model:value="adjustForm.amount" :min="1" :precision="0" style="width: 16em" />
+        </a-form-item>
+        <a-form-item :label="$t('couponAdmin.remark')">
+          <a-input v-model:value="adjustForm.remark" :maxlength="255" :placeholder="$t('couponAdmin.remarkPlaceholder')" />
+        </a-form-item>
+      </a-form>
+      <div class="coupon-modal-footer" style="display: flex; justify-content: center; gap: 12px">
+        <a-button @click="adjustOpen = false">{{ $t('couponAdmin.cancel') }}</a-button>
+        <a-button type="primary" :loading="adjustSaving" @click="submitAdjust">{{ $t('couponAdmin.confirm') }}</a-button>
+      </div>
+    </a-modal>
+
+    <a-modal v-model:open="ledgerOpen" centered :title="ledgerTitle" width="980px" :style="{ maxWidth: '96vw' }" :footer="null">
+      <a-table
+        :data-source="ledgerEntries"
+        :loading="ledgerLoading"
+        :pagination="false"
+        :row-key="(row: CouponLedgerEntry) => String(row.id)"
+        :scroll="{ x: 900 }"
+        size="small"
+      >
+        <a-table-column :title="$t('couponAdmin.ledgerTime')" width="170" align="center">
+          <template #default="{ record }">{{ ledgerTimeText(record) }}</template>
+        </a-table-column>
+        <a-table-column :title="$t('couponAdmin.ledgerEvent')" width="120" align="center">
+          <template #default="{ record }">{{ ledgerEventText(record.eventType) }}</template>
+        </a-table-column>
+        <a-table-column :title="$t('couponAdmin.ledgerDelta')" width="90" align="center">
+          <template #default="{ record }">{{ ledgerDeltaText(record) }}</template>
+        </a-table-column>
+        <a-table-column :title="$t('couponAdmin.ledgerBeforeAfter')" width="150" align="center">
+          <template #default="{ record }">{{ ledgerBeforeAfterText(record) }}</template>
+        </a-table-column>
+        <a-table-column :title="$t('couponAdmin.ledgerOperator')" width="150" align="center">
+          <template #default="{ record }">{{ ledgerOperatorText(record) }}</template>
+        </a-table-column>
+        <a-table-column :title="$t('couponAdmin.ledgerRef')" min-width="150" align="center">
+          <template #default="{ record }">{{ ledgerRefText(record) }}</template>
+        </a-table-column>
+        <a-table-column :title="$t('couponAdmin.remark')" min-width="160" align="center">
+          <template #default="{ record }">{{ record.remark || '-' }}</template>
+        </a-table-column>
+      </a-table>
+      <div class="coupon-footer">
+        <a-pagination
+          v-model:current="ledgerPage"
+          v-model:page-size="ledgerPageSize"
+          :total="ledgerTotal"
+          :page-size-options="['20', '50', '100']"
+          show-size-changer
+          show-less-items
+          :locale="{ items_per_page: $t('couponAdmin.itemsPerPage') }"
+          @change="loadLedger"
+        />
+      </div>
+    </a-modal>
   </section>
 </template>
 
@@ -256,7 +339,7 @@ import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 import { useI18n } from 'vue-i18n'
 import { promotionClient } from '@/api/promotion'
-import type { CouponPoolEntry, CouponTemplate } from '@/api/promotion'
+import type { CouponLedgerEntry, CouponPoolEntry, CouponTemplate } from '@/api/promotion'
 import { allows } from '@/access/grants'
 import { useSessionStore } from '@/stores/session'
 import { newRequestId } from '@/utils/requestId'
@@ -566,10 +649,14 @@ const drawForm = reactive({
   id: '',
   rewardTemplateId: undefined as string | undefined,
   count: 20,
+  remainingCount: 0,
   startAt: defaultDrawStartAt() as Dayjs | null,
   drawCount: 1,
   enabled: false,
 })
+const drawModalTitle = computed(() =>
+  drawForm.id ? t('couponAdmin.editCouponTitle') : t('couponAdmin.grantRuleTitle'),
+)
 const drawCouponOptions = computed(() =>
   latestCouponTemplates.value.map((item) => ({
     value: String(item.templateId ?? ''),
@@ -609,6 +696,7 @@ function openDrawCreate() {
     id: '',
     rewardTemplateId: undefined,
     count: 20,
+    remainingCount: 0,
     startAt: defaultDrawStartAt(),
     drawCount: 1,
     enabled: false,
@@ -623,6 +711,7 @@ function openDrawEdit(record: CouponPoolEntry) {
     id: String(record.id ?? ''),
     rewardTemplateId,
     count: Number(record.count ?? 1),
+    remainingCount: Number(record.remainingCount ?? 0),
     startAt: startMs > 0 ? dayjs(startMs) : defaultDrawStartAt(),
     drawCount: Number(record.drawCount ?? 1),
     enabled: poolEnabled(record),
@@ -678,6 +767,176 @@ async function submitDraw() {
   } finally {
     drawSaving.value = false
   }
+}
+
+const adjustOpen = ref(false)
+const adjustSaving = ref(false)
+const adjustTarget = ref<CouponPoolEntry | null>(null)
+const adjustForm = reactive({
+  mode: 'add' as 'add' | 'sub',
+  amount: 1,
+  remark: '',
+})
+
+function openAdjust(record: CouponPoolEntry) {
+  adjustTarget.value = record
+  adjustForm.mode = 'add'
+  adjustForm.amount = 1
+  adjustForm.remark = ''
+  adjustOpen.value = true
+}
+
+async function submitAdjust() {
+  if (!canPublish.value || !adjustTarget.value) return
+  const entryId = String(adjustTarget.value.id ?? '')
+  if (!positiveId(entryId)) return
+  const amount = Math.trunc(adjustForm.amount)
+  if (amount <= 0) {
+    message.warning(t('couponAdmin.adjustAmountRequired'))
+    return
+  }
+  adjustSaving.value = true
+  try {
+    await promotionClient(newRequestId()).AdjustCouponPoolEntry({
+      tenantId: tenant(),
+      entryId,
+      delta: adjustForm.mode === 'add' ? amount : -amount,
+      remark: adjustForm.remark.trim(),
+    })
+    message.success(t('couponAdmin.adjustSaved'))
+    adjustOpen.value = false
+    await load()
+  } catch {
+    // 错误提示由请求层统一处理
+  } finally {
+    adjustSaving.value = false
+  }
+}
+
+const ledgerOpen = ref(false)
+const ledgerLoading = ref(false)
+const ledgerEntries = ref<CouponLedgerEntry[]>([])
+const ledgerTotal = ref(0)
+const ledgerPage = ref(1)
+const ledgerPageSize = ref(20)
+const ledgerEntryId = ref('')
+const ledgerTitle = computed(() =>
+  ledgerEntryId.value
+    ? `${t('couponAdmin.ledgerTitle')} #${ledgerEntryId.value}`
+    : t('couponAdmin.allLedger'),
+)
+
+function openLedger(record?: CouponPoolEntry) {
+  ledgerEntryId.value = record ? String(record.id ?? '') : ''
+  ledgerPage.value = 1
+  ledgerOpen.value = true
+  void loadLedger()
+}
+
+async function loadLedger() {
+  if (!canPublish.value) return
+  ledgerLoading.value = true
+  try {
+    const result = await promotionClient().ListCouponLedger({
+      tenantId: tenant(),
+      entryId: ledgerEntryId.value || undefined,
+      page: ledgerPage.value,
+      pageSize: ledgerPageSize.value,
+    })
+    ledgerEntries.value = result.entries ?? []
+    ledgerTotal.value = Number(result.total ?? 0)
+  } catch {
+    // 错误提示由请求层统一处理
+  } finally {
+    ledgerLoading.value = false
+  }
+}
+
+function ledgerTimeText(record: CouponLedgerEntry) {
+  const ms = Number(record.createdAtUnixMillis ?? 0)
+  return ms > 0 ? dayjs(ms).format('YYYY-MM-DD HH:mm:ss') : '-'
+}
+
+function ledgerEventText(eventType: string | undefined) {
+  switch (String(eventType ?? '')) {
+    case 'INIT':
+      return t('couponAdmin.eventInit')
+    case 'ADMIN_ADD':
+      return t('couponAdmin.eventAdminAdd')
+    case 'ADMIN_SUB':
+      return t('couponAdmin.eventAdminSub')
+    case 'GRANT':
+      return t('couponAdmin.eventGrant')
+    case 'LOCK':
+      return t('couponAdmin.eventLock')
+    case 'USE':
+      return t('couponAdmin.eventUse')
+    case 'RELEASE':
+      return t('couponAdmin.eventRelease')
+    case 'EXPIRE':
+      return t('couponAdmin.eventExpire')
+    default:
+      return String(eventType ?? '-')
+  }
+}
+
+function ledgerDeltaText(record: CouponLedgerEntry) {
+  const delta = Number(record.delta ?? 0)
+  if (delta > 0) return `+${delta}`
+  if (delta < 0) return String(delta)
+  return '-'
+}
+
+function couponStatusText(status: number | undefined) {
+  switch (Number(status ?? 0)) {
+    case 1:
+      return t('couponAdmin.statusAvailable')
+    case 2:
+      return t('couponAdmin.statusLocked')
+    case 3:
+      return t('couponAdmin.statusUsed')
+    case 4:
+      return t('couponAdmin.statusExpired')
+    default:
+      return '-'
+  }
+}
+
+function ledgerBeforeAfterText(record: CouponLedgerEntry) {
+  switch (String(record.eventType ?? '')) {
+    case 'LOCK':
+    case 'USE':
+    case 'RELEASE':
+    case 'EXPIRE':
+      return `${couponStatusText(record.beforeStatus)} → ${couponStatusText(record.afterStatus)}`
+    default:
+      return `${record.beforeCount ?? 0} → ${record.afterCount ?? 0}`
+  }
+}
+
+function ledgerOperatorText(record: CouponLedgerEntry) {
+  const id = Number(record.operatorId ?? 0) > 0 ? ` #${record.operatorId}` : ''
+  switch (String(record.operatorType ?? '')) {
+    case 'ADMIN':
+      return `${t('couponAdmin.operatorAdmin')}${id}`
+    case 'USER':
+      return `${t('couponAdmin.operatorUser')}${id}`
+    default:
+      return t('couponAdmin.operatorSystem')
+  }
+}
+
+function ledgerRefText(record: CouponLedgerEntry) {
+  if (Number(record.userCouponId ?? 0) > 0) {
+    return `${t('couponAdmin.userCouponShort')} #${record.userCouponId}`
+  }
+  if (record.orderId) {
+    return `${t('couponAdmin.orderShort')} ${record.orderId}`
+  }
+  if (Number(record.entryId ?? 0) > 0) {
+    return `${t('couponAdmin.poolShort')} #${record.entryId}`
+  }
+  return '-'
 }
 
 function normalizeKind(kind: string | number | undefined) {
@@ -903,6 +1162,12 @@ onMounted(() => {
   display: flex;
   align-items: center;
   height: 32px;
+}
+.coupon-remaining-text {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 32px;
+  color: #1eaa59;
 }
 .coupon-red-label {
   color: #ff4d4f;

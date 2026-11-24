@@ -41,7 +41,7 @@ func (l *UpsertCouponPoolEntryLogic) UpsertCouponPoolEntry(in *marketing.UpsertC
 	if e.TemplateId == 0 {
 		return nil, errorx.NewCodeError(errorx.CodeCouponInvalid, "templateId 必须大于 0")
 	}
-	if e.Count == 0 || e.Count > 1000 {
+	if e.Id == 0 && (e.Count == 0 || e.Count > 1000) {
 		return nil, errorx.NewCodeError(errorx.CodeCouponInvalid, "张数须在 1-1000 之间")
 	}
 	if e.DrawCount == 0 {
@@ -62,11 +62,12 @@ func (l *UpsertCouponPoolEntryLogic) UpsertCouponPoolEntry(in *marketing.UpsertC
 	}
 
 	row := &repo.CouponPoolEntryRow{
-		TemplateID: int64(e.TemplateId),
-		Count:      int32(e.Count),
-		DrawCount:  int32(e.DrawCount),
-		StartAt:    e.StartAtUnixMillis,
-		Enabled:    boolToInt32(e.Enabled),
+		TemplateID:     int64(e.TemplateId),
+		Count:          int32(e.Count),
+		RemainingCount: int32(e.Count),
+		DrawCount:      int32(e.DrawCount),
+		StartAt:        e.StartAtUnixMillis,
+		Enabled:        boolToInt32(e.Enabled),
 	}
 	if e.Id == 0 {
 		now := time.Now()

@@ -67,6 +67,45 @@ func (l *GrantCouponsLogic) GrantCoupons(in *marketing.GrantCouponsRequest) (*ma
 
 	var rows []repo.UserCouponGrantRow
 	err = l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
+		if in.PoolEntryId > 0 {
+			pool, err := repo.LockCouponPoolEntry(tx, int64(in.PoolEntryId))
+			if err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					return errorx.NewCodeError(errorx.CodeCouponPoolNotFound, "券池记录不存在")
+				}
+				return err
+			}
+			if pool.TemplateID != int64(in.TemplateId) {
+				return errorx.NewCodeError(errorx.CodeCouponInvalid, "券池记录与模板不匹配")
+			}
+			if pool.Enabled != 1 {
+				return errorx.NewCodeError(errorx.CodeCouponUnavailable, "券池已停用")
+			}
+			if pool.StartAt > 0 && time.Now().UnixMilli() < pool.StartAt {
+				return errorx.NewCodeError(errorx.CodeCouponUnavailable, "券池尚未生效")
+			}
+			if int64(pool.RemainingCount) < int64(in.Count) {
+				return errorx.NewCodeErrorf(errorx.CodeCouponUnavailable, "券池库存不足：剩余 %d，需要 %d", pool.RemainingCount, in.Count)
+			}
+			after := pool.RemainingCount - int32(in.Count)
+			if err := repo.UpdateCouponPoolRemaining(tx, pool.ID, after); err != nil {
+				return err
+			}
+			if err := repo.InsertCouponLedger(tx, &repo.CouponLedgerRow{
+				EntryID:      pool.ID,
+				UserID:       int64(in.UserId),
+				EventType:    "GRANT",
+				Delta:        -int32(in.Count),
+				BeforeCount:  pool.RemainingCount,
+				AfterCount:   after,
+				OperatorType: grantOperatorType(in.Source),
+				OrderID:      in.RequestId,
+				Remark:       "发券",
+				CreatedAt:    time.Now(),
+			}); err != nil {
+				return err
+			}
+		}
 		var expiresAt *time.Time
 		if tpl.ValidityDays > 0 {
 			t := time.Now().Add(time.Duration(tpl.ValidityDays) * 24 * time.Hour)
@@ -78,6 +117,7 @@ func (l *GrantCouponsLogic) GrantCoupons(in *marketing.GrantCouponsRequest) (*ma
 				CouponNo:          core.GrantCouponNo(in.RequestId, int(i)),
 				UserID:            int64(in.UserId),
 				TemplateNo:        templateNo,
+				PoolEntryID:       int64(in.PoolEntryId),
 				CustomAmountMinor: in.CustomAmountMinor,
 				ExpiresAt:         expiresAt,
 			}
@@ -106,6 +146,13 @@ func (l *GrantCouponsLogic) GrantCoupons(in *marketing.GrantCouponsRequest) (*ma
 		return nil, err
 	}
 	return couponsReplyOf(in, rows, uint64(latest.Version)), nil
+}
+
+func grantOperatorType(source marketing.CouponGrantSource) string {
+	if source == marketing.CouponGrantSource_COUPON_GRANT_SOURCE_CONSOLE {
+		return "ADMIN"
+	}
+	return "SYSTEM"
 }
 
 // couponsReplyOf 铸券行 → console UserCoupon 响应（sourceId=幂等来源键 coupon_no）。

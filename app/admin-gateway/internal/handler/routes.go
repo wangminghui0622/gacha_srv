@@ -583,6 +583,18 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: promotion.UpdateCouponPoolEntryHandler(serverCtx),
 				},
 				{
+					// 增减券池库存（promotion.coupon_pool:write；body={delta,remark}）
+					Method:  http.MethodPost,
+					Path:    "/promotion/tenants/:tenantId/coupon-pool-entries/:entryId/adjust",
+					Handler: promotion.AdjustCouponPoolEntryHandler(serverCtx),
+				},
+				{
+					// 券池/用户券流水（promotion.coupon_pool:read；分页）
+					Method:  http.MethodGet,
+					Path:    "/promotion/tenants/:tenantId/coupon-ledger",
+					Handler: promotion.ListCouponLedgerHandler(serverCtx),
+				},
+				{
 					// 查看忠诚度默认值（promotion.tenant_loyalty:read）
 					Method:  http.MethodGet,
 					Path:    "/promotion/tenants/:tenantId/loyalty-defaults",

@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
+	"gacha_srv/app/marketing/internal/repo"
 	"gacha_srv/app/marketing/internal/svc"
 	"gacha_srv/app/marketing/marketing"
 	gamemodelnc "gacha_srv/pkg/model_nocache/gacha_marketing"
@@ -73,10 +75,28 @@ func (l *CommitQuoteLogic) CommitQuote(in *marketing.CommitQuoteReq) (*marketing
 				return err
 			}
 			if err == nil && coupon.Status == couponLocked && coupon.LockedBy == in.QuoteToken {
-				if err := tx.Model(&gamemodelnc.UserCoupons{}).
+				res := tx.Model(&gamemodelnc.UserCoupons{}).
 					Where("coupon_no = ? AND status = ?", quote.CouponNo, couponLocked).
-					Update("status", couponUsed).Error; err != nil {
-					return err
+					Update("status", couponUsed)
+				if res.Error != nil {
+					return res.Error
+				}
+				if res.RowsAffected == 1 {
+					if err := repo.InsertCouponLedger(tx, &repo.CouponLedgerRow{
+						EntryID:      coupon.PoolEntryId,
+						UserCouponID: coupon.Id,
+						UserID:       coupon.UserId,
+						EventType:    "USE",
+						BeforeStatus: couponLocked,
+						AfterStatus:  couponUsed,
+						OperatorType: "USER",
+						OperatorID:   coupon.UserId,
+						OrderID:      in.QuoteToken,
+						Remark:       "支付核销",
+						CreatedAt:    time.Now(),
+					}); err != nil {
+						return err
+					}
 				}
 			}
 		}

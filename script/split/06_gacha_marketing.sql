@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS `campaign_box_entitlements` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_entitlement_no` (`entitlement_no`),
-  KEY `idx_user_status` (`user_id`,`status`)
+  KEY `idx_user_status` (`user_id`,`status`),
+  KEY `idx_pool_entry` (`pool_entry_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='活动宝箱资格表';
 
 
@@ -61,7 +62,8 @@ CREATE TABLE IF NOT EXISTS `campaign_prize_grants` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_grant_no` (`grant_no`),
   KEY `idx_participation` (`participation_id`),
-  KEY `idx_user_status` (`user_id`,`status`)
+  KEY `idx_user_status` (`user_id`,`status`),
+  KEY `idx_pool_entry` (`pool_entry_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='活动奖品发放流水表';
 
 
@@ -218,7 +220,8 @@ CREATE TABLE IF NOT EXISTS `coupon_template_versions` (
 CREATE TABLE IF NOT EXISTS `coupon_pool_entries` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `template_id` bigint unsigned NOT NULL COMMENT '引用的优惠券模板ID',
-  `count` int unsigned NOT NULL DEFAULT '0' COMMENT '发放张数',
+  `count` int unsigned NOT NULL DEFAULT '0' COMMENT '初始张数',
+  `remaining_count` int unsigned NOT NULL DEFAULT '0' COMMENT '当前剩余张数（并发扣减）',
   `draw_count` int unsigned NOT NULL DEFAULT '0' COMMENT '满抽次数',
   `start_at` bigint NOT NULL DEFAULT '0' COMMENT '生效开始时间（毫秒时间戳，0=立即）',
   `enabled` tinyint NOT NULL DEFAULT '1' COMMENT '是否启用：1=启用 0=禁用',
@@ -229,9 +232,34 @@ CREATE TABLE IF NOT EXISTS `coupon_pool_entries` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='券池记录表（创建优惠券，独立于券模板版本）';
 
 
+CREATE TABLE IF NOT EXISTS `coupon_ledger` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `entry_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '券池记录ID；0=非库存事件',
+  `user_coupon_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '用户券ID；0=纯库存事件',
+  `user_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '用户ID',
+  `event_type` varchar(32) NOT NULL COMMENT 'ADMIN_ADD/ADMIN_SUB/INIT/GRANT/LOCK/USE/RELEASE/EXPIRE',
+  `delta` int NOT NULL DEFAULT '0' COMMENT '库存变化值；用户券事件为0',
+  `before_count` int unsigned NOT NULL DEFAULT '0' COMMENT '操作前剩余',
+  `after_count` int unsigned NOT NULL DEFAULT '0' COMMENT '操作后剩余',
+  `before_status` tinyint NOT NULL DEFAULT '0' COMMENT '用户券操作前状态',
+  `after_status` tinyint NOT NULL DEFAULT '0' COMMENT '用户券操作后状态',
+  `operator_type` varchar(16) NOT NULL DEFAULT '' COMMENT 'ADMIN/USER/SYSTEM',
+  `operator_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '操作人ID',
+  `order_id` varchar(64) NOT NULL DEFAULT '' COMMENT '订单号/报价令牌',
+  `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_entry_id` (`entry_id`,`id`),
+  KEY `idx_user_coupon_id` (`user_coupon_id`,`id`),
+  KEY `idx_order_id` (`order_id`),
+  KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='券池库存/用户券变动流水';
+
+
 CREATE TABLE IF NOT EXISTS `coupon_templates` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
   `template_no` varchar(64) NOT NULL COMMENT '模板单号（uk，确定性）',
+  `pool_entry_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '来源券池记录ID；0=非券池发券',
   `name` varchar(128) NOT NULL DEFAULT '' COMMENT '券名称',
   `kind` tinyint NOT NULL DEFAULT '1' COMMENT '类型：1 FIXED_MINOR 2 PERCENT_BPS 3 FREE 4 CUSTOM_MINOR',
   `value` bigint NOT NULL DEFAULT '0' COMMENT '面值：kind1/4=直减金额（分）；kind2=折扣 bps（万分比，如 5000=5折）；kind3=0',
@@ -299,6 +327,7 @@ CREATE TABLE IF NOT EXISTS `user_coupons` (
   `coupon_no` varchar(64) NOT NULL COMMENT '券号："uc_"+claimRequestId 确定性派生',
   `user_id` bigint NOT NULL COMMENT '用户ID',
   `template_no` varchar(64) NOT NULL COMMENT '券模板单号',
+  `pool_entry_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '来源券池记录ID；0=非券池发券',
   `custom_amount_minor` bigint NOT NULL DEFAULT '0' COMMENT '自定义面额（分，CUSTOM_MINOR 券；0=用模板面额）',
   `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态：1 AVAILABLE 2 LOCKED 3 USED 4 EXPIRED',
   `locked_by` varchar(64) NOT NULL DEFAULT '' COMMENT '锁定方 quote_token（LOCKED 时非空）',
@@ -307,7 +336,8 @@ CREATE TABLE IF NOT EXISTS `user_coupons` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_coupon_no` (`coupon_no`),
-  KEY `idx_user_status` (`user_id`,`status`)
+  KEY `idx_user_status` (`user_id`,`status`),
+  KEY `idx_pool_entry` (`pool_entry_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户券表';
 
 

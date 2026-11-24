@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"gacha_srv/app/marketing/internal/repo"
 	gamemodelnc "gacha_srv/pkg/model_nocache/gacha_marketing"
 	"gacha_srv/pkg/utils/errorx"
 
@@ -65,7 +66,26 @@ func acquireQuoteLock(db *gorm.DB, quoteToken string) (quote *gamemodelnc.QuoteL
 			return nil, false, status.Error(codes.Aborted, fmt.Sprintf("code=%d msg=券状态不可用", errorx.CodeCouponUnavailable))
 		}
 		if lockCoupon {
-			if err := db.Model(&gamemodelnc.UserCoupons{}).Where("coupon_no = ? AND status = ?", q.CouponNo, couponAvailable).Updates(map[string]interface{}{"status": couponLocked, "locked_by": quoteToken}).Error; err != nil {
+			res := db.Model(&gamemodelnc.UserCoupons{}).Where("coupon_no = ? AND status = ?", q.CouponNo, couponAvailable).Updates(map[string]interface{}{"status": couponLocked, "locked_by": quoteToken})
+			if res.Error != nil {
+				return nil, false, res.Error
+			}
+			if res.RowsAffected != 1 {
+				return nil, false, status.Error(codes.Aborted, fmt.Sprintf("code=%d msg=券状态已变化", errorx.CodeCouponUnavailable))
+			}
+			if err := repo.InsertCouponLedger(db, &repo.CouponLedgerRow{
+				EntryID:      coupon.PoolEntryId,
+				UserCouponID: coupon.Id,
+				UserID:       coupon.UserId,
+				EventType:    "LOCK",
+				BeforeStatus: couponAvailable,
+				AfterStatus:  couponLocked,
+				OperatorType: "USER",
+				OperatorID:   coupon.UserId,
+				OrderID:      quoteToken,
+				Remark:       "下单锁券",
+				CreatedAt:    time.Now(),
+			}); err != nil {
 				return nil, false, err
 			}
 		}
