@@ -350,7 +350,7 @@
         <a-form-item :label="$t('couponAdmin.grantCount')" required>
           <a-input-number v-model:value="grantForm.count" :min="1" :max="1000" :precision="0" style="width: 16em" />
         </a-form-item>
-        <a-form-item :label="$t('couponAdmin.customAmountLabel')">
+        <a-form-item v-if="grantNeedsCustomAmount" :label="$t('couponAdmin.customAmountLabel')">
           <a-input v-model:value="grantForm.customAmountMinor" inputmode="numeric" :placeholder="$t('couponAdmin.customAmountPlaceholder')" style="width: 16em" />
         </a-form-item>
       </a-form>
@@ -384,7 +384,7 @@
         <a-form-item :label="$t('couponAdmin.maxUsers')" required>
           <a-input-number v-model:value="batchGrantForm.maxUsers" :min="1" :max="200" :precision="0" style="width: 16em" />
         </a-form-item>
-        <a-form-item :label="$t('couponAdmin.customAmountLabel')">
+        <a-form-item v-if="batchGrantNeedsCustomAmount" :label="$t('couponAdmin.customAmountLabel')">
           <a-input v-model:value="batchGrantForm.customAmountMinor" inputmode="numeric" :placeholder="$t('couponAdmin.customAmountPlaceholder')" style="width: 16em" />
         </a-form-item>
         <a-form-item>
@@ -1022,6 +1022,13 @@ const grantForm = reactive({
   count: 1,
   customAmountMinor: '',
 })
+function poolTemplateKind(record?: CouponPoolEntry | null) {
+  if (!record) return ''
+  const id = String(record.templateId ?? '')
+  const template = latestCouponTemplates.value.find((item) => String(item.templateId ?? '') === id)
+  return normalizeKind(template?.kind)
+}
+
 const grantPoolOptions = computed(() => {
   const eligible = poolEntries.value.filter(
     (entry) => poolEnabled(entry) && Number(entry.remainingCount ?? 0) > 0,
@@ -1036,10 +1043,17 @@ const grantPoolOptions = computed(() => {
     const suffix = (nameCounts.get(name) ?? 0) > 1 ? `（${t('couponAdmin.batchShort')} ${entry.id}）` : ''
     return {
       value: String(entry.id ?? ''),
-      label: `${name}${suffix}（${t('couponAdmin.remainingShort')} ${entry.remainingCount ?? 0} 张）`,
+      label: `${name}${suffix}`,
     }
   })
 })
+
+const grantSelectedPool = computed(() =>
+  poolEntries.value.find((entry) => String(entry.id ?? '') === String(grantForm.poolEntryId ?? '')),
+)
+const grantNeedsCustomAmount = computed(
+  () => poolTemplateKind(grantSelectedPool.value) === 'COUPON_TEMPLATE_KIND_CUSTOM_MINOR',
+)
 
 function openGrant(record?: CouponPoolEntry) {
   grantRequestId.value = newRequestId()
@@ -1073,8 +1087,8 @@ async function submitGrant() {
     message.warning(t('couponAdmin.grantStockInsufficient'))
     return
   }
-  const custom = grantForm.customAmountMinor.trim()
-  if (custom && !/^\d+$/.test(custom)) {
+  const custom = grantNeedsCustomAmount.value ? grantForm.customAmountMinor.trim() : ''
+  if (grantNeedsCustomAmount.value && (!custom || !/^\d+$/.test(custom))) {
     message.warning(t('couponAdmin.customAmountInvalid'))
     return
   }
@@ -1110,6 +1124,12 @@ const batchGrantForm = reactive({
   maxUsers: 50,
   customAmountMinor: '',
 })
+const batchGrantSelectedPool = computed(() =>
+  poolEntries.value.find((entry) => String(entry.id ?? '') === String(batchGrantForm.poolEntryId ?? '')),
+)
+const batchGrantNeedsCustomAmount = computed(
+  () => poolTemplateKind(batchGrantSelectedPool.value) === 'COUPON_TEMPLATE_KIND_CUSTOM_MINOR',
+)
 
 function openBatchGrant() {
   batchGrantRequestId.value = newRequestId()
@@ -1145,8 +1165,8 @@ async function submitBatchGrant() {
     message.warning(t('couponAdmin.maxUsersInvalid'))
     return
   }
-  const custom = batchGrantForm.customAmountMinor.trim()
-  if (custom && !/^\d+$/.test(custom)) {
+  const custom = batchGrantNeedsCustomAmount.value ? batchGrantForm.customAmountMinor.trim() : ''
+  if (batchGrantNeedsCustomAmount.value && (!custom || !/^\d+$/.test(custom))) {
     message.warning(t('couponAdmin.customAmountInvalid'))
     return
   }
