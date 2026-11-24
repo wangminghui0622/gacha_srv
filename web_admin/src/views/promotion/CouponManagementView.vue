@@ -122,23 +122,23 @@
             <a-input v-model:value="form.rewardTemplateId" inputmode="numeric" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :label="$t('couponAdmin.rewardCount')" :required="isDraw">
-            <a-input-number v-model:value="form.rewardCount" :min="0" :precision="0" style="width: 100%" />
+            <a-input-number v-model:value="form.rewardCount" :min="0" :precision="0" style="width: 15em" />
           </a-form-item>
           <a-form-item class="coupon-form-left">
             <template #label><span class="coupon-red-label">单价</span>门槛下限</template>
-            <a-input-number v-model:value="form.minUnitPriceYuan" :min="0" :precision="2" style="width: 100%" />
+            <a-input-number v-model:value="form.minUnitPriceYuan" :min="0" :precision="2" style="width: 15em" />
           </a-form-item>
           <a-form-item class="coupon-form-left">
             <template #label><span class="coupon-red-label">单价</span>门槛上限</template>
-            <a-input-number v-model:value="form.maxUnitPriceYuan" :min="0" :precision="2" style="width: 100%" />
+            <a-input-number v-model:value="form.maxUnitPriceYuan" :min="0" :precision="2" style="width: 15em" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :required="itemThresholdRequired">
             <template #label><span class="coupon-red-label">数量</span>门槛上限</template>
-            <a-input-number v-model:value="form.maxItemCount" :min="0" :precision="0" style="width: 100%" />
+            <a-input-number v-model:value="form.maxItemCount" :min="0" :precision="0" style="width: 15em" />
           </a-form-item>
           <a-form-item class="coupon-form-left" :required="itemThresholdRequired">
             <template #label><span class="coupon-red-label">数量</span>门槛下限</template>
-            <a-input-number v-model:value="form.minItemCount" :min="0" :precision="0" style="width: 100%" />
+            <a-input-number v-model:value="form.minItemCount" :min="0" :precision="0" style="width: 15em" />
           </a-form-item>
           <a-form-item
             v-if="form.scope === 'mode'"
