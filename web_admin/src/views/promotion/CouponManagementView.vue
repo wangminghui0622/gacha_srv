@@ -60,10 +60,6 @@
       :title="$t('couponAdmin.modalTitle')"
       width="920px"
       :style="{ maxWidth: '96vw' }"
-      :confirm-loading="saving"
-      :ok-text="$t('couponAdmin.confirm')"
-      :cancel-text="$t('couponAdmin.cancel')"
-      @ok="save"
     >
       <div class="coupon-choice-area">
         <div class="coupon-choice-grid">
@@ -158,6 +154,12 @@
           </a-form-item>
         </div>
       </a-form>
+      <template #footer>
+        <div class="coupon-modal-footer" style="display: flex; justify-content: center; gap: 12px">
+          <a-button @click="modalOpen = false">{{ $t('couponAdmin.cancel') }}</a-button>
+          <a-button type="primary" :loading="saving" @click="save">{{ $t('couponAdmin.confirm') }}</a-button>
+        </div>
+      </template>
     </a-modal>
   </section>
 </template>
@@ -604,6 +606,11 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   margin-top: 14px;
+}
+.coupon-modal-footer {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
 }
 .coupon-red-label {
   color: #ff4d4f;
