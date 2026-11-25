@@ -191,6 +191,18 @@ async function submit() {
   height: 420px;
   overflow-y: hidden;
 }
+.editor-content :deep(.w-e-text-container),
+.editor-content :deep(.w-e-scroll) {
+  background: #000;
+  color: #fff;
+}
+.editor-content :deep(.w-e-text-container [data-slate-editor]) {
+  color: #fff;
+  caret-color: #fff;
+}
+.editor-content :deep(.w-e-text-placeholder) {
+  color: #fff;
+}
 .announcement-actions {
   display: flex;
   justify-content: flex-end;
