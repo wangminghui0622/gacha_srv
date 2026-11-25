@@ -68,7 +68,6 @@
                 <a-button :disabled="builder.couponId <= 0" @click="addCoupon">添加</a-button>
               </div>
               <div class="reward-line">
-                <span class="reward-label">物品：</span>
                 <span class="inline-label">物品id:</span>
                 <a-input-number v-model:value="builder.itemId" :min="0" :precision="0" style="width: 200px" />
                 <span class="inline-label">数量:</span>
@@ -76,7 +75,6 @@
                 <a-button :disabled="builder.itemId <= 0" @click="addItem">添加</a-button>
               </div>
               <div class="reward-line">
-                <span class="reward-label">箱子：</span>
                 <span class="inline-label">箱子id:</span>
                 <a-input v-model:value="builder.boxId" style="width: 200px" />
                 <span class="inline-label">数量:</span>
@@ -84,7 +82,6 @@
                 <a-button :disabled="!builder.boxId.trim()" @click="addBox">添加</a-button>
               </div>
               <div class="reward-line">
-                <span class="reward-label">对对碰外观：</span>
                 <span class="inline-label">外观id:</span>
                 <a-input-number v-model:value="builder.appearanceId" :min="0" :precision="0" style="width: 150px" />
                 <a-button :disabled="builder.appearanceId <= 0" @click="addAppearance">添加</a-button>
