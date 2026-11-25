@@ -60,7 +60,7 @@
               </div>
               <div class="reward-line">
                 <span class="inline-label reward-label-first">优惠券：</span>
-                <a-input-number v-model:value="builder.couponId" class="reward-input-first" :min="0" :precision="0" />
+                <a-input-number v-model:value="builder.couponId" class="reward-input-first" :min="0" :precision="0" placeholder="优惠券id" />
                 <span class="inline-label reward-label-second">自定义金额:</span>
                 <a-input-number v-model:value="builder.couponCustomYuan" class="reward-input-second" :min="0" :precision="2" />
                 <span class="inline-label reward-label-third">数量:</span>
@@ -69,21 +69,21 @@
               </div>
               <div class="reward-line">
                 <span class="inline-label reward-label-first">物品：</span>
-                <a-input-number v-model:value="builder.itemId" class="reward-input-first" :min="0" :precision="0" />
+                <a-input-number v-model:value="builder.itemId" class="reward-input-first" :min="0" :precision="0" placeholder="物品id" />
                 <span class="inline-label reward-label-second">数量:</span>
                 <a-input-number v-model:value="builder.itemQuantity" class="reward-input-second" :min="1" :precision="0" />
                 <a-button :disabled="builder.itemId <= 0" @click="addItem">添加</a-button>
               </div>
               <div class="reward-line">
                 <span class="inline-label reward-label-first">箱子：</span>
-                <a-input v-model:value="builder.boxId" class="reward-input-first" />
+                <a-input v-model:value="builder.boxId" class="reward-input-first" placeholder="箱子id" />
                 <span class="inline-label reward-label-second">数量:</span>
                 <a-input-number v-model:value="builder.boxQuantity" class="reward-input-second" :min="1" :precision="0" />
                 <a-button :disabled="!builder.boxId.trim()" @click="addBox">添加</a-button>
               </div>
               <div class="reward-line">
                 <span class="inline-label reward-label-first">对对碰外观：</span>
-                <a-input-number v-model:value="builder.appearanceId" class="reward-input-first" :min="0" :precision="0" />
+                <a-input-number v-model:value="builder.appearanceId" class="reward-input-first" :min="0" :precision="0" placeholder="对对碰外观id" />
                 <a-button :disabled="builder.appearanceId <= 0" @click="addAppearance">添加</a-button>
               </div>
             </div>
