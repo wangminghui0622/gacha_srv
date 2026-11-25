@@ -24,17 +24,6 @@
             <a-form-item label="返现金额">
               <a-input-number v-model:value="form.cashbackYuan" :min="0" :precision="2" style="width: 100%" />
             </a-form-item>
-            <a-form-item label="封面大图">
-              <a-upload :show-upload-list="false" accept="image/*" :before-upload="handleCoverUpload">
-                <div class="image-upload-box">
-                  <img v-if="form.coverUrl" :src="form.coverUrl" alt="" />
-                  <template v-else>
-                    <span class="upload-plus">+</span>
-                    <span>Upload</span>
-                  </template>
-                </div>
-              </a-upload>
-            </a-form-item>
             <a-form-item label="标签">
               <div class="tag-switch-row">
                 <a-select
@@ -47,6 +36,17 @@
                 <span class="switch-label">是否开启</span>
                 <a-switch v-model:checked="form.enabled" />
               </div>
+            </a-form-item>
+            <a-form-item label="封面大图">
+              <a-upload :show-upload-list="false" accept="image/*" :before-upload="handleCoverUpload">
+                <div class="image-upload-box">
+                  <img v-if="form.coverUrl" :src="form.coverUrl" alt="" />
+                  <template v-else>
+                    <span class="upload-plus">+</span>
+                    <span>Upload</span>
+                  </template>
+                </div>
+              </a-upload>
             </a-form-item>
           </a-form>
         </div>
