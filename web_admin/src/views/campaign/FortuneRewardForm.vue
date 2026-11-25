@@ -36,10 +36,17 @@
               </a-upload>
             </a-form-item>
             <a-form-item label="标签">
-              <a-select v-model:value="form.tag" :options="tagOptions" allow-clear placeholder="请选择标签" />
-            </a-form-item>
-            <a-form-item label="是否开启">
-              <a-switch v-model:checked="form.enabled" />
+              <div class="tag-switch-row">
+                <a-select
+                  v-model:value="form.tag"
+                  class="tag-select"
+                  :options="tagOptions"
+                  allow-clear
+                  placeholder="请选择标签"
+                />
+                <span class="switch-label">是否开启</span>
+                <a-switch v-model:checked="form.enabled" />
+              </div>
             </a-form-item>
           </a-form>
         </div>
@@ -560,6 +567,20 @@ onMounted(async () => {
 }
 .reward-builder-panel :deep(.ant-input-number-handler-wrap) {
   display: none;
+}
+.tag-switch-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tag-select {
+  flex: 1;
+  min-width: 90px;
+}
+.switch-label {
+  white-space: nowrap;
+  font-size: 14px;
+  color: #303133;
 }
 .inline-label {
   font-size: 14px;
