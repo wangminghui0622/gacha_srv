@@ -54,6 +54,7 @@ type (
 	ListCampaignsResp                 = marketing.ListCampaignsResp
 	ListCouponLedgerReply             = marketing.ListCouponLedgerReply
 	ListCouponLedgerRequest           = marketing.ListCouponLedgerRequest
+	GetFortuneRewardRequest           = marketing.GetFortuneRewardRequest
 	ListFortuneRewardsReply           = marketing.ListFortuneRewardsReply
 	ListFortuneRewardsRequest         = marketing.ListFortuneRewardsRequest
 	ListCouponPoolEntriesReply        = marketing.ListCouponPoolEntriesReply
@@ -119,6 +120,7 @@ type (
 		AdjustCouponPoolEntry(ctx context.Context, in *AdjustCouponPoolEntryRequest, opts ...grpc.CallOption) (*CouponPoolEntry, error)
 		ListCouponLedger(ctx context.Context, in *ListCouponLedgerRequest, opts ...grpc.CallOption) (*ListCouponLedgerReply, error)
 		ListFortuneRewards(ctx context.Context, in *ListFortuneRewardsRequest, opts ...grpc.CallOption) (*ListFortuneRewardsReply, error)
+		GetFortuneReward(ctx context.Context, in *GetFortuneRewardRequest, opts ...grpc.CallOption) (*FortuneReward, error)
 		UpsertFortuneReward(ctx context.Context, in *UpsertFortuneRewardRequest, opts ...grpc.CallOption) (*FortuneReward, error)
 		GrantCoupons(ctx context.Context, in *GrantCouponsRequest, opts ...grpc.CallOption) (*GrantCouponsReply, error)
 		GetTenantLoyaltyDefaults(ctx context.Context, in *GetTenantLoyaltyDefaultsRequest, opts ...grpc.CallOption) (*TenantLoyaltyDefaults, error)
@@ -253,6 +255,11 @@ func (m *defaultMarketing) ListCouponLedger(ctx context.Context, in *ListCouponL
 func (m *defaultMarketing) ListFortuneRewards(ctx context.Context, in *ListFortuneRewardsRequest, opts ...grpc.CallOption) (*ListFortuneRewardsReply, error) {
 	client := marketing.NewMarketingClient(m.cli.Conn())
 	return client.ListFortuneRewards(ctx, in, opts...)
+}
+
+func (m *defaultMarketing) GetFortuneReward(ctx context.Context, in *GetFortuneRewardRequest, opts ...grpc.CallOption) (*FortuneReward, error) {
+	client := marketing.NewMarketingClient(m.cli.Conn())
+	return client.GetFortuneReward(ctx, in, opts...)
 }
 
 func (m *defaultMarketing) UpsertFortuneReward(ctx context.Context, in *UpsertFortuneRewardRequest, opts ...grpc.CallOption) (*FortuneReward, error) {

@@ -5455,6 +5455,58 @@ func (x *ListFortuneRewardsReply) GetTotal() uint64 {
 	return 0
 }
 
+type GetFortuneRewardRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TenantId      uint64                 `protobuf:"varint,1,opt,name=tenantId,proto3" json:"tenantId,omitempty"`
+	Id            uint64                 `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFortuneRewardRequest) Reset() {
+	*x = GetFortuneRewardRequest{}
+	mi := &file_marketing_proto_msgTypes[67]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFortuneRewardRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFortuneRewardRequest) ProtoMessage() {}
+
+func (x *GetFortuneRewardRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_marketing_proto_msgTypes[67]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFortuneRewardRequest.ProtoReflect.Descriptor instead.
+func (*GetFortuneRewardRequest) Descriptor() ([]byte, []int) {
+	return file_marketing_proto_rawDescGZIP(), []int{67}
+}
+
+func (x *GetFortuneRewardRequest) GetTenantId() uint64 {
+	if x != nil {
+		return x.TenantId
+	}
+	return 0
+}
+
+func (x *GetFortuneRewardRequest) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
 type UpsertFortuneRewardRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	RequestId     string                 `protobuf:"bytes,1,opt,name=requestId,proto3" json:"requestId,omitempty"`
@@ -5466,7 +5518,7 @@ type UpsertFortuneRewardRequest struct {
 
 func (x *UpsertFortuneRewardRequest) Reset() {
 	*x = UpsertFortuneRewardRequest{}
-	mi := &file_marketing_proto_msgTypes[67]
+	mi := &file_marketing_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5478,7 +5530,7 @@ func (x *UpsertFortuneRewardRequest) String() string {
 func (*UpsertFortuneRewardRequest) ProtoMessage() {}
 
 func (x *UpsertFortuneRewardRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_marketing_proto_msgTypes[67]
+	mi := &file_marketing_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5491,7 +5543,7 @@ func (x *UpsertFortuneRewardRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpsertFortuneRewardRequest.ProtoReflect.Descriptor instead.
 func (*UpsertFortuneRewardRequest) Descriptor() ([]byte, []int) {
-	return file_marketing_proto_rawDescGZIP(), []int{67}
+	return file_marketing_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *UpsertFortuneRewardRequest) GetRequestId() string {
@@ -5533,7 +5585,7 @@ type UserCoupon struct {
 
 func (x *UserCoupon) Reset() {
 	*x = UserCoupon{}
-	mi := &file_marketing_proto_msgTypes[68]
+	mi := &file_marketing_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5545,7 +5597,7 @@ func (x *UserCoupon) String() string {
 func (*UserCoupon) ProtoMessage() {}
 
 func (x *UserCoupon) ProtoReflect() protoreflect.Message {
-	mi := &file_marketing_proto_msgTypes[68]
+	mi := &file_marketing_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5558,7 +5610,7 @@ func (x *UserCoupon) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserCoupon.ProtoReflect.Descriptor instead.
 func (*UserCoupon) Descriptor() ([]byte, []int) {
-	return file_marketing_proto_rawDescGZIP(), []int{68}
+	return file_marketing_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *UserCoupon) GetId() uint64 {
@@ -5649,7 +5701,7 @@ type GrantCouponsRequest struct {
 
 func (x *GrantCouponsRequest) Reset() {
 	*x = GrantCouponsRequest{}
-	mi := &file_marketing_proto_msgTypes[69]
+	mi := &file_marketing_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5661,7 +5713,7 @@ func (x *GrantCouponsRequest) String() string {
 func (*GrantCouponsRequest) ProtoMessage() {}
 
 func (x *GrantCouponsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_marketing_proto_msgTypes[69]
+	mi := &file_marketing_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5674,7 +5726,7 @@ func (x *GrantCouponsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrantCouponsRequest.ProtoReflect.Descriptor instead.
 func (*GrantCouponsRequest) Descriptor() ([]byte, []int) {
-	return file_marketing_proto_rawDescGZIP(), []int{69}
+	return file_marketing_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *GrantCouponsRequest) GetRequestId() string {
@@ -5756,7 +5808,7 @@ type GrantCouponsReply struct {
 
 func (x *GrantCouponsReply) Reset() {
 	*x = GrantCouponsReply{}
-	mi := &file_marketing_proto_msgTypes[70]
+	mi := &file_marketing_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5768,7 +5820,7 @@ func (x *GrantCouponsReply) String() string {
 func (*GrantCouponsReply) ProtoMessage() {}
 
 func (x *GrantCouponsReply) ProtoReflect() protoreflect.Message {
-	mi := &file_marketing_proto_msgTypes[70]
+	mi := &file_marketing_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5781,7 +5833,7 @@ func (x *GrantCouponsReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrantCouponsReply.ProtoReflect.Descriptor instead.
 func (*GrantCouponsReply) Descriptor() ([]byte, []int) {
-	return file_marketing_proto_rawDescGZIP(), []int{70}
+	return file_marketing_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *GrantCouponsReply) GetCoupons() []*UserCoupon {
@@ -5802,7 +5854,7 @@ type TenantLoyaltyDefaults struct {
 
 func (x *TenantLoyaltyDefaults) Reset() {
 	*x = TenantLoyaltyDefaults{}
-	mi := &file_marketing_proto_msgTypes[71]
+	mi := &file_marketing_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5814,7 +5866,7 @@ func (x *TenantLoyaltyDefaults) String() string {
 func (*TenantLoyaltyDefaults) ProtoMessage() {}
 
 func (x *TenantLoyaltyDefaults) ProtoReflect() protoreflect.Message {
-	mi := &file_marketing_proto_msgTypes[71]
+	mi := &file_marketing_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5827,7 +5879,7 @@ func (x *TenantLoyaltyDefaults) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TenantLoyaltyDefaults.ProtoReflect.Descriptor instead.
 func (*TenantLoyaltyDefaults) Descriptor() ([]byte, []int) {
-	return file_marketing_proto_rawDescGZIP(), []int{71}
+	return file_marketing_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *TenantLoyaltyDefaults) GetTenantId() uint64 {
@@ -5860,7 +5912,7 @@ type GetTenantLoyaltyDefaultsRequest struct {
 
 func (x *GetTenantLoyaltyDefaultsRequest) Reset() {
 	*x = GetTenantLoyaltyDefaultsRequest{}
-	mi := &file_marketing_proto_msgTypes[72]
+	mi := &file_marketing_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5872,7 +5924,7 @@ func (x *GetTenantLoyaltyDefaultsRequest) String() string {
 func (*GetTenantLoyaltyDefaultsRequest) ProtoMessage() {}
 
 func (x *GetTenantLoyaltyDefaultsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_marketing_proto_msgTypes[72]
+	mi := &file_marketing_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5885,7 +5937,7 @@ func (x *GetTenantLoyaltyDefaultsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTenantLoyaltyDefaultsRequest.ProtoReflect.Descriptor instead.
 func (*GetTenantLoyaltyDefaultsRequest) Descriptor() ([]byte, []int) {
-	return file_marketing_proto_rawDescGZIP(), []int{72}
+	return file_marketing_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *GetTenantLoyaltyDefaultsRequest) GetTenantId() uint64 {
@@ -5904,7 +5956,7 @@ type PutTenantLoyaltyDefaultsRequest struct {
 
 func (x *PutTenantLoyaltyDefaultsRequest) Reset() {
 	*x = PutTenantLoyaltyDefaultsRequest{}
-	mi := &file_marketing_proto_msgTypes[73]
+	mi := &file_marketing_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5916,7 +5968,7 @@ func (x *PutTenantLoyaltyDefaultsRequest) String() string {
 func (*PutTenantLoyaltyDefaultsRequest) ProtoMessage() {}
 
 func (x *PutTenantLoyaltyDefaultsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_marketing_proto_msgTypes[73]
+	mi := &file_marketing_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5929,7 +5981,7 @@ func (x *PutTenantLoyaltyDefaultsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PutTenantLoyaltyDefaultsRequest.ProtoReflect.Descriptor instead.
 func (*PutTenantLoyaltyDefaultsRequest) Descriptor() ([]byte, []int) {
-	return file_marketing_proto_rawDescGZIP(), []int{73}
+	return file_marketing_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *PutTenantLoyaltyDefaultsRequest) GetDefaults() *TenantLoyaltyDefaults {
@@ -6390,7 +6442,10 @@ const file_marketing_proto_rawDesc = "" +
 	"\bpageSize\x18\x03 \x01(\rR\bpageSize\"_\n" +
 	"\x17ListFortuneRewardsReply\x12.\n" +
 	"\x05items\x18\x01 \x03(\v2\x18.marketing.FortuneRewardR\x05items\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x04R\x05total\"\x88\x01\n" +
+	"\x05total\x18\x02 \x01(\x04R\x05total\"E\n" +
+	"\x17GetFortuneRewardRequest\x12\x1a\n" +
+	"\btenantId\x18\x01 \x01(\x04R\btenantId\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\x04R\x02id\"\x88\x01\n" +
 	"\x1aUpsertFortuneRewardRequest\x12\x1c\n" +
 	"\trequestId\x18\x01 \x01(\tR\trequestId\x12\x1a\n" +
 	"\btenantId\x18\x02 \x01(\x04R\btenantId\x120\n" +
@@ -6520,7 +6575,7 @@ const file_marketing_proto_rawDesc = "" +
 	"\x1fCOUPON_GRANT_SOURCE_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bCOUPON_GRANT_SOURCE_CONSOLE\x10\x01\x12 \n" +
 	"\x1cCOUPON_GRANT_SOURCE_CAMPAIGN\x10\x02\x12'\n" +
-	"#COUPON_GRANT_SOURCE_CHECKOUT_REWARD\x10\x032\xa6\x15\n" +
+	"#COUPON_GRANT_SOURCE_CHECKOUT_REWARD\x10\x032\xf8\x15\n" +
 	"\tMarketing\x12J\n" +
 	"\rQuoteCheckout\x12\x1b.marketing.QuoteCheckoutReq\x1a\x1c.marketing.QuoteCheckoutResp\x12>\n" +
 	"\tLockQuote\x12\x17.marketing.LockQuoteReq\x1a\x18.marketing.LockQuoteResp\x12G\n" +
@@ -6540,7 +6595,8 @@ const file_marketing_proto_rawDesc = "" +
 	"\x15UpsertCouponPoolEntry\x12'.marketing.UpsertCouponPoolEntryRequest\x1a\x1a.marketing.CouponPoolEntry\x12\\\n" +
 	"\x15AdjustCouponPoolEntry\x12'.marketing.AdjustCouponPoolEntryRequest\x1a\x1a.marketing.CouponPoolEntry\x12X\n" +
 	"\x10ListCouponLedger\x12\".marketing.ListCouponLedgerRequest\x1a .marketing.ListCouponLedgerReply\x12^\n" +
-	"\x12ListFortuneRewards\x12$.marketing.ListFortuneRewardsRequest\x1a\".marketing.ListFortuneRewardsReply\x12V\n" +
+	"\x12ListFortuneRewards\x12$.marketing.ListFortuneRewardsRequest\x1a\".marketing.ListFortuneRewardsReply\x12P\n" +
+	"\x10GetFortuneReward\x12\".marketing.GetFortuneRewardRequest\x1a\x18.marketing.FortuneReward\x12V\n" +
 	"\x13UpsertFortuneReward\x12%.marketing.UpsertFortuneRewardRequest\x1a\x18.marketing.FortuneReward\x12L\n" +
 	"\fGrantCoupons\x12\x1e.marketing.GrantCouponsRequest\x1a\x1c.marketing.GrantCouponsReply\x12h\n" +
 	"\x18GetTenantLoyaltyDefaults\x12*.marketing.GetTenantLoyaltyDefaultsRequest\x1a .marketing.TenantLoyaltyDefaults\x12h\n" +
@@ -6567,7 +6623,7 @@ func file_marketing_proto_rawDescGZIP() []byte {
 }
 
 var file_marketing_proto_enumTypes = make([]protoimpl.EnumInfo, 10)
-var file_marketing_proto_msgTypes = make([]protoimpl.MessageInfo, 74)
+var file_marketing_proto_msgTypes = make([]protoimpl.MessageInfo, 75)
 var file_marketing_proto_goTypes = []any{
 	(CampaignKind)(0),                         // 0: marketing.CampaignKind
 	(PrizeKind)(0),                            // 1: marketing.PrizeKind
@@ -6646,13 +6702,14 @@ var file_marketing_proto_goTypes = []any{
 	(*FortuneReward)(nil),                     // 74: marketing.FortuneReward
 	(*ListFortuneRewardsRequest)(nil),         // 75: marketing.ListFortuneRewardsRequest
 	(*ListFortuneRewardsReply)(nil),           // 76: marketing.ListFortuneRewardsReply
-	(*UpsertFortuneRewardRequest)(nil),        // 77: marketing.UpsertFortuneRewardRequest
-	(*UserCoupon)(nil),                        // 78: marketing.UserCoupon
-	(*GrantCouponsRequest)(nil),               // 79: marketing.GrantCouponsRequest
-	(*GrantCouponsReply)(nil),                 // 80: marketing.GrantCouponsReply
-	(*TenantLoyaltyDefaults)(nil),             // 81: marketing.TenantLoyaltyDefaults
-	(*GetTenantLoyaltyDefaultsRequest)(nil),   // 82: marketing.GetTenantLoyaltyDefaultsRequest
-	(*PutTenantLoyaltyDefaultsRequest)(nil),   // 83: marketing.PutTenantLoyaltyDefaultsRequest
+	(*GetFortuneRewardRequest)(nil),           // 77: marketing.GetFortuneRewardRequest
+	(*UpsertFortuneRewardRequest)(nil),        // 78: marketing.UpsertFortuneRewardRequest
+	(*UserCoupon)(nil),                        // 79: marketing.UserCoupon
+	(*GrantCouponsRequest)(nil),               // 80: marketing.GrantCouponsRequest
+	(*GrantCouponsReply)(nil),                 // 81: marketing.GrantCouponsReply
+	(*TenantLoyaltyDefaults)(nil),             // 82: marketing.TenantLoyaltyDefaults
+	(*GetTenantLoyaltyDefaultsRequest)(nil),   // 83: marketing.GetTenantLoyaltyDefaultsRequest
+	(*PutTenantLoyaltyDefaultsRequest)(nil),   // 84: marketing.PutTenantLoyaltyDefaultsRequest
 }
 var file_marketing_proto_depIdxs = []int32{
 	25, // 0: marketing.ListUserCouponsResp.items:type_name -> marketing.CouponItem
@@ -6694,8 +6751,8 @@ var file_marketing_proto_depIdxs = []int32{
 	8,  // 36: marketing.UserCoupon.status:type_name -> marketing.UserCouponStatus
 	9,  // 37: marketing.UserCoupon.source:type_name -> marketing.CouponGrantSource
 	9,  // 38: marketing.GrantCouponsRequest.source:type_name -> marketing.CouponGrantSource
-	78, // 39: marketing.GrantCouponsReply.coupons:type_name -> marketing.UserCoupon
-	81, // 40: marketing.PutTenantLoyaltyDefaultsRequest.defaults:type_name -> marketing.TenantLoyaltyDefaults
+	79, // 39: marketing.GrantCouponsReply.coupons:type_name -> marketing.UserCoupon
+	82, // 40: marketing.PutTenantLoyaltyDefaultsRequest.defaults:type_name -> marketing.TenantLoyaltyDefaults
 	10, // 41: marketing.Marketing.QuoteCheckout:input_type -> marketing.QuoteCheckoutReq
 	12, // 42: marketing.Marketing.LockQuote:input_type -> marketing.LockQuoteReq
 	19, // 43: marketing.Marketing.ReleaseQuote:input_type -> marketing.ReleaseQuoteReq
@@ -6715,51 +6772,53 @@ var file_marketing_proto_depIdxs = []int32{
 	67, // 57: marketing.Marketing.AdjustCouponPoolEntry:input_type -> marketing.AdjustCouponPoolEntryRequest
 	69, // 58: marketing.Marketing.ListCouponLedger:input_type -> marketing.ListCouponLedgerRequest
 	75, // 59: marketing.Marketing.ListFortuneRewards:input_type -> marketing.ListFortuneRewardsRequest
-	77, // 60: marketing.Marketing.UpsertFortuneReward:input_type -> marketing.UpsertFortuneRewardRequest
-	79, // 61: marketing.Marketing.GrantCoupons:input_type -> marketing.GrantCouponsRequest
-	82, // 62: marketing.Marketing.GetTenantLoyaltyDefaults:input_type -> marketing.GetTenantLoyaltyDefaultsRequest
-	83, // 63: marketing.Marketing.PutTenantLoyaltyDefaults:input_type -> marketing.PutTenantLoyaltyDefaultsRequest
-	33, // 64: marketing.Marketing.ListCampaigns:input_type -> marketing.ListCampaignsReq
-	36, // 65: marketing.Marketing.CampaignPreview:input_type -> marketing.CampaignPreviewReq
-	38, // 66: marketing.Marketing.CampaignParticipate:input_type -> marketing.CampaignParticipateReq
-	41, // 67: marketing.Marketing.ListCampaignBoxEntitlements:input_type -> marketing.ListCampaignBoxEntitlementsReq
-	43, // 68: marketing.Marketing.GetCampaignBoxEntitlement:input_type -> marketing.GetCampaignBoxEntitlementReq
-	54, // 69: marketing.Marketing.CreateCampaignDraft:input_type -> marketing.CreateCampaignDraftRequest
-	55, // 70: marketing.Marketing.PublishCampaign:input_type -> marketing.PublishCampaignRequest
-	56, // 71: marketing.Marketing.GetCampaign:input_type -> marketing.GetCampaignRequest
-	11, // 72: marketing.Marketing.QuoteCheckout:output_type -> marketing.QuoteCheckoutResp
-	13, // 73: marketing.Marketing.LockQuote:output_type -> marketing.LockQuoteResp
-	20, // 74: marketing.Marketing.ReleaseQuote:output_type -> marketing.ReleaseQuoteResp
-	22, // 75: marketing.Marketing.CommitQuote:output_type -> marketing.CommitQuoteResp
-	15, // 76: marketing.Marketing.GetQuote:output_type -> marketing.GetQuoteResp
-	28, // 77: marketing.Marketing.GetCouponTemplateByNo:output_type -> marketing.CouponTemplateItem
-	18, // 78: marketing.Marketing.GrantPlayCoupon:output_type -> marketing.GrantPlayCouponResp
-	24, // 79: marketing.Marketing.ClaimCoupon:output_type -> marketing.ClaimCouponResp
-	27, // 80: marketing.Marketing.ListUserCoupons:output_type -> marketing.ListUserCouponsResp
-	30, // 81: marketing.Marketing.ListCouponTemplates:output_type -> marketing.ListCouponTemplatesResp
-	57, // 82: marketing.Marketing.PublishCouponTemplate:output_type -> marketing.CouponTemplate
-	57, // 83: marketing.Marketing.GetCouponTemplate:output_type -> marketing.CouponTemplate
-	61, // 84: marketing.Marketing.ListCouponTemplateVersions:output_type -> marketing.ListCouponTemplateVersionsReply
-	64, // 85: marketing.Marketing.ListCouponPoolEntries:output_type -> marketing.ListCouponPoolEntriesReply
-	62, // 86: marketing.Marketing.GetCouponPoolEntry:output_type -> marketing.CouponPoolEntry
-	62, // 87: marketing.Marketing.UpsertCouponPoolEntry:output_type -> marketing.CouponPoolEntry
-	62, // 88: marketing.Marketing.AdjustCouponPoolEntry:output_type -> marketing.CouponPoolEntry
-	70, // 89: marketing.Marketing.ListCouponLedger:output_type -> marketing.ListCouponLedgerReply
-	76, // 90: marketing.Marketing.ListFortuneRewards:output_type -> marketing.ListFortuneRewardsReply
-	74, // 91: marketing.Marketing.UpsertFortuneReward:output_type -> marketing.FortuneReward
-	80, // 92: marketing.Marketing.GrantCoupons:output_type -> marketing.GrantCouponsReply
-	81, // 93: marketing.Marketing.GetTenantLoyaltyDefaults:output_type -> marketing.TenantLoyaltyDefaults
-	81, // 94: marketing.Marketing.PutTenantLoyaltyDefaults:output_type -> marketing.TenantLoyaltyDefaults
-	35, // 95: marketing.Marketing.ListCampaigns:output_type -> marketing.ListCampaignsResp
-	37, // 96: marketing.Marketing.CampaignPreview:output_type -> marketing.CampaignPreviewResp
-	39, // 97: marketing.Marketing.CampaignParticipate:output_type -> marketing.CampaignParticipateResp
-	42, // 98: marketing.Marketing.ListCampaignBoxEntitlements:output_type -> marketing.ListCampaignBoxEntitlementsResp
-	44, // 99: marketing.Marketing.GetCampaignBoxEntitlement:output_type -> marketing.GetCampaignBoxEntitlementResp
-	53, // 100: marketing.Marketing.CreateCampaignDraft:output_type -> marketing.Campaign
-	53, // 101: marketing.Marketing.PublishCampaign:output_type -> marketing.Campaign
-	53, // 102: marketing.Marketing.GetCampaign:output_type -> marketing.Campaign
-	72, // [72:103] is the sub-list for method output_type
-	41, // [41:72] is the sub-list for method input_type
+	77, // 60: marketing.Marketing.GetFortuneReward:input_type -> marketing.GetFortuneRewardRequest
+	78, // 61: marketing.Marketing.UpsertFortuneReward:input_type -> marketing.UpsertFortuneRewardRequest
+	80, // 62: marketing.Marketing.GrantCoupons:input_type -> marketing.GrantCouponsRequest
+	83, // 63: marketing.Marketing.GetTenantLoyaltyDefaults:input_type -> marketing.GetTenantLoyaltyDefaultsRequest
+	84, // 64: marketing.Marketing.PutTenantLoyaltyDefaults:input_type -> marketing.PutTenantLoyaltyDefaultsRequest
+	33, // 65: marketing.Marketing.ListCampaigns:input_type -> marketing.ListCampaignsReq
+	36, // 66: marketing.Marketing.CampaignPreview:input_type -> marketing.CampaignPreviewReq
+	38, // 67: marketing.Marketing.CampaignParticipate:input_type -> marketing.CampaignParticipateReq
+	41, // 68: marketing.Marketing.ListCampaignBoxEntitlements:input_type -> marketing.ListCampaignBoxEntitlementsReq
+	43, // 69: marketing.Marketing.GetCampaignBoxEntitlement:input_type -> marketing.GetCampaignBoxEntitlementReq
+	54, // 70: marketing.Marketing.CreateCampaignDraft:input_type -> marketing.CreateCampaignDraftRequest
+	55, // 71: marketing.Marketing.PublishCampaign:input_type -> marketing.PublishCampaignRequest
+	56, // 72: marketing.Marketing.GetCampaign:input_type -> marketing.GetCampaignRequest
+	11, // 73: marketing.Marketing.QuoteCheckout:output_type -> marketing.QuoteCheckoutResp
+	13, // 74: marketing.Marketing.LockQuote:output_type -> marketing.LockQuoteResp
+	20, // 75: marketing.Marketing.ReleaseQuote:output_type -> marketing.ReleaseQuoteResp
+	22, // 76: marketing.Marketing.CommitQuote:output_type -> marketing.CommitQuoteResp
+	15, // 77: marketing.Marketing.GetQuote:output_type -> marketing.GetQuoteResp
+	28, // 78: marketing.Marketing.GetCouponTemplateByNo:output_type -> marketing.CouponTemplateItem
+	18, // 79: marketing.Marketing.GrantPlayCoupon:output_type -> marketing.GrantPlayCouponResp
+	24, // 80: marketing.Marketing.ClaimCoupon:output_type -> marketing.ClaimCouponResp
+	27, // 81: marketing.Marketing.ListUserCoupons:output_type -> marketing.ListUserCouponsResp
+	30, // 82: marketing.Marketing.ListCouponTemplates:output_type -> marketing.ListCouponTemplatesResp
+	57, // 83: marketing.Marketing.PublishCouponTemplate:output_type -> marketing.CouponTemplate
+	57, // 84: marketing.Marketing.GetCouponTemplate:output_type -> marketing.CouponTemplate
+	61, // 85: marketing.Marketing.ListCouponTemplateVersions:output_type -> marketing.ListCouponTemplateVersionsReply
+	64, // 86: marketing.Marketing.ListCouponPoolEntries:output_type -> marketing.ListCouponPoolEntriesReply
+	62, // 87: marketing.Marketing.GetCouponPoolEntry:output_type -> marketing.CouponPoolEntry
+	62, // 88: marketing.Marketing.UpsertCouponPoolEntry:output_type -> marketing.CouponPoolEntry
+	62, // 89: marketing.Marketing.AdjustCouponPoolEntry:output_type -> marketing.CouponPoolEntry
+	70, // 90: marketing.Marketing.ListCouponLedger:output_type -> marketing.ListCouponLedgerReply
+	76, // 91: marketing.Marketing.ListFortuneRewards:output_type -> marketing.ListFortuneRewardsReply
+	74, // 92: marketing.Marketing.GetFortuneReward:output_type -> marketing.FortuneReward
+	74, // 93: marketing.Marketing.UpsertFortuneReward:output_type -> marketing.FortuneReward
+	81, // 94: marketing.Marketing.GrantCoupons:output_type -> marketing.GrantCouponsReply
+	82, // 95: marketing.Marketing.GetTenantLoyaltyDefaults:output_type -> marketing.TenantLoyaltyDefaults
+	82, // 96: marketing.Marketing.PutTenantLoyaltyDefaults:output_type -> marketing.TenantLoyaltyDefaults
+	35, // 97: marketing.Marketing.ListCampaigns:output_type -> marketing.ListCampaignsResp
+	37, // 98: marketing.Marketing.CampaignPreview:output_type -> marketing.CampaignPreviewResp
+	39, // 99: marketing.Marketing.CampaignParticipate:output_type -> marketing.CampaignParticipateResp
+	42, // 100: marketing.Marketing.ListCampaignBoxEntitlements:output_type -> marketing.ListCampaignBoxEntitlementsResp
+	44, // 101: marketing.Marketing.GetCampaignBoxEntitlement:output_type -> marketing.GetCampaignBoxEntitlementResp
+	53, // 102: marketing.Marketing.CreateCampaignDraft:output_type -> marketing.Campaign
+	53, // 103: marketing.Marketing.PublishCampaign:output_type -> marketing.Campaign
+	53, // 104: marketing.Marketing.GetCampaign:output_type -> marketing.Campaign
+	73, // [73:105] is the sub-list for method output_type
+	41, // [41:73] is the sub-list for method input_type
 	41, // [41:41] is the sub-list for extension type_name
 	41, // [41:41] is the sub-list for extension extendee
 	0,  // [0:41] is the sub-list for field type_name
@@ -6776,7 +6835,7 @@ func file_marketing_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_marketing_proto_rawDesc), len(file_marketing_proto_rawDesc)),
 			NumEnums:      10,
-			NumMessages:   74,
+			NumMessages:   75,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

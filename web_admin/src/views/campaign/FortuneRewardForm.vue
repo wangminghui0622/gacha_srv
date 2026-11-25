@@ -1,8 +1,6 @@
 <template>
-  <div>
-    <PageHeader title="设置吉祥值奖励" />
-    <div class="fortune-page">
-      <div class="form-layout">
+  <div class="fortune-form-body">
+    <div class="form-layout">
         <div class="form-left">
           <a-form :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" label-align="right">
             <a-form-item label="名称" required>
@@ -137,22 +135,20 @@
         </div>
       </div>
 
-      <div class="create-actions">
-        <a-button class="btn-create" type="primary" :loading="saving" @click="submit">确定</a-button>
-        <a-button @click="resetForm">重置</a-button>
-      </div>
+    <div class="create-actions">
+      <a-button class="btn-create" type="primary" :loading="saving" @click="submit">确定</a-button>
+      <a-button @click="handleReset">重置</a-button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
-import PageHeader from '@/components/PageHeader.vue'
 import type { Dayjs } from 'dayjs'
 import { fortuneRewardClient } from '@/api/fortune'
-import type { FortuneRewardItem } from '@/api/fortune'
+import type { FortuneReward, FortuneRewardItem } from '@/api/fortune'
 import { promotionClient } from '@/api/promotion'
 import type { CouponTemplate } from '@/api/promotion'
 import { catalogAdminProductClient } from '@/api/catalog'
@@ -164,9 +160,13 @@ import { newRequestId } from '@/utils/requestId'
 
 type RewardDraft = FortuneRewardItem & { _key: string }
 
+const props = defineProps<{ record?: FortuneReward | null }>()
+const emit = defineEmits<{ (e: 'success'): void }>()
+
 const session = useSessionStore()
 const saving = ref(false)
 const couponTemplates = ref<CouponTemplate[]>([])
+const editingId = computed(() => props.record?.id ?? '')
 
 const tagOptions = ['新品', '热门', '限时', '推荐'].map((value) => ({ value, label: value }))
 
@@ -393,7 +393,32 @@ function resetForm() {
   builder.appearanceId = 0
 }
 
+function applyRecord(record: FortuneReward) {
+  form.name = record.name ?? ''
+  form.exchangePoints = Number(record.exchangePoints ?? 0)
+  form.directBuyYuan = Number(record.directBuyMinor ?? 0) / 100
+  form.stock = Number(record.stock ?? 0)
+  const startAt = Number(record.startAtUnixMillis ?? 0)
+  const endAt = Number(record.endAtUnixMillis ?? 0)
+  form.startAt = startAt > 0 ? dayjs(startAt) : null
+  form.endAt = endAt > 0 ? dayjs(endAt) : null
+  form.cashbackYuan = Number(record.cashbackMinor ?? 0) / 100
+  form.coverUrl = record.coverUrl ?? ''
+  form.tag = record.tag || undefined
+  form.enabled = record.enabled === true
+  rewards.value = (record.rewards ?? []).map((item) => ({ ...item, _key: nextKey() }))
+}
+
+function handleReset() {
+  if (props.record) {
+    applyRecord(props.record)
+  } else {
+    resetForm()
+  }
+}
+
 async function submit() {
+  if (saving.value) return
   if (!form.name.trim()) {
     message.warning('请输入名称')
     return
@@ -421,15 +446,31 @@ async function submit() {
   }
   saving.value = true
   try {
-    await fortuneRewardClient(newRequestId()).Create(payload)
+    if (editingId.value) {
+      await fortuneRewardClient(newRequestId()).Update(editingId.value, payload)
+    } else {
+      await fortuneRewardClient(newRequestId()).Create(payload)
+    }
     message.success('保存成功')
-    resetForm()
+    emit('success')
   } catch {
     // 错误提示由请求层统一处理
   } finally {
     saving.value = false
   }
 }
+
+watch(
+  () => props.record,
+  (value) => {
+    if (value) {
+      applyRecord(value)
+    } else {
+      resetForm()
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(async () => {
   try {
@@ -442,11 +483,8 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-.fortune-page {
-  padding: 20px 24px 32px;
-  background: #fff;
-  border: 1px solid #e4e7ed;
-  border-radius: 4px;
+.fortune-form-body {
+  padding-top: 4px;
 }
 .form-layout {
   display: grid;

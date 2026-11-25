@@ -49,6 +49,7 @@ service Marketing {
     rpc ListCouponLedger(ListCouponLedgerRequest) returns (ListCouponLedgerReply);
     // ── 吉祥值奖励配置 ──
     rpc ListFortuneRewards(ListFortuneRewardsRequest) returns (ListFortuneRewardsReply);
+    rpc GetFortuneReward(GetFortuneRewardRequest) returns (FortuneReward);
     rpc UpsertFortuneReward(UpsertFortuneRewardRequest) returns (FortuneReward);
     rpc GrantCoupons(GrantCouponsRequest) returns (GrantCouponsReply);
     rpc GetTenantLoyaltyDefaults(GetTenantLoyaltyDefaultsRequest) returns (TenantLoyaltyDefaults);
@@ -680,6 +681,11 @@ message ListFortuneRewardsRequest {
 message ListFortuneRewardsReply {
     repeated FortuneReward items = 1;
     uint64 total = 2;
+}
+
+message GetFortuneRewardRequest {
+    uint64 tenantId = 1;
+    uint64 id = 2;
 }
 
 message UpsertFortuneRewardRequest {

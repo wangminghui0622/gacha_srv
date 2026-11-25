@@ -176,7 +176,7 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     permission: { resource: 'campaign.definition', action: 'read' },
     showInMenu: true,
     backFallback: '/campaigns',
-    component: () => import('@/views/campaign/FortuneRewardView.vue'),
+    component: () => import('@/views/campaign/FortuneRewardListView.vue'),
   },
   {
     name: 'campaign-fortune-rank',

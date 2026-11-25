@@ -129,6 +129,11 @@ func (s *MarketingServer) ListFortuneRewards(ctx context.Context, in *marketing.
 	return l.ListFortuneRewards(in)
 }
 
+func (s *MarketingServer) GetFortuneReward(ctx context.Context, in *marketing.GetFortuneRewardRequest) (*marketing.FortuneReward, error) {
+	l := logic.NewGetFortuneRewardLogic(ctx, s.svcCtx)
+	return l.GetFortuneReward(in)
+}
+
 func (s *MarketingServer) UpsertFortuneReward(ctx context.Context, in *marketing.UpsertFortuneRewardRequest) (*marketing.FortuneReward, error) {
 	l := logic.NewUpsertFortuneRewardLogic(ctx, s.svcCtx)
 	return l.UpsertFortuneReward(in)

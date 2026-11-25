@@ -48,6 +48,9 @@ export function fortuneRewardClient(requestId?: string) {
         params: { page: params.page ?? 1, pageSize: params.pageSize ?? 20 },
       })
     },
+    Get(id: string | number): Promise<FortuneReward> {
+      return http.get(`/console/v2/api/campaigns/fortune-rewards/${encodeURIComponent(String(id))}`)
+    },
     Create(reward: FortuneReward): Promise<FortuneReward> {
       return http.post('/console/v2/api/campaigns/fortune-rewards', reward, { headers })
     },
