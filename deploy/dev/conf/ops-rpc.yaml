@@ -25,7 +25,7 @@ Console:
   PublicKeyBase64: "NWp4QoCx6USyNVNcRqd4TaPcVTxysCwjeleKvsGGrp8="
   Issuer: luckybox-console
   Audience: console-api
-  AccessTtlSeconds: 900
+  AccessTtlSeconds: 86400
   RefreshTtlSeconds: 604800
   # 首次启动自动开通的超级管理员（仅本地开发；生产部署首登改密）
   InitialAdminUsername: admin
