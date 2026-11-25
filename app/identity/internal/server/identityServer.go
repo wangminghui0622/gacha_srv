@@ -100,3 +100,33 @@ func (s *IdentityServer) CreateConsoleUser(ctx context.Context, in *identity.Cre
 	l := logic.NewCreateConsoleUserLogic(ctx, s.svcCtx)
 	return l.CreateConsoleUser(in)
 }
+
+func (s *IdentityServer) GetConsoleUser(ctx context.Context, in *identity.GetConsoleUserReq) (*identity.ConsoleUser, error) {
+	l := logic.NewGetConsoleUserLogic(ctx, s.svcCtx)
+	return l.GetConsoleUser(in)
+}
+
+func (s *IdentityServer) UpdateConsoleUser(ctx context.Context, in *identity.UpdateConsoleUserReq) (*identity.ConsoleUser, error) {
+	l := logic.NewUpdateConsoleUserLogic(ctx, s.svcCtx)
+	return l.UpdateConsoleUser(in)
+}
+
+func (s *IdentityServer) GetUserFinance(ctx context.Context, in *identity.GetUserFinanceReq) (*identity.UserFinance, error) {
+	l := logic.NewGetUserFinanceLogic(ctx, s.svcCtx)
+	return l.GetUserFinance(in)
+}
+
+func (s *IdentityServer) UpdateUserFinance(ctx context.Context, in *identity.UpdateUserFinanceReq) (*identity.UserFinance, error) {
+	l := logic.NewUpdateUserFinanceLogic(ctx, s.svcCtx)
+	return l.UpdateUserFinance(in)
+}
+
+func (s *IdentityServer) GetUserBindings(ctx context.Context, in *identity.GetUserBindingsReq) (*identity.UserBindings, error) {
+	l := logic.NewGetUserBindingsLogic(ctx, s.svcCtx)
+	return l.GetUserBindings(in)
+}
+
+func (s *IdentityServer) ResetUserBindingLimit(ctx context.Context, in *identity.ResetUserBindingLimitReq) (*identity.ResetUserBindingLimitResp, error) {
+	l := logic.NewResetUserBindingLimitLogic(ctx, s.svcCtx)
+	return l.ResetUserBindingLimit(in)
+}

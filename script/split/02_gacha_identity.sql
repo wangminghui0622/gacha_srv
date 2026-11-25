@@ -100,13 +100,51 @@ CREATE TABLE IF NOT EXISTS `user_profiles` (
   `user_id` bigint NOT NULL COMMENT '用户ID（关联 user_users.id）',
   `avatar_url` varchar(512) NOT NULL DEFAULT '' COMMENT '头像URL',
   `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态：1正常 2禁用',
-  `lucky_display` varchar(32) NOT NULL DEFAULT '初始化' COMMENT '吉祥展示',
+  `lucky_display` varchar(32) NOT NULL DEFAULT '初始化' COMMENT '集市展示状态',
   `register_ip` varchar(64) NOT NULL DEFAULT '' COMMENT '注册IP',
   `register_device` varchar(128) NOT NULL DEFAULT '' COMMENT '注册设备码',
   `rebate_rate` int NOT NULL DEFAULT '10' COMMENT '返佣比例',
   `identity` varchar(32) NOT NULL DEFAULT '用户' COMMENT '身份',
+  `parent_user_id` bigint NOT NULL DEFAULT '0' COMMENT '上级用户ID',
+  `reissue_luck_points` tinyint NOT NULL DEFAULT '0' COMMENT '是否补发欧气值',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户后台资料';
+
+
+CREATE TABLE IF NOT EXISTS `user_finance_settings` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `user_id` bigint NOT NULL COMMENT '用户ID（关联 user_users.id）',
+  `wallet_settings_json` text NOT NULL COMMENT '钱包开关 JSON',
+  `refund_limit_fen` bigint NOT NULL DEFAULT '0' COMMENT '管理员设置退款上限（分，0=默认）',
+  `refund_limit_count` int NOT NULL DEFAULT '0' COMMENT '管理员设置退款次数（0=默认）',
+  `sms_limit_reset_at` datetime DEFAULT NULL COMMENT '短信限制重置时间',
+  `realname_limit_reset_at` datetime DEFAULT NULL COMMENT '实名认证次数重置时间',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户财务设置';
+
+CREATE TABLE IF NOT EXISTS `user_payment_bindings` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `name` varchar(64) NOT NULL DEFAULT '' COMMENT '姓名',
+  `payment_account` varchar(128) NOT NULL DEFAULT '' COMMENT '支付账号',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户支付绑定信息';
+
+CREATE TABLE IF NOT EXISTS `user_realname_bindings` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `name` varchar(64) NOT NULL DEFAULT '' COMMENT '姓名',
+  `id_card` varchar(32) NOT NULL DEFAULT '' COMMENT '身份证',
+  `phone` varchar(32) NOT NULL DEFAULT '' COMMENT '手机号',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户实名认证信息';

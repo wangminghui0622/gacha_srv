@@ -119,6 +119,60 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: customer.CreateConsoleUserHandler(serverCtx),
 				},
 				{
+					// 用户详情（identity.user:read）
+					Method:  http.MethodGet,
+					Path:    "/users/:id",
+					Handler: customer.GetConsoleUserHandler(serverCtx),
+				},
+				{
+					// 编辑用户基本信息（identity.user:write）
+					Method:  http.MethodPut,
+					Path:    "/users/:id",
+					Handler: customer.UpdateConsoleUserHandler(serverCtx),
+				},
+				{
+					// 用户财务信息（identity.user:read）
+					Method:  http.MethodGet,
+					Path:    "/users/:id/finance",
+					Handler: customer.GetUserFinanceHandler(serverCtx),
+				},
+				{
+					// 保存用户财务设置（identity.user:write）
+					Method:  http.MethodPut,
+					Path:    "/users/:id/finance",
+					Handler: customer.UpdateUserFinanceHandler(serverCtx),
+				},
+				{
+					// 用户钱包充值（identity.user:write）
+					Method:  http.MethodPost,
+					Path:    "/users/:id/finance/recharge",
+					Handler: customer.RechargeUserWalletHandler(serverCtx),
+				},
+				{
+					// 退还吉豆（identity.user:write）
+					Method:  http.MethodPost,
+					Path:    "/users/:id/finance/refund-beans",
+					Handler: customer.RefundUserBeansHandler(serverCtx),
+				},
+				{
+					// 用户绑定信息（identity.user:read）
+					Method:  http.MethodGet,
+					Path:    "/users/:id/bindings",
+					Handler: customer.GetUserBindingsHandler(serverCtx),
+				},
+				{
+					// 重置短信限制（identity.user:write）
+					Method:  http.MethodPost,
+					Path:    "/users/:id/bindings/reset-sms",
+					Handler: customer.ResetUserBindingLimitHandler(serverCtx, "sms"),
+				},
+				{
+					// 重置实名认证次数（identity.user:write）
+					Method:  http.MethodPost,
+					Path:    "/users/:id/bindings/reset-realname",
+					Handler: customer.ResetUserBindingLimitHandler(serverCtx, "realname"),
+				},
+				{
 					// 活动列表（campaign.definition:read）
 					Method:  http.MethodGet,
 					Path:    "/activities",

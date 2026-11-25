@@ -34,6 +34,12 @@ const (
 	Identity_GetThirdPartyIdentity_FullMethodName   = "/identity.Identity/GetThirdPartyIdentity"
 	Identity_ListConsoleUsers_FullMethodName        = "/identity.Identity/ListConsoleUsers"
 	Identity_CreateConsoleUser_FullMethodName       = "/identity.Identity/CreateConsoleUser"
+	Identity_GetConsoleUser_FullMethodName          = "/identity.Identity/GetConsoleUser"
+	Identity_UpdateConsoleUser_FullMethodName       = "/identity.Identity/UpdateConsoleUser"
+	Identity_GetUserFinance_FullMethodName          = "/identity.Identity/GetUserFinance"
+	Identity_UpdateUserFinance_FullMethodName       = "/identity.Identity/UpdateUserFinance"
+	Identity_GetUserBindings_FullMethodName         = "/identity.Identity/GetUserBindings"
+	Identity_ResetUserBindingLimit_FullMethodName   = "/identity.Identity/ResetUserBindingLimit"
 )
 
 // IdentityClient is the client API for Identity service.
@@ -59,6 +65,13 @@ type IdentityClient interface {
 	// ── 控制台用户列表 ──
 	ListConsoleUsers(ctx context.Context, in *ListConsoleUsersReq, opts ...grpc.CallOption) (*ListConsoleUsersResp, error)
 	CreateConsoleUser(ctx context.Context, in *CreateConsoleUserReq, opts ...grpc.CallOption) (*ConsoleUser, error)
+	GetConsoleUser(ctx context.Context, in *GetConsoleUserReq, opts ...grpc.CallOption) (*ConsoleUser, error)
+	UpdateConsoleUser(ctx context.Context, in *UpdateConsoleUserReq, opts ...grpc.CallOption) (*ConsoleUser, error)
+	// ── 控制台用户财务/绑定信息 ──
+	GetUserFinance(ctx context.Context, in *GetUserFinanceReq, opts ...grpc.CallOption) (*UserFinance, error)
+	UpdateUserFinance(ctx context.Context, in *UpdateUserFinanceReq, opts ...grpc.CallOption) (*UserFinance, error)
+	GetUserBindings(ctx context.Context, in *GetUserBindingsReq, opts ...grpc.CallOption) (*UserBindings, error)
+	ResetUserBindingLimit(ctx context.Context, in *ResetUserBindingLimitReq, opts ...grpc.CallOption) (*ResetUserBindingLimitResp, error)
 }
 
 type identityClient struct {
@@ -204,6 +217,60 @@ func (c *identityClient) CreateConsoleUser(ctx context.Context, in *CreateConsol
 	return out, nil
 }
 
+func (c *identityClient) GetConsoleUser(ctx context.Context, in *GetConsoleUserReq, opts ...grpc.CallOption) (*ConsoleUser, error) {
+	out := new(ConsoleUser)
+	err := c.cc.Invoke(ctx, Identity_GetConsoleUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityClient) UpdateConsoleUser(ctx context.Context, in *UpdateConsoleUserReq, opts ...grpc.CallOption) (*ConsoleUser, error) {
+	out := new(ConsoleUser)
+	err := c.cc.Invoke(ctx, Identity_UpdateConsoleUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityClient) GetUserFinance(ctx context.Context, in *GetUserFinanceReq, opts ...grpc.CallOption) (*UserFinance, error) {
+	out := new(UserFinance)
+	err := c.cc.Invoke(ctx, Identity_GetUserFinance_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityClient) UpdateUserFinance(ctx context.Context, in *UpdateUserFinanceReq, opts ...grpc.CallOption) (*UserFinance, error) {
+	out := new(UserFinance)
+	err := c.cc.Invoke(ctx, Identity_UpdateUserFinance_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityClient) GetUserBindings(ctx context.Context, in *GetUserBindingsReq, opts ...grpc.CallOption) (*UserBindings, error) {
+	out := new(UserBindings)
+	err := c.cc.Invoke(ctx, Identity_GetUserBindings_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityClient) ResetUserBindingLimit(ctx context.Context, in *ResetUserBindingLimitReq, opts ...grpc.CallOption) (*ResetUserBindingLimitResp, error) {
+	out := new(ResetUserBindingLimitResp)
+	err := c.cc.Invoke(ctx, Identity_ResetUserBindingLimit_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // IdentityServer is the server API for Identity service.
 // All implementations must embed UnimplementedIdentityServer
 // for forward compatibility
@@ -227,6 +294,13 @@ type IdentityServer interface {
 	// ── 控制台用户列表 ──
 	ListConsoleUsers(context.Context, *ListConsoleUsersReq) (*ListConsoleUsersResp, error)
 	CreateConsoleUser(context.Context, *CreateConsoleUserReq) (*ConsoleUser, error)
+	GetConsoleUser(context.Context, *GetConsoleUserReq) (*ConsoleUser, error)
+	UpdateConsoleUser(context.Context, *UpdateConsoleUserReq) (*ConsoleUser, error)
+	// ── 控制台用户财务/绑定信息 ──
+	GetUserFinance(context.Context, *GetUserFinanceReq) (*UserFinance, error)
+	UpdateUserFinance(context.Context, *UpdateUserFinanceReq) (*UserFinance, error)
+	GetUserBindings(context.Context, *GetUserBindingsReq) (*UserBindings, error)
+	ResetUserBindingLimit(context.Context, *ResetUserBindingLimitReq) (*ResetUserBindingLimitResp, error)
 	mustEmbedUnimplementedIdentityServer()
 }
 
@@ -278,6 +352,24 @@ func (UnimplementedIdentityServer) ListConsoleUsers(context.Context, *ListConsol
 }
 func (UnimplementedIdentityServer) CreateConsoleUser(context.Context, *CreateConsoleUserReq) (*ConsoleUser, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateConsoleUser not implemented")
+}
+func (UnimplementedIdentityServer) GetConsoleUser(context.Context, *GetConsoleUserReq) (*ConsoleUser, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConsoleUser not implemented")
+}
+func (UnimplementedIdentityServer) UpdateConsoleUser(context.Context, *UpdateConsoleUserReq) (*ConsoleUser, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateConsoleUser not implemented")
+}
+func (UnimplementedIdentityServer) GetUserFinance(context.Context, *GetUserFinanceReq) (*UserFinance, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserFinance not implemented")
+}
+func (UnimplementedIdentityServer) UpdateUserFinance(context.Context, *UpdateUserFinanceReq) (*UserFinance, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserFinance not implemented")
+}
+func (UnimplementedIdentityServer) GetUserBindings(context.Context, *GetUserBindingsReq) (*UserBindings, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserBindings not implemented")
+}
+func (UnimplementedIdentityServer) ResetUserBindingLimit(context.Context, *ResetUserBindingLimitReq) (*ResetUserBindingLimitResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ResetUserBindingLimit not implemented")
 }
 func (UnimplementedIdentityServer) mustEmbedUnimplementedIdentityServer() {}
 
@@ -562,6 +654,114 @@ func _Identity_CreateConsoleUser_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Identity_GetConsoleUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetConsoleUserReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServer).GetConsoleUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Identity_GetConsoleUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServer).GetConsoleUser(ctx, req.(*GetConsoleUserReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Identity_UpdateConsoleUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateConsoleUserReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServer).UpdateConsoleUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Identity_UpdateConsoleUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServer).UpdateConsoleUser(ctx, req.(*UpdateConsoleUserReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Identity_GetUserFinance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserFinanceReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServer).GetUserFinance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Identity_GetUserFinance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServer).GetUserFinance(ctx, req.(*GetUserFinanceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Identity_UpdateUserFinance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserFinanceReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServer).UpdateUserFinance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Identity_UpdateUserFinance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServer).UpdateUserFinance(ctx, req.(*UpdateUserFinanceReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Identity_GetUserBindings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserBindingsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServer).GetUserBindings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Identity_GetUserBindings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServer).GetUserBindings(ctx, req.(*GetUserBindingsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Identity_ResetUserBindingLimit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResetUserBindingLimitReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServer).ResetUserBindingLimit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Identity_ResetUserBindingLimit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServer).ResetUserBindingLimit(ctx, req.(*ResetUserBindingLimitReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Identity_ServiceDesc is the grpc.ServiceDesc for Identity service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -628,6 +828,30 @@ var Identity_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateConsoleUser",
 			Handler:    _Identity_CreateConsoleUser_Handler,
+		},
+		{
+			MethodName: "GetConsoleUser",
+			Handler:    _Identity_GetConsoleUser_Handler,
+		},
+		{
+			MethodName: "UpdateConsoleUser",
+			Handler:    _Identity_UpdateConsoleUser_Handler,
+		},
+		{
+			MethodName: "GetUserFinance",
+			Handler:    _Identity_GetUserFinance_Handler,
+		},
+		{
+			MethodName: "UpdateUserFinance",
+			Handler:    _Identity_UpdateUserFinance_Handler,
+		},
+		{
+			MethodName: "GetUserBindings",
+			Handler:    _Identity_GetUserBindings_Handler,
+		},
+		{
+			MethodName: "ResetUserBindingLimit",
+			Handler:    _Identity_ResetUserBindingLimit_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

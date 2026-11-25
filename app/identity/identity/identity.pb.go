@@ -1476,6 +1476,8 @@ type ConsoleUser struct {
 	Identity            string                 `protobuf:"bytes,11,opt,name=identity,proto3" json:"identity,omitempty"`
 	CreatedAtUnixMillis int64                  `protobuf:"varint,12,opt,name=createdAtUnixMillis,proto3" json:"createdAtUnixMillis,omitempty"`
 	UpdatedAtUnixMillis int64                  `protobuf:"varint,13,opt,name=updatedAtUnixMillis,proto3" json:"updatedAtUnixMillis,omitempty"`
+	ParentUserId        int64                  `protobuf:"varint,14,opt,name=parentUserId,proto3" json:"parentUserId,omitempty"`
+	ReissueLuckPoints   bool                   `protobuf:"varint,15,opt,name=reissueLuckPoints,proto3" json:"reissueLuckPoints,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -1599,6 +1601,20 @@ func (x *ConsoleUser) GetUpdatedAtUnixMillis() int64 {
 		return x.UpdatedAtUnixMillis
 	}
 	return 0
+}
+
+func (x *ConsoleUser) GetParentUserId() int64 {
+	if x != nil {
+		return x.ParentUserId
+	}
+	return 0
+}
+
+func (x *ConsoleUser) GetReissueLuckPoints() bool {
+	if x != nil {
+		return x.ReissueLuckPoints
+	}
+	return false
 }
 
 type ListConsoleUsersReq struct {
@@ -1837,6 +1853,814 @@ func (x *CreateConsoleUserReq) GetIdentity() string {
 	return ""
 }
 
+type GetConsoleUserReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TenantId      int64                  `protobuf:"varint,1,opt,name=tenantId,proto3" json:"tenantId,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=userId,proto3" json:"userId,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetConsoleUserReq) Reset() {
+	*x = GetConsoleUserReq{}
+	mi := &file_identity_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetConsoleUserReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetConsoleUserReq) ProtoMessage() {}
+
+func (x *GetConsoleUserReq) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetConsoleUserReq.ProtoReflect.Descriptor instead.
+func (*GetConsoleUserReq) Descriptor() ([]byte, []int) {
+	return file_identity_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *GetConsoleUserReq) GetTenantId() int64 {
+	if x != nil {
+		return x.TenantId
+	}
+	return 0
+}
+
+func (x *GetConsoleUserReq) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type UpdateConsoleUserReq struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	TenantId          int64                  `protobuf:"varint,1,opt,name=tenantId,proto3" json:"tenantId,omitempty"`
+	RequestId         string                 `protobuf:"bytes,2,opt,name=requestId,proto3" json:"requestId,omitempty"`
+	UserId            int64                  `protobuf:"varint,3,opt,name=userId,proto3" json:"userId,omitempty"`
+	Nickname          string                 `protobuf:"bytes,4,opt,name=nickname,proto3" json:"nickname,omitempty"`
+	Status            int32                  `protobuf:"varint,5,opt,name=status,proto3" json:"status,omitempty"`
+	LuckyDisplay      string                 `protobuf:"bytes,6,opt,name=luckyDisplay,proto3" json:"luckyDisplay,omitempty"`
+	ParentUserId      int64                  `protobuf:"varint,7,opt,name=parentUserId,proto3" json:"parentUserId,omitempty"`
+	ReissueLuckPoints bool                   `protobuf:"varint,8,opt,name=reissueLuckPoints,proto3" json:"reissueLuckPoints,omitempty"`
+	AvatarUrl         string                 `protobuf:"bytes,9,opt,name=avatarUrl,proto3" json:"avatarUrl,omitempty"`
+	RebateRate        int32                  `protobuf:"varint,10,opt,name=rebateRate,proto3" json:"rebateRate,omitempty"`
+	Identity          string                 `protobuf:"bytes,11,opt,name=identity,proto3" json:"identity,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *UpdateConsoleUserReq) Reset() {
+	*x = UpdateConsoleUserReq{}
+	mi := &file_identity_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateConsoleUserReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateConsoleUserReq) ProtoMessage() {}
+
+func (x *UpdateConsoleUserReq) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateConsoleUserReq.ProtoReflect.Descriptor instead.
+func (*UpdateConsoleUserReq) Descriptor() ([]byte, []int) {
+	return file_identity_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *UpdateConsoleUserReq) GetTenantId() int64 {
+	if x != nil {
+		return x.TenantId
+	}
+	return 0
+}
+
+func (x *UpdateConsoleUserReq) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *UpdateConsoleUserReq) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *UpdateConsoleUserReq) GetNickname() string {
+	if x != nil {
+		return x.Nickname
+	}
+	return ""
+}
+
+func (x *UpdateConsoleUserReq) GetStatus() int32 {
+	if x != nil {
+		return x.Status
+	}
+	return 0
+}
+
+func (x *UpdateConsoleUserReq) GetLuckyDisplay() string {
+	if x != nil {
+		return x.LuckyDisplay
+	}
+	return ""
+}
+
+func (x *UpdateConsoleUserReq) GetParentUserId() int64 {
+	if x != nil {
+		return x.ParentUserId
+	}
+	return 0
+}
+
+func (x *UpdateConsoleUserReq) GetReissueLuckPoints() bool {
+	if x != nil {
+		return x.ReissueLuckPoints
+	}
+	return false
+}
+
+func (x *UpdateConsoleUserReq) GetAvatarUrl() string {
+	if x != nil {
+		return x.AvatarUrl
+	}
+	return ""
+}
+
+func (x *UpdateConsoleUserReq) GetRebateRate() int32 {
+	if x != nil {
+		return x.RebateRate
+	}
+	return 0
+}
+
+func (x *UpdateConsoleUserReq) GetIdentity() string {
+	if x != nil {
+		return x.Identity
+	}
+	return ""
+}
+
+type WalletSetting struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Kind          int32                  `protobuf:"varint,1,opt,name=kind,proto3" json:"kind,omitempty"`
+	Enabled       bool                   `protobuf:"varint,2,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Balance       string                 `protobuf:"bytes,3,opt,name=balance,proto3" json:"balance,omitempty"` // 由网关从资金服务填充
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WalletSetting) Reset() {
+	*x = WalletSetting{}
+	mi := &file_identity_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WalletSetting) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WalletSetting) ProtoMessage() {}
+
+func (x *WalletSetting) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WalletSetting.ProtoReflect.Descriptor instead.
+func (*WalletSetting) Descriptor() ([]byte, []int) {
+	return file_identity_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *WalletSetting) GetKind() int32 {
+	if x != nil {
+		return x.Kind
+	}
+	return 0
+}
+
+func (x *WalletSetting) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *WalletSetting) GetBalance() string {
+	if x != nil {
+		return x.Balance
+	}
+	return ""
+}
+
+type UserFinance struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	UserId              int64                  `protobuf:"varint,1,opt,name=userId,proto3" json:"userId,omitempty"`
+	Wallets             []*WalletSetting       `protobuf:"bytes,2,rep,name=wallets,proto3" json:"wallets,omitempty"`
+	RefundLimitFen      int64                  `protobuf:"varint,3,opt,name=refundLimitFen,proto3" json:"refundLimitFen,omitempty"`           // 管理员设置（0=默认）
+	RefundLimitCount    int32                  `protobuf:"varint,4,opt,name=refundLimitCount,proto3" json:"refundLimitCount,omitempty"`       // 管理员设置（0=默认）
+	EffectiveLimitFen   int64                  `protobuf:"varint,5,opt,name=effectiveLimitFen,proto3" json:"effectiveLimitFen,omitempty"`     // 当前生效
+	EffectiveLimitCount int32                  `protobuf:"varint,6,opt,name=effectiveLimitCount,proto3" json:"effectiveLimitCount,omitempty"` // 当前生效
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *UserFinance) Reset() {
+	*x = UserFinance{}
+	mi := &file_identity_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserFinance) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserFinance) ProtoMessage() {}
+
+func (x *UserFinance) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserFinance.ProtoReflect.Descriptor instead.
+func (*UserFinance) Descriptor() ([]byte, []int) {
+	return file_identity_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *UserFinance) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *UserFinance) GetWallets() []*WalletSetting {
+	if x != nil {
+		return x.Wallets
+	}
+	return nil
+}
+
+func (x *UserFinance) GetRefundLimitFen() int64 {
+	if x != nil {
+		return x.RefundLimitFen
+	}
+	return 0
+}
+
+func (x *UserFinance) GetRefundLimitCount() int32 {
+	if x != nil {
+		return x.RefundLimitCount
+	}
+	return 0
+}
+
+func (x *UserFinance) GetEffectiveLimitFen() int64 {
+	if x != nil {
+		return x.EffectiveLimitFen
+	}
+	return 0
+}
+
+func (x *UserFinance) GetEffectiveLimitCount() int32 {
+	if x != nil {
+		return x.EffectiveLimitCount
+	}
+	return 0
+}
+
+type GetUserFinanceReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TenantId      int64                  `protobuf:"varint,1,opt,name=tenantId,proto3" json:"tenantId,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=userId,proto3" json:"userId,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUserFinanceReq) Reset() {
+	*x = GetUserFinanceReq{}
+	mi := &file_identity_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserFinanceReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserFinanceReq) ProtoMessage() {}
+
+func (x *GetUserFinanceReq) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserFinanceReq.ProtoReflect.Descriptor instead.
+func (*GetUserFinanceReq) Descriptor() ([]byte, []int) {
+	return file_identity_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *GetUserFinanceReq) GetTenantId() int64 {
+	if x != nil {
+		return x.TenantId
+	}
+	return 0
+}
+
+func (x *GetUserFinanceReq) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type UpdateUserFinanceReq struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	TenantId         int64                  `protobuf:"varint,1,opt,name=tenantId,proto3" json:"tenantId,omitempty"`
+	UserId           int64                  `protobuf:"varint,2,opt,name=userId,proto3" json:"userId,omitempty"`
+	Wallets          []*WalletSetting       `protobuf:"bytes,3,rep,name=wallets,proto3" json:"wallets,omitempty"`
+	RefundLimitFen   int64                  `protobuf:"varint,4,opt,name=refundLimitFen,proto3" json:"refundLimitFen,omitempty"`
+	RefundLimitCount int32                  `protobuf:"varint,5,opt,name=refundLimitCount,proto3" json:"refundLimitCount,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *UpdateUserFinanceReq) Reset() {
+	*x = UpdateUserFinanceReq{}
+	mi := &file_identity_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateUserFinanceReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateUserFinanceReq) ProtoMessage() {}
+
+func (x *UpdateUserFinanceReq) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateUserFinanceReq.ProtoReflect.Descriptor instead.
+func (*UpdateUserFinanceReq) Descriptor() ([]byte, []int) {
+	return file_identity_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *UpdateUserFinanceReq) GetTenantId() int64 {
+	if x != nil {
+		return x.TenantId
+	}
+	return 0
+}
+
+func (x *UpdateUserFinanceReq) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *UpdateUserFinanceReq) GetWallets() []*WalletSetting {
+	if x != nil {
+		return x.Wallets
+	}
+	return nil
+}
+
+func (x *UpdateUserFinanceReq) GetRefundLimitFen() int64 {
+	if x != nil {
+		return x.RefundLimitFen
+	}
+	return 0
+}
+
+func (x *UpdateUserFinanceReq) GetRefundLimitCount() int32 {
+	if x != nil {
+		return x.RefundLimitCount
+	}
+	return 0
+}
+
+type PaymentBinding struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Id                  int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	CreatedAtUnixMillis int64                  `protobuf:"varint,2,opt,name=createdAtUnixMillis,proto3" json:"createdAtUnixMillis,omitempty"`
+	UserId              int64                  `protobuf:"varint,3,opt,name=userId,proto3" json:"userId,omitempty"`
+	Name                string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	PaymentAccount      string                 `protobuf:"bytes,5,opt,name=paymentAccount,proto3" json:"paymentAccount,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *PaymentBinding) Reset() {
+	*x = PaymentBinding{}
+	mi := &file_identity_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PaymentBinding) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PaymentBinding) ProtoMessage() {}
+
+func (x *PaymentBinding) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PaymentBinding.ProtoReflect.Descriptor instead.
+func (*PaymentBinding) Descriptor() ([]byte, []int) {
+	return file_identity_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *PaymentBinding) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *PaymentBinding) GetCreatedAtUnixMillis() int64 {
+	if x != nil {
+		return x.CreatedAtUnixMillis
+	}
+	return 0
+}
+
+func (x *PaymentBinding) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *PaymentBinding) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *PaymentBinding) GetPaymentAccount() string {
+	if x != nil {
+		return x.PaymentAccount
+	}
+	return ""
+}
+
+type RealnameBinding struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Id                  int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	CreatedAtUnixMillis int64                  `protobuf:"varint,2,opt,name=createdAtUnixMillis,proto3" json:"createdAtUnixMillis,omitempty"`
+	UserId              int64                  `protobuf:"varint,3,opt,name=userId,proto3" json:"userId,omitempty"`
+	Name                string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	IdCard              string                 `protobuf:"bytes,5,opt,name=idCard,proto3" json:"idCard,omitempty"`
+	Phone               string                 `protobuf:"bytes,6,opt,name=phone,proto3" json:"phone,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *RealnameBinding) Reset() {
+	*x = RealnameBinding{}
+	mi := &file_identity_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RealnameBinding) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RealnameBinding) ProtoMessage() {}
+
+func (x *RealnameBinding) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RealnameBinding.ProtoReflect.Descriptor instead.
+func (*RealnameBinding) Descriptor() ([]byte, []int) {
+	return file_identity_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *RealnameBinding) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *RealnameBinding) GetCreatedAtUnixMillis() int64 {
+	if x != nil {
+		return x.CreatedAtUnixMillis
+	}
+	return 0
+}
+
+func (x *RealnameBinding) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *RealnameBinding) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *RealnameBinding) GetIdCard() string {
+	if x != nil {
+		return x.IdCard
+	}
+	return ""
+}
+
+func (x *RealnameBinding) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
+type UserBindings struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Payments      []*PaymentBinding      `protobuf:"bytes,1,rep,name=payments,proto3" json:"payments,omitempty"`
+	Realnames     []*RealnameBinding     `protobuf:"bytes,2,rep,name=realnames,proto3" json:"realnames,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserBindings) Reset() {
+	*x = UserBindings{}
+	mi := &file_identity_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserBindings) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserBindings) ProtoMessage() {}
+
+func (x *UserBindings) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserBindings.ProtoReflect.Descriptor instead.
+func (*UserBindings) Descriptor() ([]byte, []int) {
+	return file_identity_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *UserBindings) GetPayments() []*PaymentBinding {
+	if x != nil {
+		return x.Payments
+	}
+	return nil
+}
+
+func (x *UserBindings) GetRealnames() []*RealnameBinding {
+	if x != nil {
+		return x.Realnames
+	}
+	return nil
+}
+
+type GetUserBindingsReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TenantId      int64                  `protobuf:"varint,1,opt,name=tenantId,proto3" json:"tenantId,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=userId,proto3" json:"userId,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUserBindingsReq) Reset() {
+	*x = GetUserBindingsReq{}
+	mi := &file_identity_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserBindingsReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserBindingsReq) ProtoMessage() {}
+
+func (x *GetUserBindingsReq) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserBindingsReq.ProtoReflect.Descriptor instead.
+func (*GetUserBindingsReq) Descriptor() ([]byte, []int) {
+	return file_identity_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *GetUserBindingsReq) GetTenantId() int64 {
+	if x != nil {
+		return x.TenantId
+	}
+	return 0
+}
+
+func (x *GetUserBindingsReq) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type ResetUserBindingLimitReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TenantId      int64                  `protobuf:"varint,1,opt,name=tenantId,proto3" json:"tenantId,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=userId,proto3" json:"userId,omitempty"`
+	Kind          string                 `protobuf:"bytes,3,opt,name=kind,proto3" json:"kind,omitempty"` // sms / realname
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResetUserBindingLimitReq) Reset() {
+	*x = ResetUserBindingLimitReq{}
+	mi := &file_identity_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResetUserBindingLimitReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResetUserBindingLimitReq) ProtoMessage() {}
+
+func (x *ResetUserBindingLimitReq) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResetUserBindingLimitReq.ProtoReflect.Descriptor instead.
+func (*ResetUserBindingLimitReq) Descriptor() ([]byte, []int) {
+	return file_identity_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *ResetUserBindingLimitReq) GetTenantId() int64 {
+	if x != nil {
+		return x.TenantId
+	}
+	return 0
+}
+
+func (x *ResetUserBindingLimitReq) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *ResetUserBindingLimitReq) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+type ResetUserBindingLimitResp struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResetUserBindingLimitResp) Reset() {
+	*x = ResetUserBindingLimitResp{}
+	mi := &file_identity_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResetUserBindingLimitResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResetUserBindingLimitResp) ProtoMessage() {}
+
+func (x *ResetUserBindingLimitResp) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResetUserBindingLimitResp.ProtoReflect.Descriptor instead.
+func (*ResetUserBindingLimitResp) Descriptor() ([]byte, []int) {
+	return file_identity_proto_rawDescGZIP(), []int{40}
+}
+
 var File_identity_proto protoreflect.FileDescriptor
 
 const file_identity_proto_rawDesc = "" +
@@ -1921,7 +2745,7 @@ const file_identity_proto_rawDesc = "" +
 	"\x04kind\x18\x03 \x01(\x0e2\x18.identity.ThirdPartyKindR\x04kind\"M\n" +
 	"\x19GetThirdPartyIdentityResp\x12\x16\n" +
 	"\x06openId\x18\x01 \x01(\tR\x06openId\x12\x18\n" +
-	"\aunionId\x18\x02 \x01(\tR\aunionId\"\xb5\x03\n" +
+	"\aunionId\x18\x02 \x01(\tR\aunionId\"\x87\x04\n" +
 	"\vConsoleUser\x12\x16\n" +
 	"\x06userId\x18\x01 \x01(\x03R\x06userId\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1a\n" +
@@ -1940,7 +2764,9 @@ const file_identity_proto_rawDesc = "" +
 	"rebateRate\x12\x1a\n" +
 	"\bidentity\x18\v \x01(\tR\bidentity\x120\n" +
 	"\x13createdAtUnixMillis\x18\f \x01(\x03R\x13createdAtUnixMillis\x120\n" +
-	"\x13updatedAtUnixMillis\x18\r \x01(\x03R\x13updatedAtUnixMillis\"\xc5\x01\n" +
+	"\x13updatedAtUnixMillis\x18\r \x01(\x03R\x13updatedAtUnixMillis\x12\"\n" +
+	"\fparentUserId\x18\x0e \x01(\x03R\fparentUserId\x12,\n" +
+	"\x11reissueLuckPoints\x18\x0f \x01(\bR\x11reissueLuckPoints\"\xc5\x01\n" +
 	"\x13ListConsoleUsersReq\x12\x1a\n" +
 	"\btenantId\x18\x01 \x01(\x03R\btenantId\x12\x18\n" +
 	"\akeyword\x18\x02 \x01(\tR\akeyword\x12\x14\n" +
@@ -1961,7 +2787,69 @@ const file_identity_proto_rawDesc = "" +
 	"\n" +
 	"rebateRate\x18\x06 \x01(\x05R\n" +
 	"rebateRate\x12\x1a\n" +
-	"\bidentity\x18\a \x01(\tR\bidentity*}\n" +
+	"\bidentity\x18\a \x01(\tR\bidentity\"G\n" +
+	"\x11GetConsoleUserReq\x12\x1a\n" +
+	"\btenantId\x18\x01 \x01(\x03R\btenantId\x12\x16\n" +
+	"\x06userId\x18\x02 \x01(\x03R\x06userId\"\xec\x02\n" +
+	"\x14UpdateConsoleUserReq\x12\x1a\n" +
+	"\btenantId\x18\x01 \x01(\x03R\btenantId\x12\x1c\n" +
+	"\trequestId\x18\x02 \x01(\tR\trequestId\x12\x16\n" +
+	"\x06userId\x18\x03 \x01(\x03R\x06userId\x12\x1a\n" +
+	"\bnickname\x18\x04 \x01(\tR\bnickname\x12\x16\n" +
+	"\x06status\x18\x05 \x01(\x05R\x06status\x12\"\n" +
+	"\fluckyDisplay\x18\x06 \x01(\tR\fluckyDisplay\x12\"\n" +
+	"\fparentUserId\x18\a \x01(\x03R\fparentUserId\x12,\n" +
+	"\x11reissueLuckPoints\x18\b \x01(\bR\x11reissueLuckPoints\x12\x1c\n" +
+	"\tavatarUrl\x18\t \x01(\tR\tavatarUrl\x12\x1e\n" +
+	"\n" +
+	"rebateRate\x18\n" +
+	" \x01(\x05R\n" +
+	"rebateRate\x12\x1a\n" +
+	"\bidentity\x18\v \x01(\tR\bidentity\"W\n" +
+	"\rWalletSetting\x12\x12\n" +
+	"\x04kind\x18\x01 \x01(\x05R\x04kind\x12\x18\n" +
+	"\aenabled\x18\x02 \x01(\bR\aenabled\x12\x18\n" +
+	"\abalance\x18\x03 \x01(\tR\abalance\"\x8c\x02\n" +
+	"\vUserFinance\x12\x16\n" +
+	"\x06userId\x18\x01 \x01(\x03R\x06userId\x121\n" +
+	"\awallets\x18\x02 \x03(\v2\x17.identity.WalletSettingR\awallets\x12&\n" +
+	"\x0erefundLimitFen\x18\x03 \x01(\x03R\x0erefundLimitFen\x12*\n" +
+	"\x10refundLimitCount\x18\x04 \x01(\x05R\x10refundLimitCount\x12,\n" +
+	"\x11effectiveLimitFen\x18\x05 \x01(\x03R\x11effectiveLimitFen\x120\n" +
+	"\x13effectiveLimitCount\x18\x06 \x01(\x05R\x13effectiveLimitCount\"G\n" +
+	"\x11GetUserFinanceReq\x12\x1a\n" +
+	"\btenantId\x18\x01 \x01(\x03R\btenantId\x12\x16\n" +
+	"\x06userId\x18\x02 \x01(\x03R\x06userId\"\xd1\x01\n" +
+	"\x14UpdateUserFinanceReq\x12\x1a\n" +
+	"\btenantId\x18\x01 \x01(\x03R\btenantId\x12\x16\n" +
+	"\x06userId\x18\x02 \x01(\x03R\x06userId\x121\n" +
+	"\awallets\x18\x03 \x03(\v2\x17.identity.WalletSettingR\awallets\x12&\n" +
+	"\x0erefundLimitFen\x18\x04 \x01(\x03R\x0erefundLimitFen\x12*\n" +
+	"\x10refundLimitCount\x18\x05 \x01(\x05R\x10refundLimitCount\"\xa6\x01\n" +
+	"\x0ePaymentBinding\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x120\n" +
+	"\x13createdAtUnixMillis\x18\x02 \x01(\x03R\x13createdAtUnixMillis\x12\x16\n" +
+	"\x06userId\x18\x03 \x01(\x03R\x06userId\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x12&\n" +
+	"\x0epaymentAccount\x18\x05 \x01(\tR\x0epaymentAccount\"\xad\x01\n" +
+	"\x0fRealnameBinding\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x120\n" +
+	"\x13createdAtUnixMillis\x18\x02 \x01(\x03R\x13createdAtUnixMillis\x12\x16\n" +
+	"\x06userId\x18\x03 \x01(\x03R\x06userId\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x12\x16\n" +
+	"\x06idCard\x18\x05 \x01(\tR\x06idCard\x12\x14\n" +
+	"\x05phone\x18\x06 \x01(\tR\x05phone\"}\n" +
+	"\fUserBindings\x124\n" +
+	"\bpayments\x18\x01 \x03(\v2\x18.identity.PaymentBindingR\bpayments\x127\n" +
+	"\trealnames\x18\x02 \x03(\v2\x19.identity.RealnameBindingR\trealnames\"H\n" +
+	"\x12GetUserBindingsReq\x12\x1a\n" +
+	"\btenantId\x18\x01 \x01(\x03R\btenantId\x12\x16\n" +
+	"\x06userId\x18\x02 \x01(\x03R\x06userId\"b\n" +
+	"\x18ResetUserBindingLimitReq\x12\x1a\n" +
+	"\btenantId\x18\x01 \x01(\x03R\btenantId\x12\x16\n" +
+	"\x06userId\x18\x02 \x01(\x03R\x06userId\x12\x12\n" +
+	"\x04kind\x18\x03 \x01(\tR\x04kind\"\x1b\n" +
+	"\x19ResetUserBindingLimitResp*}\n" +
 	"\x0eThirdPartyKind\x12 \n" +
 	"\x1cTHIRD_PARTY_KIND_UNSPECIFIED\x10\x00\x12(\n" +
 	"$THIRD_PARTY_KIND_WECHAT_MINI_PROGRAM\x10\x01\x12\x1f\n" +
@@ -1969,7 +2857,7 @@ const file_identity_proto_rawDesc = "" +
 	"\x10WeChatOAuthScene\x12\"\n" +
 	"\x1eWECHAT_OAUTH_SCENE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16WECHAT_OAUTH_SCENE_APP\x10\x01\x12#\n" +
-	"\x1fWECHAT_OAUTH_SCENE_MINI_PROGRAM\x10\x022\xb9\t\n" +
+	"\x1fWECHAT_OAUTH_SCENE_MINI_PROGRAM\x10\x022\x88\r\n" +
 	"\bIdentity\x129\n" +
 	"\bRegister\x12\x15.identity.RegisterReq\x1a\x16.identity.RegisterResp\x120\n" +
 	"\x05Login\x12\x12.identity.LoginReq\x1a\x13.identity.LoginResp\x12B\n" +
@@ -1986,7 +2874,13 @@ const file_identity_proto_rawDesc = "" +
 	"\x17ResolveUserByThirdParty\x12$.identity.ResolveUserByThirdPartyReq\x1a%.identity.ResolveUserByThirdPartyResp\x12`\n" +
 	"\x15GetThirdPartyIdentity\x12\".identity.GetThirdPartyIdentityReq\x1a#.identity.GetThirdPartyIdentityResp\x12Q\n" +
 	"\x10ListConsoleUsers\x12\x1d.identity.ListConsoleUsersReq\x1a\x1e.identity.ListConsoleUsersResp\x12J\n" +
-	"\x11CreateConsoleUser\x12\x1e.identity.CreateConsoleUserReq\x1a\x15.identity.ConsoleUserB\fZ\n" +
+	"\x11CreateConsoleUser\x12\x1e.identity.CreateConsoleUserReq\x1a\x15.identity.ConsoleUser\x12D\n" +
+	"\x0eGetConsoleUser\x12\x1b.identity.GetConsoleUserReq\x1a\x15.identity.ConsoleUser\x12J\n" +
+	"\x11UpdateConsoleUser\x12\x1e.identity.UpdateConsoleUserReq\x1a\x15.identity.ConsoleUser\x12D\n" +
+	"\x0eGetUserFinance\x12\x1b.identity.GetUserFinanceReq\x1a\x15.identity.UserFinance\x12J\n" +
+	"\x11UpdateUserFinance\x12\x1e.identity.UpdateUserFinanceReq\x1a\x15.identity.UserFinance\x12G\n" +
+	"\x0fGetUserBindings\x12\x1c.identity.GetUserBindingsReq\x1a\x16.identity.UserBindings\x12`\n" +
+	"\x15ResetUserBindingLimit\x12\".identity.ResetUserBindingLimitReq\x1a#.identity.ResetUserBindingLimitRespB\fZ\n" +
 	"./identityb\x06proto3"
 
 var (
@@ -2002,7 +2896,7 @@ func file_identity_proto_rawDescGZIP() []byte {
 }
 
 var file_identity_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
+var file_identity_proto_msgTypes = make([]protoimpl.MessageInfo, 41)
 var file_identity_proto_goTypes = []any{
 	(ThirdPartyKind)(0),                 // 0: identity.ThirdPartyKind
 	(WeChatOAuthScene)(0),               // 1: identity.WeChatOAuthScene
@@ -2035,6 +2929,18 @@ var file_identity_proto_goTypes = []any{
 	(*ListConsoleUsersReq)(nil),         // 28: identity.ListConsoleUsersReq
 	(*ListConsoleUsersResp)(nil),        // 29: identity.ListConsoleUsersResp
 	(*CreateConsoleUserReq)(nil),        // 30: identity.CreateConsoleUserReq
+	(*GetConsoleUserReq)(nil),           // 31: identity.GetConsoleUserReq
+	(*UpdateConsoleUserReq)(nil),        // 32: identity.UpdateConsoleUserReq
+	(*WalletSetting)(nil),               // 33: identity.WalletSetting
+	(*UserFinance)(nil),                 // 34: identity.UserFinance
+	(*GetUserFinanceReq)(nil),           // 35: identity.GetUserFinanceReq
+	(*UpdateUserFinanceReq)(nil),        // 36: identity.UpdateUserFinanceReq
+	(*PaymentBinding)(nil),              // 37: identity.PaymentBinding
+	(*RealnameBinding)(nil),             // 38: identity.RealnameBinding
+	(*UserBindings)(nil),                // 39: identity.UserBindings
+	(*GetUserBindingsReq)(nil),          // 40: identity.GetUserBindingsReq
+	(*ResetUserBindingLimitReq)(nil),    // 41: identity.ResetUserBindingLimitReq
+	(*ResetUserBindingLimitResp)(nil),   // 42: identity.ResetUserBindingLimitResp
 }
 var file_identity_proto_depIdxs = []int32{
 	1,  // 0: identity.LoginWithWeChatCodeReq.scene:type_name -> identity.WeChatOAuthScene
@@ -2043,41 +2949,57 @@ var file_identity_proto_depIdxs = []int32{
 	0,  // 3: identity.ResolveUserByThirdPartyReq.kind:type_name -> identity.ThirdPartyKind
 	0,  // 4: identity.GetThirdPartyIdentityReq.kind:type_name -> identity.ThirdPartyKind
 	27, // 5: identity.ListConsoleUsersResp.items:type_name -> identity.ConsoleUser
-	2,  // 6: identity.Identity.Register:input_type -> identity.RegisterReq
-	4,  // 7: identity.Identity.Login:input_type -> identity.LoginReq
-	6,  // 8: identity.Identity.VerifyToken:input_type -> identity.VerifyTokenReq
-	8,  // 9: identity.Identity.GetProfile:input_type -> identity.GetProfileReq
-	10, // 10: identity.Identity.RequestPhoneLoginCode:input_type -> identity.RequestPhoneLoginCodeReq
-	12, // 11: identity.Identity.LoginWithPhoneCode:input_type -> identity.LoginWithPhoneCodeReq
-	13, // 12: identity.Identity.LoginWithWeChatCode:input_type -> identity.LoginWithWeChatCodeReq
-	14, // 13: identity.Identity.SetUserPhone:input_type -> identity.SetUserPhoneReq
-	16, // 14: identity.Identity.FindUserPhoneExact:input_type -> identity.FindUserPhoneExactReq
-	18, // 15: identity.Identity.SearchUserPhones:input_type -> identity.SearchUserPhonesReq
-	21, // 16: identity.Identity.LinkThirdPartyIdentity:input_type -> identity.LinkThirdPartyIdentityReq
-	23, // 17: identity.Identity.ResolveUserByThirdParty:input_type -> identity.ResolveUserByThirdPartyReq
-	25, // 18: identity.Identity.GetThirdPartyIdentity:input_type -> identity.GetThirdPartyIdentityReq
-	28, // 19: identity.Identity.ListConsoleUsers:input_type -> identity.ListConsoleUsersReq
-	30, // 20: identity.Identity.CreateConsoleUser:input_type -> identity.CreateConsoleUserReq
-	3,  // 21: identity.Identity.Register:output_type -> identity.RegisterResp
-	5,  // 22: identity.Identity.Login:output_type -> identity.LoginResp
-	7,  // 23: identity.Identity.VerifyToken:output_type -> identity.VerifyTokenResp
-	9,  // 24: identity.Identity.GetProfile:output_type -> identity.GetProfileResp
-	11, // 25: identity.Identity.RequestPhoneLoginCode:output_type -> identity.RequestPhoneLoginCodeResp
-	5,  // 26: identity.Identity.LoginWithPhoneCode:output_type -> identity.LoginResp
-	5,  // 27: identity.Identity.LoginWithWeChatCode:output_type -> identity.LoginResp
-	15, // 28: identity.Identity.SetUserPhone:output_type -> identity.SetUserPhoneResp
-	17, // 29: identity.Identity.FindUserPhoneExact:output_type -> identity.FindUserPhoneExactResp
-	20, // 30: identity.Identity.SearchUserPhones:output_type -> identity.SearchUserPhonesResp
-	22, // 31: identity.Identity.LinkThirdPartyIdentity:output_type -> identity.LinkThirdPartyIdentityResp
-	24, // 32: identity.Identity.ResolveUserByThirdParty:output_type -> identity.ResolveUserByThirdPartyResp
-	26, // 33: identity.Identity.GetThirdPartyIdentity:output_type -> identity.GetThirdPartyIdentityResp
-	29, // 34: identity.Identity.ListConsoleUsers:output_type -> identity.ListConsoleUsersResp
-	27, // 35: identity.Identity.CreateConsoleUser:output_type -> identity.ConsoleUser
-	21, // [21:36] is the sub-list for method output_type
-	6,  // [6:21] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	33, // 6: identity.UserFinance.wallets:type_name -> identity.WalletSetting
+	33, // 7: identity.UpdateUserFinanceReq.wallets:type_name -> identity.WalletSetting
+	37, // 8: identity.UserBindings.payments:type_name -> identity.PaymentBinding
+	38, // 9: identity.UserBindings.realnames:type_name -> identity.RealnameBinding
+	2,  // 10: identity.Identity.Register:input_type -> identity.RegisterReq
+	4,  // 11: identity.Identity.Login:input_type -> identity.LoginReq
+	6,  // 12: identity.Identity.VerifyToken:input_type -> identity.VerifyTokenReq
+	8,  // 13: identity.Identity.GetProfile:input_type -> identity.GetProfileReq
+	10, // 14: identity.Identity.RequestPhoneLoginCode:input_type -> identity.RequestPhoneLoginCodeReq
+	12, // 15: identity.Identity.LoginWithPhoneCode:input_type -> identity.LoginWithPhoneCodeReq
+	13, // 16: identity.Identity.LoginWithWeChatCode:input_type -> identity.LoginWithWeChatCodeReq
+	14, // 17: identity.Identity.SetUserPhone:input_type -> identity.SetUserPhoneReq
+	16, // 18: identity.Identity.FindUserPhoneExact:input_type -> identity.FindUserPhoneExactReq
+	18, // 19: identity.Identity.SearchUserPhones:input_type -> identity.SearchUserPhonesReq
+	21, // 20: identity.Identity.LinkThirdPartyIdentity:input_type -> identity.LinkThirdPartyIdentityReq
+	23, // 21: identity.Identity.ResolveUserByThirdParty:input_type -> identity.ResolveUserByThirdPartyReq
+	25, // 22: identity.Identity.GetThirdPartyIdentity:input_type -> identity.GetThirdPartyIdentityReq
+	28, // 23: identity.Identity.ListConsoleUsers:input_type -> identity.ListConsoleUsersReq
+	30, // 24: identity.Identity.CreateConsoleUser:input_type -> identity.CreateConsoleUserReq
+	31, // 25: identity.Identity.GetConsoleUser:input_type -> identity.GetConsoleUserReq
+	32, // 26: identity.Identity.UpdateConsoleUser:input_type -> identity.UpdateConsoleUserReq
+	35, // 27: identity.Identity.GetUserFinance:input_type -> identity.GetUserFinanceReq
+	36, // 28: identity.Identity.UpdateUserFinance:input_type -> identity.UpdateUserFinanceReq
+	40, // 29: identity.Identity.GetUserBindings:input_type -> identity.GetUserBindingsReq
+	41, // 30: identity.Identity.ResetUserBindingLimit:input_type -> identity.ResetUserBindingLimitReq
+	3,  // 31: identity.Identity.Register:output_type -> identity.RegisterResp
+	5,  // 32: identity.Identity.Login:output_type -> identity.LoginResp
+	7,  // 33: identity.Identity.VerifyToken:output_type -> identity.VerifyTokenResp
+	9,  // 34: identity.Identity.GetProfile:output_type -> identity.GetProfileResp
+	11, // 35: identity.Identity.RequestPhoneLoginCode:output_type -> identity.RequestPhoneLoginCodeResp
+	5,  // 36: identity.Identity.LoginWithPhoneCode:output_type -> identity.LoginResp
+	5,  // 37: identity.Identity.LoginWithWeChatCode:output_type -> identity.LoginResp
+	15, // 38: identity.Identity.SetUserPhone:output_type -> identity.SetUserPhoneResp
+	17, // 39: identity.Identity.FindUserPhoneExact:output_type -> identity.FindUserPhoneExactResp
+	20, // 40: identity.Identity.SearchUserPhones:output_type -> identity.SearchUserPhonesResp
+	22, // 41: identity.Identity.LinkThirdPartyIdentity:output_type -> identity.LinkThirdPartyIdentityResp
+	24, // 42: identity.Identity.ResolveUserByThirdParty:output_type -> identity.ResolveUserByThirdPartyResp
+	26, // 43: identity.Identity.GetThirdPartyIdentity:output_type -> identity.GetThirdPartyIdentityResp
+	29, // 44: identity.Identity.ListConsoleUsers:output_type -> identity.ListConsoleUsersResp
+	27, // 45: identity.Identity.CreateConsoleUser:output_type -> identity.ConsoleUser
+	27, // 46: identity.Identity.GetConsoleUser:output_type -> identity.ConsoleUser
+	27, // 47: identity.Identity.UpdateConsoleUser:output_type -> identity.ConsoleUser
+	34, // 48: identity.Identity.GetUserFinance:output_type -> identity.UserFinance
+	34, // 49: identity.Identity.UpdateUserFinance:output_type -> identity.UserFinance
+	39, // 50: identity.Identity.GetUserBindings:output_type -> identity.UserBindings
+	42, // 51: identity.Identity.ResetUserBindingLimit:output_type -> identity.ResetUserBindingLimitResp
+	31, // [31:52] is the sub-list for method output_type
+	10, // [10:31] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_identity_proto_init() }
@@ -2091,7 +3013,7 @@ func file_identity_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_identity_proto_rawDesc), len(file_identity_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   29,
+			NumMessages:   41,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

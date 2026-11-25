@@ -91,21 +91,39 @@
     >
       <CustomerForm :key="editorKey" @success="onSaved" @cancel="editorOpen = false" />
     </a-modal>
+
+    <a-modal
+      v-model:open="manageOpen"
+      title="用户管理"
+      :footer="null"
+      :width="760"
+      :style="{ maxWidth: '92vw' }"
+      :body-style="{ maxHeight: 'calc(100vh - 160px)', overflowY: 'auto' }"
+      :mask-closable="false"
+      centered
+      destroy-on-close
+    >
+      <CustomerManageModal
+        v-if="manageUserRecord"
+        :key="manageKey"
+        :user="manageUserRecord"
+        @success="onManaged"
+      />
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import dayjs from 'dayjs'
 import { UserOutlined } from '@ant-design/icons-vue'
 import CustomerForm from '@/views/customers/CustomerForm.vue'
+import CustomerManageModal from '@/views/customers/CustomerManageModal.vue'
 import { customerClient } from '@/api/customer'
 import type { ConsoleUser } from '@/api/customer'
 import { allows } from '@/access/grants'
 import { useSessionStore } from '@/stores/session'
 
-const router = useRouter()
 const session = useSessionStore()
 const canWrite = computed(() => allows(session.permissionNodes, 'identity.user', 'write'))
 
@@ -121,6 +139,9 @@ const pageSize = ref(15)
 const selectedRowKeys = ref<(string | number)[]>([])
 const editorOpen = ref(false)
 const editorKey = ref(0)
+const manageOpen = ref(false)
+const manageKey = ref(0)
+const manageUserRecord = ref<ConsoleUser | null>(null)
 
 const identityOptions = [
   { value: '', label: '全部身份' },
@@ -188,7 +209,14 @@ function onSaved() {
 
 function manageUser(record: ConsoleUser) {
   if (!record.userId) return
-  router.push(`/users/${record.userId}`)
+  manageUserRecord.value = record
+  manageKey.value += 1
+  manageOpen.value = true
+}
+
+function onManaged() {
+  manageOpen.value = false
+  load()
 }
 
 onMounted(load)

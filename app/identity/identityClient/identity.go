@@ -16,6 +16,18 @@ import (
 type (
 	ConsoleUser                 = identity.ConsoleUser
 	CreateConsoleUserReq        = identity.CreateConsoleUserReq
+	GetConsoleUserReq           = identity.GetConsoleUserReq
+	UpdateConsoleUserReq        = identity.UpdateConsoleUserReq
+	GetUserFinanceReq           = identity.GetUserFinanceReq
+	UpdateUserFinanceReq        = identity.UpdateUserFinanceReq
+	UserFinance                 = identity.UserFinance
+	WalletSetting               = identity.WalletSetting
+	GetUserBindingsReq          = identity.GetUserBindingsReq
+	UserBindings                = identity.UserBindings
+	PaymentBinding              = identity.PaymentBinding
+	RealnameBinding             = identity.RealnameBinding
+	ResetUserBindingLimitReq    = identity.ResetUserBindingLimitReq
+	ResetUserBindingLimitResp   = identity.ResetUserBindingLimitResp
 	FindUserPhoneExactReq       = identity.FindUserPhoneExactReq
 	FindUserPhoneExactResp      = identity.FindUserPhoneExactResp
 	GetProfileReq               = identity.GetProfileReq
@@ -63,6 +75,12 @@ type (
 		GetThirdPartyIdentity(ctx context.Context, in *GetThirdPartyIdentityReq, opts ...grpc.CallOption) (*GetThirdPartyIdentityResp, error)
 		ListConsoleUsers(ctx context.Context, in *ListConsoleUsersReq, opts ...grpc.CallOption) (*ListConsoleUsersResp, error)
 		CreateConsoleUser(ctx context.Context, in *CreateConsoleUserReq, opts ...grpc.CallOption) (*ConsoleUser, error)
+		GetConsoleUser(ctx context.Context, in *GetConsoleUserReq, opts ...grpc.CallOption) (*ConsoleUser, error)
+		UpdateConsoleUser(ctx context.Context, in *UpdateConsoleUserReq, opts ...grpc.CallOption) (*ConsoleUser, error)
+		GetUserFinance(ctx context.Context, in *GetUserFinanceReq, opts ...grpc.CallOption) (*UserFinance, error)
+		UpdateUserFinance(ctx context.Context, in *UpdateUserFinanceReq, opts ...grpc.CallOption) (*UserFinance, error)
+		GetUserBindings(ctx context.Context, in *GetUserBindingsReq, opts ...grpc.CallOption) (*UserBindings, error)
+		ResetUserBindingLimit(ctx context.Context, in *ResetUserBindingLimitReq, opts ...grpc.CallOption) (*ResetUserBindingLimitResp, error)
 	}
 
 	defaultIdentity struct {
@@ -152,4 +170,34 @@ func (m *defaultIdentity) ListConsoleUsers(ctx context.Context, in *ListConsoleU
 func (m *defaultIdentity) CreateConsoleUser(ctx context.Context, in *CreateConsoleUserReq, opts ...grpc.CallOption) (*ConsoleUser, error) {
 	client := identity.NewIdentityClient(m.cli.Conn())
 	return client.CreateConsoleUser(ctx, in, opts...)
+}
+
+func (m *defaultIdentity) GetConsoleUser(ctx context.Context, in *GetConsoleUserReq, opts ...grpc.CallOption) (*ConsoleUser, error) {
+	client := identity.NewIdentityClient(m.cli.Conn())
+	return client.GetConsoleUser(ctx, in, opts...)
+}
+
+func (m *defaultIdentity) UpdateConsoleUser(ctx context.Context, in *UpdateConsoleUserReq, opts ...grpc.CallOption) (*ConsoleUser, error) {
+	client := identity.NewIdentityClient(m.cli.Conn())
+	return client.UpdateConsoleUser(ctx, in, opts...)
+}
+
+func (m *defaultIdentity) GetUserFinance(ctx context.Context, in *GetUserFinanceReq, opts ...grpc.CallOption) (*UserFinance, error) {
+	client := identity.NewIdentityClient(m.cli.Conn())
+	return client.GetUserFinance(ctx, in, opts...)
+}
+
+func (m *defaultIdentity) UpdateUserFinance(ctx context.Context, in *UpdateUserFinanceReq, opts ...grpc.CallOption) (*UserFinance, error) {
+	client := identity.NewIdentityClient(m.cli.Conn())
+	return client.UpdateUserFinance(ctx, in, opts...)
+}
+
+func (m *defaultIdentity) GetUserBindings(ctx context.Context, in *GetUserBindingsReq, opts ...grpc.CallOption) (*UserBindings, error) {
+	client := identity.NewIdentityClient(m.cli.Conn())
+	return client.GetUserBindings(ctx, in, opts...)
+}
+
+func (m *defaultIdentity) ResetUserBindingLimit(ctx context.Context, in *ResetUserBindingLimitReq, opts ...grpc.CallOption) (*ResetUserBindingLimitResp, error) {
+	client := identity.NewIdentityClient(m.cli.Conn())
+	return client.ResetUserBindingLimit(ctx, in, opts...)
 }

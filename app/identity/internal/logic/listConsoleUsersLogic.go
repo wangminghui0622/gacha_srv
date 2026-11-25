@@ -137,6 +137,8 @@ func (l *ListConsoleUsersLogic) ListConsoleUsers(in *identity.ListConsoleUsersRe
 			RegisterDevice:      profile.RegisterDevice,
 			RebateRate:          profile.RebateRate,
 			Identity:            profile.Identity,
+			ParentUserId:        profile.ParentUserID,
+			ReissueLuckPoints:   profile.ReissueLuckPoints == 1,
 			CreatedAtUnixMillis: user.CreatedAt.UnixMilli(),
 			UpdatedAtUnixMillis: user.UpdatedAt.UnixMilli(),
 		})
