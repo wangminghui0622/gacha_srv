@@ -658,13 +658,14 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   padding: 0;
-  font-size: 16px;
+  font-size: 14px;
   color: #ff4d4f;
   background: transparent;
-  border: none;
+  border: 1px solid currentColor;
+  border-radius: 50%;
   cursor: pointer;
   opacity: 0;
   pointer-events: none;
@@ -680,21 +681,18 @@ onMounted(async () => {
 .cover-remove:hover {
   color: #cf1322;
 }
-.cover-remove:focus-visible {
-  outline: 1px solid #ff4d4f;
-  outline-offset: 1px;
-}
 .reward-remove {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   padding: 0;
-  font-size: 16px;
+  font-size: 14px;
   color: #ff4d4f;
   background: transparent;
-  border: none;
+  border: 1px solid currentColor;
+  border-radius: 50%;
   cursor: pointer;
 }
 .reward-remove:hover {
