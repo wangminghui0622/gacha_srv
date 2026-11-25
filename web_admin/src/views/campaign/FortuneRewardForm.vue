@@ -59,7 +59,6 @@
                 <a-button :disabled="builder.points <= 0" @click="addPoints">添加</a-button>
               </div>
               <div class="reward-line">
-                <span class="reward-label">优惠券：</span>
                 <span class="inline-label">优惠券id:</span>
                 <a-input-number v-model:value="builder.couponId" :min="0" :precision="0" style="width: 150px" />
                 <span class="inline-label">自定义金额:</span>
