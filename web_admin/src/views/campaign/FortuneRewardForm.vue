@@ -65,14 +65,14 @@
                 <a-input-number v-model:value="builder.couponCustomYuan" class="reward-input-second" :min="0" :precision="2" />
                 <span class="inline-label reward-label-third">数量:</span>
                 <a-input-number v-model:value="builder.couponQuantity" class="reward-input-third" :min="1" :precision="0" />
-                <a-button :disabled="builder.couponId <= 0" @click="addCoupon">添加</a-button>
+                <a-button :disabled="!builder.couponId" @click="addCoupon">添加</a-button>
               </div>
               <div class="reward-line">
                 <span class="inline-label reward-label-first">物品：</span>
                 <a-input-number v-model:value="builder.itemId" class="reward-input-first" :min="0" :precision="0" placeholder="物品id" />
                 <span class="inline-label reward-label-second">数量:</span>
                 <a-input-number v-model:value="builder.itemQuantity" class="reward-input-second" :min="1" :precision="0" />
-                <a-button :disabled="builder.itemId <= 0" @click="addItem">添加</a-button>
+                <a-button :disabled="!builder.itemId" @click="addItem">添加</a-button>
               </div>
               <div class="reward-line">
                 <span class="inline-label reward-label-first">箱子：</span>
@@ -84,7 +84,7 @@
               <div class="reward-line">
                 <span class="inline-label reward-label-first">对对碰外观：</span>
                 <a-input-number v-model:value="builder.appearanceId" class="reward-input-first" :min="0" :precision="0" placeholder="对对碰外观id" />
-                <a-button :disabled="builder.appearanceId <= 0" @click="addAppearance">添加</a-button>
+                <a-button :disabled="!builder.appearanceId" @click="addAppearance">添加</a-button>
               </div>
             </div>
 
@@ -189,14 +189,14 @@ const form = reactive({
 const builder = reactive({
   fortune: 0,
   points: 0,
-  couponId: 0,
+  couponId: null as number | null,
   couponCustomYuan: 0,
   couponQuantity: 1,
-  itemId: 0,
+  itemId: null as number | null,
   itemQuantity: 1,
   boxId: '',
   boxQuantity: 1,
-  appearanceId: 0,
+  appearanceId: null as number | null,
 })
 
 const rewards = ref<RewardDraft[]>([])
@@ -269,7 +269,7 @@ function addPoints() {
 }
 
 function addCoupon() {
-  if (builder.couponId <= 0) return
+  if (builder.couponId == null || builder.couponId <= 0) return
   const id = String(builder.couponId)
   rewards.value.push({
     _key: nextKey(),
@@ -280,13 +280,13 @@ function addCoupon() {
     name: couponName(id),
     extra: '0',
   })
-  builder.couponId = 0
+  builder.couponId = null
   builder.couponCustomYuan = 0
   builder.couponQuantity = 1
 }
 
 async function addItem() {
-  if (builder.itemId <= 0) return
+  if (builder.itemId == null || builder.itemId <= 0) return
   const id = String(builder.itemId)
   let name = `物品 #${id}`
   let thumbnail = ''
@@ -306,7 +306,7 @@ async function addItem() {
     thumbnail,
     extra: '0',
   })
-  builder.itemId = 0
+  builder.itemId = null
   builder.itemQuantity = 1
 }
 
@@ -333,7 +333,7 @@ async function addBox() {
 }
 
 async function addAppearance() {
-  if (builder.appearanceId <= 0) return
+  if (builder.appearanceId == null || builder.appearanceId <= 0) return
   const id = String(builder.appearanceId)
   let name = `外观 #${id}`
   let thumbnail = ''
@@ -354,7 +354,7 @@ async function addAppearance() {
     thumbnail,
     extra: '0',
   })
-  builder.appearanceId = 0
+  builder.appearanceId = null
 }
 
 function removeReward(index: number) {
@@ -386,14 +386,14 @@ function resetForm() {
   rewards.value = []
   builder.fortune = 0
   builder.points = 0
-  builder.couponId = 0
+  builder.couponId = null
   builder.couponCustomYuan = 0
   builder.couponQuantity = 1
-  builder.itemId = 0
+  builder.itemId = null
   builder.itemQuantity = 1
   builder.boxId = ''
   builder.boxQuantity = 1
-  builder.appearanceId = 0
+  builder.appearanceId = null
 }
 
 function applyRecord(record: FortuneReward) {
