@@ -456,7 +456,7 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     title: 'nav.systemAnnouncements',
     showInMenu: false,
     backFallback: '/system',
-    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+    component: () => import('@/views/system/AnnouncementListView.vue'),
   },
   {
     name: 'system-banners',

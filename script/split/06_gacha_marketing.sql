@@ -449,3 +449,19 @@ CREATE TABLE IF NOT EXISTS `activities` (
   UNIQUE KEY `uk_activity_key` (`activity_key`),
   KEY `idx_enabled` (`enabled`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='活动列表';
+
+
+CREATE TABLE IF NOT EXISTS `announcements` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `title` varchar(255) NOT NULL DEFAULT '' COMMENT '公告标题',
+  `type` int NOT NULL DEFAULT '0' COMMENT '公告类型',
+  `publish_at` datetime DEFAULT NULL COMMENT '公告日期/发布时间',
+  `visible` tinyint NOT NULL DEFAULT '0' COMMENT '是否展示',
+  `jump_type` varchar(32) NOT NULL DEFAULT '' COMMENT '跳转类型',
+  `jump_target` varchar(255) NOT NULL DEFAULT '' COMMENT '跳转目标/跳转id',
+  `content` mediumtext NOT NULL COMMENT '公告内容 HTML',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_visible_publish` (`visible`,`publish_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='公告列表';

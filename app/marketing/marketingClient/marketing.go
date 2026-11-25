@@ -30,6 +30,7 @@ type (
 	CouponLedgerEntry                 = marketing.CouponLedgerEntry
 	CouponPoolEntry                   = marketing.CouponPoolEntry
 	Activity                          = marketing.Activity
+	Announcement                      = marketing.Announcement
 	FortuneReward                     = marketing.FortuneReward
 	FortuneRewardItem                 = marketing.FortuneRewardItem
 	CouponTemplate                    = marketing.CouponTemplate
@@ -56,9 +57,12 @@ type (
 	ListCouponLedgerReply             = marketing.ListCouponLedgerReply
 	ListCouponLedgerRequest           = marketing.ListCouponLedgerRequest
 	GetActivityRequest                = marketing.GetActivityRequest
+	GetAnnouncementRequest            = marketing.GetAnnouncementRequest
 	GetFortuneRewardRequest           = marketing.GetFortuneRewardRequest
 	ListActivitiesReply               = marketing.ListActivitiesReply
 	ListActivitiesRequest             = marketing.ListActivitiesRequest
+	ListAnnouncementsReply            = marketing.ListAnnouncementsReply
+	ListAnnouncementsRequest          = marketing.ListAnnouncementsRequest
 	ListFortuneRewardsReply           = marketing.ListFortuneRewardsReply
 	ListFortuneRewardsRequest         = marketing.ListFortuneRewardsRequest
 	ListCouponPoolEntriesReply        = marketing.ListCouponPoolEntriesReply
@@ -88,6 +92,7 @@ type (
 	TenantLoyaltyDefaults             = marketing.TenantLoyaltyDefaults
 	UpsertCouponPoolEntryRequest      = marketing.UpsertCouponPoolEntryRequest
 	UpsertActivityRequest             = marketing.UpsertActivityRequest
+	UpsertAnnouncementRequest         = marketing.UpsertAnnouncementRequest
 	UpsertFortuneRewardRequest        = marketing.UpsertFortuneRewardRequest
 	UserCoupon                        = marketing.UserCoupon
 	WeightedSlot                      = marketing.WeightedSlot
@@ -130,6 +135,9 @@ type (
 		ListActivities(ctx context.Context, in *ListActivitiesRequest, opts ...grpc.CallOption) (*ListActivitiesReply, error)
 		GetActivity(ctx context.Context, in *GetActivityRequest, opts ...grpc.CallOption) (*Activity, error)
 		UpsertActivity(ctx context.Context, in *UpsertActivityRequest, opts ...grpc.CallOption) (*Activity, error)
+		ListAnnouncements(ctx context.Context, in *ListAnnouncementsRequest, opts ...grpc.CallOption) (*ListAnnouncementsReply, error)
+		GetAnnouncement(ctx context.Context, in *GetAnnouncementRequest, opts ...grpc.CallOption) (*Announcement, error)
+		UpsertAnnouncement(ctx context.Context, in *UpsertAnnouncementRequest, opts ...grpc.CallOption) (*Announcement, error)
 		GrantCoupons(ctx context.Context, in *GrantCouponsRequest, opts ...grpc.CallOption) (*GrantCouponsReply, error)
 		GetTenantLoyaltyDefaults(ctx context.Context, in *GetTenantLoyaltyDefaultsRequest, opts ...grpc.CallOption) (*TenantLoyaltyDefaults, error)
 		PutTenantLoyaltyDefaults(ctx context.Context, in *PutTenantLoyaltyDefaultsRequest, opts ...grpc.CallOption) (*TenantLoyaltyDefaults, error)
@@ -288,6 +296,21 @@ func (m *defaultMarketing) GetActivity(ctx context.Context, in *GetActivityReque
 func (m *defaultMarketing) UpsertActivity(ctx context.Context, in *UpsertActivityRequest, opts ...grpc.CallOption) (*Activity, error) {
 	client := marketing.NewMarketingClient(m.cli.Conn())
 	return client.UpsertActivity(ctx, in, opts...)
+}
+
+func (m *defaultMarketing) ListAnnouncements(ctx context.Context, in *ListAnnouncementsRequest, opts ...grpc.CallOption) (*ListAnnouncementsReply, error) {
+	client := marketing.NewMarketingClient(m.cli.Conn())
+	return client.ListAnnouncements(ctx, in, opts...)
+}
+
+func (m *defaultMarketing) GetAnnouncement(ctx context.Context, in *GetAnnouncementRequest, opts ...grpc.CallOption) (*Announcement, error) {
+	client := marketing.NewMarketingClient(m.cli.Conn())
+	return client.GetAnnouncement(ctx, in, opts...)
+}
+
+func (m *defaultMarketing) UpsertAnnouncement(ctx context.Context, in *UpsertAnnouncementRequest, opts ...grpc.CallOption) (*Announcement, error) {
+	client := marketing.NewMarketingClient(m.cli.Conn())
+	return client.UpsertAnnouncement(ctx, in, opts...)
 }
 
 func (m *defaultMarketing) GrantCoupons(ctx context.Context, in *GrantCouponsRequest, opts ...grpc.CallOption) (*GrantCouponsReply, error) {

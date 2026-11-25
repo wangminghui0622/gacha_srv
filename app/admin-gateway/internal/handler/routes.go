@@ -173,6 +173,30 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: customer.ResetUserBindingLimitHandler(serverCtx, "realname"),
 				},
 				{
+					// 公告列表（system.announcement:read）
+					Method:  http.MethodGet,
+					Path:    "/announcements",
+					Handler: promotion.ListAnnouncementsHandler(serverCtx),
+				},
+				{
+					// 创建公告（system.announcement:write）
+					Method:  http.MethodPost,
+					Path:    "/announcements",
+					Handler: promotion.CreateAnnouncementHandler(serverCtx),
+				},
+				{
+					// 公告详情（system.announcement:read）
+					Method:  http.MethodGet,
+					Path:    "/announcements/:id",
+					Handler: promotion.GetAnnouncementHandler(serverCtx),
+				},
+				{
+					// 编辑公告（system.announcement:write）
+					Method:  http.MethodPut,
+					Path:    "/announcements/:id",
+					Handler: promotion.UpdateAnnouncementHandler(serverCtx),
+				},
+				{
 					// 活动列表（campaign.definition:read）
 					Method:  http.MethodGet,
 					Path:    "/activities",

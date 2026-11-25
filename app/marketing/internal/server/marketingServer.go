@@ -154,6 +154,21 @@ func (s *MarketingServer) UpsertActivity(ctx context.Context, in *marketing.Upse
 	return l.UpsertActivity(in)
 }
 
+func (s *MarketingServer) ListAnnouncements(ctx context.Context, in *marketing.ListAnnouncementsRequest) (*marketing.ListAnnouncementsReply, error) {
+	l := logic.NewListAnnouncementsLogic(ctx, s.svcCtx)
+	return l.ListAnnouncements(in)
+}
+
+func (s *MarketingServer) GetAnnouncement(ctx context.Context, in *marketing.GetAnnouncementRequest) (*marketing.Announcement, error) {
+	l := logic.NewGetAnnouncementLogic(ctx, s.svcCtx)
+	return l.GetAnnouncement(in)
+}
+
+func (s *MarketingServer) UpsertAnnouncement(ctx context.Context, in *marketing.UpsertAnnouncementRequest) (*marketing.Announcement, error) {
+	l := logic.NewUpsertAnnouncementLogic(ctx, s.svcCtx)
+	return l.UpsertAnnouncement(in)
+}
+
 func (s *MarketingServer) GrantCoupons(ctx context.Context, in *marketing.GrantCouponsRequest) (*marketing.GrantCouponsReply, error) {
 	l := logic.NewGrantCouponsLogic(ctx, s.svcCtx)
 	return l.GrantCoupons(in)

@@ -55,6 +55,10 @@ service Marketing {
     rpc ListActivities(ListActivitiesRequest) returns (ListActivitiesReply);
     rpc GetActivity(GetActivityRequest) returns (Activity);
     rpc UpsertActivity(UpsertActivityRequest) returns (Activity);
+    // ── 公告列表 ──
+    rpc ListAnnouncements(ListAnnouncementsRequest) returns (ListAnnouncementsReply);
+    rpc GetAnnouncement(GetAnnouncementRequest) returns (Announcement);
+    rpc UpsertAnnouncement(UpsertAnnouncementRequest) returns (Announcement);
     rpc GrantCoupons(GrantCouponsRequest) returns (GrantCouponsReply);
     rpc GetTenantLoyaltyDefaults(GetTenantLoyaltyDefaultsRequest) returns (TenantLoyaltyDefaults);
     rpc PutTenantLoyaltyDefaults(PutTenantLoyaltyDefaultsRequest) returns (TenantLoyaltyDefaults);
@@ -737,6 +741,41 @@ message UpsertActivityRequest {
     string requestId = 1;
     uint64 tenantId = 2;
     Activity activity = 3;
+}
+
+message Announcement {
+    uint64 id = 1;
+    string title = 2;
+    int32 type = 3;
+    int64 publishAtUnixMillis = 4;
+    bool visible = 5;
+    string jumpType = 6;
+    string jumpTarget = 7;
+    string content = 8;
+    uint64 createdAtUnixMillis = 9;
+    uint64 updatedAtUnixMillis = 10;
+}
+
+message ListAnnouncementsRequest {
+    uint64 tenantId = 1;
+    uint32 page = 2;
+    uint32 pageSize = 3;
+}
+
+message ListAnnouncementsReply {
+    repeated Announcement items = 1;
+    uint64 total = 2;
+}
+
+message GetAnnouncementRequest {
+    uint64 tenantId = 1;
+    uint64 id = 2;
+}
+
+message UpsertAnnouncementRequest {
+    string requestId = 1;
+    uint64 tenantId = 2;
+    Announcement announcement = 3;
 }
 
 enum UserCouponStatus {
