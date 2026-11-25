@@ -52,8 +52,8 @@
                   v-if="form.coverUrl"
                   type="button"
                   class="cover-remove"
-                  title="删除封面"
-                  aria-label="删除封面"
+                  title="移除封面"
+                  aria-label="移除封面"
                   @click.stop.prevent="removeCover"
                 >
                   <CloseOutlined />
@@ -142,7 +142,15 @@
               </a-table-column>
               <a-table-column title="操作" width="90" align="center">
                 <template #default="{ index }">
-                  <a-button type="link" danger size="small" @click="removeReward(index)">删除</a-button>
+                  <button
+                    type="button"
+                    class="reward-remove"
+                    title="移除奖励"
+                    aria-label="移除奖励"
+                    @click="removeReward(index)"
+                  >
+                    <CloseOutlined />
+                  </button>
                 </template>
               </a-table-column>
             </a-table>
@@ -661,6 +669,23 @@ onMounted(async () => {
   cursor: pointer;
 }
 .cover-remove:hover {
+  background: #ff4d4f;
+}
+.reward-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  font-size: 12px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.45);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.reward-remove:hover {
   background: #ff4d4f;
 }
 .image-upload-box {
