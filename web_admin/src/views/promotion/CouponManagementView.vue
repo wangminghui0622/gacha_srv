@@ -378,7 +378,10 @@
           <a-input v-model:value="grantForm.userId" inputmode="numeric" :placeholder="$t('couponAdmin.grantUserId')" style="width: 16em" />
         </a-form-item>
         <a-form-item :label="$t('couponAdmin.grantCount')" required>
-          <a-input-number v-model:value="grantForm.count" :min="1" :max="1000" :precision="0" style="width: 16em" />
+          <div class="coupon-inline-field">
+            <a-input-number v-model:value="grantForm.count" :min="1" :max="1000" :precision="0" style="width: 16em" />
+            <span class="coupon-stock-hint">{{ $t('couponAdmin.remainingShort') }} {{ grantSelectedPool?.remainingCount ?? 0 }} 张</span>
+          </div>
         </a-form-item>
         <a-form-item v-if="grantNeedsCustomAmount" :label="$t('couponAdmin.customAmountLabel')">
           <a-input v-model:value="grantForm.customAmountMinor" inputmode="numeric" :placeholder="$t('couponAdmin.customAmountPlaceholder')" style="width: 16em" />
@@ -418,7 +421,10 @@
           <a-input v-model:value="batchGrantForm.customAmountMinor" inputmode="numeric" :placeholder="$t('couponAdmin.customAmountPlaceholder')" style="width: 16em" />
         </a-form-item>
         <a-form-item>
-          <span class="coupon-batch-hint">{{ $t('couponAdmin.batchGrantHint') }}</span>
+          <span class="coupon-batch-hint">
+            {{ $t('couponAdmin.batchGrantHint') }} · {{ $t('couponAdmin.remainingShort') }}
+            {{ batchGrantSelectedPool?.remainingCount ?? 0 }} 张
+          </span>
         </a-form-item>
       </a-form>
       <div class="coupon-modal-footer" style="display: flex; justify-content: center; gap: 12px">
@@ -1117,14 +1123,10 @@ const grantPoolOptions = computed(() => {
   }
   return eligible.map((entry) => {
     const name = poolTemplateName(entry)
-    const parts: string[] = []
-    if ((nameCounts.get(name) ?? 0) > 1) {
-      parts.push(`${t('couponAdmin.batchShort')} ${entry.id}`)
-    }
-    parts.push(`${t('couponAdmin.remainingShort')} ${entry.remainingCount ?? 0} 张`)
+    const suffix = (nameCounts.get(name) ?? 0) > 1 ? `（${t('couponAdmin.batchShort')} ${entry.id}）` : ''
     return {
       value: String(entry.id ?? ''),
-      label: `${name}（${parts.join('，')}）`,
+      label: `${name}${suffix}`,
     }
   })
 })
@@ -1582,6 +1584,17 @@ onMounted(async () => {
   font-size: 13px;
   line-height: 20px;
   color: #909399;
+}
+.coupon-inline-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.coupon-stock-hint {
+  color: #909399;
+  font-size: 14px;
+  line-height: 32px;
+  white-space: nowrap;
 }
 .coupon-red-label {
   color: #ff4d4f;
