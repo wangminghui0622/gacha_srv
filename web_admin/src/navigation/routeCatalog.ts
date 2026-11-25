@@ -472,7 +472,7 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     title: 'nav.systemPopups',
     showInMenu: false,
     backFallback: '/system',
-    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+    component: () => import('@/views/system/PopupListView.vue'),
   },
   {
     name: 'system-agreements',

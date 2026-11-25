@@ -32,6 +32,7 @@ type (
 	Activity                          = marketing.Activity
 	Announcement                      = marketing.Announcement
 	Banner                            = marketing.Banner
+	Popup                             = marketing.Popup
 	FortuneReward                     = marketing.FortuneReward
 	FortuneRewardItem                 = marketing.FortuneRewardItem
 	CouponTemplate                    = marketing.CouponTemplate
@@ -61,12 +62,15 @@ type (
 	GetAnnouncementRequest            = marketing.GetAnnouncementRequest
 	GetBannerRequest                  = marketing.GetBannerRequest
 	GetFortuneRewardRequest           = marketing.GetFortuneRewardRequest
+	GetPopupRequest                   = marketing.GetPopupRequest
 	ListActivitiesReply               = marketing.ListActivitiesReply
 	ListActivitiesRequest             = marketing.ListActivitiesRequest
 	ListAnnouncementsReply            = marketing.ListAnnouncementsReply
 	ListAnnouncementsRequest          = marketing.ListAnnouncementsRequest
 	ListBannersReply                  = marketing.ListBannersReply
 	ListBannersRequest                = marketing.ListBannersRequest
+	ListPopupsReply                   = marketing.ListPopupsReply
+	ListPopupsRequest                 = marketing.ListPopupsRequest
 	ListFortuneRewardsReply           = marketing.ListFortuneRewardsReply
 	ListFortuneRewardsRequest         = marketing.ListFortuneRewardsRequest
 	ListCouponPoolEntriesReply        = marketing.ListCouponPoolEntriesReply
@@ -98,6 +102,7 @@ type (
 	UpsertActivityRequest             = marketing.UpsertActivityRequest
 	UpsertAnnouncementRequest         = marketing.UpsertAnnouncementRequest
 	UpsertBannerRequest               = marketing.UpsertBannerRequest
+	UpsertPopupRequest                = marketing.UpsertPopupRequest
 	UpsertFortuneRewardRequest        = marketing.UpsertFortuneRewardRequest
 	UserCoupon                        = marketing.UserCoupon
 	WeightedSlot                      = marketing.WeightedSlot
@@ -146,6 +151,9 @@ type (
 		ListBanners(ctx context.Context, in *ListBannersRequest, opts ...grpc.CallOption) (*ListBannersReply, error)
 		GetBanner(ctx context.Context, in *GetBannerRequest, opts ...grpc.CallOption) (*Banner, error)
 		UpsertBanner(ctx context.Context, in *UpsertBannerRequest, opts ...grpc.CallOption) (*Banner, error)
+		ListPopups(ctx context.Context, in *ListPopupsRequest, opts ...grpc.CallOption) (*ListPopupsReply, error)
+		GetPopup(ctx context.Context, in *GetPopupRequest, opts ...grpc.CallOption) (*Popup, error)
+		UpsertPopup(ctx context.Context, in *UpsertPopupRequest, opts ...grpc.CallOption) (*Popup, error)
 		GrantCoupons(ctx context.Context, in *GrantCouponsRequest, opts ...grpc.CallOption) (*GrantCouponsReply, error)
 		GetTenantLoyaltyDefaults(ctx context.Context, in *GetTenantLoyaltyDefaultsRequest, opts ...grpc.CallOption) (*TenantLoyaltyDefaults, error)
 		PutTenantLoyaltyDefaults(ctx context.Context, in *PutTenantLoyaltyDefaultsRequest, opts ...grpc.CallOption) (*TenantLoyaltyDefaults, error)
@@ -334,6 +342,21 @@ func (m *defaultMarketing) GetBanner(ctx context.Context, in *GetBannerRequest, 
 func (m *defaultMarketing) UpsertBanner(ctx context.Context, in *UpsertBannerRequest, opts ...grpc.CallOption) (*Banner, error) {
 	client := marketing.NewMarketingClient(m.cli.Conn())
 	return client.UpsertBanner(ctx, in, opts...)
+}
+
+func (m *defaultMarketing) ListPopups(ctx context.Context, in *ListPopupsRequest, opts ...grpc.CallOption) (*ListPopupsReply, error) {
+	client := marketing.NewMarketingClient(m.cli.Conn())
+	return client.ListPopups(ctx, in, opts...)
+}
+
+func (m *defaultMarketing) GetPopup(ctx context.Context, in *GetPopupRequest, opts ...grpc.CallOption) (*Popup, error) {
+	client := marketing.NewMarketingClient(m.cli.Conn())
+	return client.GetPopup(ctx, in, opts...)
+}
+
+func (m *defaultMarketing) UpsertPopup(ctx context.Context, in *UpsertPopupRequest, opts ...grpc.CallOption) (*Popup, error) {
+	client := marketing.NewMarketingClient(m.cli.Conn())
+	return client.UpsertPopup(ctx, in, opts...)
 }
 
 func (m *defaultMarketing) GrantCoupons(ctx context.Context, in *GrantCouponsRequest, opts ...grpc.CallOption) (*GrantCouponsReply, error) {

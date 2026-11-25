@@ -137,6 +137,8 @@ const (
 	CodeAnnouncementInvalid    = 5024 // 公告参数无效
 	CodeBannerNotFound         = 5025 // Banner 不存在
 	CodeBannerInvalid          = 5026 // Banner 参数无效
+	CodePopupNotFound          = 5027 // 弹窗不存在
+	CodePopupInvalid           = 5028 // 弹窗参数无效
 )
 
 // 玩法域 6000-6999（play-rpc 6 玩法+幸运指派+发奖标记；旧仓玩法域 3000 段拆出）

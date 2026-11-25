@@ -1,0 +1,27 @@
+// Code scaffolded by goctl. Safe to edit.
+// goctl 1.10.2
+
+package promotion
+
+import (
+	"context"
+
+	"gacha_srv/app/admin-gateway/internal/svc"
+	"gacha_srv/app/marketing/marketing"
+
+	"github.com/zeromicro/go-zero/core/logx"
+)
+
+type GetPopupLogic struct {
+	ctx    context.Context
+	svcCtx *svc.ServiceContext
+	logx.Logger
+}
+
+func NewGetPopupLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetPopupLogic {
+	return &GetPopupLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
+}
+
+func (l *GetPopupLogic) GetPopup(in *marketing.GetPopupRequest) (*marketing.Popup, error) {
+	return l.svcCtx.MarketingRpc.GetPopup(l.ctx, in)
+}

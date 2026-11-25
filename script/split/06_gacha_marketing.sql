@@ -485,3 +485,23 @@ CREATE TABLE IF NOT EXISTS `banners` (
   KEY `idx_position` (`position`),
   KEY `idx_visible` (`visible`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Banner列表';
+
+
+CREATE TABLE IF NOT EXISTS `popups` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `active_display` tinyint NOT NULL DEFAULT '0' COMMENT '主动展示',
+  `status` varchar(16) NOT NULL DEFAULT '未开启' COMMENT '状态',
+  `sort_order` int NOT NULL DEFAULT '0' COMMENT '序号',
+  `name` varchar(128) NOT NULL DEFAULT '' COMMENT '名称',
+  `popup_type` varchar(64) NOT NULL DEFAULT '' COMMENT '类型',
+  `condition_text` varchar(64) NOT NULL DEFAULT '' COMMENT '条件',
+  `jump_type` varchar(64) NOT NULL DEFAULT '' COMMENT '跳转类型',
+  `jump_target` varchar(255) NOT NULL DEFAULT '' COMMENT '跳转目标',
+  `image_url` varchar(512) NOT NULL DEFAULT '' COMMENT '弹窗图片',
+  `content` mediumtext NOT NULL COMMENT '弹窗内容 HTML',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_sort_order` (`sort_order`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='弹窗列表';

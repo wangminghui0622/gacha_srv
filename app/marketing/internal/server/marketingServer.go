@@ -184,6 +184,21 @@ func (s *MarketingServer) UpsertBanner(ctx context.Context, in *marketing.Upsert
 	return l.UpsertBanner(in)
 }
 
+func (s *MarketingServer) ListPopups(ctx context.Context, in *marketing.ListPopupsRequest) (*marketing.ListPopupsReply, error) {
+	l := logic.NewListPopupsLogic(ctx, s.svcCtx)
+	return l.ListPopups(in)
+}
+
+func (s *MarketingServer) GetPopup(ctx context.Context, in *marketing.GetPopupRequest) (*marketing.Popup, error) {
+	l := logic.NewGetPopupLogic(ctx, s.svcCtx)
+	return l.GetPopup(in)
+}
+
+func (s *MarketingServer) UpsertPopup(ctx context.Context, in *marketing.UpsertPopupRequest) (*marketing.Popup, error) {
+	l := logic.NewUpsertPopupLogic(ctx, s.svcCtx)
+	return l.UpsertPopup(in)
+}
+
 func (s *MarketingServer) GrantCoupons(ctx context.Context, in *marketing.GrantCouponsRequest) (*marketing.GrantCouponsReply, error) {
 	l := logic.NewGrantCouponsLogic(ctx, s.svcCtx)
 	return l.GrantCoupons(in)

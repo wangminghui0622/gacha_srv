@@ -63,6 +63,10 @@ service Marketing {
     rpc ListBanners(ListBannersRequest) returns (ListBannersReply);
     rpc GetBanner(GetBannerRequest) returns (Banner);
     rpc UpsertBanner(UpsertBannerRequest) returns (Banner);
+    // ── 弹窗列表 ──
+    rpc ListPopups(ListPopupsRequest) returns (ListPopupsReply);
+    rpc GetPopup(GetPopupRequest) returns (Popup);
+    rpc UpsertPopup(UpsertPopupRequest) returns (Popup);
     rpc GrantCoupons(GrantCouponsRequest) returns (GrantCouponsReply);
     rpc GetTenantLoyaltyDefaults(GetTenantLoyaltyDefaultsRequest) returns (TenantLoyaltyDefaults);
     rpc PutTenantLoyaltyDefaults(PutTenantLoyaltyDefaultsRequest) returns (TenantLoyaltyDefaults);
@@ -818,6 +822,44 @@ message UpsertBannerRequest {
     string requestId = 1;
     uint64 tenantId = 2;
     Banner banner = 3;
+}
+
+message Popup {
+    uint64 id = 1;
+    bool activeDisplay = 2;
+    string status = 3;
+    int32 sortOrder = 4;
+    string name = 5;
+    string type = 6;
+    string condition = 7;
+    string jumpType = 8;
+    string jumpTarget = 9;
+    string imageUrl = 10;
+    string content = 11;
+    uint64 createdAtUnixMillis = 12;
+    uint64 updatedAtUnixMillis = 13;
+}
+
+message ListPopupsRequest {
+    uint64 tenantId = 1;
+    uint32 page = 2;
+    uint32 pageSize = 3;
+}
+
+message ListPopupsReply {
+    repeated Popup items = 1;
+    uint64 total = 2;
+}
+
+message GetPopupRequest {
+    uint64 tenantId = 1;
+    uint64 id = 2;
+}
+
+message UpsertPopupRequest {
+    string requestId = 1;
+    uint64 tenantId = 2;
+    Popup popup = 3;
 }
 
 enum UserCouponStatus {

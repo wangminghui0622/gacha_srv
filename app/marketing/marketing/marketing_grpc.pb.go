@@ -49,6 +49,9 @@ const (
 	Marketing_ListBanners_FullMethodName                 = "/marketing.Marketing/ListBanners"
 	Marketing_GetBanner_FullMethodName                   = "/marketing.Marketing/GetBanner"
 	Marketing_UpsertBanner_FullMethodName                = "/marketing.Marketing/UpsertBanner"
+	Marketing_ListPopups_FullMethodName                  = "/marketing.Marketing/ListPopups"
+	Marketing_GetPopup_FullMethodName                    = "/marketing.Marketing/GetPopup"
+	Marketing_UpsertPopup_FullMethodName                 = "/marketing.Marketing/UpsertPopup"
 	Marketing_GrantCoupons_FullMethodName                = "/marketing.Marketing/GrantCoupons"
 	Marketing_GetTenantLoyaltyDefaults_FullMethodName    = "/marketing.Marketing/GetTenantLoyaltyDefaults"
 	Marketing_PutTenantLoyaltyDefaults_FullMethodName    = "/marketing.Marketing/PutTenantLoyaltyDefaults"
@@ -118,6 +121,10 @@ type MarketingClient interface {
 	ListBanners(ctx context.Context, in *ListBannersRequest, opts ...grpc.CallOption) (*ListBannersReply, error)
 	GetBanner(ctx context.Context, in *GetBannerRequest, opts ...grpc.CallOption) (*Banner, error)
 	UpsertBanner(ctx context.Context, in *UpsertBannerRequest, opts ...grpc.CallOption) (*Banner, error)
+	// ── 弹窗列表 ──
+	ListPopups(ctx context.Context, in *ListPopupsRequest, opts ...grpc.CallOption) (*ListPopupsReply, error)
+	GetPopup(ctx context.Context, in *GetPopupRequest, opts ...grpc.CallOption) (*Popup, error)
+	UpsertPopup(ctx context.Context, in *UpsertPopupRequest, opts ...grpc.CallOption) (*Popup, error)
 	GrantCoupons(ctx context.Context, in *GrantCouponsRequest, opts ...grpc.CallOption) (*GrantCouponsReply, error)
 	GetTenantLoyaltyDefaults(ctx context.Context, in *GetTenantLoyaltyDefaultsRequest, opts ...grpc.CallOption) (*TenantLoyaltyDefaults, error)
 	PutTenantLoyaltyDefaults(ctx context.Context, in *PutTenantLoyaltyDefaultsRequest, opts ...grpc.CallOption) (*TenantLoyaltyDefaults, error)
@@ -415,6 +422,33 @@ func (c *marketingClient) UpsertBanner(ctx context.Context, in *UpsertBannerRequ
 	return out, nil
 }
 
+func (c *marketingClient) ListPopups(ctx context.Context, in *ListPopupsRequest, opts ...grpc.CallOption) (*ListPopupsReply, error) {
+	out := new(ListPopupsReply)
+	err := c.cc.Invoke(ctx, Marketing_ListPopups_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *marketingClient) GetPopup(ctx context.Context, in *GetPopupRequest, opts ...grpc.CallOption) (*Popup, error) {
+	out := new(Popup)
+	err := c.cc.Invoke(ctx, Marketing_GetPopup_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *marketingClient) UpsertPopup(ctx context.Context, in *UpsertPopupRequest, opts ...grpc.CallOption) (*Popup, error) {
+	out := new(Popup)
+	err := c.cc.Invoke(ctx, Marketing_UpsertPopup_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *marketingClient) GrantCoupons(ctx context.Context, in *GrantCouponsRequest, opts ...grpc.CallOption) (*GrantCouponsReply, error) {
 	out := new(GrantCouponsReply)
 	err := c.cc.Invoke(ctx, Marketing_GrantCoupons_FullMethodName, in, out, opts...)
@@ -570,6 +604,10 @@ type MarketingServer interface {
 	ListBanners(context.Context, *ListBannersRequest) (*ListBannersReply, error)
 	GetBanner(context.Context, *GetBannerRequest) (*Banner, error)
 	UpsertBanner(context.Context, *UpsertBannerRequest) (*Banner, error)
+	// ── 弹窗列表 ──
+	ListPopups(context.Context, *ListPopupsRequest) (*ListPopupsReply, error)
+	GetPopup(context.Context, *GetPopupRequest) (*Popup, error)
+	UpsertPopup(context.Context, *UpsertPopupRequest) (*Popup, error)
 	GrantCoupons(context.Context, *GrantCouponsRequest) (*GrantCouponsReply, error)
 	GetTenantLoyaltyDefaults(context.Context, *GetTenantLoyaltyDefaultsRequest) (*TenantLoyaltyDefaults, error)
 	PutTenantLoyaltyDefaults(context.Context, *PutTenantLoyaltyDefaultsRequest) (*TenantLoyaltyDefaults, error)
@@ -683,6 +721,15 @@ func (UnimplementedMarketingServer) GetBanner(context.Context, *GetBannerRequest
 }
 func (UnimplementedMarketingServer) UpsertBanner(context.Context, *UpsertBannerRequest) (*Banner, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpsertBanner not implemented")
+}
+func (UnimplementedMarketingServer) ListPopups(context.Context, *ListPopupsRequest) (*ListPopupsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPopups not implemented")
+}
+func (UnimplementedMarketingServer) GetPopup(context.Context, *GetPopupRequest) (*Popup, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPopup not implemented")
+}
+func (UnimplementedMarketingServer) UpsertPopup(context.Context, *UpsertPopupRequest) (*Popup, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpsertPopup not implemented")
 }
 func (UnimplementedMarketingServer) GrantCoupons(context.Context, *GrantCouponsRequest) (*GrantCouponsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GrantCoupons not implemented")
@@ -1270,6 +1317,60 @@ func _Marketing_UpsertBanner_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Marketing_ListPopups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPopupsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MarketingServer).ListPopups(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Marketing_ListPopups_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MarketingServer).ListPopups(ctx, req.(*ListPopupsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Marketing_GetPopup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPopupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MarketingServer).GetPopup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Marketing_GetPopup_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MarketingServer).GetPopup(ctx, req.(*GetPopupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Marketing_UpsertPopup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpsertPopupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MarketingServer).UpsertPopup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Marketing_UpsertPopup_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MarketingServer).UpsertPopup(ctx, req.(*UpsertPopupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Marketing_GrantCoupons_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GrantCouponsRequest)
 	if err := dec(in); err != nil {
@@ -1594,6 +1695,18 @@ var Marketing_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpsertBanner",
 			Handler:    _Marketing_UpsertBanner_Handler,
+		},
+		{
+			MethodName: "ListPopups",
+			Handler:    _Marketing_ListPopups_Handler,
+		},
+		{
+			MethodName: "GetPopup",
+			Handler:    _Marketing_GetPopup_Handler,
+		},
+		{
+			MethodName: "UpsertPopup",
+			Handler:    _Marketing_UpsertPopup_Handler,
 		},
 		{
 			MethodName: "GrantCoupons",
