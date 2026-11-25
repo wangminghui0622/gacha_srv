@@ -668,7 +668,8 @@ onMounted(async () => {
   cursor: pointer;
   opacity: 0;
   pointer-events: none;
-  filter: drop-shadow(0 0 2px #fff);
+  box-shadow: none;
+  outline: none;
   transition: opacity 0.15s ease;
 }
 .cover-upload-wrap:hover .cover-remove,
@@ -678,6 +679,10 @@ onMounted(async () => {
 }
 .cover-remove:hover {
   color: #cf1322;
+}
+.cover-remove:focus-visible {
+  outline: 1px solid #ff4d4f;
+  outline-offset: 1px;
 }
 .reward-remove {
   display: inline-flex;
