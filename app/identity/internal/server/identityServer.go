@@ -90,3 +90,13 @@ func (s *IdentityServer) GetThirdPartyIdentity(ctx context.Context, in *identity
 	l := logic.NewGetThirdPartyIdentityLogic(ctx, s.svcCtx)
 	return l.GetThirdPartyIdentity(in)
 }
+
+func (s *IdentityServer) ListConsoleUsers(ctx context.Context, in *identity.ListConsoleUsersReq) (*identity.ListConsoleUsersResp, error) {
+	l := logic.NewListConsoleUsersLogic(ctx, s.svcCtx)
+	return l.ListConsoleUsers(in)
+}
+
+func (s *IdentityServer) CreateConsoleUser(ctx context.Context, in *identity.CreateConsoleUserReq) (*identity.ConsoleUser, error) {
+	l := logic.NewCreateConsoleUserLogic(ctx, s.svcCtx)
+	return l.CreateConsoleUser(in)
+}

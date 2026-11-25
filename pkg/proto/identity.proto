@@ -23,6 +23,9 @@ service Identity {
     rpc LinkThirdPartyIdentity(LinkThirdPartyIdentityReq) returns (LinkThirdPartyIdentityResp);
     rpc ResolveUserByThirdParty(ResolveUserByThirdPartyReq) returns (ResolveUserByThirdPartyResp);
     rpc GetThirdPartyIdentity(GetThirdPartyIdentityReq) returns (GetThirdPartyIdentityResp);
+    // ── 控制台用户列表 ──
+    rpc ListConsoleUsers(ListConsoleUsersReq) returns (ListConsoleUsersResp);
+    rpc CreateConsoleUser(CreateConsoleUserReq) returns (ConsoleUser);
 }
 
 message RegisterReq {
@@ -170,4 +173,45 @@ message GetThirdPartyIdentityReq {
 message GetThirdPartyIdentityResp {
     string openId = 1;  // openid（未绑定=空）
     string unionId = 2; // unionid
+}
+
+message ConsoleUser {
+    int64 userId = 1;
+    string username = 2;
+    string nickname = 3;
+    string phone = 4;
+    string avatarUrl = 5;
+    int32 status = 6; // 1 正常 / 2 禁用
+    string luckyDisplay = 7;
+    string registerIp = 8;
+    string registerDevice = 9;
+    int32 rebateRate = 10;
+    string identity = 11;
+    int64 createdAtUnixMillis = 12;
+    int64 updatedAtUnixMillis = 13;
+}
+
+message ListConsoleUsersReq {
+    int64 tenantId = 1;
+    string keyword = 2;  // 昵称 / 用户ID
+    string phone = 3;    // 手机号精确匹配
+    string identity = 4; // 身份
+    int32 status = 5;    // 0=全部 1=正常 2=禁用
+    uint32 page = 6;
+    uint32 pageSize = 7;
+}
+
+message ListConsoleUsersResp {
+    repeated ConsoleUser items = 1;
+    uint64 total = 2;
+}
+
+message CreateConsoleUserReq {
+    int64 tenantId = 1;
+    string requestId = 2;
+    string nickname = 3;
+    string phone = 4;
+    string avatarUrl = 5;
+    int32 rebateRate = 6;
+    string identity = 7;
 }

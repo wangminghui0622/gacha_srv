@@ -64,6 +64,13 @@ ThirdpartyRpc:
       - ${ETCD_ENDPOINTS}
     Key: thirdparty.rpc
 
+# 账号服务客户端（控制台用户列表 / 创建用户）
+IdentityRpc:
+  Etcd:
+    Hosts:
+      - ${ETCD_ENDPOINTS}
+    Key: identity.rpc
+
 # 控制台令牌本地验签（Ed25519 公钥，与 ops-rpc 的 Console.PrivateKeyBase64 配对）
 Console:
   # 公钥 base64（32 字节；ops-rpc 签发，本网关持公钥验签不依赖 ops-rpc 在线）

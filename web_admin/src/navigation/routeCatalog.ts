@@ -364,7 +364,7 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     showInMenu: true,
     icon: UserOutlined,
     backFallback: '/catalog',
-    component: () => import('@/views/customers/CustomerManagementView.vue'),
+    component: () => import('@/views/customers/CustomerListView.vue'),
   },
   {
     name: 'customer-shipments',

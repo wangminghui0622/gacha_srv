@@ -30,6 +30,8 @@ type Config struct {
 	TaskRpc zrpc.RpcClientConf
 	// 第三方服务客户端（OSS 文件上传）
 	ThirdpartyRpc zrpc.RpcClientConf
+	// IdentityRpc 账号服务（控制台用户列表 / 创建用户）
+	IdentityRpc zrpc.RpcClientConf
 
 	// 控制台令牌本地验签（不依赖 ops-rpc 在线）
 	Console ConsoleConf

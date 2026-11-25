@@ -136,6 +136,29 @@ func (r *PhoneRepo) FindExact(ctx context.Context, tenantID int64, phone string)
 
 // Search 四位起连续片段搜索：gram 候选（501 上限，超限 → ErrPhoneSearchTooBroad）
 // 逐个解密验证真子串后 3-4-4 掩码返回
+// Get 返回用户已绑定的手机号（未绑定返回空字符串）。
+func (r *PhoneRepo) Get(ctx context.Context, tenantID, userID int64) (string, error) {
+	var p gacha_identity.UserPhones
+	err := r.db.WithContext(ctx).
+		Where("tenant_id = ? AND user_id = ?", tenantID, userID).First(&p).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", nil
+		}
+		return "", err
+	}
+	phone, err := r.codec.Open(tenantID, p.UserId, phonecrypto.Record{
+		Ciphertext:   []byte(p.Ciphertext),
+		Nonce:        []byte(p.Nonce),
+		EncKeyID:     p.EncKeyId,
+		IndexVersion: p.IndexVersion,
+	})
+	if err != nil {
+		return "", err
+	}
+	return phone, nil
+}
+
 func (r *PhoneRepo) Search(ctx context.Context, tenantID int64, fragment string) ([]PhoneSearchResult, error) {
 	tokens, err := r.codec.SearchTokens(tenantID, fragment)
 	if err != nil {

@@ -12,6 +12,7 @@ import (
 	"gacha_srv/app/base/baseClient"
 	"gacha_srv/app/catalog/catalogClient"
 	"gacha_srv/app/draw/drawClient"
+	identityClient "gacha_srv/app/identity/identityClient"
 	"gacha_srv/app/marketing/marketingClient"
 	"gacha_srv/app/money/moneyClient"
 	"gacha_srv/app/ops/opsClient"
@@ -37,6 +38,7 @@ type ServiceContext struct {
 	MoneyRpc      moneyClient.Money
 	TaskRpc       taskClient.Task
 	ThirdpartyRpc thirdpartyClient.Thirdparty
+	IdentityRpc   identityClient.Identity
 	Rdb           *redis.Client
 	PubKey        ed25519.PublicKey
 
@@ -84,6 +86,8 @@ func NewServiceContext(c config.Config) *ServiceContext {
 			grpc.MaxCallRecvMsgSize(16<<20),
 			grpc.MaxCallSendMsgSize(16<<20),
 		))))
+	identityRpc := identityClient.NewIdentity(zrpc.MustNewClient(c.IdentityRpc,
+		zrpc.WithUnaryClientInterceptor(errorx.ClientErrorInterceptor)))
 
 	// 会话吊销检查 Redis（console:session:revoked:<jti>）
 	if len(c.CacheRedis) == 0 {
@@ -108,6 +112,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		MoneyRpc:         moneyRpc,
 		TaskRpc:          taskRpc,
 		ThirdpartyRpc:    thirdpartyRpc,
+		IdentityRpc:      identityRpc,
 		Rdb:              rdb,
 		PubKey:           ed25519.PublicKey(pub),
 		RequestId:        middleware.NewRequestIdMiddleware().Handle,

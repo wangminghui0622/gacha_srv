@@ -32,6 +32,8 @@ const (
 	Identity_LinkThirdPartyIdentity_FullMethodName  = "/identity.Identity/LinkThirdPartyIdentity"
 	Identity_ResolveUserByThirdParty_FullMethodName = "/identity.Identity/ResolveUserByThirdParty"
 	Identity_GetThirdPartyIdentity_FullMethodName   = "/identity.Identity/GetThirdPartyIdentity"
+	Identity_ListConsoleUsers_FullMethodName        = "/identity.Identity/ListConsoleUsers"
+	Identity_CreateConsoleUser_FullMethodName       = "/identity.Identity/CreateConsoleUser"
 )
 
 // IdentityClient is the client API for Identity service.
@@ -54,6 +56,9 @@ type IdentityClient interface {
 	LinkThirdPartyIdentity(ctx context.Context, in *LinkThirdPartyIdentityReq, opts ...grpc.CallOption) (*LinkThirdPartyIdentityResp, error)
 	ResolveUserByThirdParty(ctx context.Context, in *ResolveUserByThirdPartyReq, opts ...grpc.CallOption) (*ResolveUserByThirdPartyResp, error)
 	GetThirdPartyIdentity(ctx context.Context, in *GetThirdPartyIdentityReq, opts ...grpc.CallOption) (*GetThirdPartyIdentityResp, error)
+	// ── 控制台用户列表 ──
+	ListConsoleUsers(ctx context.Context, in *ListConsoleUsersReq, opts ...grpc.CallOption) (*ListConsoleUsersResp, error)
+	CreateConsoleUser(ctx context.Context, in *CreateConsoleUserReq, opts ...grpc.CallOption) (*ConsoleUser, error)
 }
 
 type identityClient struct {
@@ -181,6 +186,24 @@ func (c *identityClient) GetThirdPartyIdentity(ctx context.Context, in *GetThird
 	return out, nil
 }
 
+func (c *identityClient) ListConsoleUsers(ctx context.Context, in *ListConsoleUsersReq, opts ...grpc.CallOption) (*ListConsoleUsersResp, error) {
+	out := new(ListConsoleUsersResp)
+	err := c.cc.Invoke(ctx, Identity_ListConsoleUsers_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityClient) CreateConsoleUser(ctx context.Context, in *CreateConsoleUserReq, opts ...grpc.CallOption) (*ConsoleUser, error) {
+	out := new(ConsoleUser)
+	err := c.cc.Invoke(ctx, Identity_CreateConsoleUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // IdentityServer is the server API for Identity service.
 // All implementations must embed UnimplementedIdentityServer
 // for forward compatibility
@@ -201,6 +224,9 @@ type IdentityServer interface {
 	LinkThirdPartyIdentity(context.Context, *LinkThirdPartyIdentityReq) (*LinkThirdPartyIdentityResp, error)
 	ResolveUserByThirdParty(context.Context, *ResolveUserByThirdPartyReq) (*ResolveUserByThirdPartyResp, error)
 	GetThirdPartyIdentity(context.Context, *GetThirdPartyIdentityReq) (*GetThirdPartyIdentityResp, error)
+	// ── 控制台用户列表 ──
+	ListConsoleUsers(context.Context, *ListConsoleUsersReq) (*ListConsoleUsersResp, error)
+	CreateConsoleUser(context.Context, *CreateConsoleUserReq) (*ConsoleUser, error)
 	mustEmbedUnimplementedIdentityServer()
 }
 
@@ -246,6 +272,12 @@ func (UnimplementedIdentityServer) ResolveUserByThirdParty(context.Context, *Res
 }
 func (UnimplementedIdentityServer) GetThirdPartyIdentity(context.Context, *GetThirdPartyIdentityReq) (*GetThirdPartyIdentityResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetThirdPartyIdentity not implemented")
+}
+func (UnimplementedIdentityServer) ListConsoleUsers(context.Context, *ListConsoleUsersReq) (*ListConsoleUsersResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListConsoleUsers not implemented")
+}
+func (UnimplementedIdentityServer) CreateConsoleUser(context.Context, *CreateConsoleUserReq) (*ConsoleUser, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateConsoleUser not implemented")
 }
 func (UnimplementedIdentityServer) mustEmbedUnimplementedIdentityServer() {}
 
@@ -494,6 +526,42 @@ func _Identity_GetThirdPartyIdentity_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Identity_ListConsoleUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListConsoleUsersReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServer).ListConsoleUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Identity_ListConsoleUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServer).ListConsoleUsers(ctx, req.(*ListConsoleUsersReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Identity_CreateConsoleUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateConsoleUserReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServer).CreateConsoleUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Identity_CreateConsoleUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServer).CreateConsoleUser(ctx, req.(*CreateConsoleUserReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Identity_ServiceDesc is the grpc.ServiceDesc for Identity service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -552,6 +620,14 @@ var Identity_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetThirdPartyIdentity",
 			Handler:    _Identity_GetThirdPartyIdentity_Handler,
+		},
+		{
+			MethodName: "ListConsoleUsers",
+			Handler:    _Identity_ListConsoleUsers_Handler,
+		},
+		{
+			MethodName: "CreateConsoleUser",
+			Handler:    _Identity_CreateConsoleUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

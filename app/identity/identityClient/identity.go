@@ -14,6 +14,8 @@ import (
 )
 
 type (
+	ConsoleUser                 = identity.ConsoleUser
+	CreateConsoleUserReq        = identity.CreateConsoleUserReq
 	FindUserPhoneExactReq       = identity.FindUserPhoneExactReq
 	FindUserPhoneExactResp      = identity.FindUserPhoneExactResp
 	GetProfileReq               = identity.GetProfileReq
@@ -22,6 +24,8 @@ type (
 	GetThirdPartyIdentityResp   = identity.GetThirdPartyIdentityResp
 	LinkThirdPartyIdentityReq   = identity.LinkThirdPartyIdentityReq
 	LinkThirdPartyIdentityResp  = identity.LinkThirdPartyIdentityResp
+	ListConsoleUsersReq         = identity.ListConsoleUsersReq
+	ListConsoleUsersResp        = identity.ListConsoleUsersResp
 	LoginReq                    = identity.LoginReq
 	LoginResp                   = identity.LoginResp
 	LoginWithPhoneCodeReq       = identity.LoginWithPhoneCodeReq
@@ -57,6 +61,8 @@ type (
 		LinkThirdPartyIdentity(ctx context.Context, in *LinkThirdPartyIdentityReq, opts ...grpc.CallOption) (*LinkThirdPartyIdentityResp, error)
 		ResolveUserByThirdParty(ctx context.Context, in *ResolveUserByThirdPartyReq, opts ...grpc.CallOption) (*ResolveUserByThirdPartyResp, error)
 		GetThirdPartyIdentity(ctx context.Context, in *GetThirdPartyIdentityReq, opts ...grpc.CallOption) (*GetThirdPartyIdentityResp, error)
+		ListConsoleUsers(ctx context.Context, in *ListConsoleUsersReq, opts ...grpc.CallOption) (*ListConsoleUsersResp, error)
+		CreateConsoleUser(ctx context.Context, in *CreateConsoleUserReq, opts ...grpc.CallOption) (*ConsoleUser, error)
 	}
 
 	defaultIdentity struct {
@@ -136,4 +142,14 @@ func (m *defaultIdentity) ResolveUserByThirdParty(ctx context.Context, in *Resol
 func (m *defaultIdentity) GetThirdPartyIdentity(ctx context.Context, in *GetThirdPartyIdentityReq, opts ...grpc.CallOption) (*GetThirdPartyIdentityResp, error) {
 	client := identity.NewIdentityClient(m.cli.Conn())
 	return client.GetThirdPartyIdentity(ctx, in, opts...)
+}
+
+func (m *defaultIdentity) ListConsoleUsers(ctx context.Context, in *ListConsoleUsersReq, opts ...grpc.CallOption) (*ListConsoleUsersResp, error) {
+	client := identity.NewIdentityClient(m.cli.Conn())
+	return client.ListConsoleUsers(ctx, in, opts...)
+}
+
+func (m *defaultIdentity) CreateConsoleUser(ctx context.Context, in *CreateConsoleUserReq, opts ...grpc.CallOption) (*ConsoleUser, error) {
+	client := identity.NewIdentityClient(m.cli.Conn())
+	return client.CreateConsoleUser(ctx, in, opts...)
 }

@@ -93,3 +93,20 @@ INSERT INTO `user_users` (`id`, `username`, `password`, `nickname`) VALUES
 ON DUPLICATE KEY UPDATE `id` = `id`;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+
+CREATE TABLE IF NOT EXISTS `user_profiles` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `user_id` bigint NOT NULL COMMENT '用户ID（关联 user_users.id）',
+  `avatar_url` varchar(512) NOT NULL DEFAULT '' COMMENT '头像URL',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态：1正常 2禁用',
+  `lucky_display` varchar(32) NOT NULL DEFAULT '初始化' COMMENT '吉祥展示',
+  `register_ip` varchar(64) NOT NULL DEFAULT '' COMMENT '注册IP',
+  `register_device` varchar(128) NOT NULL DEFAULT '' COMMENT '注册设备码',
+  `rebate_rate` int NOT NULL DEFAULT '10' COMMENT '返佣比例',
+  `identity` varchar(32) NOT NULL DEFAULT '用户' COMMENT '身份',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户后台资料';

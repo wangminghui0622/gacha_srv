@@ -9,6 +9,7 @@ import (
 	authorization "gacha_srv/app/admin-gateway/internal/handler/authorization"
 	campaign "gacha_srv/app/admin-gateway/internal/handler/campaign"
 	catalog "gacha_srv/app/admin-gateway/internal/handler/catalog"
+	customer "gacha_srv/app/admin-gateway/internal/handler/customer"
 	eligibility "gacha_srv/app/admin-gateway/internal/handler/eligibility"
 	match "gacha_srv/app/admin-gateway/internal/handler/match"
 	money "gacha_srv/app/admin-gateway/internal/handler/money"
@@ -104,6 +105,18 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Method:  http.MethodPost,
 					Path:    "/campaigns/fortune-rewards",
 					Handler: promotion.CreateFortuneRewardHandler(serverCtx),
+				},
+				{
+					// 用户列表（identity.user:read）
+					Method:  http.MethodGet,
+					Path:    "/users",
+					Handler: customer.ListConsoleUsersHandler(serverCtx),
+				},
+				{
+					// 创建用户（identity.user:write）
+					Method:  http.MethodPost,
+					Path:    "/users",
+					Handler: customer.CreateConsoleUserHandler(serverCtx),
 				},
 				{
 					// 活动列表（campaign.definition:read）
