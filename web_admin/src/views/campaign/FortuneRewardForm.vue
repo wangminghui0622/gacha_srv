@@ -652,8 +652,8 @@ onMounted(async () => {
 }
 .cover-remove {
   position: absolute;
-  top: -7px;
-  right: -7px;
+  top: 4px;
+  right: 4px;
   z-index: 2;
   display: flex;
   align-items: center;
@@ -666,7 +666,15 @@ onMounted(async () => {
   background: transparent;
   border: none;
   cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
   filter: drop-shadow(0 0 2px #fff);
+  transition: opacity 0.15s ease;
+}
+.cover-upload-wrap:hover .cover-remove,
+.cover-upload-wrap:focus-within .cover-remove {
+  opacity: 1;
+  pointer-events: auto;
 }
 .cover-remove:hover {
   color: #cf1322;
