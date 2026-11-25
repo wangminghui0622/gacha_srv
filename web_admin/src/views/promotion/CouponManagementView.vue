@@ -1117,10 +1117,14 @@ const grantPoolOptions = computed(() => {
   }
   return eligible.map((entry) => {
     const name = poolTemplateName(entry)
-    const suffix = (nameCounts.get(name) ?? 0) > 1 ? `（${t('couponAdmin.batchShort')} ${entry.id}）` : ''
+    const parts: string[] = []
+    if ((nameCounts.get(name) ?? 0) > 1) {
+      parts.push(`${t('couponAdmin.batchShort')} ${entry.id}`)
+    }
+    parts.push(`${t('couponAdmin.remainingShort')} ${entry.remainingCount ?? 0} 张`)
     return {
       value: String(entry.id ?? ''),
-      label: `${name}${suffix}`,
+      label: `${name}（${parts.join('，')}）`,
     }
   })
 })
