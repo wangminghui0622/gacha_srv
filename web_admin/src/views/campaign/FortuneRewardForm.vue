@@ -558,6 +558,9 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
 }
+.reward-builder-panel :deep(.ant-input-number-handler-wrap) {
+  display: none;
+}
 .inline-label {
   font-size: 14px;
   color: #303133;
