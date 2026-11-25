@@ -37,6 +37,8 @@ const (
 	Marketing_UpsertCouponPoolEntry_FullMethodName       = "/marketing.Marketing/UpsertCouponPoolEntry"
 	Marketing_AdjustCouponPoolEntry_FullMethodName       = "/marketing.Marketing/AdjustCouponPoolEntry"
 	Marketing_ListCouponLedger_FullMethodName            = "/marketing.Marketing/ListCouponLedger"
+	Marketing_ListFortuneRewards_FullMethodName          = "/marketing.Marketing/ListFortuneRewards"
+	Marketing_UpsertFortuneReward_FullMethodName         = "/marketing.Marketing/UpsertFortuneReward"
 	Marketing_GrantCoupons_FullMethodName                = "/marketing.Marketing/GrantCoupons"
 	Marketing_GetTenantLoyaltyDefaults_FullMethodName    = "/marketing.Marketing/GetTenantLoyaltyDefaults"
 	Marketing_PutTenantLoyaltyDefaults_FullMethodName    = "/marketing.Marketing/PutTenantLoyaltyDefaults"
@@ -90,6 +92,9 @@ type MarketingClient interface {
 	AdjustCouponPoolEntry(ctx context.Context, in *AdjustCouponPoolEntryRequest, opts ...grpc.CallOption) (*CouponPoolEntry, error)
 	// ListCouponLedger 券池/用户券变动流水
 	ListCouponLedger(ctx context.Context, in *ListCouponLedgerRequest, opts ...grpc.CallOption) (*ListCouponLedgerReply, error)
+	// ── 吉祥值奖励配置 ──
+	ListFortuneRewards(ctx context.Context, in *ListFortuneRewardsRequest, opts ...grpc.CallOption) (*ListFortuneRewardsReply, error)
+	UpsertFortuneReward(ctx context.Context, in *UpsertFortuneRewardRequest, opts ...grpc.CallOption) (*FortuneReward, error)
 	GrantCoupons(ctx context.Context, in *GrantCouponsRequest, opts ...grpc.CallOption) (*GrantCouponsReply, error)
 	GetTenantLoyaltyDefaults(ctx context.Context, in *GetTenantLoyaltyDefaultsRequest, opts ...grpc.CallOption) (*TenantLoyaltyDefaults, error)
 	PutTenantLoyaltyDefaults(ctx context.Context, in *PutTenantLoyaltyDefaultsRequest, opts ...grpc.CallOption) (*TenantLoyaltyDefaults, error)
@@ -279,6 +284,24 @@ func (c *marketingClient) ListCouponLedger(ctx context.Context, in *ListCouponLe
 	return out, nil
 }
 
+func (c *marketingClient) ListFortuneRewards(ctx context.Context, in *ListFortuneRewardsRequest, opts ...grpc.CallOption) (*ListFortuneRewardsReply, error) {
+	out := new(ListFortuneRewardsReply)
+	err := c.cc.Invoke(ctx, Marketing_ListFortuneRewards_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *marketingClient) UpsertFortuneReward(ctx context.Context, in *UpsertFortuneRewardRequest, opts ...grpc.CallOption) (*FortuneReward, error) {
+	out := new(FortuneReward)
+	err := c.cc.Invoke(ctx, Marketing_UpsertFortuneReward_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *marketingClient) GrantCoupons(ctx context.Context, in *GrantCouponsRequest, opts ...grpc.CallOption) (*GrantCouponsReply, error) {
 	out := new(GrantCouponsReply)
 	err := c.cc.Invoke(ctx, Marketing_GrantCoupons_FullMethodName, in, out, opts...)
@@ -418,6 +441,9 @@ type MarketingServer interface {
 	AdjustCouponPoolEntry(context.Context, *AdjustCouponPoolEntryRequest) (*CouponPoolEntry, error)
 	// ListCouponLedger 券池/用户券变动流水
 	ListCouponLedger(context.Context, *ListCouponLedgerRequest) (*ListCouponLedgerReply, error)
+	// ── 吉祥值奖励配置 ──
+	ListFortuneRewards(context.Context, *ListFortuneRewardsRequest) (*ListFortuneRewardsReply, error)
+	UpsertFortuneReward(context.Context, *UpsertFortuneRewardRequest) (*FortuneReward, error)
 	GrantCoupons(context.Context, *GrantCouponsRequest) (*GrantCouponsReply, error)
 	GetTenantLoyaltyDefaults(context.Context, *GetTenantLoyaltyDefaultsRequest) (*TenantLoyaltyDefaults, error)
 	PutTenantLoyaltyDefaults(context.Context, *PutTenantLoyaltyDefaultsRequest) (*TenantLoyaltyDefaults, error)
@@ -495,6 +521,12 @@ func (UnimplementedMarketingServer) AdjustCouponPoolEntry(context.Context, *Adju
 }
 func (UnimplementedMarketingServer) ListCouponLedger(context.Context, *ListCouponLedgerRequest) (*ListCouponLedgerReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCouponLedger not implemented")
+}
+func (UnimplementedMarketingServer) ListFortuneRewards(context.Context, *ListFortuneRewardsRequest) (*ListFortuneRewardsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListFortuneRewards not implemented")
+}
+func (UnimplementedMarketingServer) UpsertFortuneReward(context.Context, *UpsertFortuneRewardRequest) (*FortuneReward, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpsertFortuneReward not implemented")
 }
 func (UnimplementedMarketingServer) GrantCoupons(context.Context, *GrantCouponsRequest) (*GrantCouponsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GrantCoupons not implemented")
@@ -866,6 +898,42 @@ func _Marketing_ListCouponLedger_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Marketing_ListFortuneRewards_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFortuneRewardsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MarketingServer).ListFortuneRewards(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Marketing_ListFortuneRewards_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MarketingServer).ListFortuneRewards(ctx, req.(*ListFortuneRewardsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Marketing_UpsertFortuneReward_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpsertFortuneRewardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MarketingServer).UpsertFortuneReward(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Marketing_UpsertFortuneReward_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MarketingServer).UpsertFortuneReward(ctx, req.(*UpsertFortuneRewardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Marketing_GrantCoupons_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GrantCouponsRequest)
 	if err := dec(in); err != nil {
@@ -1142,6 +1210,14 @@ var Marketing_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCouponLedger",
 			Handler:    _Marketing_ListCouponLedger_Handler,
+		},
+		{
+			MethodName: "ListFortuneRewards",
+			Handler:    _Marketing_ListFortuneRewards_Handler,
+		},
+		{
+			MethodName: "UpsertFortuneReward",
+			Handler:    _Marketing_UpsertFortuneReward_Handler,
 		},
 		{
 			MethodName: "GrantCoupons",

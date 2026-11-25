@@ -124,6 +124,16 @@ func (s *MarketingServer) ListCouponLedger(ctx context.Context, in *marketing.Li
 	return l.ListCouponLedger(in)
 }
 
+func (s *MarketingServer) ListFortuneRewards(ctx context.Context, in *marketing.ListFortuneRewardsRequest) (*marketing.ListFortuneRewardsReply, error) {
+	l := logic.NewListFortuneRewardsLogic(ctx, s.svcCtx)
+	return l.ListFortuneRewards(in)
+}
+
+func (s *MarketingServer) UpsertFortuneReward(ctx context.Context, in *marketing.UpsertFortuneRewardRequest) (*marketing.FortuneReward, error) {
+	l := logic.NewUpsertFortuneRewardLogic(ctx, s.svcCtx)
+	return l.UpsertFortuneReward(in)
+}
+
 func (s *MarketingServer) GrantCoupons(ctx context.Context, in *marketing.GrantCouponsRequest) (*marketing.GrantCouponsReply, error) {
 	l := logic.NewGrantCouponsLogic(ctx, s.svcCtx)
 	return l.GrantCoupons(in)

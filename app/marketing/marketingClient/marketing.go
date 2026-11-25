@@ -29,6 +29,8 @@ type (
 	CouponItem                        = marketing.CouponItem
 	CouponLedgerEntry                 = marketing.CouponLedgerEntry
 	CouponPoolEntry                   = marketing.CouponPoolEntry
+	FortuneReward                     = marketing.FortuneReward
+	FortuneRewardItem                 = marketing.FortuneRewardItem
 	CouponTemplate                    = marketing.CouponTemplate
 	CouponTemplateItem                = marketing.CouponTemplateItem
 	CreateCampaignDraftRequest        = marketing.CreateCampaignDraftRequest
@@ -52,6 +54,8 @@ type (
 	ListCampaignsResp                 = marketing.ListCampaignsResp
 	ListCouponLedgerReply             = marketing.ListCouponLedgerReply
 	ListCouponLedgerRequest           = marketing.ListCouponLedgerRequest
+	ListFortuneRewardsReply           = marketing.ListFortuneRewardsReply
+	ListFortuneRewardsRequest         = marketing.ListFortuneRewardsRequest
 	ListCouponPoolEntriesReply        = marketing.ListCouponPoolEntriesReply
 	ListCouponPoolEntriesRequest      = marketing.ListCouponPoolEntriesRequest
 	ListCouponTemplateVersionsReply   = marketing.ListCouponTemplateVersionsReply
@@ -78,6 +82,7 @@ type (
 	SignInReward                      = marketing.SignInReward
 	TenantLoyaltyDefaults             = marketing.TenantLoyaltyDefaults
 	UpsertCouponPoolEntryRequest      = marketing.UpsertCouponPoolEntryRequest
+	UpsertFortuneRewardRequest        = marketing.UpsertFortuneRewardRequest
 	UserCoupon                        = marketing.UserCoupon
 	WeightedSlot                      = marketing.WeightedSlot
 	WheelSlotItem                     = marketing.WheelSlotItem
@@ -113,6 +118,8 @@ type (
 		UpsertCouponPoolEntry(ctx context.Context, in *UpsertCouponPoolEntryRequest, opts ...grpc.CallOption) (*CouponPoolEntry, error)
 		AdjustCouponPoolEntry(ctx context.Context, in *AdjustCouponPoolEntryRequest, opts ...grpc.CallOption) (*CouponPoolEntry, error)
 		ListCouponLedger(ctx context.Context, in *ListCouponLedgerRequest, opts ...grpc.CallOption) (*ListCouponLedgerReply, error)
+		ListFortuneRewards(ctx context.Context, in *ListFortuneRewardsRequest, opts ...grpc.CallOption) (*ListFortuneRewardsReply, error)
+		UpsertFortuneReward(ctx context.Context, in *UpsertFortuneRewardRequest, opts ...grpc.CallOption) (*FortuneReward, error)
 		GrantCoupons(ctx context.Context, in *GrantCouponsRequest, opts ...grpc.CallOption) (*GrantCouponsReply, error)
 		GetTenantLoyaltyDefaults(ctx context.Context, in *GetTenantLoyaltyDefaultsRequest, opts ...grpc.CallOption) (*TenantLoyaltyDefaults, error)
 		PutTenantLoyaltyDefaults(ctx context.Context, in *PutTenantLoyaltyDefaultsRequest, opts ...grpc.CallOption) (*TenantLoyaltyDefaults, error)
@@ -241,6 +248,16 @@ func (m *defaultMarketing) AdjustCouponPoolEntry(ctx context.Context, in *Adjust
 func (m *defaultMarketing) ListCouponLedger(ctx context.Context, in *ListCouponLedgerRequest, opts ...grpc.CallOption) (*ListCouponLedgerReply, error) {
 	client := marketing.NewMarketingClient(m.cli.Conn())
 	return client.ListCouponLedger(ctx, in, opts...)
+}
+
+func (m *defaultMarketing) ListFortuneRewards(ctx context.Context, in *ListFortuneRewardsRequest, opts ...grpc.CallOption) (*ListFortuneRewardsReply, error) {
+	client := marketing.NewMarketingClient(m.cli.Conn())
+	return client.ListFortuneRewards(ctx, in, opts...)
+}
+
+func (m *defaultMarketing) UpsertFortuneReward(ctx context.Context, in *UpsertFortuneRewardRequest, opts ...grpc.CallOption) (*FortuneReward, error) {
+	client := marketing.NewMarketingClient(m.cli.Conn())
+	return client.UpsertFortuneReward(ctx, in, opts...)
 }
 
 func (m *defaultMarketing) GrantCoupons(ctx context.Context, in *GrantCouponsRequest, opts ...grpc.CallOption) (*GrantCouponsReply, error) {

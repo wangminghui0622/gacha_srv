@@ -110,6 +110,9 @@ func All() []Operation {
 		{ID: "console.catalog.publishrevision", Resource: "catalog.product", Action: "publish", Method: "POST", Path: "/catalog/products/:productId/revision/publish", Title: "发布商品修订"},
 		// ── 活动（ConsoleCampaignHTTPService，resource: campaign.definition）──
 		{ID: "console.campaign.createdraft", Resource: "campaign.definition", Action: "write", Method: "POST", Path: "/campaigns/drafts", Title: "创建活动草稿"},
+		{ID: "console.campaign.listfortunerewards", Resource: "campaign.definition", Action: "read", Method: "GET", Path: "/campaigns/fortune-rewards", Title: "吉祥值奖励配置列表"},
+		{ID: "console.campaign.createfortunereward", Resource: "campaign.definition", Action: "write", Method: "POST", Path: "/campaigns/fortune-rewards", Title: "创建吉祥值奖励配置"},
+		{ID: "console.campaign.updatefortunereward", Resource: "campaign.definition", Action: "write", Method: "PUT", Path: "/campaigns/fortune-rewards/:id", Title: "编辑吉祥值奖励配置"},
 		{ID: "console.campaign.publish", Resource: "campaign.definition", Action: "publish", Method: "POST", Path: "/campaigns/:campaignId/publish", Title: "发布活动"},
 		{ID: "console.campaign.get", Resource: "campaign.definition", Action: "read", Method: "GET", Path: "/campaigns/:campaignId", Title: "查看活动"},
 		// ── 条件政策（ConsoleEligibilityHTTPService，resource: eligibility.policy）──

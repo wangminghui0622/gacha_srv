@@ -174,9 +174,9 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     path: 'campaigns/fortune',
     title: 'nav.campaignFortune',
     permission: { resource: 'campaign.definition', action: 'read' },
-    showInMenu: false,
+    showInMenu: true,
     backFallback: '/campaigns',
-    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+    component: () => import('@/views/campaign/FortuneRewardView.vue'),
   },
   {
     name: 'campaign-fortune-rank',

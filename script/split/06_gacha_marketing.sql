@@ -407,3 +407,23 @@ ON DUPLICATE KEY UPDATE
 UPDATE `campaigns` SET `kind` = 13 WHERE `kind` = 3;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+
+CREATE TABLE IF NOT EXISTS `fortune_rewards` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `name` varchar(128) NOT NULL DEFAULT '' COMMENT '名称',
+  `exchange_points` bigint NOT NULL DEFAULT '0' COMMENT '兑换积分',
+  `direct_buy_minor` bigint NOT NULL DEFAULT '0' COMMENT '直购金额（分）',
+  `stock` int NOT NULL DEFAULT '0' COMMENT '库存',
+  `start_at` datetime DEFAULT NULL COMMENT '开始时间',
+  `end_at` datetime DEFAULT NULL COMMENT '结束时间',
+  `cashback_minor` bigint NOT NULL DEFAULT '0' COMMENT '返现金额（分）',
+  `rewards_json` text NOT NULL COMMENT '奖励列表 JSON',
+  `cover_url` varchar(512) NOT NULL DEFAULT '' COMMENT '封面大图',
+  `tag` varchar(64) NOT NULL DEFAULT '' COMMENT '标签',
+  `enabled` tinyint NOT NULL DEFAULT '1' COMMENT '是否开启',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_enabled` (`enabled`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='吉祥值奖励配置';

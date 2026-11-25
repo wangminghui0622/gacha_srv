@@ -47,6 +47,9 @@ service Marketing {
     rpc AdjustCouponPoolEntry(AdjustCouponPoolEntryRequest) returns (CouponPoolEntry);
     // ListCouponLedger 券池/用户券变动流水
     rpc ListCouponLedger(ListCouponLedgerRequest) returns (ListCouponLedgerReply);
+    // ── 吉祥值奖励配置 ──
+    rpc ListFortuneRewards(ListFortuneRewardsRequest) returns (ListFortuneRewardsReply);
+    rpc UpsertFortuneReward(UpsertFortuneRewardRequest) returns (FortuneReward);
     rpc GrantCoupons(GrantCouponsRequest) returns (GrantCouponsReply);
     rpc GetTenantLoyaltyDefaults(GetTenantLoyaltyDefaultsRequest) returns (TenantLoyaltyDefaults);
     rpc PutTenantLoyaltyDefaults(PutTenantLoyaltyDefaultsRequest) returns (TenantLoyaltyDefaults);
@@ -629,6 +632,60 @@ message BatchGrantCouponsReply {
     repeated uint64 failedUserIds = 4;
     string stoppedReason = 5;
     uint32 remainingCount = 6; // 批次处理后的券池剩余
+}
+
+enum FortuneRewardItemType {
+    FORTUNE_REWARD_ITEM_TYPE_UNSPECIFIED = 0;
+    FORTUNE_REWARD_ITEM_TYPE_FORTUNE = 1;          // 吉祥值
+    FORTUNE_REWARD_ITEM_TYPE_POINTS = 2;           // 积分
+    FORTUNE_REWARD_ITEM_TYPE_COUPON = 3;           // 优惠券
+    FORTUNE_REWARD_ITEM_TYPE_ITEM = 4;             // 物品
+    FORTUNE_REWARD_ITEM_TYPE_BOX = 5;              // 箱子
+    FORTUNE_REWARD_ITEM_TYPE_MATCH_APPEARANCE = 6; // 对对碰外观
+}
+
+message FortuneRewardItem {
+    FortuneRewardItemType type = 1;
+    string value = 2;             // 吉祥值/积分数量，或优惠券/物品/箱子/外观 ID
+    uint32 quantity = 3;
+    int64 customAmountMinor = 4;  // 优惠券自定义金额（分）
+    string name = 5;              // 展示名称（落库快照）
+    string thumbnail = 6;         // 缩略图 URL（落库快照）
+    string extra = 7;             // 预留补充参数
+}
+
+message FortuneReward {
+    uint64 id = 1;
+    string name = 2;
+    int64 exchangePoints = 3;
+    int64 directBuyMinor = 4;
+    int32 stock = 5;
+    int64 startAtUnixMillis = 6;
+    int64 endAtUnixMillis = 7;
+    int64 cashbackMinor = 8;
+    repeated FortuneRewardItem rewards = 9;
+    string coverUrl = 10;
+    string tag = 11;
+    bool enabled = 12;
+    uint64 createdAtUnixMillis = 13;
+    uint64 updatedAtUnixMillis = 14;
+}
+
+message ListFortuneRewardsRequest {
+    uint64 tenantId = 1;
+    uint32 page = 2;
+    uint32 pageSize = 3;
+}
+
+message ListFortuneRewardsReply {
+    repeated FortuneReward items = 1;
+    uint64 total = 2;
+}
+
+message UpsertFortuneRewardRequest {
+    string requestId = 1;
+    uint64 tenantId = 2;
+    FortuneReward reward = 3;
 }
 
 enum UserCouponStatus {

@@ -129,6 +129,8 @@ const (
 	CodeCouponTemplateConflict = 5016 // 券模板冲突（同 request_id 异内容、head 版本 CAS 失败）
 	CodeCouponInvalid          = 5017 // 发券/券模板参数无效（金额/bps/funder/custom bounds/区间）
 	CodeCouponPoolNotFound     = 5018 // 券池记录不存在
+	CodeFortuneRewardNotFound  = 5019 // 吉祥值奖励配置不存在
+	CodeFortuneRewardInvalid   = 5020 // 吉祥值奖励配置参数无效
 )
 
 // 玩法域 6000-6999（play-rpc 6 玩法+幸运指派+发奖标记；旧仓玩法域 3000 段拆出）

@@ -94,6 +94,24 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			[]rest.Middleware{serverCtx.ConsoleAuthorize},
 			[]rest.Route{
 				{
+					// 吉祥值奖励配置列表（campaign.definition:read）
+					Method:  http.MethodGet,
+					Path:    "/campaigns/fortune-rewards",
+					Handler: promotion.ListFortuneRewardsHandler(serverCtx),
+				},
+				{
+					// 创建吉祥值奖励配置（campaign.definition:write）
+					Method:  http.MethodPost,
+					Path:    "/campaigns/fortune-rewards",
+					Handler: promotion.CreateFortuneRewardHandler(serverCtx),
+				},
+				{
+					// 编辑吉祥值奖励配置（campaign.definition:write）
+					Method:  http.MethodPut,
+					Path:    "/campaigns/fortune-rewards/:id",
+					Handler: promotion.UpdateFortuneRewardHandler(serverCtx),
+				},
+				{
 					// 查看活动（campaign.definition:read）
 					Method:  http.MethodGet,
 					Path:    "/campaigns/:campaignId",
