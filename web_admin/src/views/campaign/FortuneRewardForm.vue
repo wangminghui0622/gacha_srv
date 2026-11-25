@@ -38,15 +38,27 @@
               </div>
             </a-form-item>
             <a-form-item label="封面大图">
-              <a-upload :show-upload-list="false" accept="image/*" :before-upload="handleCoverUpload">
-                <div class="image-upload-box">
-                  <img v-if="form.coverUrl" :src="form.coverUrl" alt="" />
-                  <template v-else>
-                    <span class="upload-plus">+</span>
-                    <span>Upload</span>
-                  </template>
-                </div>
-              </a-upload>
+              <div class="cover-upload-wrap">
+                <a-upload :show-upload-list="false" accept="image/*" :before-upload="handleCoverUpload">
+                  <div class="image-upload-box">
+                    <img v-if="form.coverUrl" :src="form.coverUrl" alt="" />
+                    <template v-else>
+                      <span class="upload-plus">+</span>
+                      <span>Upload</span>
+                    </template>
+                  </div>
+                </a-upload>
+                <a-button
+                  v-if="form.coverUrl"
+                  type="link"
+                  danger
+                  size="small"
+                  class="cover-remove"
+                  @click="removeCover"
+                >
+                  删除
+                </a-button>
+              </div>
             </a-form-item>
           </a-form>
         </div>
@@ -368,6 +380,10 @@ function removeReward(index: number) {
   rewards.value.splice(index, 1)
 }
 
+function removeCover() {
+  form.coverUrl = ''
+}
+
 async function handleCoverUpload(file: File) {
   try {
     const result = await uploadFileToOss(file, 'fortune')
@@ -618,6 +634,17 @@ onMounted(async () => {
   height: 44px;
   object-fit: cover;
   border-radius: 4px;
+}
+.cover-upload-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.cover-remove {
+  padding: 0;
+  height: auto;
+  font-size: 13px;
 }
 .image-upload-box {
   display: flex;
