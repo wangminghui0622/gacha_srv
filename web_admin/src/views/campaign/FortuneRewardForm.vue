@@ -82,7 +82,7 @@
                 <a-button :disabled="!builder.boxId.trim()" @click="addBox">添加</a-button>
               </div>
               <div class="reward-line">
-                <span class="inline-label">外观id:</span>
+                <span class="inline-label">对对碰外观id:</span>
                 <a-input-number v-model:value="builder.appearanceId" :min="0" :precision="0" style="width: 150px" />
                 <a-button :disabled="builder.appearanceId <= 0" @click="addAppearance">添加</a-button>
               </div>
