@@ -53,14 +53,16 @@ func (l *AdjustCouponPoolEntryLogic) AdjustCouponPoolEntry(in *marketing.AdjustC
 			}
 			return err
 		}
+		granted, err := repo.SumGrantedCouponCount(tx, row.ID)
+		if err != nil {
+			return err
+		}
 		afterRemaining := int64(row.RemainingCount) + int64(in.Delta)
-		afterTotal := int64(row.Count) + int64(in.Delta)
 		if afterRemaining < 0 {
 			return errorx.NewCodeErrorf(errorx.CodeCouponInvalid, "库存不足：当前剩余 %d，减少 %d", row.RemainingCount, -in.Delta)
 		}
-		if afterTotal < afterRemaining {
-			return errorx.NewCodeError(errorx.CodeCouponInvalid, "调整后总量不能小于剩余张数")
-		}
+		// 总张数 = 剩余 + 已发出张数（GRANT 流水累计），不依赖历史 count 快照。
+		afterTotal := afterRemaining + granted
 		if afterRemaining > math.MaxInt32 || afterTotal > math.MaxInt32 {
 			return errorx.NewCodeError(errorx.CodeCouponInvalid, "调整后库存超出上限")
 		}

@@ -282,6 +282,18 @@ func UpdateCouponPoolRemaining(tx *gorm.DB, id int64, remaining int32) error {
 		Update("remaining_count", remaining).Error
 }
 
+// SumGrantedCouponCount 已从该券池批次发出的券数量（GRANT 流水 delta 取反求和）。
+func SumGrantedCouponCount(tx *gorm.DB, entryID int64) (int64, error) {
+	var granted int64
+	res := tx.Raw(
+		"SELECT COALESCE(SUM(-delta), 0) FROM coupon_ledger WHERE entry_id = ? AND event_type = 'GRANT'",
+		entryID).Scan(&granted)
+	if res.Error != nil {
+		return 0, res.Error
+	}
+	return granted, nil
+}
+
 // UpdateCouponPoolStock 写入管理员增减后的总量与剩余量（调用方已持有行锁）。
 func UpdateCouponPoolStock(tx *gorm.DB, id int64, total, remaining int32) error {
 	return tx.Model(&CouponPoolEntryRow{}).Where("id = ?", id).Updates(map[string]any{
