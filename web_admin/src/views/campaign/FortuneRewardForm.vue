@@ -649,6 +649,9 @@ onMounted(async () => {
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
+  width: 96px;
+  height: 96px;
+  line-height: 0;
 }
 .cover-remove {
   position: absolute;
@@ -671,10 +674,8 @@ onMounted(async () => {
   pointer-events: none;
   box-shadow: none;
   outline: none;
-  transition: opacity 0.15s ease;
 }
-.cover-upload-wrap:hover .cover-remove,
-.cover-upload-wrap:focus-within .cover-remove {
+.cover-upload-wrap:hover .cover-remove {
   opacity: 1;
   pointer-events: auto;
 }
