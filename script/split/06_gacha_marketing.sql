@@ -465,3 +465,23 @@ CREATE TABLE IF NOT EXISTS `announcements` (
   PRIMARY KEY (`id`),
   KEY `idx_visible_publish` (`visible`,`publish_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='公告列表';
+
+
+CREATE TABLE IF NOT EXISTS `banners` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `position` int NOT NULL DEFAULT '0' COMMENT '位置',
+  `banner_type` varchar(64) NOT NULL DEFAULT '' COMMENT '类型',
+  `name` varchar(128) NOT NULL DEFAULT '' COMMENT 'Banner名称',
+  `image_url` varchar(512) NOT NULL DEFAULT '' COMMENT '图片',
+  `visible` tinyint NOT NULL DEFAULT '0' COMMENT '是否展示',
+  `target_pool_id` bigint NOT NULL DEFAULT '0' COMMENT '目标赏池ID',
+  `popup_type` varchar(64) NOT NULL DEFAULT '' COMMENT '弹窗类型',
+  `popup_target_type` varchar(64) NOT NULL DEFAULT '' COMMENT '弹窗目标类型',
+  `popup_target_id` varchar(255) NOT NULL DEFAULT '' COMMENT '弹窗目标ID',
+  `popup_content` mediumtext NOT NULL COMMENT '弹窗内容 HTML',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_position` (`position`),
+  KEY `idx_visible` (`visible`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Banner列表';

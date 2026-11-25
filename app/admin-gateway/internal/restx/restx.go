@@ -350,6 +350,10 @@ func mapCodeError(ce *errorx.CodeError) (int, string) {
 		return http.StatusNotFound, "ANNOUNCEMENT_NOT_FOUND"
 	case errorx.CodeAnnouncementInvalid:
 		return http.StatusBadRequest, "ANNOUNCEMENT_INVALID"
+	case errorx.CodeBannerNotFound:
+		return http.StatusNotFound, "BANNER_NOT_FOUND"
+	case errorx.CodeBannerInvalid:
+		return http.StatusBadRequest, "BANNER_INVALID"
 	// ── M14d 条件政策/风控控制台（base 域 5000 段）──
 	case errorx.CodePolicyNotFound:
 		return http.StatusNotFound, "POLICY_NOT_FOUND"

@@ -173,6 +173,30 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: customer.ResetUserBindingLimitHandler(serverCtx, "realname"),
 				},
 				{
+					// Banner 列表（system.banner:read）
+					Method:  http.MethodGet,
+					Path:    "/banners",
+					Handler: promotion.ListBannersHandler(serverCtx),
+				},
+				{
+					// 创建 Banner（system.banner:write）
+					Method:  http.MethodPost,
+					Path:    "/banners",
+					Handler: promotion.CreateBannerHandler(serverCtx),
+				},
+				{
+					// Banner 详情（system.banner:read）
+					Method:  http.MethodGet,
+					Path:    "/banners/:id",
+					Handler: promotion.GetBannerHandler(serverCtx),
+				},
+				{
+					// 编辑 Banner（system.banner:write）
+					Method:  http.MethodPut,
+					Path:    "/banners/:id",
+					Handler: promotion.UpdateBannerHandler(serverCtx),
+				},
+				{
 					// 公告列表（system.announcement:read）
 					Method:  http.MethodGet,
 					Path:    "/announcements",

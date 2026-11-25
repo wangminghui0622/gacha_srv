@@ -464,7 +464,7 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     title: 'nav.systemBanners',
     showInMenu: false,
     backFallback: '/system',
-    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+    component: () => import('@/views/system/BannerListView.vue'),
   },
   {
     name: 'system-popups',
