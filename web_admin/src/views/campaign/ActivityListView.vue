@@ -59,7 +59,7 @@
           <span v-else>-</span>
         </template>
       </a-table-column>
-      <a-table-column title="日时间范围" width="170" align="center">
+      <a-table-column title="日活动时间" width="170" align="center">
         <template #default="{ record }">{{ dailyRangeText(record) }}</template>
       </a-table-column>
       <a-table-column title="创建时间" width="180" align="center">

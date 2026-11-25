@@ -32,7 +32,7 @@
           style="width: 100%"
         />
       </a-form-item>
-      <a-form-item label="日时间范围" required>
+      <a-form-item label="日活动时间" required>
         <div class="time-range-row">
           <a-time-picker
             v-model:value="form.dailyStart"
@@ -234,7 +234,7 @@ async function submit() {
     return
   }
   if (!form.dailyStart || !form.dailyEnd) {
-    message.warning('请选择日时间范围')
+    message.warning('请选择日活动时间')
     return
   }
   const payload: Activity = {
