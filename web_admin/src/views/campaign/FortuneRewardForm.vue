@@ -565,20 +565,17 @@ onMounted(async () => {
 }
 .reward-label-first {
   flex: 0 0 var(--label-first-width, 96px);
-  text-align: justify;
-  text-align-last: justify;
+  text-align: right;
 }
 .reward-label-second {
   flex: 0 0 var(--label-second-width, 80px);
   margin-left: 20px;
-  text-align: justify;
-  text-align-last: justify;
+  text-align: right;
 }
 .reward-label-third {
   flex: 0 0 var(--label-third-width, 40px);
   margin-left: 20px;
-  text-align: justify;
-  text-align-last: justify;
+  text-align: right;
 }
 .reward-input-first {
   width: 150px;
