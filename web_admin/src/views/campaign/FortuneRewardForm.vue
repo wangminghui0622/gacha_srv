@@ -48,16 +48,16 @@
                     </template>
                   </div>
                 </a-upload>
-                <a-button
+                <button
                   v-if="form.coverUrl"
-                  type="link"
-                  danger
-                  size="small"
+                  type="button"
                   class="cover-remove"
-                  @click="removeCover"
+                  title="删除封面"
+                  aria-label="删除封面"
+                  @click.stop.prevent="removeCover"
                 >
-                  删除
-                </a-button>
+                  <CloseOutlined />
+                </button>
               </div>
             </a-form-item>
           </a-form>
@@ -160,6 +160,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { message } from 'ant-design-vue'
+import { CloseOutlined } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 import { fortuneRewardClient } from '@/api/fortune'
@@ -636,15 +637,31 @@ onMounted(async () => {
   border-radius: 4px;
 }
 .cover-upload-wrap {
-  display: flex;
+  position: relative;
+  display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
 }
 .cover-remove {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
   padding: 0;
-  height: auto;
-  font-size: 13px;
+  font-size: 12px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.cover-remove:hover {
+  background: #ff4d4f;
 }
 .image-upload-box {
   display: flex;
