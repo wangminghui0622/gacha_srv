@@ -652,41 +652,40 @@ onMounted(async () => {
 }
 .cover-remove {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: -7px;
+  right: -7px;
   z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   padding: 0;
-  font-size: 12px;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.55);
+  font-size: 16px;
+  color: #ff4d4f;
+  background: transparent;
   border: none;
-  border-radius: 50%;
   cursor: pointer;
+  filter: drop-shadow(0 0 2px #fff);
 }
 .cover-remove:hover {
-  background: #ff4d4f;
+  color: #cf1322;
 }
 .reward-remove {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   padding: 0;
-  font-size: 12px;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.45);
+  font-size: 16px;
+  color: #ff4d4f;
+  background: transparent;
   border: none;
-  border-radius: 50%;
   cursor: pointer;
 }
 .reward-remove:hover {
-  background: #ff4d4f;
+  color: #cf1322;
 }
 .image-upload-box {
   display: flex;
