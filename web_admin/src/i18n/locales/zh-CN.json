@@ -1027,7 +1027,7 @@
     "startTime": "生效开始时间",
     "startTimeRequired": "请选择生效开始时间",
     "immediate": "立即",
-    "initialCount": "初始张数",
+    "totalCount": "总张数",
     "remainingCount": "剩余张数",
     "remainingShort": "剩余",
     "batchShort": "批次",

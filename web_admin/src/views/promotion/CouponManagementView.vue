@@ -86,7 +86,7 @@
           <a-table-column :title="$t('couponAdmin.couponTemplateName')" min-width="220" align="center">
             <template #default="{ record }">{{ poolTemplateText(record) }}</template>
           </a-table-column>
-          <a-table-column :title="$t('couponAdmin.initialCount')" width="110" align="center">
+          <a-table-column :title="$t('couponAdmin.totalCount')" width="110" align="center">
             <template #default="{ record }">{{ record.count ?? 0 }}</template>
           </a-table-column>
           <a-table-column :title="$t('couponAdmin.remainingCount')" width="110" align="center">
@@ -305,7 +305,7 @@
             @change="onRewardTemplateChange"
           />
         </a-form-item>
-        <a-form-item :label="$t('couponAdmin.couponCount')" required>
+        <a-form-item :label="drawForm.id ? $t('couponAdmin.totalCount') : $t('couponAdmin.couponCount')" required>
           <a-input-number v-model:value="drawForm.count" :min="1" :max="1000" :precision="0" :disabled="!!drawForm.id" style="width: 16em" />
         </a-form-item>
         <a-form-item v-if="drawForm.id" :label="$t('couponAdmin.remainingCount')">

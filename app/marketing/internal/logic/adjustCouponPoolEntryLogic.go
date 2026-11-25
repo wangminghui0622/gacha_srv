@@ -53,14 +53,18 @@ func (l *AdjustCouponPoolEntryLogic) AdjustCouponPoolEntry(in *marketing.AdjustC
 			}
 			return err
 		}
-		after := int64(row.RemainingCount) + int64(in.Delta)
-		if after < 0 {
+		afterRemaining := int64(row.RemainingCount) + int64(in.Delta)
+		afterTotal := int64(row.Count) + int64(in.Delta)
+		if afterRemaining < 0 {
 			return errorx.NewCodeErrorf(errorx.CodeCouponInvalid, "库存不足：当前剩余 %d，减少 %d", row.RemainingCount, -in.Delta)
 		}
-		if after > math.MaxInt32 {
+		if afterTotal < afterRemaining {
+			return errorx.NewCodeError(errorx.CodeCouponInvalid, "调整后总量不能小于剩余张数")
+		}
+		if afterRemaining > math.MaxInt32 || afterTotal > math.MaxInt32 {
 			return errorx.NewCodeError(errorx.CodeCouponInvalid, "调整后库存超出上限")
 		}
-		if err := repo.UpdateCouponPoolRemaining(tx, row.ID, int32(after)); err != nil {
+		if err := repo.UpdateCouponPoolStock(tx, row.ID, int32(afterTotal), int32(afterRemaining)); err != nil {
 			return err
 		}
 		eventType := "ADMIN_ADD"
@@ -72,7 +76,7 @@ func (l *AdjustCouponPoolEntryLogic) AdjustCouponPoolEntry(in *marketing.AdjustC
 			EventType:    eventType,
 			Delta:        in.Delta,
 			BeforeCount:  row.RemainingCount,
-			AfterCount:   int32(after),
+			AfterCount:   int32(afterRemaining),
 			OperatorType: operatorType,
 			OperatorID:   int64(in.OperatorId),
 			Remark:       in.Remark,

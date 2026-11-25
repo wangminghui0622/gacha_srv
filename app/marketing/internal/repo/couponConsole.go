@@ -276,10 +276,18 @@ func LockCouponPoolEntry(tx *gorm.DB, id int64) (*CouponPoolEntryRow, error) {
 	return &row, nil
 }
 
-// UpdateCouponPoolRemaining 写入库存调整结果（调用方已持有行锁）。
+// UpdateCouponPoolRemaining 写入发券扣减后的剩余量（调用方已持有行锁）。
 func UpdateCouponPoolRemaining(tx *gorm.DB, id int64, remaining int32) error {
 	return tx.Model(&CouponPoolEntryRow{}).Where("id = ?", id).
 		Update("remaining_count", remaining).Error
+}
+
+// UpdateCouponPoolStock 写入管理员增减后的总量与剩余量（调用方已持有行锁）。
+func UpdateCouponPoolStock(tx *gorm.DB, id int64, total, remaining int32) error {
+	return tx.Model(&CouponPoolEntryRow{}).Where("id = ?", id).Updates(map[string]any{
+		"count":           total,
+		"remaining_count": remaining,
+	}).Error
 }
 
 // InsertCouponLedger 写券池/用户券变动流水。

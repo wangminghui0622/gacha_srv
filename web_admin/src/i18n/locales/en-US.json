@@ -1027,7 +1027,7 @@
     "startTime": "Effective start time",
     "startTimeRequired": "Select the effective start time",
     "immediate": "Immediate",
-    "initialCount": "Initial count",
+    "totalCount": "Total count",
     "remainingCount": "Remaining",
     "remainingShort": "Remaining",
     "batchShort": "Batch",
