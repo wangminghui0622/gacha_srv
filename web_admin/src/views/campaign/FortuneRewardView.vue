@@ -1,150 +1,155 @@
 <template>
-  <section class="fortune-page">
-    <h2 class="fortune-title">设置吉祥值奖励</h2>
+  <div>
+    <PageHeader title="设置吉祥值奖励" />
+    <div class="fortune-page">
+      <div class="form-layout">
+        <div class="form-left">
+          <a-form :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" label-align="right">
+            <a-form-item label="名称" required>
+              <a-input v-model:value="form.name" :maxlength="128" placeholder="名称" />
+            </a-form-item>
+            <a-form-item label="兑换积分">
+              <a-input-number v-model:value="form.exchangePoints" :min="0" :precision="0" style="width: 100%" />
+            </a-form-item>
+            <a-form-item label="直购金额">
+              <a-input-number v-model:value="form.directBuyYuan" :min="0" :precision="2" style="width: 100%" />
+            </a-form-item>
+            <a-form-item label="库存">
+              <a-input-number v-model:value="form.stock" :min="0" :precision="0" style="width: 100%" />
+            </a-form-item>
+            <a-form-item label="开始时间">
+              <a-date-picker v-model:value="form.startAt" show-time format="YYYY-MM-DD HH:mm:ss" style="width: 100%" placeholder="请选择日期" />
+            </a-form-item>
+            <a-form-item label="结束时间">
+              <a-date-picker v-model:value="form.endAt" show-time format="YYYY-MM-DD HH:mm:ss" style="width: 100%" placeholder="请选择日期" />
+            </a-form-item>
+            <a-form-item label="返现金额">
+              <a-input-number v-model:value="form.cashbackYuan" :min="0" :precision="2" style="width: 100%" />
+            </a-form-item>
+            <a-form-item label="封面大图">
+              <a-upload :show-upload-list="false" accept="image/*" :before-upload="handleCoverUpload">
+                <div class="image-upload-box">
+                  <img v-if="form.coverUrl" :src="form.coverUrl" alt="" />
+                  <template v-else>
+                    <span class="upload-plus">+</span>
+                    <span>Upload</span>
+                  </template>
+                </div>
+              </a-upload>
+            </a-form-item>
+            <a-form-item label="标签">
+              <a-select v-model:value="form.tag" :options="tagOptions" allow-clear placeholder="请选择标签" />
+            </a-form-item>
+            <a-form-item label="是否开启">
+              <a-switch v-model:checked="form.enabled" />
+            </a-form-item>
+          </a-form>
+        </div>
 
-    <a-form class="fortune-form" :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }">
-      <a-form-item label="名称" required>
-        <a-input v-model:value="form.name" :maxlength="128" style="width: 280px" />
-      </a-form-item>
-      <a-form-item label="兑换积分">
-        <a-input-number v-model:value="form.exchangePoints" :min="0" :precision="0" style="width: 280px" />
-      </a-form-item>
-      <a-form-item label="直购金额">
-        <a-input-number v-model:value="form.directBuyYuan" :min="0" :precision="2" style="width: 280px" />
-      </a-form-item>
-      <a-form-item label="库存">
-        <a-input-number v-model:value="form.stock" :min="0" :precision="0" style="width: 280px" />
-      </a-form-item>
-      <a-form-item label="开始时间">
-        <a-date-picker v-model:value="form.startAt" show-time format="YYYY-MM-DD HH:mm:ss" style="width: 280px" />
-      </a-form-item>
-      <a-form-item label="结束时间">
-        <a-date-picker v-model:value="form.endAt" show-time format="YYYY-MM-DD HH:mm:ss" style="width: 280px" />
-      </a-form-item>
-      <a-form-item label="返现金额">
-        <a-input-number v-model:value="form.cashbackYuan" :min="0" :precision="2" style="width: 280px" />
-      </a-form-item>
+        <div class="form-right">
+          <div class="reward-section">
+            <div class="section-title">奖励配置：</div>
+            <div class="reward-builder-panel">
+              <div class="reward-line">
+                <span class="reward-label">吉祥值：</span>
+                <a-input-number v-model:value="builder.fortune" :min="0" :precision="0" style="width: 120px" />
+                <a-button :disabled="builder.fortune <= 0" @click="addFortune">添加</a-button>
+              </div>
+              <div class="reward-line">
+                <span class="reward-label">积分：</span>
+                <a-input-number v-model:value="builder.points" :min="0" :precision="0" style="width: 120px" />
+                <a-button :disabled="builder.points <= 0" @click="addPoints">添加</a-button>
+              </div>
+              <div class="reward-line">
+                <span class="reward-label">优惠券：</span>
+                <span class="inline-label">优惠券id:</span>
+                <a-input-number v-model:value="builder.couponId" :min="0" :precision="0" style="width: 150px" />
+                <span class="inline-label">自定义金额:</span>
+                <a-input-number v-model:value="builder.couponCustomYuan" :min="0" :precision="2" style="width: 100px" />
+                <span class="inline-label">数量:</span>
+                <a-input-number v-model:value="builder.couponQuantity" :min="1" :precision="0" style="width: 80px" />
+                <a-button :disabled="builder.couponId <= 0" @click="addCoupon">添加</a-button>
+              </div>
+              <div class="reward-line">
+                <span class="reward-label">物品：</span>
+                <span class="inline-label">物品id:</span>
+                <a-input-number v-model:value="builder.itemId" :min="0" :precision="0" style="width: 200px" />
+                <span class="inline-label">数量:</span>
+                <a-input-number v-model:value="builder.itemQuantity" :min="1" :precision="0" style="width: 80px" />
+                <a-button :disabled="builder.itemId <= 0" @click="addItem">添加</a-button>
+              </div>
+              <div class="reward-line">
+                <span class="reward-label">箱子：</span>
+                <span class="inline-label">箱子id:</span>
+                <a-input v-model:value="builder.boxId" style="width: 200px" />
+                <span class="inline-label">数量:</span>
+                <a-input-number v-model:value="builder.boxQuantity" :min="1" :precision="0" style="width: 80px" />
+                <a-button :disabled="!builder.boxId.trim()" @click="addBox">添加</a-button>
+              </div>
+              <div class="reward-line">
+                <span class="reward-label">对对碰外观：</span>
+                <span class="inline-label">外观id:</span>
+                <a-input-number v-model:value="builder.appearanceId" :min="0" :precision="0" style="width: 150px" />
+                <a-button :disabled="builder.appearanceId <= 0" @click="addAppearance">添加</a-button>
+              </div>
+            </div>
 
-      <a-form-item label="奖励" required>
-        <div class="fortune-reward-builder">
-          <div class="fortune-reward-line">
-            <span class="fortune-reward-label">吉祥值：</span>
-            <a-input-number v-model:value="builder.fortune" :min="0" :precision="0" style="width: 120px" />
-            <a-button size="small" :disabled="builder.fortune <= 0" @click="addFortune">添加</a-button>
-          </div>
-          <div class="fortune-reward-line">
-            <span class="fortune-reward-label">积分：</span>
-            <a-input-number v-model:value="builder.points" :min="0" :precision="0" style="width: 120px" />
-            <a-button size="small" :disabled="builder.points <= 0" @click="addPoints">添加</a-button>
-          </div>
-          <div class="fortune-reward-line">
-            <span class="fortune-reward-label">优惠券：</span>
-            <span class="fortune-inline-label">优惠券id:</span>
-            <a-input-number v-model:value="builder.couponId" :min="0" :precision="0" style="width: 150px" />
-            <span class="fortune-inline-label">自定义金额:</span>
-            <a-input-number v-model:value="builder.couponCustomYuan" :min="0" :precision="2" style="width: 100px" />
-            <span class="fortune-inline-label">数量:</span>
-            <a-input-number v-model:value="builder.couponQuantity" :min="1" :precision="0" style="width: 80px" />
-            <a-button size="small" :disabled="builder.couponId <= 0" @click="addCoupon">添加</a-button>
-          </div>
-          <div class="fortune-reward-line">
-            <span class="fortune-reward-label">物品：</span>
-            <span class="fortune-inline-label">物品id:</span>
-            <a-input-number v-model:value="builder.itemId" :min="0" :precision="0" style="width: 200px" />
-            <span class="fortune-inline-label">数量:</span>
-            <a-input-number v-model:value="builder.itemQuantity" :min="1" :precision="0" style="width: 80px" />
-            <a-button size="small" :disabled="builder.itemId <= 0" @click="addItem">添加</a-button>
-          </div>
-          <div class="fortune-reward-line">
-            <span class="fortune-reward-label">箱子：</span>
-            <span class="fortune-inline-label">箱子id:</span>
-            <a-input v-model:value="builder.boxId" style="width: 200px" />
-            <span class="fortune-inline-label">数量:</span>
-            <a-input-number v-model:value="builder.boxQuantity" :min="1" :precision="0" style="width: 80px" />
-            <a-button size="small" :disabled="!builder.boxId.trim()" @click="addBox">添加</a-button>
-          </div>
-          <div class="fortune-reward-line">
-            <span class="fortune-reward-label">对对碰外观：</span>
-            <span class="fortune-inline-label">外观id:</span>
-            <a-input-number v-model:value="builder.appearanceId" :min="0" :precision="0" style="width: 150px" />
-            <a-button size="small" :disabled="builder.appearanceId <= 0" @click="addAppearance">添加</a-button>
+            <a-table
+              :data-source="rewards"
+              :pagination="false"
+              :row-key="(record: RewardDraft) => record._key"
+              :scroll="{ x: 760 }"
+              size="small"
+              class="reward-table"
+              :locale="{ emptyText: '暂无数据' }"
+            >
+              <a-table-column title="ID" width="70" align="center">
+                <template #default="{ index }">{{ index }}</template>
+              </a-table-column>
+              <a-table-column title="类型" width="110" align="center">
+                <template #default="{ record }">{{ typeText(record.type) }}</template>
+              </a-table-column>
+              <a-table-column title="值" min-width="160" align="center">
+                <template #default="{ record }">{{ record.value || '-' }}</template>
+              </a-table-column>
+              <a-table-column title="名称" min-width="180" align="center">
+                <template #default="{ record }">{{ record.name || '-' }}</template>
+              </a-table-column>
+              <a-table-column title="缩略图" width="90" align="center">
+                <template #default="{ record }">
+                  <img v-if="record.thumbnail" :src="record.thumbnail" class="reward-thumb" alt="" />
+                  <span v-else>-</span>
+                </template>
+              </a-table-column>
+              <a-table-column title="补充参数" width="110" align="center">
+                <template #default="{ record }">{{ extraText(record) }}</template>
+              </a-table-column>
+              <a-table-column title="数量" width="80" align="center">
+                <template #default="{ record }">{{ record.quantity ?? 1 }}</template>
+              </a-table-column>
+              <a-table-column title="操作" width="90" align="center">
+                <template #default="{ index }">
+                  <a-button type="link" danger size="small" @click="removeReward(index)">删除</a-button>
+                </template>
+              </a-table-column>
+            </a-table>
           </div>
         </div>
-      </a-form-item>
+      </div>
 
-      <a-form-item label=" ">
-        <a-table
-          :data-source="rewards"
-          :pagination="false"
-          :row-key="(record: RewardDraft) => record._key"
-          :scroll="{ x: 900 }"
-          size="small"
-        >
-          <a-table-column title="ID" width="70" align="center">
-            <template #default="{ index }">{{ index }}</template>
-          </a-table-column>
-          <a-table-column title="类型" width="120" align="center">
-            <template #default="{ record }">{{ typeText(record.type) }}</template>
-          </a-table-column>
-          <a-table-column title="值" min-width="180" align="center">
-            <template #default="{ record }">{{ record.value || '-' }}</template>
-          </a-table-column>
-          <a-table-column title="名称" min-width="180" align="center">
-            <template #default="{ record }">{{ record.name || '-' }}</template>
-          </a-table-column>
-          <a-table-column title="缩略图" width="110" align="center">
-            <template #default="{ record }">
-              <img v-if="record.thumbnail" :src="record.thumbnail" class="fortune-thumb" alt="" />
-              <span v-else>-</span>
-            </template>
-          </a-table-column>
-          <a-table-column title="补充参数" width="130" align="center">
-            <template #default="{ record }">{{ extraText(record) }}</template>
-          </a-table-column>
-          <a-table-column title="数量" width="90" align="center">
-            <template #default="{ record }">{{ record.quantity ?? 1 }}</template>
-          </a-table-column>
-          <a-table-column title="操作" width="100" align="center">
-            <template #default="{ index }">
-              <a-button danger size="small" @click="removeReward(index)">删除</a-button>
-            </template>
-          </a-table-column>
-        </a-table>
-      </a-form-item>
-
-      <a-form-item label="封面大图">
-        <a-upload :show-upload-list="false" accept="image/*" :before-upload="handleCoverUpload">
-          <div class="fortune-cover">
-            <img v-if="form.coverUrl" :src="form.coverUrl" alt="" />
-            <div v-else class="fortune-cover-placeholder">
-              <span class="fortune-plus">+</span>
-              <span>Upload</span>
-            </div>
-          </div>
-        </a-upload>
-      </a-form-item>
-
-      <a-form-item label="标签">
-        <a-select v-model:value="form.tag" :options="tagOptions" allow-clear placeholder="请选择标签" style="width: 280px" />
-      </a-form-item>
-
-      <a-form-item label="是否开启">
-        <a-switch v-model:checked="form.enabled" />
-      </a-form-item>
-    </a-form>
-
-    <div class="fortune-actions">
-      <a-button type="primary" :loading="saving" @click="submit">确定</a-button>
-      <a-button style="margin-left: 12px" @click="resetForm">重置</a-button>
+      <div class="create-actions">
+        <a-button class="btn-create" type="primary" :loading="saving" @click="submit">确定</a-button>
+        <a-button @click="resetForm">重置</a-button>
+      </div>
     </div>
-
-  </section>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
+import PageHeader from '@/components/PageHeader.vue'
 import type { Dayjs } from 'dayjs'
 import { fortuneRewardClient } from '@/api/fortune'
 import type { FortuneRewardItem } from '@/api/fortune'
@@ -438,83 +443,112 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .fortune-page {
-  padding: 20px 24px;
+  padding: 20px 24px 32px;
   background: #fff;
-  min-height: calc(100vh - 128px);
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
 }
-.fortune-title {
-  margin: 0 0 24px;
-  font-size: 18px;
-  font-weight: 600;
+.form-layout {
+  display: grid;
+  grid-template-columns: clamp(360px, 32%, 480px) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
 }
-.fortune-form :deep(.ant-form-item-label) {
-  width: 130px;
-  flex: 0 0 130px;
-  text-align: right;
+.form-left,
+.form-right {
+  min-width: 0;
 }
-.fortune-form :deep(.ant-form-item-label > label) {
-  font-size: 15px;
+.form-left :deep(.ant-form-item) {
+  margin-bottom: 16px;
 }
-.fortune-form :deep(.ant-form-item) {
-  margin-bottom: 18px;
-}
-.fortune-reward-builder {
+.reward-section {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-height: 100%;
 }
-.fortune-reward-line {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.fortune-reward-label {
-  width: 110px;
-  text-align: right;
+.section-title {
   font-size: 15px;
-}
-.fortune-inline-label {
-  font-size: 15px;
+  font-weight: 600;
   color: #303133;
 }
-.fortune-thumb {
-  width: 48px;
-  height: 48px;
+.reward-builder-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+}
+.reward-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.reward-label {
+  width: 96px;
+  text-align: right;
+  font-size: 14px;
+  color: #303133;
+}
+.inline-label {
+  font-size: 14px;
+  color: #303133;
+}
+.reward-table {
+  border: 1px solid #f0f0f0;
+}
+.reward-thumb {
+  width: 44px;
+  height: 44px;
   object-fit: cover;
   border-radius: 4px;
 }
-.fortune-cover {
-  width: 90px;
-  height: 90px;
-  border: 1px dashed #d9d9d9;
-  border-radius: 6px;
-  overflow: hidden;
+.image-upload-box {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: 96px;
+  height: 96px;
+  overflow: hidden;
+  color: #8c8c8c;
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
   background: #fafafa;
-  cursor: pointer;
 }
-.fortune-cover img {
+.image-upload-box img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.fortune-cover-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  color: #909399;
-  font-size: 13px;
-}
-.fortune-plus {
-  font-size: 24px;
+.upload-plus {
+  margin-bottom: 4px;
+  font-size: 22px;
   line-height: 1;
 }
-.fortune-actions {
-  margin-left: 130px;
-  margin-top: 8px;
+.create-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0 0;
+}
+.create-actions button {
+  min-width: 72px;
+}
+.btn-create {
+  background: #42b983 !important;
+  border-color: #42b983 !important;
+}
+.btn-create:hover {
+  background: #36a374 !important;
+  border-color: #36a374 !important;
+}
+@media (max-width: 900px) {
+  .form-layout {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
