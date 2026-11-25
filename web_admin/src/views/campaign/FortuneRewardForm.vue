@@ -51,6 +51,16 @@
                 <button
                   v-if="form.coverUrl"
                   type="button"
+                  class="cover-preview"
+                  title="预览封面"
+                  aria-label="预览封面"
+                  @click.stop.prevent="coverPreviewOpen = true"
+                >
+                  <EyeOutlined />
+                </button>
+                <button
+                  v-if="form.coverUrl"
+                  type="button"
                   class="cover-remove"
                   title="移除封面"
                   aria-label="移除封面"
@@ -162,13 +172,24 @@
       <a-button class="btn-create" type="primary" :loading="saving" @click="submit">确定</a-button>
       <a-button @click="handleReset">重置</a-button>
     </div>
+
+    <a-modal
+      v-model:open="coverPreviewOpen"
+      title="封面预览"
+      :footer="null"
+      :width="800"
+      :style="{ maxWidth: '92vw' }"
+      centered
+    >
+      <img v-if="form.coverUrl" :src="form.coverUrl" class="cover-preview-image" alt="封面预览" />
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { message } from 'ant-design-vue'
-import { CloseOutlined } from '@ant-design/icons-vue'
+import { CloseOutlined, EyeOutlined } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 import { fortuneRewardClient } from '@/api/fortune'
@@ -189,6 +210,7 @@ const emit = defineEmits<{ (e: 'success'): void }>()
 
 const session = useSessionStore()
 const saving = ref(false)
+const coverPreviewOpen = ref(false)
 const couponTemplates = ref<CouponTemplate[]>([])
 const panelRef = ref<HTMLElement | null>(null)
 const labelWidths = reactive({ first: 96, second: 80, third: 40 })
@@ -653,10 +675,10 @@ onMounted(async () => {
   height: 96px;
   line-height: 0;
 }
-.cover-remove {
+.cover-remove,
+.cover-preview {
   position: absolute;
   top: 4px;
-  right: 4px;
   z-index: 2;
   display: flex;
   align-items: center;
@@ -675,12 +697,27 @@ onMounted(async () => {
   box-shadow: none;
   outline: none;
 }
-.cover-upload-wrap:hover .cover-remove {
+.cover-remove {
+  right: 4px;
+}
+.cover-preview {
+  left: 4px;
+}
+.cover-upload-wrap:hover .cover-remove,
+.cover-upload-wrap:hover .cover-preview {
   opacity: 1;
   pointer-events: auto;
 }
-.cover-remove:hover {
+.cover-remove:hover,
+.cover-preview:hover {
   color: #cf1322;
+}
+.cover-preview-image {
+  display: block;
+  max-width: 100%;
+  max-height: 75vh;
+  margin: 0 auto;
+  object-fit: contain;
 }
 .reward-remove {
   display: inline-flex;
