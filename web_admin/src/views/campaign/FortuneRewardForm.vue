@@ -49,12 +49,12 @@
             <div class="section-title">奖励配置：</div>
             <div class="reward-builder-panel">
               <div class="reward-line">
-                <span class="reward-label">吉祥值：</span>
+                <span class="inline-label">吉祥值：</span>
                 <a-input-number v-model:value="builder.fortune" :min="0" :precision="0" style="width: 120px" />
                 <a-button :disabled="builder.fortune <= 0" @click="addFortune">添加</a-button>
               </div>
               <div class="reward-line">
-                <span class="reward-label">积分：</span>
+                <span class="inline-label">积分：</span>
                 <a-input-number v-model:value="builder.points" :min="0" :precision="0" style="width: 120px" />
                 <a-button :disabled="builder.points <= 0" @click="addPoints">添加</a-button>
               </div>
@@ -520,12 +520,6 @@ onMounted(async () => {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-}
-.reward-label {
-  width: 96px;
-  text-align: right;
-  font-size: 14px;
-  color: #303133;
 }
 .inline-label {
   font-size: 14px;
