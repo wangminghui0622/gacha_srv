@@ -50,40 +50,40 @@
             <div class="reward-builder-panel">
               <div class="reward-line">
                 <span class="inline-label reward-label-first">吉祥值：</span>
-                <a-input-number v-model:value="builder.fortune" class="reward-input-lg" :min="0" :precision="0" />
+                <a-input-number v-model:value="builder.fortune" class="reward-input-first" :min="0" :precision="0" />
                 <a-button :disabled="builder.fortune <= 0" @click="addFortune">添加</a-button>
               </div>
               <div class="reward-line">
                 <span class="inline-label reward-label-first">积分：</span>
-                <a-input-number v-model:value="builder.points" class="reward-input-lg" :min="0" :precision="0" />
+                <a-input-number v-model:value="builder.points" class="reward-input-first" :min="0" :precision="0" />
                 <a-button :disabled="builder.points <= 0" @click="addPoints">添加</a-button>
               </div>
               <div class="reward-line">
                 <span class="inline-label reward-label-first">优惠券id:</span>
-                <a-input-number v-model:value="builder.couponId" class="reward-input-lg" :min="0" :precision="0" />
+                <a-input-number v-model:value="builder.couponId" class="reward-input-first" :min="0" :precision="0" />
                 <span class="inline-label reward-label-second">自定义金额:</span>
-                <a-input-number v-model:value="builder.couponCustomYuan" class="reward-input-md" :min="0" :precision="2" />
+                <a-input-number v-model:value="builder.couponCustomYuan" class="reward-input-second" :min="0" :precision="2" />
                 <span class="inline-label reward-label-third">数量:</span>
-                <a-input-number v-model:value="builder.couponQuantity" class="reward-input-sm" :min="1" :precision="0" />
+                <a-input-number v-model:value="builder.couponQuantity" class="reward-input-third" :min="1" :precision="0" />
                 <a-button :disabled="builder.couponId <= 0" @click="addCoupon">添加</a-button>
               </div>
               <div class="reward-line">
                 <span class="inline-label reward-label-first">物品id:</span>
-                <a-input-number v-model:value="builder.itemId" class="reward-input-lg" :min="0" :precision="0" />
+                <a-input-number v-model:value="builder.itemId" class="reward-input-first" :min="0" :precision="0" />
                 <span class="inline-label reward-label-second">数量:</span>
-                <a-input-number v-model:value="builder.itemQuantity" class="reward-input-md" :min="1" :precision="0" />
+                <a-input-number v-model:value="builder.itemQuantity" class="reward-input-second" :min="1" :precision="0" />
                 <a-button :disabled="builder.itemId <= 0" @click="addItem">添加</a-button>
               </div>
               <div class="reward-line">
                 <span class="inline-label reward-label-first">箱子id:</span>
-                <a-input v-model:value="builder.boxId" class="reward-input-lg" />
+                <a-input v-model:value="builder.boxId" class="reward-input-first" />
                 <span class="inline-label reward-label-second">数量:</span>
-                <a-input-number v-model:value="builder.boxQuantity" class="reward-input-md" :min="1" :precision="0" />
+                <a-input-number v-model:value="builder.boxQuantity" class="reward-input-second" :min="1" :precision="0" />
                 <a-button :disabled="!builder.boxId.trim()" @click="addBox">添加</a-button>
               </div>
               <div class="reward-line">
                 <span class="inline-label reward-label-first">对对碰外观id:</span>
-                <a-input-number v-model:value="builder.appearanceId" class="reward-input-lg" :min="0" :precision="0" />
+                <a-input-number v-model:value="builder.appearanceId" class="reward-input-first" :min="0" :precision="0" />
                 <a-button :disabled="builder.appearanceId <= 0" @click="addAppearance">添加</a-button>
               </div>
             </div>
@@ -531,17 +531,19 @@ onMounted(async () => {
 }
 .reward-label-second {
   flex: 0 0 80px;
+  margin-left: 20px;
 }
 .reward-label-third {
   flex: 0 0 40px;
+  margin-left: 20px;
 }
-.reward-input-lg {
-  width: 160px;
+.reward-input-first {
+  width: 150px;
 }
-.reward-input-md {
-  width: 100px;
+.reward-input-second {
+  width: 90px;
 }
-.reward-input-sm {
+.reward-input-third {
   width: 70px;
 }
 .reward-table {
