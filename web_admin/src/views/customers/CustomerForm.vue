@@ -75,13 +75,44 @@ const form = reactive({
   identity: '用户',
 })
 
+async function compressAvatar(file: File): Promise<File> {
+  if (!file.type.startsWith('image/')) return file
+  try {
+    const bitmap = await createImageBitmap(file)
+    const maxSize = 512
+    const scale = Math.min(1, maxSize / Math.max(bitmap.width, bitmap.height))
+    if (scale === 1 && file.size <= 1024 * 1024) {
+      bitmap.close()
+      return file
+    }
+    const width = Math.max(1, Math.round(bitmap.width * scale))
+    const height = Math.max(1, Math.round(bitmap.height * scale))
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d')
+    if (!ctx) {
+      bitmap.close()
+      return file
+    }
+    ctx.drawImage(bitmap, 0, 0, width, height)
+    bitmap.close()
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9))
+    if (!blob) return file
+    return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' })
+  } catch {
+    return file
+  }
+}
+
 async function handleAvatarUpload(file: File) {
   try {
-    const result = await uploadFileToOss(file, 'avatar')
+    const uploadFile = await compressAvatar(file)
+    const result = await uploadFileToOss(uploadFile, 'avatar')
     if (result.url) form.avatarUrl = result.url
     message.success('头像上传成功')
   } catch {
-    message.error('头像上传失败')
+    // 错误提示由请求层统一处理
   }
   return false
 }
