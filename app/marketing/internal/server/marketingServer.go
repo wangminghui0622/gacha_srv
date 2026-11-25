@@ -139,6 +139,21 @@ func (s *MarketingServer) UpsertFortuneReward(ctx context.Context, in *marketing
 	return l.UpsertFortuneReward(in)
 }
 
+func (s *MarketingServer) ListActivities(ctx context.Context, in *marketing.ListActivitiesRequest) (*marketing.ListActivitiesReply, error) {
+	l := logic.NewListActivitiesLogic(ctx, s.svcCtx)
+	return l.ListActivities(in)
+}
+
+func (s *MarketingServer) GetActivity(ctx context.Context, in *marketing.GetActivityRequest) (*marketing.Activity, error) {
+	l := logic.NewGetActivityLogic(ctx, s.svcCtx)
+	return l.GetActivity(in)
+}
+
+func (s *MarketingServer) UpsertActivity(ctx context.Context, in *marketing.UpsertActivityRequest) (*marketing.Activity, error) {
+	l := logic.NewUpsertActivityLogic(ctx, s.svcCtx)
+	return l.UpsertActivity(in)
+}
+
 func (s *MarketingServer) GrantCoupons(ctx context.Context, in *marketing.GrantCouponsRequest) (*marketing.GrantCouponsReply, error) {
 	l := logic.NewGrantCouponsLogic(ctx, s.svcCtx)
 	return l.GrantCoupons(in)

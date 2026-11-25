@@ -439,7 +439,7 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     permission: { resource: 'campaign.definition', action: 'read' },
     showInMenu: false,
     backFallback: '/system',
-    component: () => import('@/views/campaign/CampaignManagementView.vue'),
+    component: () => import('@/views/campaign/ActivityListView.vue'),
   },
   {
     name: 'system-coupons',

@@ -342,6 +342,10 @@ func mapCodeError(ce *errorx.CodeError) (int, string) {
 		return http.StatusNotFound, "FORTUNE_REWARD_NOT_FOUND"
 	case errorx.CodeFortuneRewardInvalid:
 		return http.StatusBadRequest, "FORTUNE_REWARD_INVALID"
+	case errorx.CodeActivityNotFound:
+		return http.StatusNotFound, "ACTIVITY_NOT_FOUND"
+	case errorx.CodeActivityInvalid:
+		return http.StatusBadRequest, "ACTIVITY_INVALID"
 	// ── M14d 条件政策/风控控制台（base 域 5000 段）──
 	case errorx.CodePolicyNotFound:
 		return http.StatusNotFound, "POLICY_NOT_FOUND"

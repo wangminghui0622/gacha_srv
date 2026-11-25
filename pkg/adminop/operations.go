@@ -114,6 +114,10 @@ func All() []Operation {
 		{ID: "console.campaign.createfortunereward", Resource: "campaign.definition", Action: "write", Method: "POST", Path: "/campaigns/fortune-rewards", Title: "创建吉祥值奖励配置"},
 		{ID: "console.campaign.getfortunereward", Resource: "campaign.definition", Action: "read", Method: "GET", Path: "/campaigns/fortune-rewards/:id", Title: "吉祥值奖励配置详情"},
 		{ID: "console.campaign.updatefortunereward", Resource: "campaign.definition", Action: "write", Method: "PUT", Path: "/campaigns/fortune-rewards/:id", Title: "编辑吉祥值奖励配置"},
+		{ID: "console.system.listactivities", Resource: "campaign.definition", Action: "read", Method: "GET", Path: "/activities", Title: "活动列表"},
+		{ID: "console.system.createactivity", Resource: "campaign.definition", Action: "write", Method: "POST", Path: "/activities", Title: "创建活动"},
+		{ID: "console.system.getactivity", Resource: "campaign.definition", Action: "read", Method: "GET", Path: "/activities/:id", Title: "活动详情"},
+		{ID: "console.system.updateactivity", Resource: "campaign.definition", Action: "write", Method: "PUT", Path: "/activities/:id", Title: "编辑活动"},
 		{ID: "console.campaign.publish", Resource: "campaign.definition", Action: "publish", Method: "POST", Path: "/campaigns/:campaignId/publish", Title: "发布活动"},
 		{ID: "console.campaign.get", Resource: "campaign.definition", Action: "read", Method: "GET", Path: "/campaigns/:campaignId", Title: "查看活动"},
 		// ── 条件政策（ConsoleEligibilityHTTPService，resource: eligibility.policy）──

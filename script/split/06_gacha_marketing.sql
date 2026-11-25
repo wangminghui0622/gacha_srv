@@ -427,3 +427,25 @@ CREATE TABLE IF NOT EXISTS `fortune_rewards` (
   PRIMARY KEY (`id`),
   KEY `idx_enabled` (`enabled`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='吉祥值奖励配置';
+
+
+CREATE TABLE IF NOT EXISTS `activities` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `activity_key` varchar(64) NOT NULL DEFAULT '' COMMENT '活动Key',
+  `name` varchar(128) NOT NULL DEFAULT '' COMMENT '活动名称',
+  `description` varchar(512) NOT NULL DEFAULT '' COMMENT '活动描述',
+  `protocol` varchar(64) NOT NULL DEFAULT '' COMMENT '协议',
+  `enabled` tinyint NOT NULL DEFAULT '0' COMMENT '是否开启',
+  `start_at` datetime DEFAULT NULL COMMENT '活动开始时间',
+  `end_at` datetime DEFAULT NULL COMMENT '活动结束时间',
+  `daily_start` varchar(8) NOT NULL DEFAULT '' COMMENT '每日开始时间 HH:mm:ss',
+  `daily_end` varchar(8) NOT NULL DEFAULT '' COMMENT '每日结束时间 HH:mm:ss',
+  `images_json` text NOT NULL COMMENT '活动图片列表 JSON',
+  `image_map_json` text NOT NULL COMMENT '活动图片Map JSON',
+  `params_json` text NOT NULL COMMENT '活动参数Map JSON',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_activity_key` (`activity_key`),
+  KEY `idx_enabled` (`enabled`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='活动列表';

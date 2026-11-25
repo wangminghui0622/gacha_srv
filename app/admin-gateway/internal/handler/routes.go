@@ -106,6 +106,30 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: promotion.CreateFortuneRewardHandler(serverCtx),
 				},
 				{
+					// 活动列表（campaign.definition:read）
+					Method:  http.MethodGet,
+					Path:    "/activities",
+					Handler: promotion.ListActivitiesHandler(serverCtx),
+				},
+				{
+					// 创建活动（campaign.definition:write）
+					Method:  http.MethodPost,
+					Path:    "/activities",
+					Handler: promotion.CreateActivityHandler(serverCtx),
+				},
+				{
+					// 活动详情（campaign.definition:read）
+					Method:  http.MethodGet,
+					Path:    "/activities/:id",
+					Handler: promotion.GetActivityHandler(serverCtx),
+				},
+				{
+					// 编辑活动（campaign.definition:write）
+					Method:  http.MethodPut,
+					Path:    "/activities/:id",
+					Handler: promotion.UpdateActivityHandler(serverCtx),
+				},
+				{
 					// 吉祥值奖励配置详情（campaign.definition:read）
 					Method:  http.MethodGet,
 					Path:    "/campaigns/fortune-rewards/:id",

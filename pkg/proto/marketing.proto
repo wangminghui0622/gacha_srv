@@ -51,6 +51,10 @@ service Marketing {
     rpc ListFortuneRewards(ListFortuneRewardsRequest) returns (ListFortuneRewardsReply);
     rpc GetFortuneReward(GetFortuneRewardRequest) returns (FortuneReward);
     rpc UpsertFortuneReward(UpsertFortuneRewardRequest) returns (FortuneReward);
+    // ── 活动列表 ──
+    rpc ListActivities(ListActivitiesRequest) returns (ListActivitiesReply);
+    rpc GetActivity(GetActivityRequest) returns (Activity);
+    rpc UpsertActivity(UpsertActivityRequest) returns (Activity);
     rpc GrantCoupons(GrantCouponsRequest) returns (GrantCouponsReply);
     rpc GetTenantLoyaltyDefaults(GetTenantLoyaltyDefaultsRequest) returns (TenantLoyaltyDefaults);
     rpc PutTenantLoyaltyDefaults(PutTenantLoyaltyDefaultsRequest) returns (TenantLoyaltyDefaults);
@@ -692,6 +696,47 @@ message UpsertFortuneRewardRequest {
     string requestId = 1;
     uint64 tenantId = 2;
     FortuneReward reward = 3;
+}
+
+message Activity {
+    uint64 id = 1;
+    string activityKey = 2;
+    string name = 3;
+    string description = 4;
+    string protocol = 5;
+    bool enabled = 6;
+    int64 startAtUnixMillis = 7;
+    int64 endAtUnixMillis = 8;
+    string dailyStart = 9;   // HH:mm:ss
+    string dailyEnd = 10;    // HH:mm:ss
+    repeated string images = 11;
+    map<string, string> imageMap = 12;
+    map<string, string> params = 13;
+    uint64 createdAtUnixMillis = 14;
+    uint64 updatedAtUnixMillis = 15;
+}
+
+message ListActivitiesRequest {
+    uint64 tenantId = 1;
+    uint32 page = 2;
+    uint32 pageSize = 3;
+    string keyword = 4;
+}
+
+message ListActivitiesReply {
+    repeated Activity items = 1;
+    uint64 total = 2;
+}
+
+message GetActivityRequest {
+    uint64 tenantId = 1;
+    uint64 id = 2;
+}
+
+message UpsertActivityRequest {
+    string requestId = 1;
+    uint64 tenantId = 2;
+    Activity activity = 3;
 }
 
 enum UserCouponStatus {

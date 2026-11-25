@@ -40,6 +40,9 @@ const (
 	Marketing_ListFortuneRewards_FullMethodName          = "/marketing.Marketing/ListFortuneRewards"
 	Marketing_GetFortuneReward_FullMethodName            = "/marketing.Marketing/GetFortuneReward"
 	Marketing_UpsertFortuneReward_FullMethodName         = "/marketing.Marketing/UpsertFortuneReward"
+	Marketing_ListActivities_FullMethodName              = "/marketing.Marketing/ListActivities"
+	Marketing_GetActivity_FullMethodName                 = "/marketing.Marketing/GetActivity"
+	Marketing_UpsertActivity_FullMethodName              = "/marketing.Marketing/UpsertActivity"
 	Marketing_GrantCoupons_FullMethodName                = "/marketing.Marketing/GrantCoupons"
 	Marketing_GetTenantLoyaltyDefaults_FullMethodName    = "/marketing.Marketing/GetTenantLoyaltyDefaults"
 	Marketing_PutTenantLoyaltyDefaults_FullMethodName    = "/marketing.Marketing/PutTenantLoyaltyDefaults"
@@ -97,6 +100,10 @@ type MarketingClient interface {
 	ListFortuneRewards(ctx context.Context, in *ListFortuneRewardsRequest, opts ...grpc.CallOption) (*ListFortuneRewardsReply, error)
 	GetFortuneReward(ctx context.Context, in *GetFortuneRewardRequest, opts ...grpc.CallOption) (*FortuneReward, error)
 	UpsertFortuneReward(ctx context.Context, in *UpsertFortuneRewardRequest, opts ...grpc.CallOption) (*FortuneReward, error)
+	// ── 活动列表 ──
+	ListActivities(ctx context.Context, in *ListActivitiesRequest, opts ...grpc.CallOption) (*ListActivitiesReply, error)
+	GetActivity(ctx context.Context, in *GetActivityRequest, opts ...grpc.CallOption) (*Activity, error)
+	UpsertActivity(ctx context.Context, in *UpsertActivityRequest, opts ...grpc.CallOption) (*Activity, error)
 	GrantCoupons(ctx context.Context, in *GrantCouponsRequest, opts ...grpc.CallOption) (*GrantCouponsReply, error)
 	GetTenantLoyaltyDefaults(ctx context.Context, in *GetTenantLoyaltyDefaultsRequest, opts ...grpc.CallOption) (*TenantLoyaltyDefaults, error)
 	PutTenantLoyaltyDefaults(ctx context.Context, in *PutTenantLoyaltyDefaultsRequest, opts ...grpc.CallOption) (*TenantLoyaltyDefaults, error)
@@ -313,6 +320,33 @@ func (c *marketingClient) UpsertFortuneReward(ctx context.Context, in *UpsertFor
 	return out, nil
 }
 
+func (c *marketingClient) ListActivities(ctx context.Context, in *ListActivitiesRequest, opts ...grpc.CallOption) (*ListActivitiesReply, error) {
+	out := new(ListActivitiesReply)
+	err := c.cc.Invoke(ctx, Marketing_ListActivities_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *marketingClient) GetActivity(ctx context.Context, in *GetActivityRequest, opts ...grpc.CallOption) (*Activity, error) {
+	out := new(Activity)
+	err := c.cc.Invoke(ctx, Marketing_GetActivity_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *marketingClient) UpsertActivity(ctx context.Context, in *UpsertActivityRequest, opts ...grpc.CallOption) (*Activity, error) {
+	out := new(Activity)
+	err := c.cc.Invoke(ctx, Marketing_UpsertActivity_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *marketingClient) GrantCoupons(ctx context.Context, in *GrantCouponsRequest, opts ...grpc.CallOption) (*GrantCouponsReply, error) {
 	out := new(GrantCouponsReply)
 	err := c.cc.Invoke(ctx, Marketing_GrantCoupons_FullMethodName, in, out, opts...)
@@ -456,6 +490,10 @@ type MarketingServer interface {
 	ListFortuneRewards(context.Context, *ListFortuneRewardsRequest) (*ListFortuneRewardsReply, error)
 	GetFortuneReward(context.Context, *GetFortuneRewardRequest) (*FortuneReward, error)
 	UpsertFortuneReward(context.Context, *UpsertFortuneRewardRequest) (*FortuneReward, error)
+	// ── 活动列表 ──
+	ListActivities(context.Context, *ListActivitiesRequest) (*ListActivitiesReply, error)
+	GetActivity(context.Context, *GetActivityRequest) (*Activity, error)
+	UpsertActivity(context.Context, *UpsertActivityRequest) (*Activity, error)
 	GrantCoupons(context.Context, *GrantCouponsRequest) (*GrantCouponsReply, error)
 	GetTenantLoyaltyDefaults(context.Context, *GetTenantLoyaltyDefaultsRequest) (*TenantLoyaltyDefaults, error)
 	PutTenantLoyaltyDefaults(context.Context, *PutTenantLoyaltyDefaultsRequest) (*TenantLoyaltyDefaults, error)
@@ -542,6 +580,15 @@ func (UnimplementedMarketingServer) GetFortuneReward(context.Context, *GetFortun
 }
 func (UnimplementedMarketingServer) UpsertFortuneReward(context.Context, *UpsertFortuneRewardRequest) (*FortuneReward, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpsertFortuneReward not implemented")
+}
+func (UnimplementedMarketingServer) ListActivities(context.Context, *ListActivitiesRequest) (*ListActivitiesReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListActivities not implemented")
+}
+func (UnimplementedMarketingServer) GetActivity(context.Context, *GetActivityRequest) (*Activity, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetActivity not implemented")
+}
+func (UnimplementedMarketingServer) UpsertActivity(context.Context, *UpsertActivityRequest) (*Activity, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpsertActivity not implemented")
 }
 func (UnimplementedMarketingServer) GrantCoupons(context.Context, *GrantCouponsRequest) (*GrantCouponsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GrantCoupons not implemented")
@@ -967,6 +1014,60 @@ func _Marketing_UpsertFortuneReward_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Marketing_ListActivities_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListActivitiesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MarketingServer).ListActivities(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Marketing_ListActivities_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MarketingServer).ListActivities(ctx, req.(*ListActivitiesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Marketing_GetActivity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetActivityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MarketingServer).GetActivity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Marketing_GetActivity_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MarketingServer).GetActivity(ctx, req.(*GetActivityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Marketing_UpsertActivity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpsertActivityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MarketingServer).UpsertActivity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Marketing_UpsertActivity_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MarketingServer).UpsertActivity(ctx, req.(*UpsertActivityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Marketing_GrantCoupons_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GrantCouponsRequest)
 	if err := dec(in); err != nil {
@@ -1255,6 +1356,18 @@ var Marketing_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpsertFortuneReward",
 			Handler:    _Marketing_UpsertFortuneReward_Handler,
+		},
+		{
+			MethodName: "ListActivities",
+			Handler:    _Marketing_ListActivities_Handler,
+		},
+		{
+			MethodName: "GetActivity",
+			Handler:    _Marketing_GetActivity_Handler,
+		},
+		{
+			MethodName: "UpsertActivity",
+			Handler:    _Marketing_UpsertActivity_Handler,
 		},
 		{
 			MethodName: "GrantCoupons",
