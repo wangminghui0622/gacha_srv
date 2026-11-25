@@ -145,8 +145,8 @@
       v-model:open="editorOpen"
       title="设置吉祥值奖励"
       :footer="null"
-      :width="1120"
-      :style="{ maxWidth: '96vw' }"
+      width="96vw"
+      :style="{ maxWidth: '1800px' }"
       :body-style="{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', padding: '8px 24px 12px' }"
       :mask-closable="false"
       centered
