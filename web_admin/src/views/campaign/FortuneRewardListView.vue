@@ -146,9 +146,10 @@
       title="设置吉祥值奖励"
       :footer="null"
       :width="1120"
-      :style="{ top: '48px' }"
-      :body-style="{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }"
+      :style="{ maxWidth: '96vw' }"
+      :body-style="{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', padding: '8px 24px 12px' }"
       :mask-closable="false"
+      centered
       destroy-on-close
     >
       <FortuneRewardForm :key="editorKey" :record="editingRecord" @success="onEditorSuccess" />
