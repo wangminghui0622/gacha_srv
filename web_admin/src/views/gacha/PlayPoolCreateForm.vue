@@ -142,6 +142,8 @@
                 :probability="probability"
                 :custom-row="prizeCustomRow"
                 :show-target="form.mode === 'memorymatch'"
+                :show-special="isSpecialMode"
+                :show-reward="isSpecialMode"
                 @toggle="togglePrizeExpand"
                 @remove="confirmRemove"
                 @target-change="setPrizeTarget"
@@ -173,6 +175,58 @@
               </div>
               <span class="inline-label">中奖记录展示：</span>
               <a-switch v-model:checked="prizeDraft.isPrize" />
+            </div>
+
+            <div v-if="isSpecialMode" class="special-prize-panel">
+              <div class="special-title">特别赏配置：</div>
+              <div class="special-row">
+                <a-select
+                  v-if="form.mode === 'gashapon'"
+                  v-model:value="specialDraft.kind"
+                  :options="gashaponSpecialOptions"
+                  style="width: 110px"
+                />
+                <a-select
+                  v-else
+                  v-model:value="specialDraft.settlementType"
+                  :options="fullcarSettlementOptions"
+                  style="width: 130px"
+                />
+                <a-select
+                  v-model:value="specialDraft.rewardType"
+                  :options="rewardTypeOptions"
+                  style="width: 90px"
+                />
+                <a-input-number
+                  v-if="specialDraft.rewardType === 'cash'"
+                  v-model:value="specialDraft.cashYuan"
+                  :min="0"
+                  :precision="2"
+                  :controls="false"
+                  placeholder="金额"
+                  style="width: 100px"
+                />
+                <a-input-number
+                  v-else-if="specialDraft.rewardType === 'points'"
+                  v-model:value="specialDraft.pointsAmount"
+                  :min="0"
+                  :precision="0"
+                  :controls="false"
+                  placeholder="积分"
+                  style="width: 100px"
+                />
+                <a-input
+                  v-else
+                  v-model:value="specialDraft.couponTemplateNo"
+                  placeholder="优惠券模板号"
+                  style="width: 140px"
+                />
+                <a-input v-model:value="specialDraft.name" placeholder="名称（可选）" style="width: 120px" />
+                <a-button @click="addSpecialPrize">添加特别赏</a-button>
+              </div>
+              <div class="special-hint">
+                {{ form.mode === 'gashapon' ? '吉祥赏需至少配置一个 Last赏/MVP赏/幸运赏。' : '无限赏需至少一个普通条目和一个结算奖。' }}
+              </div>
             </div>
           </div>
         </div>
@@ -362,7 +416,7 @@ const ips = ref<IpItem[]>([])
 const grades = ref<PrizeGrade[]>([])
 
 const modeOptions = [
-  { label: '一番赏', value: 'gashapon' },
+  { label: '吉祥赏', value: 'gashapon' },
   { label: '无限赏', value: 'fullcar' },
   { label: '串串赏', value: 'combochain' },
   { label: '挖宝赏', value: 'dig' },
@@ -645,6 +699,74 @@ watch(
 )
 
 const isGroupBuy = computed(() => form.mode === 'groupbuy')
+const isSpecialMode = computed(() => form.mode === 'gashapon' || form.mode === 'fullcar')
+
+const gashaponSpecialOptions = [
+  { label: 'Last赏', value: 'LAST' },
+  { label: 'MVP赏', value: 'MVP' },
+  { label: '幸运赏', value: 'LUCKY' },
+]
+const fullcarSettlementOptions = [
+  { label: '幸运结算奖', value: 1 },
+  { label: '普通结算奖', value: 2 },
+]
+const rewardTypeOptions = [
+  { label: '现金', value: 'cash' },
+  { label: '积分', value: 'points' },
+  { label: '优惠券', value: 'coupon' },
+]
+
+const specialDraft = reactive({
+  kind: 'LAST',
+  settlementType: 1,
+  rewardType: 'cash',
+  cashYuan: 0,
+  pointsAmount: 0,
+  couponTemplateNo: '',
+  name: '',
+})
+
+function addSpecialPrize() {
+  const rewardType = specialDraft.rewardType
+  if (rewardType === 'cash' && specialDraft.cashYuan <= 0) {
+    message.warning('请输入特别赏现金金额')
+    return
+  }
+  if (rewardType === 'points' && specialDraft.pointsAmount <= 0) {
+    message.warning('请输入特别赏积分数量')
+    return
+  }
+  if (rewardType === 'coupon' && !specialDraft.couponTemplateNo.trim()) {
+    message.warning('请输入优惠券模板号')
+    return
+  }
+  const defaultName =
+    form.mode === 'gashapon'
+      ? gashaponSpecialOptions.find((item) => item.value === specialDraft.kind)?.label || '特别赏'
+      : fullcarSettlementOptions.find((item) => item.value === specialDraft.settlementType)?.label || '结算奖'
+  const nextIndex = prizes.value.reduce((max, prize) => Math.max(max, Number(prize.prizeIndex ?? 0)), -1) + 1
+  prizes.value.push({
+    prizeIndex: nextIndex,
+    prizeGrade: '',
+    specialKind: form.mode === 'gashapon' ? specialDraft.kind : 'SETTLEMENT',
+    prizeType: 0,
+    name: specialDraft.name.trim() || defaultName,
+    cashFen: rewardType === 'cash' ? Math.round(specialDraft.cashYuan * 100) : 0,
+    pointsAmount: rewardType === 'points' ? Math.round(specialDraft.pointsAmount) : 0,
+    couponTemplateNo: rewardType === 'coupon' ? specialDraft.couponTemplateNo.trim() : '',
+    weight: 1,
+    quantity: 1,
+    remaining: 1,
+    isPrize: true,
+    targetValue: form.mode === 'fullcar' ? specialDraft.settlementType : 0,
+    costFen: 0,
+    extraJson: '{}',
+  })
+  specialDraft.name = ''
+  specialDraft.cashYuan = 0
+  specialDraft.pointsAmount = 0
+  specialDraft.couponTemplateNo = ''
+}
 
 watch(
   () => form.mode,
@@ -1445,6 +1567,20 @@ async function submit() {
       }
     }
   }
+  if (form.mode === 'gashapon' && !prizes.value.some((prize) => prize.specialKind)) {
+    message.warning('吉祥赏需至少配置一个特别赏（Last/MVP/幸运）')
+    return
+  }
+  if (form.mode === 'fullcar') {
+    if (!prizes.value.some((prize) => !prize.specialKind)) {
+      message.warning('无限赏需至少配置一个普通条目')
+      return
+    }
+    if (!prizes.value.some((prize) => prize.specialKind === 'SETTLEMENT')) {
+      message.warning('无限赏需至少配置一个结算奖')
+      return
+    }
+  }
   const rawConfig =
     initialConfigJson.value && form.mode === initialMode.value
       ? initialConfigJson.value
@@ -1627,6 +1763,34 @@ onMounted(loadOptions)
   flex: 1;
   align-items: center;
   gap: 8px;
+}
+
+.special-prize-panel {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px dashed #c7d2e4;
+  border-radius: 6px;
+  background: #f7f9fc;
+}
+
+.special-title {
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.special-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.special-hint {
+  margin-top: 6px;
+  color: #8a94a6;
+  font-size: 12px;
 }
 
 .inline-label {

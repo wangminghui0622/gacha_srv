@@ -4,6 +4,8 @@
     :probability="probability"
     :custom-row="customRow"
     :show-target="showTarget"
+    :show-special="showSpecial"
+    :show-reward="showReward"
     :actions-width="100"
     @toggle="emit('toggle', $event)"
     @target-change="(record, value) => emit('targetChange', record, value)"
@@ -23,6 +25,8 @@ defineProps<{
   probability: (prize: DisplayPrize) => string
   customRow: (record: DisplayPrize) => Record<string, unknown>
   showTarget?: boolean
+  showSpecial?: boolean
+  showReward?: boolean
 }>()
 
 const emit = defineEmits<{

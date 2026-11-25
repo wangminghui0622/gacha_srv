@@ -5,7 +5,7 @@
     :row-key="(record: DisplayPrize) => record.__rowKey"
     size="small"
     :locale="{ emptyText: '暂无数据' }"
-    :scroll="{ x: 680 }"
+    :scroll="{ x: showSpecial ? 880 : 680 }"
     :custom-row="customRow"
   >
     <a-table-column title="序号" width="50" align="center">
@@ -14,6 +14,12 @@
     <a-table-column title="赏别" data-index="prizeGrade" width="80" align="center" />
     <a-table-column title="类型" width="70" align="center">
       <template #default="{ record }">{{ record.prizeType === 2 ? '商品' : record.prizeType === 3 ? '箱子' : '虚拟' }}</template>
+    </a-table-column>
+    <a-table-column v-if="showSpecial" title="特别赏" width="90" align="center">
+      <template #default="{ record }">{{ specialKindText(record.specialKind) }}</template>
+    </a-table-column>
+    <a-table-column v-if="showReward" title="奖励" width="120" align="center">
+      <template #default="{ record }">{{ rewardText(record) }}</template>
     </a-table-column>
     <a-table-column v-if="showTarget" title="目标碰数" width="110" align="center">
       <template #default="{ record }">
@@ -71,14 +77,38 @@ withDefaults(
     customRow: (record: DisplayPrize) => Record<string, unknown>
     actionsWidth?: number
     showTarget?: boolean
+    showSpecial?: boolean
+    showReward?: boolean
   }>(),
-  { actionsWidth: 100, showTarget: false },
+  { actionsWidth: 100, showTarget: false, showSpecial: false, showReward: false },
 )
 
 const emit = defineEmits<{
   toggle: [prize: DisplayPrize]
   targetChange: [record: DisplayPrize, value: number | null]
 }>()
+
+function specialKindText(value: string | undefined) {
+  switch (value) {
+    case 'LAST':
+      return 'Last赏'
+    case 'MVP':
+      return 'MVP赏'
+    case 'LUCKY':
+      return '幸运赏'
+    case 'SETTLEMENT':
+      return '结算奖'
+    default:
+      return '普通'
+  }
+}
+
+function rewardText(record: DisplayPrize) {
+  if (Number(record.cashFen ?? 0) > 0) return `¥${(Number(record.cashFen) / 100).toFixed(2)}`
+  if (Number(record.pointsAmount ?? 0) > 0) return `${record.pointsAmount} 积分`
+  if (record.couponTemplateNo) return `券 ${record.couponTemplateNo}`
+  return '-'
+}
 </script>
 
 <style scoped>
