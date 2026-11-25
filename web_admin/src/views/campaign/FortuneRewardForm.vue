@@ -658,10 +658,10 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   padding: 0;
-  font-size: 14px;
+  font-size: 12px;
   color: #ff4d4f;
   background: transparent;
   border: 1px solid currentColor;
@@ -685,10 +685,10 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   padding: 0;
-  font-size: 14px;
+  font-size: 12px;
   color: #ff4d4f;
   background: transparent;
   border: 1px solid currentColor;
