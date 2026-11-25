@@ -40,6 +40,10 @@ func (l *BoxListLogic) BoxList() (resp *types.BoxListResp, err error) {
 			Price:       b.Price,
 			Description: b.Description,
 			SoldOut:     b.SoldOut,
+			CoverImage:  b.CoverImage,
+			CoverThumb:  b.CoverThumb,
+			Periods:     b.Periods,
+			Discount:    b.Discount,
 		})
 	}
 	return &types.BoxListResp{List: boxes}, nil

@@ -25,6 +25,9 @@ type (
 	GetRecordResp                 = draw.GetRecordResp
 	ListBoxesReq                  = draw.ListBoxesReq
 	ListBoxesResp                 = draw.ListBoxesResp
+	ListBoxPoolsReq               = draw.ListBoxPoolsReq
+	ListBoxPoolsResp              = draw.ListBoxPoolsResp
+	BoxPoolSummary                = draw.BoxPoolSummary
 	ListPoolVersionsReq           = draw.ListPoolVersionsReq
 	ListPoolVersionsResp          = draw.ListPoolVersionsResp
 	ListPublishedPoolsReq         = draw.ListPublishedPoolsReq
@@ -70,6 +73,8 @@ type (
 		GetPoolVersion(ctx context.Context, in *GetPoolVersionReq, opts ...grpc.CallOption) (*BoxDraft, error)
 		// 赏池版本列表（含草稿；游标分页）
 		ListPoolVersions(ctx context.Context, in *ListPoolVersionsReq, opts ...grpc.CallOption) (*ListPoolVersionsResp, error)
+		// 宝箱（无限赏）列表：每个赏池仅返回最新版本
+		ListBoxPools(ctx context.Context, in *ListBoxPoolsReq, opts ...grpc.CallOption) (*ListBoxPoolsResp, error)
 		// 已发布赏池列表（游标分页）
 		ListPublishedPools(ctx context.Context, in *ListPublishedPoolsReq, opts ...grpc.CallOption) (*ListPublishedPoolsResp, error)
 		// 提请发布（申请人；同人同 hash 幂等）
@@ -155,6 +160,12 @@ func (m *defaultDraw) GetPoolVersion(ctx context.Context, in *GetPoolVersionReq,
 func (m *defaultDraw) ListPoolVersions(ctx context.Context, in *ListPoolVersionsReq, opts ...grpc.CallOption) (*ListPoolVersionsResp, error) {
 	client := draw.NewDrawClient(m.cli.Conn())
 	return client.ListPoolVersions(ctx, in, opts...)
+}
+
+// 宝箱（无限赏）列表：每个赏池仅返回最新版本
+func (m *defaultDraw) ListBoxPools(ctx context.Context, in *ListBoxPoolsReq, opts ...grpc.CallOption) (*ListBoxPoolsResp, error) {
+	client := draw.NewDrawClient(m.cli.Conn())
+	return client.ListBoxPools(ctx, in, opts...)
 }
 
 // 已发布赏池列表（游标分页）

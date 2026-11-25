@@ -71,6 +71,9 @@ func (l *BoxDetailLogic) BoxDetail(in *draw.BoxDetailReq) (*draw.BoxDetailResp, 
 			Remaining:   int32(e.Remaining),
 			IsPrize:     e.IsPrize == 1,
 			Probability: fmt.Sprintf("%.2f%%", p),
+			PrizeGrade:  e.PrizeGrade,
+			ImageUrl:    e.ImageUrl,
+			CostFen:     e.CostFen,
 		})
 	}
 	return &draw.BoxDetailResp{
@@ -80,5 +83,9 @@ func (l *BoxDetailLogic) BoxDetail(in *draw.BoxDetailReq) (*draw.BoxDetailResp, 
 		Description: b.Description,
 		SoldOut:     !prizeDrawable,
 		Entries:     items,
+		CoverImage:  b.CoverImage,
+		CoverThumb:  b.CoverThumb,
+		Periods:     b.Periods,
+		Discount:    int32(b.Discount),
 	}, nil
 }

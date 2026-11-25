@@ -36,6 +36,19 @@ export interface PlayPoolCreateInitial {
   prizes?: PlayPoolPrize[]
   coverImage?: string
   coverThumb?: string
+  startAt?: string
+  endAt?: string
+  discount?: number
+  isOnSale?: boolean
+  isNew?: boolean
+  isRecommended?: boolean
+  isBargain?: boolean
+  isPresale?: boolean
+  isMiniapp?: boolean
+  isWelfare?: boolean
+  excludeTask?: boolean
+  allowBoxInBox?: boolean
+  coupons?: Array<{ id: number; name: string; description: string; status: string }>
 }
 
 export interface PlayPoolSummary {

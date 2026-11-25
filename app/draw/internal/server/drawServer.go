@@ -89,6 +89,12 @@ func (s *DrawServer) ListPoolVersions(ctx context.Context, in *draw.ListPoolVers
 	return l.ListPoolVersions(in)
 }
 
+// 宝箱（无限赏）列表：每个赏池仅返回最新版本
+func (s *DrawServer) ListBoxPools(ctx context.Context, in *draw.ListBoxPoolsReq) (*draw.ListBoxPoolsResp, error) {
+	l := logic.NewListBoxPoolsLogic(ctx, s.svcCtx)
+	return l.ListBoxPools(in)
+}
+
 // 已发布赏池列表（游标分页）
 func (s *DrawServer) ListPublishedPools(ctx context.Context, in *draw.ListPublishedPoolsReq) (*draw.ListPublishedPoolsResp, error) {
 	l := logic.NewListPublishedPoolsLogic(ctx, s.svcCtx)

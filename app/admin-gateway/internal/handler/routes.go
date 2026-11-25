@@ -533,6 +533,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: pool.ListPoolVersionsHandler(serverCtx),
 				},
 				{
+					// 无限赏宝箱列表（gacha.pool:read；每个赏池仅最新版本）
+					Method:  http.MethodGet,
+					Path:    "/gacha/box-pools",
+					Handler: pool.ListBoxPoolsHandler(serverCtx),
+				},
+				{
 					// 赏池版本详情（gacha.pool:read）
 					Method:  http.MethodGet,
 					Path:    "/gacha/pools/:poolId/versions/:version",

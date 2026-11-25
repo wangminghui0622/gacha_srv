@@ -49,6 +49,7 @@ func All() []Operation {
 		{ID: "console.pool.getbox", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/boxes/:boxId", Title: "读取箱子"},
 		{ID: "console.pool.getboxview", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/boxes/:boxId/view", Title: "箱子库存与玩法状态"},
 		{ID: "console.pool.list", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/pools", Title: "赏池版本列表"},
+		{ID: "console.pool.boxpools.list", Resource: "gacha.pool", Action: "read", Method: "GET", Path: "/gacha/box-pools", Title: "无限赏宝箱列表"},
 		{ID: "console.pool.create", Resource: "gacha.pool", Action: "create", Method: "POST", Path: "/gacha/pools/drafts", Title: "创建赏池草稿"},
 		{ID: "console.pool.publish", Resource: "gacha.pool", Action: "publish", Method: "POST", Path: "/gacha/pools/:poolId/versions/:version/publish", Title: "发布赏池"},
 		{ID: "console.pool.requestpublication", Resource: "gacha.pool", Action: "request_publication", Method: "POST", Path: "/gacha/pools/:poolId/versions/:version/publication-request", Title: "提请发布赏池"},

@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"strings"
+	"unicode/utf8"
 
 	"gacha_srv/app/draw/draw"
 
@@ -32,7 +33,7 @@ func ValidateDraft(box *draw.BoxDraft) error {
 	if box == nil {
 		return fmt.Errorf("草稿配置不能为空")
 	}
-	if strings.TrimSpace(box.BoxName) == "" || len(box.BoxName) > 64 {
+	if strings.TrimSpace(box.BoxName) == "" || utf8.RuneCountInString(box.BoxName) > 64 {
 		return fmt.Errorf("宝箱名称必填且不超过 64 字符")
 	}
 	if box.Price < 0 {
@@ -43,7 +44,7 @@ func ValidateDraft(box *draw.BoxDraft) error {
 	}
 	totalWeight := int64(0)
 	for _, e := range box.Entries {
-		if e == nil || strings.TrimSpace(e.Name) == "" || len(e.Name) > 64 {
+		if e == nil || strings.TrimSpace(e.Name) == "" || utf8.RuneCountInString(e.Name) > 64 {
 			return fmt.Errorf("条目名称必填且不超过 64 字符")
 		}
 		if e.Weight < 0 {
@@ -54,6 +55,18 @@ func ValidateDraft(box *draw.BoxDraft) error {
 		}
 		if e.DisplayValueFen < 0 {
 			return fmt.Errorf("条目 %s 展示价不能为负", e.Name)
+		}
+		if utf8.RuneCountInString(e.PrizeGrade) > 32 {
+			return fmt.Errorf("条目 %s 赏别不超过 32 字符", e.Name)
+		}
+		if len(e.ImageUrl) > 512 {
+			return fmt.Errorf("条目 %s 缩略图地址过长", e.Name)
+		}
+		if e.CostFen < 0 {
+			return fmt.Errorf("条目 %s 成本价不能为负", e.Name)
+		}
+		if e.PrizeType < 0 || e.PrizeType > 3 {
+			return fmt.Errorf("条目 %s 赏品类型非法", e.Name)
 		}
 		totalWeight += int64(e.Weight)
 	}

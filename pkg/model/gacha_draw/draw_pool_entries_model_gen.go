@@ -48,6 +48,12 @@ type (
 		IsPrize         int64     `gorm:"column:is_prize"`          // 是否奖品：1=中奖入吉仓 0=谢谢参与只记录
 		DisplayValueFen int64     `gorm:"column:display_value_fen"` // 展示价（分），滚动中奖等级判定用：0=不参与高档判定
 		RollingLimited  int64     `gorm:"column:rolling_limited"`   // 滚动限量标记：1=限量稀有，feed 等级 LIMITED、可被剔除规则剔除
+		PrizeGrade      string    `gorm:"column:prize_grade"`       // 赏别/分类
+		ImageUrl        string    `gorm:"column:image_url"`         // 赏品缩略图 URL
+		CostFen         int64     `gorm:"column:cost_fen"`          // 成本价（分）
+		SkuId           int64     `gorm:"column:sku_id"`            // 商品 SKU ID
+		PrizeType       int64     `gorm:"column:prize_type"`        // 赏品类型：0=虚拟 1=虚拟 2=商品 3=箱子
+		ExtraJson       *string   `gorm:"column:extra_json"`        // 条目扩展 JSON
 		CreatedAt       time.Time `gorm:"column:created_at"`        // 创建时间
 		UpdatedAt       time.Time `gorm:"column:updated_at"`        // 更新时间
 	}

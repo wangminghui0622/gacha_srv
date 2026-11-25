@@ -81,6 +81,10 @@ export interface BoxItem {
   price: string
   description: string
   soldOut: boolean
+  coverImage?: string
+  coverThumb?: string
+  periods?: number
+  discount?: number
 }
 
 // 与后端 BoxListResp 对齐
@@ -96,6 +100,9 @@ export interface PoolEntryItem {
   remaining: number
   isPrize: boolean
   probability: string
+  prizeGrade?: string
+  imageUrl?: string
+  costFen?: number
 }
 
 // 与后端 BoxDetailResp 对齐
@@ -106,6 +113,10 @@ export interface BoxDetailResponse {
   description: string
   soldOut: boolean
   entries: PoolEntryItem[]
+  coverImage?: string
+  coverThumb?: string
+  periods?: number
+  discount?: number
 }
 
 // 与后端 BuyBoxReq / BuyBoxResp 对齐（M10 起可选券/积分抵扣选择项）

@@ -30,6 +30,7 @@ const (
 	Draw_CreatePoolDraft_FullMethodName           = "/draw.Draw/CreatePoolDraft"
 	Draw_GetPoolVersion_FullMethodName            = "/draw.Draw/GetPoolVersion"
 	Draw_ListPoolVersions_FullMethodName          = "/draw.Draw/ListPoolVersions"
+	Draw_ListBoxPools_FullMethodName              = "/draw.Draw/ListBoxPools"
 	Draw_ListPublishedPools_FullMethodName        = "/draw.Draw/ListPublishedPools"
 	Draw_RequestPoolPublication_FullMethodName    = "/draw.Draw/RequestPoolPublication"
 	Draw_ApprovePoolPublication_FullMethodName    = "/draw.Draw/ApprovePoolPublication"
@@ -63,6 +64,8 @@ type DrawClient interface {
 	GetPoolVersion(ctx context.Context, in *GetPoolVersionReq, opts ...grpc.CallOption) (*BoxDraft, error)
 	// 赏池版本列表（含草稿；游标分页）
 	ListPoolVersions(ctx context.Context, in *ListPoolVersionsReq, opts ...grpc.CallOption) (*ListPoolVersionsResp, error)
+	// 宝箱（无限赏）列表：每个赏池仅返回最新版本，含后台展示字段
+	ListBoxPools(ctx context.Context, in *ListBoxPoolsReq, opts ...grpc.CallOption) (*ListBoxPoolsResp, error)
 	// 已发布赏池列表（游标分页）
 	ListPublishedPools(ctx context.Context, in *ListPublishedPoolsReq, opts ...grpc.CallOption) (*ListPublishedPoolsResp, error)
 	// 提请发布（申请人；同人同 hash 幂等）
@@ -180,6 +183,15 @@ func (c *drawClient) ListPoolVersions(ctx context.Context, in *ListPoolVersionsR
 	return out, nil
 }
 
+func (c *drawClient) ListBoxPools(ctx context.Context, in *ListBoxPoolsReq, opts ...grpc.CallOption) (*ListBoxPoolsResp, error) {
+	out := new(ListBoxPoolsResp)
+	err := c.cc.Invoke(ctx, Draw_ListBoxPools_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *drawClient) ListPublishedPools(ctx context.Context, in *ListPublishedPoolsReq, opts ...grpc.CallOption) (*ListPublishedPoolsResp, error) {
 	out := new(ListPublishedPoolsResp)
 	err := c.cc.Invoke(ctx, Draw_ListPublishedPools_FullMethodName, in, out, opts...)
@@ -243,6 +255,8 @@ type DrawServer interface {
 	GetPoolVersion(context.Context, *GetPoolVersionReq) (*BoxDraft, error)
 	// 赏池版本列表（含草稿；游标分页）
 	ListPoolVersions(context.Context, *ListPoolVersionsReq) (*ListPoolVersionsResp, error)
+	// 宝箱（无限赏）列表：每个赏池仅返回最新版本，含后台展示字段
+	ListBoxPools(context.Context, *ListBoxPoolsReq) (*ListBoxPoolsResp, error)
 	// 已发布赏池列表（游标分页）
 	ListPublishedPools(context.Context, *ListPublishedPoolsReq) (*ListPublishedPoolsResp, error)
 	// 提请发布（申请人；同人同 hash 幂等）
@@ -290,6 +304,9 @@ func (UnimplementedDrawServer) GetPoolVersion(context.Context, *GetPoolVersionRe
 }
 func (UnimplementedDrawServer) ListPoolVersions(context.Context, *ListPoolVersionsReq) (*ListPoolVersionsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPoolVersions not implemented")
+}
+func (UnimplementedDrawServer) ListBoxPools(context.Context, *ListBoxPoolsReq) (*ListBoxPoolsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListBoxPools not implemented")
 }
 func (UnimplementedDrawServer) ListPublishedPools(context.Context, *ListPublishedPoolsReq) (*ListPublishedPoolsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPublishedPools not implemented")
@@ -514,6 +531,24 @@ func _Draw_ListPoolVersions_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Draw_ListBoxPools_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBoxPoolsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DrawServer).ListBoxPools(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Draw_ListBoxPools_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DrawServer).ListBoxPools(ctx, req.(*ListBoxPoolsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Draw_ListPublishedPools_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListPublishedPoolsReq)
 	if err := dec(in); err != nil {
@@ -636,6 +671,10 @@ var Draw_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPoolVersions",
 			Handler:    _Draw_ListPoolVersions_Handler,
+		},
+		{
+			MethodName: "ListBoxPools",
+			Handler:    _Draw_ListBoxPools_Handler,
 		},
 		{
 			MethodName: "ListPublishedPools",

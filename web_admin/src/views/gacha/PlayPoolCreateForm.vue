@@ -10,7 +10,7 @@
           <a-select v-model:value="form.ipId" :options="ipOptions" placeholder="IP" show-search option-filter-prop="label" />
         </a-form-item>
         <a-form-item label="玩法类型" required>
-          <a-select v-model:value="form.mode" :options="modeOptions" />
+          <a-select v-model:value="form.mode" :options="modeOptions" :disabled="!!lockMode" />
         </a-form-item>
 
         <template v-if="form.mode === 'memorymatch'">
@@ -35,7 +35,7 @@
         <a-form-item label="折扣(%)" required>
           <a-input-number v-model:value="form.discount" :min="0" :max="100" :precision="2" style="width: 100%" />
         </a-form-item>
-        <a-form-item label="箱子数量" required>
+        <a-form-item label="期数" required>
           <a-input-number v-model:value="form.boxCount" :min="1" :precision="0" style="width: 100%" />
         </a-form-item>
         <a-form-item label="排序权重">
@@ -144,9 +144,13 @@
                 :show-target="form.mode === 'memorymatch'"
                 :show-special="isSpecialMode"
                 :show-reward="isSpecialMode"
+                :show-record="isBoxMode"
+                :show-quantity-input="isBoxMode"
                 @toggle="togglePrizeExpand"
                 @remove="confirmRemove"
                 @target-change="setPrizeTarget"
+                @record-change="setPrizeRecord"
+                @quantity-change="setPrizeQuantity"
               />
             </div>
 
@@ -173,6 +177,7 @@
                 </template>
                 <a-input v-else v-model:value="prizeDraft.name" placeholder="赏品名称" />
               </div>
+              <a-button v-if="prizeDraft.prizeType === 0 || prizeDraft.prizeType === 1" @click="addManualPrize">添加</a-button>
               <span class="inline-label">中奖记录展示：</span>
               <a-switch v-model:checked="prizeDraft.isPrize" />
             </div>
@@ -225,7 +230,7 @@
                 <a-button @click="addSpecialPrize">添加特别赏</a-button>
               </div>
               <div class="special-hint">
-                {{ form.mode === 'gashapon' ? '吉祥赏需至少配置一个 Last赏/MVP赏/幸运赏。' : '无限赏需至少一个普通条目和一个结算奖。' }}
+                {{ form.mode === 'gashapon' ? '吉祥赏需至少配置一个 Last赏/MVP赏/幸运赏。' : '满车赏需至少一个普通条目和一个结算奖。' }}
               </div>
             </div>
           </div>
@@ -387,6 +392,7 @@
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
+import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 import {
   catalogAdminProductClient,
@@ -406,7 +412,7 @@ import DefaultPrizeTable from '@/views/gacha/prize/DefaultPrizeTable.vue'
 import GroupBuyPrizeTable from '@/views/gacha/prize/GroupBuyPrizeTable.vue'
 import type { DisplayPrize } from '@/views/gacha/prize/prizeTypes'
 
-const props = defineProps<{ initial?: PlayPoolCreateInitial | null }>()
+const props = defineProps<{ initial?: PlayPoolCreateInitial | null; lockMode?: string }>()
 const emit = defineEmits<{ success: []; cancel: [] }>()
 const saving = ref(false)
 const initialPoolId = ref<string | undefined>(undefined)
@@ -415,14 +421,17 @@ const initialConfigJson = ref<string | null>(null)
 const ips = ref<IpItem[]>([])
 const grades = ref<PrizeGrade[]>([])
 
-const modeOptions = [
-  { label: '吉祥赏', value: 'gashapon' },
-  { label: '无限赏', value: 'fullcar' },
-  { label: '串串赏', value: 'combochain' },
-  { label: '挖宝赏', value: 'dig' },
-  { label: '拼团赏', value: 'groupbuy' },
-  { label: '对对碰', value: 'memorymatch' },
-]
+const modeOptions = computed(() => {
+  if (props.lockMode === 'box') return [{ label: '无限赏', value: 'box' }]
+  return [
+    { label: '吉祥赏', value: 'gashapon' },
+    { label: '满车赏', value: 'fullcar' },
+    { label: '串串赏', value: 'combochain' },
+    { label: '挖宝赏', value: 'dig' },
+    { label: '拼团赏', value: 'groupbuy' },
+    { label: '对对碰', value: 'memorymatch' },
+  ]
+})
 
 
 const mmConfig = reactive({
@@ -433,7 +442,7 @@ const mmConfig = reactive({
 const form = reactive({
   name: '',
   ipId: undefined as string | undefined,
-  mode: 'gashapon',
+  mode: props.lockMode ?? 'gashapon',
   startAt: null as Dayjs | null,
   endAt: null as Dayjs | null,
   priceYuan: 1,
@@ -453,10 +462,11 @@ const form = reactive({
   coverThumb: '',
 })
 
-// 对对碰没有子赏/箱子奖，类型只保留商品。
+// 对对碰没有子赏/箱子奖，类型只保留商品；无限赏暂不接入箱中箱，额外支持虚拟奖。
 const prizeTypeOptions = computed(() => [
+  ...(isBoxMode.value ? [{ label: '虚拟', value: 0 }] : []),
   { label: '商品', value: 2 },
-  ...(form.mode === 'memorymatch' ? [] : [{ label: '箱子', value: 3 }]),
+  ...(form.mode === 'memorymatch' || isBoxMode.value ? [] : [{ label: '箱子', value: 3 }]),
 ])
 
 const switchItems = [
@@ -534,9 +544,9 @@ function applyMemoryMatchConfig(raw?: string | null) {
 function applyInitial(initial?: PlayPoolCreateInitial | null) {
   if (!initial) return
   initialPoolId.value = initial.poolId
-  initialMode.value = initial.mode ?? 'gashapon'
+  initialMode.value = initial.mode ?? props.lockMode ?? 'gashapon'
   initialConfigJson.value = initial.configJson ?? null
-  form.mode = initialMode.value
+  form.mode = props.lockMode ?? initialMode.value
   applyMemoryMatchConfig(initial.configJson)
   form.name = initial.name ?? ''
   form.priceYuan = initial.priceYuan ?? 1
@@ -545,6 +555,19 @@ function applyInitial(initial?: PlayPoolCreateInitial | null) {
   form.sortWeight = initial.weight ?? 0
   form.coverImage = initial.coverImage ?? ''
   form.coverThumb = initial.coverThumb ?? ''
+  form.startAt = initial.startAt ? dayjs(initial.startAt) : null
+  form.endAt = initial.endAt ? dayjs(initial.endAt) : null
+  form.discount = Number(initial.discount ?? 0)
+  form.isOnSale = initial.isOnSale ?? false
+  form.isNew = initial.isNew ?? false
+  form.isRecommended = initial.isRecommended ?? false
+  form.isBargain = initial.isBargain ?? false
+  form.isPresale = initial.isPresale ?? false
+  form.isMiniapp = initial.isMiniapp ?? false
+  form.isWelfare = initial.isWelfare ?? false
+  form.excludeTask = initial.excludeTask ?? false
+  form.allowBoxInBox = initial.allowBoxInBox ?? false
+  if (initial.coupons?.length) coupons.value = initial.coupons.map((item) => ({ ...item }))
   const tags = new Set(initial.tags ?? [])
   form.isOnSale = tags.has('展示')
   form.isNew = tags.has('新品')
@@ -699,6 +722,7 @@ watch(
 )
 
 const isGroupBuy = computed(() => form.mode === 'groupbuy')
+const isBoxMode = computed(() => form.mode === 'box')
 const isSpecialMode = computed(() => form.mode === 'gashapon' || form.mode === 'fullcar')
 
 const gashaponSpecialOptions = [
@@ -725,6 +749,34 @@ const specialDraft = reactive({
   couponTemplateNo: '',
   name: '',
 })
+
+function addManualPrize() {
+  const name = prizeDraft.name.trim()
+  if (!name) {
+    message.warning('请输入赏品名称')
+    return
+  }
+  const nextIndex = prizes.value.reduce((max, prize) => Math.max(max, Number(prize.prizeIndex ?? 0)), -1) + 1
+  prizes.value.push({
+    prizeIndex: nextIndex,
+    prizeGrade: prizeDraft.prizeGrade,
+    specialKind: '',
+    prizeType: Number(prizeDraft.prizeType ?? 0),
+    name,
+    skuId: 0,
+    childPoolId: 0,
+    imageUrl: '',
+    weight: 1,
+    quantity: 1,
+    remaining: 1,
+    isPrize: prizeDraft.isPrize,
+    targetValue: 0,
+    costFen: 0,
+    extraJson: '{}',
+  })
+  prizeDraft.name = ''
+  message.success('已添加赏品')
+}
 
 function addSpecialPrize() {
   const rewardType = specialDraft.rewardType
@@ -933,7 +985,7 @@ function normalizeMemoryMatchQuantities() {
 }
 
 function togglePrizeExpand(prize: PlayPoolPrize) {
-  if (form.mode === 'memorymatch') return
+  if (form.mode === 'memorymatch' || isBoxMode.value) return
   if (Number(prize.quantity ?? 0) <= 1) return
   const next = new Set(expandedPrizeIndexes.value)
   if (next.has(prize.prizeIndex)) next.delete(prize.prizeIndex)
@@ -991,7 +1043,15 @@ const totalPrizeUnits = computed(() =>
   prizes.value.reduce((sum, prize) => sum + prizeAllocationWeight(prize), 0),
 )
 
+const totalPrizeWeight = computed(() =>
+  prizes.value.reduce((sum, prize) => sum + Math.max(0, Number(prize.weight ?? 1)), 0),
+)
+
 function probability(prize: DisplayPrize): string {
+  if (isBoxMode.value) {
+    if (totalPrizeWeight.value <= 0) return '0.00'
+    return ((100 / totalPrizeWeight.value) * Math.max(0, Number(prize.weight ?? 1))).toFixed(2)
+  }
   if (totalPrizeUnits.value <= 0) return '0.00'
   const weight = prize.__expanded ? 1 : prizeAllocationWeight(prize)
   return ((100 / totalPrizeUnits.value) * weight).toFixed(2)
@@ -1316,6 +1376,19 @@ function setPrizeTarget(record: DisplayPrize, value: number | null) {
   if (prize) prize.targetValue = value ?? 0
 }
 
+function setPrizeRecord(record: DisplayPrize, value: boolean) {
+  const prize = prizes.value.find((item) => item.prizeIndex === record.prizeIndex)
+  if (prize) prize.isPrize = value
+}
+
+function setPrizeQuantity(record: DisplayPrize, value: number | null) {
+  const prize = prizes.value.find((item) => item.prizeIndex === record.prizeIndex)
+  if (!prize) return
+  const next = value === null || Number.isNaN(value) ? 1 : Math.trunc(value)
+  prize.quantity = next < -1 ? -1 : next
+  prize.remaining = prize.quantity
+}
+
 function prizeCustomRow(record: PlayPoolPrize) {
   const clickable = record.prizeType === 2 && !record.hasParent
   return {
@@ -1475,6 +1548,109 @@ async function uploadImage(file: File, field: 'coverImage' | 'coverThumb'): Prom
   return false
 }
 
+async function submitBoxDraft() {
+  if (!prizes.value.some((prize) => prize.isPrize !== false)) {
+    message.warning('无限赏至少需要一个有奖赏品')
+    return
+  }
+  let totalWeight = 0
+  for (let i = 0; i < prizes.value.length; i += 1) {
+    const prize = prizes.value[i]
+    if (!prize) continue
+    if (!String(prize.name ?? '').trim()) {
+      message.warning(`第 ${i + 1} 个赏品名称不能为空`)
+      return
+    }
+    const weight = Number(prize.weight ?? 1)
+    if (!Number.isFinite(weight) || weight < 0) {
+      message.warning(`第 ${i + 1} 个赏品权重不能为负`)
+      return
+    }
+    totalWeight += weight
+    const quantity = Number(prize.quantity ?? 1)
+    if (!Number.isInteger(quantity) || quantity < -1 || quantity === 0) {
+      message.warning(`第 ${i + 1} 个赏品总数必须是 -1（不限量）或正整数`)
+      return
+    }
+  }
+  if (totalWeight <= 0) {
+    message.warning('赏品权重合计必须大于 0')
+    return
+  }
+  const tags: string[] = []
+  if (form.isOnSale) tags.push('展示')
+  if (form.isNew) tags.push('新品')
+  if (form.isRecommended) tags.push('推荐')
+  if (form.isBargain) tags.push('捡漏')
+  if (form.isPresale) tags.push('预售')
+  const adminJson = JSON.stringify({
+    startAt: form.startAt ? form.startAt.format('YYYY-MM-DD HH:mm:ss') : '',
+    endAt: form.endAt ? form.endAt.format('YYYY-MM-DD HH:mm:ss') : '',
+    discount: form.discount,
+    isOnSale: form.isOnSale,
+    isNew: form.isNew,
+    isRecommended: form.isRecommended,
+    isBargain: form.isBargain,
+    isPresale: form.isPresale,
+    isMiniapp: form.isMiniapp,
+    isWelfare: form.isWelfare,
+    excludeTask: form.excludeTask,
+    allowBoxInBox: form.allowBoxInBox,
+    coverImage: form.coverImage,
+    coverThumb: form.coverThumb,
+    coupons: coupons.value,
+  })
+  saving.value = true
+  try {
+    await poolClient(crypto.randomUUID()).Create({
+      box: {
+        poolId: initialPoolId.value,
+        boxName: form.name.trim(),
+        price: Math.round((form.priceYuan || 0) * 100),
+        description: '',
+        entries: prizes.value.map((prize) => ({
+          name: String(prize.name ?? '').trim(),
+          weight: Number(prize.weight ?? 1),
+          quantity: Number(prize.quantity ?? 1),
+          isPrize: prize.isPrize !== false,
+          displayValueFen: 0,
+          prizeGrade: prize.prizeGrade ?? '',
+          imageUrl: prize.imageUrl ?? '',
+          costFen: Number(prize.costFen ?? 0),
+          skuId: Number(prize.skuId ?? 0),
+          prizeType: Number(prize.prizeType ?? 0),
+          extraJson: prize.extraJson ?? '',
+        })),
+        ipId: form.ipId ?? 0,
+        periods: form.boxCount,
+        startAt: form.startAt ? form.startAt.format('YYYY-MM-DD HH:mm:ss') : '',
+        endAt: form.endAt ? form.endAt.format('YYYY-MM-DD HH:mm:ss') : '',
+        discount: Math.round(form.discount),
+        isOnSale: form.isOnSale,
+        isNew: form.isNew,
+        isRecommended: form.isRecommended,
+        isBargain: form.isBargain,
+        isPresale: form.isPresale,
+        isMiniapp: form.isMiniapp,
+        isWelfare: form.isWelfare,
+        excludeTask: form.excludeTask,
+        allowBoxInBox: form.allowBoxInBox,
+        sortWeight: form.sortWeight,
+        coverImage: form.coverImage,
+        coverThumb: form.coverThumb,
+        couponsJson: JSON.stringify(coupons.value),
+        adminJson,
+      },
+    })
+    message.success(initialPoolId.value ? '无限赏已更新' : '无限赏已创建')
+    emit('success')
+  } catch {
+    message.error('创建失败，请检查赏品配置')
+  } finally {
+    saving.value = false
+  }
+}
+
 async function submit() {
   if (!form.name.trim()) {
     message.warning('请输入主题名称')
@@ -1567,17 +1743,21 @@ async function submit() {
       }
     }
   }
+  if (form.mode === 'box') {
+    await submitBoxDraft()
+    return
+  }
   if (form.mode === 'gashapon' && !prizes.value.some((prize) => prize.specialKind)) {
     message.warning('吉祥赏需至少配置一个特别赏（Last/MVP/幸运）')
     return
   }
   if (form.mode === 'fullcar') {
     if (!prizes.value.some((prize) => !prize.specialKind)) {
-      message.warning('无限赏需至少配置一个普通条目')
+      message.warning('满车赏需至少配置一个普通条目')
       return
     }
     if (!prizes.value.some((prize) => prize.specialKind === 'SETTLEMENT')) {
-      message.warning('无限赏需至少配置一个结算奖')
+      message.warning('满车赏需至少配置一个结算奖')
       return
     }
   }

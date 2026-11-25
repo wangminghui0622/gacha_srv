@@ -18,6 +18,24 @@ CREATE TABLE IF NOT EXISTS `draw_boxes` (
   `description` varchar(255) NOT NULL DEFAULT '' COMMENT '宝箱描述',
   `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态：1=上架 0=下架',
   `rolling_rules_json` text COMMENT '滚动中奖规则 JSON（NULL=非滚动盒）',
+  `ip_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT 'IP id（0=未选择）',
+  `periods` bigint NOT NULL DEFAULT '1' COMMENT '期数',
+  `start_at` datetime DEFAULT NULL COMMENT '活动开始时间（NULL=未设置）',
+  `end_at` datetime DEFAULT NULL COMMENT '活动结束时间（NULL=未设置）',
+  `discount` int NOT NULL DEFAULT '0' COMMENT '折扣（百分比 0-100）',
+  `is_new` tinyint NOT NULL DEFAULT '0' COMMENT '是否新品：1=是 0=否',
+  `is_recommended` tinyint NOT NULL DEFAULT '0' COMMENT '是否推荐：1=是 0=否',
+  `is_bargain` tinyint NOT NULL DEFAULT '0' COMMENT '是否捡漏：1=是 0=否',
+  `is_presale` tinyint NOT NULL DEFAULT '0' COMMENT '是否预售：1=是 0=否',
+  `is_miniapp` tinyint NOT NULL DEFAULT '0' COMMENT '是否小程序展示：1=是 0=否',
+  `is_welfare` tinyint NOT NULL DEFAULT '0' COMMENT '是否福利箱：1=是 0=否',
+  `exclude_task` tinyint NOT NULL DEFAULT '0' COMMENT '不参与任务：1=是 0=否',
+  `allow_box_in_box` tinyint NOT NULL DEFAULT '0' COMMENT '允许作为箱中箱：1=是 0=否',
+  `sort_weight` bigint NOT NULL DEFAULT '0' COMMENT '排序权重',
+  `cover_image` varchar(512) NOT NULL DEFAULT '' COMMENT '封面大图 URL',
+  `cover_thumb` varchar(512) NOT NULL DEFAULT '' COMMENT '封面缩略图 URL',
+  `coupons_json` text COMMENT '优惠券配置 JSON',
+  `admin_json` text COMMENT '其它后台扩展字段 JSON',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`)
@@ -42,6 +60,12 @@ CREATE TABLE IF NOT EXISTS `draw_pool_entries` (
   `is_prize` tinyint NOT NULL DEFAULT '1' COMMENT '是否奖品：1=中奖入吉仓 0=谢谢参与只记录',
   `display_value_fen` bigint NOT NULL DEFAULT '0' COMMENT '展示价（分），滚动中奖等级判定用：0=不参与高档判定',
   `rolling_limited` tinyint NOT NULL DEFAULT '0' COMMENT '滚动限量标记：1=限量稀有，feed 等级 LIMITED、可被剔除规则剔除',
+  `prize_grade` varchar(32) NOT NULL DEFAULT '' COMMENT '赏别/分类（如 宝箱赏、超神款、欧皇款）',
+  `image_url` varchar(512) NOT NULL DEFAULT '' COMMENT '赏品缩略图 URL',
+  `cost_fen` bigint NOT NULL DEFAULT '0' COMMENT '成本价（分）',
+  `sku_id` bigint NOT NULL DEFAULT '0' COMMENT '商品 SKU ID（0=虚拟/箱子奖）',
+  `prize_type` tinyint NOT NULL DEFAULT '0' COMMENT '赏品类型：0=虚拟 1=虚拟 2=商品 3=箱子',
+  `extra_json` text COMMENT '条目扩展 JSON',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
@@ -201,3 +225,93 @@ DELIMITER ;
 
 CALL `__upgrade_draw_records_fairness`();
 DROP PROCEDURE `__upgrade_draw_records_fairness`;
+
+-- ============================================================
+-- 增量升级（幂等，可重复执行）：无限赏宝箱后台字段
+-- draw_boxes 增加 IP/期数/活动时间/折扣/开关/排序/封面/优惠券等字段；
+-- draw_pool_entries 增加赏别/缩略图/成本价/商品 SKU/类型/扩展 JSON。
+-- ============================================================
+
+DROP PROCEDURE IF EXISTS `__upgrade_draw_box_admin_fields`;
+
+DELIMITER $$
+CREATE PROCEDURE `__upgrade_draw_box_admin_fields`()
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_boxes' AND COLUMN_NAME='ip_id') THEN
+    ALTER TABLE `draw_boxes` ADD COLUMN `ip_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT 'IP id（0=未选择）' AFTER `rolling_rules_json`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_boxes' AND COLUMN_NAME='periods') THEN
+    ALTER TABLE `draw_boxes` ADD COLUMN `periods` bigint NOT NULL DEFAULT '1' COMMENT '期数' AFTER `ip_id`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_boxes' AND COLUMN_NAME='start_at') THEN
+    ALTER TABLE `draw_boxes` ADD COLUMN `start_at` datetime DEFAULT NULL COMMENT '活动开始时间（NULL=未设置）' AFTER `periods`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_boxes' AND COLUMN_NAME='end_at') THEN
+    ALTER TABLE `draw_boxes` ADD COLUMN `end_at` datetime DEFAULT NULL COMMENT '活动结束时间（NULL=未设置）' AFTER `start_at`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_boxes' AND COLUMN_NAME='discount') THEN
+    ALTER TABLE `draw_boxes` ADD COLUMN `discount` int NOT NULL DEFAULT '0' COMMENT '折扣（百分比 0-100）' AFTER `end_at`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_boxes' AND COLUMN_NAME='is_new') THEN
+    ALTER TABLE `draw_boxes` ADD COLUMN `is_new` tinyint NOT NULL DEFAULT '0' COMMENT '是否新品：1=是 0=否' AFTER `discount`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_boxes' AND COLUMN_NAME='is_recommended') THEN
+    ALTER TABLE `draw_boxes` ADD COLUMN `is_recommended` tinyint NOT NULL DEFAULT '0' COMMENT '是否推荐：1=是 0=否' AFTER `is_new`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_boxes' AND COLUMN_NAME='is_bargain') THEN
+    ALTER TABLE `draw_boxes` ADD COLUMN `is_bargain` tinyint NOT NULL DEFAULT '0' COMMENT '是否捡漏：1=是 0=否' AFTER `is_recommended`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_boxes' AND COLUMN_NAME='is_presale') THEN
+    ALTER TABLE `draw_boxes` ADD COLUMN `is_presale` tinyint NOT NULL DEFAULT '0' COMMENT '是否预售：1=是 0=否' AFTER `is_bargain`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_boxes' AND COLUMN_NAME='is_miniapp') THEN
+    ALTER TABLE `draw_boxes` ADD COLUMN `is_miniapp` tinyint NOT NULL DEFAULT '0' COMMENT '是否小程序展示：1=是 0=否' AFTER `is_presale`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_boxes' AND COLUMN_NAME='is_welfare') THEN
+    ALTER TABLE `draw_boxes` ADD COLUMN `is_welfare` tinyint NOT NULL DEFAULT '0' COMMENT '是否福利箱：1=是 0=否' AFTER `is_miniapp`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_boxes' AND COLUMN_NAME='exclude_task') THEN
+    ALTER TABLE `draw_boxes` ADD COLUMN `exclude_task` tinyint NOT NULL DEFAULT '0' COMMENT '不参与任务：1=是 0=否' AFTER `is_welfare`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_boxes' AND COLUMN_NAME='allow_box_in_box') THEN
+    ALTER TABLE `draw_boxes` ADD COLUMN `allow_box_in_box` tinyint NOT NULL DEFAULT '0' COMMENT '允许作为箱中箱：1=是 0=否' AFTER `exclude_task`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_boxes' AND COLUMN_NAME='sort_weight') THEN
+    ALTER TABLE `draw_boxes` ADD COLUMN `sort_weight` bigint NOT NULL DEFAULT '0' COMMENT '排序权重' AFTER `allow_box_in_box`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_boxes' AND COLUMN_NAME='cover_image') THEN
+    ALTER TABLE `draw_boxes` ADD COLUMN `cover_image` varchar(512) NOT NULL DEFAULT '' COMMENT '封面大图 URL' AFTER `sort_weight`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_boxes' AND COLUMN_NAME='cover_thumb') THEN
+    ALTER TABLE `draw_boxes` ADD COLUMN `cover_thumb` varchar(512) NOT NULL DEFAULT '' COMMENT '封面缩略图 URL' AFTER `cover_image`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_boxes' AND COLUMN_NAME='coupons_json') THEN
+    ALTER TABLE `draw_boxes` ADD COLUMN `coupons_json` text COMMENT '优惠券配置 JSON' AFTER `cover_thumb`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_boxes' AND COLUMN_NAME='admin_json') THEN
+    ALTER TABLE `draw_boxes` ADD COLUMN `admin_json` text COMMENT '其它后台扩展字段 JSON' AFTER `coupons_json`;
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_pool_entries' AND COLUMN_NAME='prize_grade') THEN
+    ALTER TABLE `draw_pool_entries` ADD COLUMN `prize_grade` varchar(32) NOT NULL DEFAULT '' COMMENT '赏别/分类（如 宝箱赏、超神款、欧皇款）' AFTER `rolling_limited`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_pool_entries' AND COLUMN_NAME='image_url') THEN
+    ALTER TABLE `draw_pool_entries` ADD COLUMN `image_url` varchar(512) NOT NULL DEFAULT '' COMMENT '赏品缩略图 URL' AFTER `prize_grade`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_pool_entries' AND COLUMN_NAME='cost_fen') THEN
+    ALTER TABLE `draw_pool_entries` ADD COLUMN `cost_fen` bigint NOT NULL DEFAULT '0' COMMENT '成本价（分）' AFTER `image_url`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_pool_entries' AND COLUMN_NAME='sku_id') THEN
+    ALTER TABLE `draw_pool_entries` ADD COLUMN `sku_id` bigint NOT NULL DEFAULT '0' COMMENT '商品 SKU ID（0=虚拟/箱子奖）' AFTER `cost_fen`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_pool_entries' AND COLUMN_NAME='prize_type') THEN
+    ALTER TABLE `draw_pool_entries` ADD COLUMN `prize_type` tinyint NOT NULL DEFAULT '0' COMMENT '赏品类型：0=虚拟 1=虚拟 2=商品 3=箱子' AFTER `sku_id`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_pool_entries' AND COLUMN_NAME='extra_json') THEN
+    ALTER TABLE `draw_pool_entries` ADD COLUMN `extra_json` text COMMENT '条目扩展 JSON' AFTER `prize_type`;
+  END IF;
+END$$
+DELIMITER ;
+
+CALL `__upgrade_draw_box_admin_fields`();
+DROP PROCEDURE `__upgrade_draw_box_admin_fields`;

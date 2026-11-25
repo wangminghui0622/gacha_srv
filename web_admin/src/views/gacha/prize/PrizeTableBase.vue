@@ -5,7 +5,7 @@
     :row-key="(record: DisplayPrize) => record.__rowKey"
     size="small"
     :locale="{ emptyText: '暂无数据' }"
-    :scroll="{ x: showSpecial ? 880 : 680 }"
+    :scroll="{ x: showRecord || showQuantityInput ? 900 : showSpecial ? 880 : 680 }"
     :custom-row="customRow"
   >
     <a-table-column title="序号" width="50" align="center">
@@ -45,12 +45,33 @@
         <span v-else>—</span>
       </template>
     </a-table-column>
+    <a-table-column v-if="showRecord" title="中奖记录" width="90" align="center">
+      <template #default="{ record }">
+        <a-switch
+          :checked="record.isPrize !== false"
+          size="small"
+          @click.stop
+          @change="(checked: boolean) => emit('recordChange', record, checked)"
+        />
+      </template>
+    </a-table-column>
     <a-table-column title="成本价" width="80" align="center">
       <template #default="{ record }">{{ Number(record.costFen ?? 0) / 100 }}</template>
     </a-table-column>
-    <a-table-column title="总数" width="60" align="center">
+    <a-table-column title="总数" width="90" align="center">
       <template #default="{ record }">
-        <PrizeQuantityCell :record="record" :expandable="!showTarget" @toggle="emit('toggle', $event)" />
+        <a-input-number
+          v-if="showQuantityInput"
+          :value="record.quantity ?? 1"
+          :min="-1"
+          :precision="0"
+          size="small"
+          :controls="false"
+          style="width: 72px"
+          @click.stop
+          @change="(value: number | null) => emit('quantityChange', record, value)"
+        />
+        <PrizeQuantityCell v-else :record="record" :expandable="!showTarget" @toggle="emit('toggle', $event)" />
       </template>
     </a-table-column>
     <a-table-column title="概率(%)" width="80" align="center">
@@ -79,13 +100,17 @@ withDefaults(
     showTarget?: boolean
     showSpecial?: boolean
     showReward?: boolean
+    showRecord?: boolean
+    showQuantityInput?: boolean
   }>(),
-  { actionsWidth: 100, showTarget: false, showSpecial: false, showReward: false },
+  { actionsWidth: 100, showTarget: false, showSpecial: false, showReward: false, showRecord: false, showQuantityInput: false },
 )
 
 const emit = defineEmits<{
   toggle: [prize: DisplayPrize]
   targetChange: [record: DisplayPrize, value: number | null]
+  recordChange: [record: DisplayPrize, value: boolean]
+  quantityChange: [record: DisplayPrize, value: number | null]
 }>()
 
 function specialKindText(value: string | undefined) {

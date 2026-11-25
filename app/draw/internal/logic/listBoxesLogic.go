@@ -61,6 +61,10 @@ func (l *ListBoxesLogic) ListBoxes(in *draw.ListBoxesReq) (*draw.ListBoxesResp, 
 			Price:       utils.FenToYuan(b.Price),
 			Description: b.Description,
 			SoldOut:     drawable[b.Id] == 0,
+			CoverImage:  b.CoverImage,
+			CoverThumb:  b.CoverThumb,
+			Periods:     b.Periods,
+			Discount:    int32(b.Discount),
 		})
 	}
 	return &draw.ListBoxesResp{Boxes: items}, nil

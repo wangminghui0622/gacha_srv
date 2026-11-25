@@ -41,6 +41,9 @@ func (l *BoxDetailLogic) BoxDetail(req *types.BoxDetailPathReq) (resp *types.Box
 			Remaining:   e.Remaining,
 			IsPrize:     e.IsPrize,
 			Probability: e.Probability,
+			PrizeGrade:  e.PrizeGrade,
+			ImageUrl:    e.ImageUrl,
+			CostFen:     e.CostFen,
 		})
 	}
 	return &types.BoxDetailResp{
@@ -50,5 +53,9 @@ func (l *BoxDetailLogic) BoxDetail(req *types.BoxDetailPathReq) (resp *types.Box
 		Description: r.Description,
 		SoldOut:     r.SoldOut,
 		Entries:     entries,
+		CoverImage:  r.CoverImage,
+		CoverThumb:  r.CoverThumb,
+		Periods:     r.Periods,
+		Discount:    r.Discount,
 	}, nil
 }

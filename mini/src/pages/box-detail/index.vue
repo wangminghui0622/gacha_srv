@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 
@@ -9,13 +9,28 @@ import { formatMoney } from '@/utils/format'
 import type { BoxDetailResponse } from '@/services/types'
 
 // 宝箱详情 + 概率公示（列表化，替代 web 的 antd 表格）
-
 const { t } = useI18n()
 
 const boxId = ref(0)
 const loading = ref(true)
 const detail = ref<BoxDetailResponse | null>(null)
 const error = ref('')
+
+const cover = computed(() => detail.value?.coverImage || detail.value?.coverThumb || '')
+
+const gradeGroups = computed(() => {
+  const map = new Map<string, { grade: string; probability: number; count: number }>()
+  for (const entry of detail.value?.entries ?? []) {
+    if (!entry.isPrize) continue
+    const grade = entry.prizeGrade?.trim() || '奖品'
+    const p = Number.parseFloat(entry.probability.replace('%', '')) || 0
+    const item = map.get(grade) ?? { grade, probability: 0, count: 0 }
+    item.probability += p
+    item.count += 1
+    map.set(grade, item)
+  }
+  return [...map.values()].sort((a, b) => b.probability - a.probability)
+})
 
 async function load() {
   loading.value = true
@@ -51,11 +66,16 @@ function goBuy() {
 
     <template v-if="detail">
       <view class="gacha-card detail-card">
+        <image v-if="cover" class="detail-cover" :src="cover" mode="aspectFill" />
         <view class="detail-head">
           <text class="detail-name">{{ detail.boxName }}</text>
           <text v-if="detail.soldOut" class="soldout-tag">{{ t('box.soldOut') }}</text>
         </view>
         <view class="detail-desc">{{ detail.description }}</view>
+        <view class="detail-meta">
+          <text v-if="Number(detail.periods ?? 0) > 0">第 {{ detail.periods }} 期</text>
+          <text v-if="Number(detail.discount ?? 0) > 0">{{ detail.discount }}% 折扣</text>
+        </view>
         <view class="detail-price">
           {{ t('box.price') }}：<text class="money">{{ formatMoney(detail.price) }}</text>
         </view>
@@ -68,21 +88,35 @@ function goBuy() {
         </view>
       </view>
 
-      <view class="gacha-card prob-card">
-        <view class="prob-title">{{ t('box.probability') }}</view>
-        <view class="prob-notice">{{ t('box.notice') }}</view>
-        <view class="entry-row entry-head">
-          <text class="col-name">{{ t('box.entryName') }}</text>
-          <text class="col-prob">{{ t('box.probabilityCol') }}</text>
-          <text class="col-remain">{{ t('box.remaining') }}</text>
+      <view v-if="gradeGroups.length" class="gacha-card grade-card">
+        <view class="prob-title">分类概率</view>
+        <view class="grade-list">
+          <view v-for="group in gradeGroups" :key="group.grade" class="grade-item">
+            <text class="grade-name">{{ group.grade }}</text>
+            <text class="grade-prob">{{ group.probability.toFixed(2) }}%</text>
+          </view>
         </view>
-        <view v-for="entry in detail.entries" :key="entry.entryId" class="entry-row">
-          <text class="col-name" :class="{ 'prize-name': entry.isPrize }">{{ entry.name }}</text>
-          <text class="col-prob">{{ entry.probability }}</text>
-          <text v-if="entry.remaining === -1" class="col-remain">{{ t('box.unlimited') }}</text>
-          <text v-else class="col-remain" :class="{ 'zero-stock': entry.remaining === 0 }">
-            {{ entry.remaining === 0 ? t('box.soldOut') : entry.remaining }}
-          </text>
+      </view>
+
+      <view class="gacha-card prob-card">
+        <view class="prob-title">奖品概览</view>
+        <view class="prob-notice">{{ t('box.notice') }}</view>
+        <view v-for="entry in detail.entries" :key="entry.entryId" class="entry-card">
+          <image v-if="entry.imageUrl" class="entry-image" :src="entry.imageUrl" mode="aspectFill" />
+          <view v-else class="entry-image entry-image-empty">吉</view>
+          <view class="entry-body">
+            <view class="entry-top">
+              <text v-if="entry.prizeGrade" class="entry-grade">{{ entry.prizeGrade }}</text>
+              <text class="entry-name" :class="{ 'prize-name': entry.isPrize }">{{ entry.name }}</text>
+            </view>
+            <view class="entry-bottom">
+              <text class="entry-prob">{{ entry.probability }}</text>
+              <text v-if="entry.remaining === -1" class="entry-remain">{{ t('box.unlimited') }}</text>
+              <text v-else class="entry-remain" :class="{ 'zero-stock': entry.remaining === 0 }">
+                {{ entry.remaining === 0 ? t('box.soldOut') : `剩余 ${entry.remaining}` }}
+              </text>
+            </view>
+          </view>
         </view>
       </view>
     </template>
@@ -97,6 +131,14 @@ function goBuy() {
 }
 
 .detail-card {
+  .detail-cover {
+    width: 100%;
+    height: 360rpx;
+    border-radius: 16rpx;
+    margin-bottom: 20rpx;
+    background: #f2f3f5;
+  }
+
   .detail-head {
     display: flex;
     align-items: center;
@@ -122,9 +164,46 @@ function goBuy() {
     margin: 12rpx 0;
   }
 
+  .detail-meta {
+    display: flex;
+    gap: 20rpx;
+    font-size: 24rpx;
+    color: var(--color-text-secondary);
+    margin-bottom: 12rpx;
+  }
+
   .detail-price {
     font-size: 30rpx;
     margin-bottom: 24rpx;
+  }
+}
+
+.grade-card {
+  .grade-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16rpx;
+    margin-top: 16rpx;
+  }
+
+  .grade-item {
+    display: flex;
+    align-items: center;
+    gap: 12rpx;
+    padding: 12rpx 20rpx;
+    border-radius: 999rpx;
+    background: #f7f8fa;
+    border: 1rpx solid var(--color-border);
+  }
+
+  .grade-name {
+    font-size: 26rpx;
+    font-weight: 600;
+  }
+
+  .grade-prob {
+    font-size: 24rpx;
+    color: #ff5a3c;
   }
 }
 
@@ -141,39 +220,77 @@ function goBuy() {
     margin-bottom: 20rpx;
   }
 
-  .entry-row {
+  .entry-card {
     display: flex;
-    font-size: 26rpx;
-    padding: 14rpx 0;
+    gap: 20rpx;
+    padding: 18rpx 0;
     border-bottom: 1rpx solid var(--color-border);
 
     &:last-child {
       border-bottom: none;
     }
-
-    .col-name {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .col-prob {
-      width: 140rpx;
-      text-align: right;
-    }
-
-    .col-remain {
-      width: 120rpx;
-      text-align: right;
-      color: var(--color-text-secondary);
-    }
   }
 
-  .entry-head {
-    color: var(--color-text-secondary);
-    font-size: 24rpx;
+  .entry-image {
+    width: 120rpx;
+    height: 120rpx;
+    border-radius: 12rpx;
+    background: #f2f3f5;
+    flex-shrink: 0;
+  }
+
+  .entry-image-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #c0c4cc;
+    font-size: 36rpx;
+  }
+
+  .entry-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .entry-top {
+    display: flex;
+    align-items: center;
+    gap: 12rpx;
+  }
+
+  .entry-grade {
+    flex-shrink: 0;
+    padding: 2rpx 10rpx;
+    font-size: 22rpx;
+    color: #ff5a3c;
+    border: 1rpx solid #ff5a3c;
+    border-radius: 6rpx;
+  }
+
+  .entry-name {
+    font-size: 28rpx;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .prize-name {
+    font-weight: 600;
+  }
+
+  .entry-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 24rpx;
+    color: var(--color-text-secondary);
+  }
+
+  .entry-prob {
+    color: #ff5a3c;
     font-weight: 600;
   }
 

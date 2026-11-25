@@ -4,6 +4,7 @@
 package repo
 
 import (
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -161,6 +162,35 @@ func ListPublishedPools(tx *gorm.DB, afterPoolID, afterVersion int64, limit int)
 		return nil, err
 	}
 	return rows, nil
+}
+
+// ListLatestPoolVersions 宝箱列表：每个赏池仅取最新版本，按 pool_id 倒序分页。
+// keyword 按 config_json.boxName 过滤（protojson 字段名）。
+func ListLatestPoolVersions(tx *gorm.DB, keyword string, offset, limit int) ([]PoolVersion, int64, error) {
+	const latestJoin = "JOIN (SELECT pool_id, MAX(version) AS version FROM draw_pool_versions GROUP BY pool_id) latest " +
+		"ON v.pool_id = latest.pool_id AND v.version = latest.version"
+	where := "1 = 1"
+	args := []any{}
+	if keyword = strings.TrimSpace(keyword); keyword != "" {
+		where = "JSON_UNQUOTE(JSON_EXTRACT(v.config_json, '$.boxName')) LIKE ?"
+		args = append(args, "%"+keyword+"%")
+	}
+
+	var total int64
+	countSQL := "SELECT COUNT(*) FROM draw_pool_versions v " + latestJoin + " WHERE " + where
+	if err := tx.Raw(countSQL, args...).Scan(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var rows []PoolVersion
+	listSQL := "SELECT v.pool_id, v.version, v.status, v.config_hash, v.config_json, v.published_at, v.created_at " +
+		"FROM draw_pool_versions v " + latestJoin + " WHERE " + where +
+		" ORDER BY v.pool_id DESC LIMIT ? OFFSET ?"
+	listArgs := append(append([]any{}, args...), limit, offset)
+	if err := tx.Raw(listSQL, listArgs...).Scan(&rows).Error; err != nil {
+		return nil, 0, err
+	}
+	return rows, total, nil
 }
 
 // GetPoolDraftRequest 按幂等键查草稿创建记录；未找到返回 gorm.ErrRecordNotFound。

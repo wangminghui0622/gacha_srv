@@ -18,6 +18,10 @@ type BoxDetailResp struct {
 	Description string          `json:"description"`
 	SoldOut     bool            `json:"soldOut"`
 	Entries     []PoolEntryItem `json:"entries"`
+	CoverImage  string          `json:"coverImage"`
+	CoverThumb  string          `json:"coverThumb"`
+	Periods     int64           `json:"periods"`
+	Discount    int32           `json:"discount"`
 }
 
 type BoxItem struct {
@@ -26,6 +30,10 @@ type BoxItem struct {
 	Price       string `json:"price"`
 	Description string `json:"description"`
 	SoldOut     bool   `json:"soldOut"`
+	CoverImage  string `json:"coverImage"`
+	CoverThumb  string `json:"coverThumb"`
+	Periods     int64  `json:"periods"`
+	Discount    int32  `json:"discount"`
 }
 
 type BoxListResp struct {
@@ -170,6 +178,9 @@ type PoolEntryItem struct {
 	Remaining   int32  `json:"remaining"`
 	IsPrize     bool   `json:"isPrize"`
 	Probability string `json:"probability"`
+	PrizeGrade  string `json:"prizeGrade"`
+	ImageUrl    string `json:"imageUrl"`
+	CostFen     int64  `json:"costFen"`
 }
 
 type RechargeReq struct {

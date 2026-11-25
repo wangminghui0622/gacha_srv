@@ -85,6 +85,7 @@
     </div>
 
     <a-modal
+      v-if="createModalOpen"
       v-model:open="createModalOpen"
       centered
       :width="createModalWidth"

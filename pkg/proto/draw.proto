@@ -29,6 +29,8 @@ service Draw {
   rpc GetPoolVersion(GetPoolVersionReq) returns (BoxDraft);
   // 赏池版本列表（含草稿；游标分页）
   rpc ListPoolVersions(ListPoolVersionsReq) returns (ListPoolVersionsResp);
+  // 宝箱（无限赏）列表：每个赏池仅返回最新版本，含后台展示字段
+  rpc ListBoxPools(ListBoxPoolsReq) returns (ListBoxPoolsResp);
   // 已发布赏池列表（游标分页）
   rpc ListPublishedPools(ListPublishedPoolsReq) returns (ListPublishedPoolsResp);
   // 提请发布（申请人；同人同 hash 幂等）
@@ -47,6 +49,10 @@ message BoxItem {
   string price = 3;       // 单抽价格（元，两位小数）
   string description = 4; // 描述
   bool soldOut = 5;       // 是否售罄（无任何可抽中奖条目）
+  string coverImage = 6;  // 封面大图
+  string coverThumb = 7;  // 封面缩略图
+  int64 periods = 8;      // 期数
+  int32 discount = 9;     // 折扣（百分比）
 }
 
 message ListBoxesResp {
@@ -64,6 +70,9 @@ message PoolEntryItem {
   int32 remaining = 4;    // 剩余库存：-1=不限量 0=售罄
   bool isPrize = 5;       // 是否奖品（false=谢谢参与）
   string probability = 6; // 公示概率（如 "12.50%"）
+  string prizeGrade = 7;  // 赏别/分类
+  string imageUrl = 8;    // 赏品缩略图
+  int64 costFen = 9;      // 成本价（分）
 }
 
 message BoxDetailResp {
@@ -73,6 +82,10 @@ message BoxDetailResp {
   string description = 4;
   bool soldOut = 5;
   repeated PoolEntryItem entries = 6; // 概率公示
+  string coverImage = 7;  // 封面大图
+  string coverThumb = 8;  // 封面缩略图
+  int64 periods = 9;      // 期数
+  int32 discount = 10;    // 折扣（百分比）
 }
 
 message SettleDrawReq {
@@ -187,6 +200,12 @@ message PoolEntryDraft {
   bool isPrize = 5;           // 是否奖品（false=谢谢参与）
   int64 displayValueFen = 6;  // 展示价（分），滚动中奖等级判定用
   bool rollingLimited = 7;    // 滚动限量标记（LIMITED 等级）
+  string prizeGrade = 8;      // 赏别/分类（如 宝箱赏、超神款、欧皇款）
+  string imageUrl = 9;        // 赏品缩略图
+  int64 costFen = 10;         // 成本价（分）
+  int64 skuId = 11;           // 商品 SKU ID（0=虚拟/箱子奖）
+  int32 prizeType = 12;       // 赏品类型：0=虚拟 1=虚拟 2=商品 3=箱子
+  string extraJson = 13;      // 条目扩展 JSON
 }
 
 // BoxDraft 宝箱草稿（= 赏池版本；映射 draw_boxes + draw_pool_entries）
@@ -201,6 +220,25 @@ message BoxDraft {
   string rollingRulesJson = 8;    // 滚动中奖规则 JSON（空=非滚动盒）
   bytes configHash = 9;           // 配置哈希 SHA256（密封时计算）
   int64 publishedAtUnixMillis = 10; // 发布时间（unix 毫秒；未发布=0）
+  int64 ipId = 11;                // IP id（0=未选择）
+  int64 periods = 12;             // 期数
+  string startAt = 13;            // 活动开始时间（YYYY-MM-DD HH:mm:ss）
+  string endAt = 14;              // 活动结束时间（YYYY-MM-DD HH:mm:ss）
+  int32 discount = 15;            // 折扣（百分比 0-100）
+  optional bool isOnSale = 16;    // 是否上架（未设置=沿用线上状态）
+  bool isNew = 17;                // 是否新品
+  bool isRecommended = 18;        // 是否推荐
+  bool isBargain = 19;            // 是否捡漏
+  bool isPresale = 20;            // 是否预售
+  bool isMiniapp = 21;            // 是否小程序展示
+  bool isWelfare = 22;            // 是否福利箱
+  bool excludeTask = 23;          // 不参与任务
+  bool allowBoxInBox = 24;        // 允许作为箱中箱
+  int64 sortWeight = 25;          // 排序权重
+  string coverImage = 26;         // 封面大图
+  string coverThumb = 27;         // 封面缩略图
+  string couponsJson = 28;        // 优惠券配置 JSON
+  string adminJson = 29;          // 其它后台扩展字段 JSON
 }
 
 // PoolPublicationApproval 发布审批（与 server_v2 同构）
@@ -259,6 +297,35 @@ message ListPoolVersionsResp {
   repeated PoolVersionSummary versions = 1;
   int64 nextAfterPoolId = 2; // 0=无更多
   int64 nextAfterVersion = 3;
+}
+
+message ListBoxPoolsReq {
+  int32 page = 1;      // 页码，从 1 开始
+  int32 pageSize = 2;  // 每页数量，默认 20，上限 100
+  string keyword = 3;  // 宝箱名称关键字
+}
+
+message BoxPoolSummary {
+  int64 poolId = 1;
+  int64 version = 2;
+  PoolStatus status = 3;
+  string boxName = 4;
+  int64 price = 5;
+  int64 periods = 6;
+  string startAt = 7;
+  string endAt = 8;
+  int32 discount = 9;
+  int64 sortWeight = 10;
+  string coverImage = 11;
+  string coverThumb = 12;
+  bytes configHash = 13;
+  int64 publishedAtUnixMillis = 14;
+  int64 updatedAtUnixMillis = 15;
+}
+
+message ListBoxPoolsResp {
+  repeated BoxPoolSummary items = 1;
+  int64 total = 2;
 }
 
 message ListPublishedPoolsReq {

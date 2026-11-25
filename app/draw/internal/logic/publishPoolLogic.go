@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"gacha_srv/app/draw/draw"
 	"gacha_srv/app/draw/internal/repo"
 	"gacha_srv/app/draw/internal/svc"
-	"gacha_srv/pkg/utils/errorx"
 	drawmodel "gacha_srv/pkg/model/gacha_draw"
+	"gacha_srv/pkg/utils/errorx"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
@@ -113,13 +114,35 @@ func (l *PublishPoolLogic) materialize(tx *gorm.DB, box *draw.BoxDraft) error {
 		r := box.RollingRulesJson
 		rolling = &r
 	}
+	status := int64(1)
+	if box.IsOnSale != nil && !box.GetIsOnSale() {
+		status = 0
+	}
 	boxRow := &drawmodel.DrawBoxes{
 		Id:               box.PoolId,
 		BoxName:          box.BoxName,
 		Price:            box.Price,
 		Description:      box.Description,
-		Status:           1,
+		Status:           status,
 		RollingRulesJson: rolling,
+		IpId:             box.IpId,
+		Periods:          box.Periods,
+		StartAt:          parseBoxTime(box.StartAt),
+		EndAt:            parseBoxTime(box.EndAt),
+		Discount:         int64(box.Discount),
+		IsNew:            boolToInt64(box.IsNew),
+		IsRecommended:    boolToInt64(box.IsRecommended),
+		IsBargain:        boolToInt64(box.IsBargain),
+		IsPresale:        boolToInt64(box.IsPresale),
+		IsMiniapp:        boolToInt64(box.IsMiniapp),
+		IsWelfare:        boolToInt64(box.IsWelfare),
+		ExcludeTask:      boolToInt64(box.ExcludeTask),
+		AllowBoxInBox:    boolToInt64(box.AllowBoxInBox),
+		SortWeight:       box.SortWeight,
+		CoverImage:       box.CoverImage,
+		CoverThumb:       box.CoverThumb,
+		CouponsJson:      optString(box.CouponsJson),
+		AdminJson:        optString(box.AdminJson),
 		CreatedAt:        now,
 		UpdatedAt:        now,
 	}
@@ -163,6 +186,12 @@ func (l *PublishPoolLogic) materialize(tx *gorm.DB, box *draw.BoxDraft) error {
 			IsPrize:         isPrize,
 			DisplayValueFen: e.DisplayValueFen,
 			RollingLimited:  rollingLimited,
+			PrizeGrade:      e.PrizeGrade,
+			ImageUrl:        e.ImageUrl,
+			CostFen:         e.CostFen,
+			SkuId:           e.SkuId,
+			PrizeType:       int64(e.PrizeType),
+			ExtraJson:       optString(e.ExtraJson),
 			CreatedAt:       now,
 			UpdatedAt:       now,
 		})
@@ -171,4 +200,32 @@ func (l *PublishPoolLogic) materialize(tx *gorm.DB, box *draw.BoxDraft) error {
 		return errorx.FromMySQLError(err)
 	}
 	return nil
+}
+
+// parseBoxTime 解析后台活动时间（与前端表单一致：YYYY-MM-DD HH:mm:ss）。
+func parseBoxTime(value string) *time.Time {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return nil
+	}
+	for _, layout := range []string{"2006-01-02 15:04:05", time.RFC3339} {
+		if t, err := time.ParseInLocation(layout, value, time.Local); err == nil {
+			return &t
+		}
+	}
+	return nil
+}
+
+func boolToInt64(value bool) int64 {
+	if value {
+		return 1
+	}
+	return 0
+}
+
+func optString(value string) *string {
+	if strings.TrimSpace(value) == "" {
+		return nil
+	}
+	return &value
 }

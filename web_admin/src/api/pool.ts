@@ -14,6 +14,12 @@ export interface PoolEntryDraft {
   isPrize?: boolean
   displayValueFen?: string | number
   rollingLimited?: boolean
+  prizeGrade?: string
+  imageUrl?: string
+  costFen?: string | number
+  skuId?: string | number
+  prizeType?: number
+  extraJson?: string
 }
 
 export interface BoxDraft {
@@ -27,6 +33,43 @@ export interface BoxDraft {
   rollingRulesJson?: string
   configHash?: string
   publishedAtUnixMillis?: string
+  ipId?: string | number
+  periods?: string | number
+  startAt?: string
+  endAt?: string
+  discount?: number
+  isOnSale?: boolean
+  isNew?: boolean
+  isRecommended?: boolean
+  isBargain?: boolean
+  isPresale?: boolean
+  isMiniapp?: boolean
+  isWelfare?: boolean
+  excludeTask?: boolean
+  allowBoxInBox?: boolean
+  sortWeight?: string | number
+  coverImage?: string
+  coverThumb?: string
+  couponsJson?: string
+  adminJson?: string
+}
+
+export interface BoxPoolSummary {
+  poolId?: string
+  version?: string
+  status?: string
+  boxName?: string
+  price?: string
+  periods?: string
+  startAt?: string
+  endAt?: string
+  discount?: number
+  sortWeight?: string
+  coverImage?: string
+  coverThumb?: string
+  configHash?: string
+  publishedAtUnixMillis?: string
+  updatedAtUnixMillis?: string
 }
 
 export interface PoolPublicationApproval {
@@ -64,6 +107,9 @@ export function poolClient(idempotencyKey?: string) {
     },
     Create({ box }: { box: BoxDraft }): Promise<BoxDraft> {
       return http.post('/console/v2/api/gacha/pools/drafts', { box }, { headers })
+    },
+    ListBoxPools(params: { page?: number; pageSize?: number; keyword?: string }): Promise<{ items?: BoxPoolSummary[]; total?: string }> {
+      return http.get('/console/v2/api/gacha/box-pools', { params })
     },
     RequestPublication({ poolId, version, expectedConfigHash }: { poolId: string; version: string; expectedConfigHash: string }): Promise<PoolPublicationApproval> {
       return http.post(`/console/v2/api/gacha/pools/${encodeURIComponent(poolId)}/versions/${encodeURIComponent(version)}/publication-request`, { expectedConfigHash })

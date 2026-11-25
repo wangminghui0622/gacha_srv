@@ -39,14 +39,32 @@ type (
 	}
 
 	DrawBoxes struct {
-		Id               int64     `gorm:"column:id;primary_key"`     // 自增主键
-		BoxName          string    `gorm:"column:box_name"`           // 宝箱名称
-		Price            int64     `gorm:"column:price"`              // 单抽价格（单位：分）
-		Description      string    `gorm:"column:description"`        // 宝箱描述
-		Status           int64     `gorm:"column:status"`             // 状态：1=上架 0=下架
-		RollingRulesJson *string   `gorm:"column:rolling_rules_json"` // 滚动中奖规则 JSON（NULL=非滚动盒）
-		CreatedAt        time.Time `gorm:"column:created_at"`         // 创建时间
-		UpdatedAt        time.Time `gorm:"column:updated_at"`         // 更新时间
+		Id               int64      `gorm:"column:id;primary_key"`     // 自增主键
+		BoxName          string     `gorm:"column:box_name"`           // 宝箱名称
+		Price            int64      `gorm:"column:price"`              // 单抽价格（单位：分）
+		Description      string     `gorm:"column:description"`        // 宝箱描述
+		Status           int64      `gorm:"column:status"`             // 状态：1=上架 0=下架
+		RollingRulesJson *string    `gorm:"column:rolling_rules_json"` // 滚动中奖规则 JSON（NULL=非滚动盒）
+		IpId             int64      `gorm:"column:ip_id"`              // IP id（0=未选择）
+		Periods          int64      `gorm:"column:periods"`            // 期数
+		StartAt          *time.Time `gorm:"column:start_at"`           // 活动开始时间
+		EndAt            *time.Time `gorm:"column:end_at"`             // 活动结束时间
+		Discount         int64      `gorm:"column:discount"`           // 折扣（百分比）
+		IsNew            int64      `gorm:"column:is_new"`             // 是否新品
+		IsRecommended    int64      `gorm:"column:is_recommended"`     // 是否推荐
+		IsBargain        int64      `gorm:"column:is_bargain"`         // 是否捡漏
+		IsPresale        int64      `gorm:"column:is_presale"`         // 是否预售
+		IsMiniapp        int64      `gorm:"column:is_miniapp"`         // 是否小程序展示
+		IsWelfare        int64      `gorm:"column:is_welfare"`         // 是否福利箱
+		ExcludeTask      int64      `gorm:"column:exclude_task"`       // 不参与任务
+		AllowBoxInBox    int64      `gorm:"column:allow_box_in_box"`   // 允许作为箱中箱
+		SortWeight       int64      `gorm:"column:sort_weight"`        // 排序权重
+		CoverImage       string     `gorm:"column:cover_image"`        // 封面大图
+		CoverThumb       string     `gorm:"column:cover_thumb"`        // 封面缩略图
+		CouponsJson      *string    `gorm:"column:coupons_json"`       // 优惠券配置 JSON
+		AdminJson        *string    `gorm:"column:admin_json"`         // 其它后台扩展字段 JSON
+		CreatedAt        time.Time  `gorm:"column:created_at"`         // 创建时间
+		UpdatedAt        time.Time  `gorm:"column:updated_at"`         // 更新时间
 	}
 )
 
