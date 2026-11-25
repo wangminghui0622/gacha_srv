@@ -138,51 +138,6 @@
       <a-button style="margin-left: 12px" @click="resetForm">重置</a-button>
     </div>
 
-    <a-divider />
-    <h3 class="fortune-subtitle">已配置奖励</h3>
-    <a-table
-      :data-source="records"
-      :pagination="false"
-      :row-key="(record: FortuneReward) => String(record.id)"
-      :scroll="{ x: 1200 }"
-      size="small"
-    >
-      <a-table-column title="ID" width="70" align="center">
-        <template #default="{ record }">{{ record.id }}</template>
-      </a-table-column>
-      <a-table-column title="名称" min-width="180" align="center">
-        <template #default="{ record }">{{ record.name || '-' }}</template>
-      </a-table-column>
-      <a-table-column title="兑换积分" width="110" align="center">
-        <template #default="{ record }">{{ record.exchangePoints ?? 0 }}</template>
-      </a-table-column>
-      <a-table-column title="直购金额" width="110" align="center">
-        <template #default="{ record }">{{ money(record.directBuyMinor) }}</template>
-      </a-table-column>
-      <a-table-column title="库存" width="90" align="center">
-        <template #default="{ record }">{{ record.stock ?? 0 }}</template>
-      </a-table-column>
-      <a-table-column title="开始时间" width="180" align="center">
-        <template #default="{ record }">{{ timeText(record.startAtUnixMillis) }}</template>
-      </a-table-column>
-      <a-table-column title="结束时间" width="180" align="center">
-        <template #default="{ record }">{{ timeText(record.endAtUnixMillis) }}</template>
-      </a-table-column>
-      <a-table-column title="返现金额" width="110" align="center">
-        <template #default="{ record }">{{ money(record.cashbackMinor) }}</template>
-      </a-table-column>
-      <a-table-column title="标签" width="100" align="center">
-        <template #default="{ record }">{{ record.tag || '-' }}</template>
-      </a-table-column>
-      <a-table-column title="状态" width="100" align="center">
-        <template #default="{ record }">{{ record.enabled ? '开启' : '关闭' }}</template>
-      </a-table-column>
-      <a-table-column title="操作" width="100" align="center">
-        <template #default="{ record }">
-          <a-button size="small" @click="editRecord(record)">编辑</a-button>
-        </template>
-      </a-table-column>
-    </a-table>
   </section>
 </template>
 
@@ -192,7 +147,7 @@ import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 import { fortuneRewardClient } from '@/api/fortune'
-import type { FortuneReward, FortuneRewardItem } from '@/api/fortune'
+import type { FortuneRewardItem } from '@/api/fortune'
 import { promotionClient } from '@/api/promotion'
 import type { CouponTemplate } from '@/api/promotion'
 import { catalogAdminProductClient } from '@/api/catalog'
@@ -206,8 +161,6 @@ type RewardDraft = FortuneRewardItem & { _key: string }
 
 const session = useSessionStore()
 const saving = ref(false)
-const editingId = ref<string | number | null>(null)
-const records = ref<FortuneReward[]>([])
 const couponTemplates = ref<CouponTemplate[]>([])
 
 const tagOptions = ['新品', '热门', '限时', '推荐'].map((value) => ({ value, label: value }))
@@ -411,17 +364,7 @@ async function handleCoverUpload(file: File) {
   return false
 }
 
-function money(value: string | number | undefined) {
-  return `¥${(Number(value ?? 0) / 100).toFixed(2)}`
-}
-
-function timeText(value: string | number | undefined) {
-  const ms = Number(value ?? 0)
-  return ms > 0 ? dayjs(ms).format('YYYY-MM-DD HH:mm:ss') : '-'
-}
-
 function resetForm() {
-  editingId.value = null
   form.name = ''
   form.exchangePoints = 0
   form.directBuyYuan = 0
@@ -443,33 +386,6 @@ function resetForm() {
   builder.boxId = ''
   builder.boxQuantity = 1
   builder.appearanceId = 0
-}
-
-async function loadRecords() {
-  try {
-    const result = await fortuneRewardClient().List({ tenantId: tenantID(), page: 1, pageSize: 50 })
-    records.value = result.items ?? []
-  } catch {
-    records.value = []
-  }
-}
-
-function editRecord(record: FortuneReward) {
-  editingId.value = record.id ?? null
-  form.name = String(record.name ?? '')
-  form.exchangePoints = Number(record.exchangePoints ?? 0)
-  form.directBuyYuan = Number(record.directBuyMinor ?? 0) / 100
-  form.stock = Number(record.stock ?? 0)
-  const startAt = Number(record.startAtUnixMillis ?? 0)
-  const endAt = Number(record.endAtUnixMillis ?? 0)
-  form.startAt = startAt > 0 ? dayjs(startAt) : null
-  form.endAt = endAt > 0 ? dayjs(endAt) : null
-  form.cashbackYuan = Number(record.cashbackMinor ?? 0) / 100
-  form.coverUrl = String(record.coverUrl ?? '')
-  form.tag = record.tag ? String(record.tag) : undefined
-  form.enabled = record.enabled === true
-  rewards.value = (record.rewards ?? []).map((item) => ({ ...item, _key: nextKey() }))
-  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 async function submit() {
@@ -500,14 +416,9 @@ async function submit() {
   }
   saving.value = true
   try {
-    if (editingId.value) {
-      await fortuneRewardClient(newRequestId()).Update(editingId.value, payload)
-    } else {
-      await fortuneRewardClient(newRequestId()).Create(payload)
-    }
+    await fortuneRewardClient(newRequestId()).Create(payload)
     message.success('保存成功')
     resetForm()
-    await loadRecords()
   } catch {
     // 错误提示由请求层统一处理
   } finally {
@@ -522,7 +433,6 @@ onMounted(async () => {
   } catch {
     couponTemplates.value = []
   }
-  await loadRecords()
 })
 </script>
 
@@ -535,11 +445,6 @@ onMounted(async () => {
 .fortune-title {
   margin: 0 0 24px;
   font-size: 18px;
-  font-weight: 600;
-}
-.fortune-subtitle {
-  margin: 8px 0 16px;
-  font-size: 16px;
   font-weight: 600;
 }
 .fortune-form :deep(.ant-form-item-label) {
