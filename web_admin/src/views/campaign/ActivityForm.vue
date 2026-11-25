@@ -33,23 +33,12 @@
         />
       </a-form-item>
       <a-form-item label="日活动时间" required>
-        <div class="time-range-row">
-          <a-time-picker
-            v-model:value="form.dailyStart"
-            value-format="HH:mm:ss"
-            format="HH:mm:ss"
-            placeholder="开始时间"
-            style="width: 100%"
-          />
-          <span class="range-arrow">→</span>
-          <a-time-picker
-            v-model:value="form.dailyEnd"
-            value-format="HH:mm:ss"
-            format="HH:mm:ss"
-            placeholder="结束时间"
-            style="width: 100%"
-          />
-        </div>
+        <a-time-range-picker
+          v-model:value="form.dailyRange"
+          value-format="HH:mm:ss"
+          format="HH:mm:ss"
+          style="width: 100%"
+        />
       </a-form-item>
       <a-form-item label="活动图片列表">
         <div class="image-list">
@@ -128,8 +117,7 @@ const form = reactive({
   protocol: undefined as string | undefined,
   enabled: false,
   range: null as [Dayjs, Dayjs] | null,
-  dailyStart: '',
-  dailyEnd: '',
+  dailyRange: null as [string, string] | null,
   images: [] as string[],
   imageMapMain: '',
   params: [] as Array<{ key: string; value: string }>,
@@ -141,8 +129,7 @@ function resetForm() {
   form.protocol = undefined
   form.enabled = false
   form.range = null
-  form.dailyStart = ''
-  form.dailyEnd = ''
+  form.dailyRange = null
   form.images = []
   form.imageMapMain = ''
   form.params = []
@@ -156,8 +143,7 @@ function applyRecord(record: Activity) {
   const startAt = Number(record.startAtUnixMillis ?? 0)
   const endAt = Number(record.endAtUnixMillis ?? 0)
   form.range = startAt > 0 && endAt > 0 ? [dayjs(startAt), dayjs(endAt)] : null
-  form.dailyStart = record.dailyStart ?? ''
-  form.dailyEnd = record.dailyEnd ?? ''
+  form.dailyRange = record.dailyStart && record.dailyEnd ? [record.dailyStart, record.dailyEnd] : null
   form.images = [...(record.images ?? [])]
   const mapValues = Object.values(record.imageMap ?? {})
   form.imageMapMain = mapValues[0] ?? ''
@@ -233,7 +219,7 @@ async function submit() {
     message.warning('请选择活动时间')
     return
   }
-  if (!form.dailyStart || !form.dailyEnd) {
+  if (!form.dailyRange || form.dailyRange.length !== 2) {
     message.warning('请选择日活动时间')
     return
   }
@@ -245,8 +231,8 @@ async function submit() {
     enabled: form.enabled,
     startAtUnixMillis: form.range[0].valueOf(),
     endAtUnixMillis: form.range[1].valueOf(),
-    dailyStart: form.dailyStart,
-    dailyEnd: form.dailyEnd,
+    dailyStart: form.dailyRange[0],
+    dailyEnd: form.dailyRange[1],
     images: [...form.images],
     imageMap: form.imageMapMain ? { main: form.imageMapMain } : {},
     params: buildParams(),
@@ -281,16 +267,6 @@ onMounted(() => {
 }
 .activity-form-body :deep(.ant-form-item-label > label) {
   font-size: 15px;
-}
-.time-range-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr);
-  align-items: center;
-  gap: 10px;
-}
-.range-arrow {
-  text-align: center;
-  color: #8c8c8c;
 }
 .image-list {
   display: flex;
