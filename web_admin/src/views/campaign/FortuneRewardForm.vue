@@ -47,7 +47,7 @@
         <div class="form-right">
           <div class="reward-section">
             <div class="section-title">奖励配置：</div>
-            <div class="reward-builder-panel">
+            <div ref="panelRef" class="reward-builder-panel" :style="labelStyle">
               <div class="reward-line">
                 <span class="inline-label reward-label-first">吉祥值：</span>
                 <a-input-number v-model:value="builder.fortune" class="reward-input-first" :min="0" :precision="0" />
@@ -139,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
@@ -162,6 +162,13 @@ const emit = defineEmits<{ (e: 'success'): void }>()
 const session = useSessionStore()
 const saving = ref(false)
 const couponTemplates = ref<CouponTemplate[]>([])
+const panelRef = ref<HTMLElement | null>(null)
+const labelWidths = reactive({ first: 96, second: 80, third: 40 })
+const labelStyle = computed(() => ({
+  '--label-first-width': `${labelWidths.first}px`,
+  '--label-second-width': `${labelWidths.second}px`,
+  '--label-third-width': `${labelWidths.third}px`,
+}))
 const editingId = computed(() => props.record?.id ?? '')
 
 const tagOptions = ['新品', '热门', '限时', '推荐'].map((value) => ({ value, label: value }))
@@ -468,7 +475,37 @@ watch(
   { immediate: true },
 )
 
+function measureLabelWidths() {
+  const panel = panelRef.value
+  if (!panel) return
+  const measure = (selector: string, fallback: number) => {
+    let max = 0
+    panel.querySelectorAll<HTMLElement>(selector).forEach((el) => {
+      const clone = el.cloneNode(true) as HTMLElement
+      clone.style.position = 'absolute'
+      clone.style.visibility = 'hidden'
+      clone.style.pointerEvents = 'none'
+      clone.style.whiteSpace = 'nowrap'
+      clone.style.width = 'auto'
+      clone.style.flex = '0 0 auto'
+      clone.style.marginLeft = '0'
+      clone.style.textAlign = 'left'
+      clone.style.textAlignLast = 'auto'
+      panel.appendChild(clone)
+      max = Math.max(max, clone.getBoundingClientRect().width)
+      clone.remove()
+    })
+    return max > 0 ? Math.ceil(max) + 2 : fallback
+  }
+  labelWidths.first = measure('.reward-label-first', 96)
+  labelWidths.second = measure('.reward-label-second', 80)
+  labelWidths.third = measure('.reward-label-third', 40)
+}
+
 onMounted(async () => {
+  await nextTick()
+  measureLabelWidths()
+  void document.fonts.ready.then(() => measureLabelWidths())
   try {
     const result = await promotionClient().ListCouponTemplates({ tenantId: tenantID(), pageSize: 100 })
     couponTemplates.value = result.templates ?? []
@@ -527,15 +564,21 @@ onMounted(async () => {
   white-space: nowrap;
 }
 .reward-label-first {
-  flex: 0 0 96px;
+  flex: 0 0 var(--label-first-width, 96px);
+  text-align: justify;
+  text-align-last: justify;
 }
 .reward-label-second {
-  flex: 0 0 80px;
+  flex: 0 0 var(--label-second-width, 80px);
   margin-left: 20px;
+  text-align: justify;
+  text-align-last: justify;
 }
 .reward-label-third {
-  flex: 0 0 40px;
+  flex: 0 0 var(--label-third-width, 40px);
   margin-left: 20px;
+  text-align: justify;
+  text-align-last: justify;
 }
 .reward-input-first {
   width: 150px;
