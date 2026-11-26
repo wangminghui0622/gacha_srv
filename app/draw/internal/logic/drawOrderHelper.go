@@ -102,10 +102,10 @@ func markDrawOrderCompleted(tx *gorm.DB, orderID, recordID int64) error {
 	).Error
 }
 
-// markDrawOrderCanceled 开奖补偿：订单状态置取消/失败。
+// markDrawOrderCanceled 开奖补偿：订单状态置取消/失败（已完成订单也要撤销，整单回滚）。
 func markDrawOrderCanceled(tx *gorm.DB, orderID int64) error {
 	return tx.Exec(
-		"UPDATE draw_orders SET status = 3, updated_at = NOW(3) WHERE id = ? AND status = 1",
+		"UPDATE draw_orders SET status = 3, updated_at = NOW(3) WHERE id = ?",
 		orderID,
 	).Error
 }
