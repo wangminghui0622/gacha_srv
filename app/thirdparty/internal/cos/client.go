@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"path"
@@ -104,8 +105,27 @@ func (c *Client) Upload(ctx context.Context, objectKey string, data []byte, cont
 			CacheControl: "max-age=31536000",
 		},
 	}
-	if _, err := c.client.Object.Put(ctx, objectKey, bytes.NewReader(data), opt); err != nil {
-		return "", fmt.Errorf("cos: put object: %w", err)
+	// Docker 内置 DNS 偶发 "server misbehaving"，对网络类错误做带间隔重试。
+	var putErr error
+	for attempt := 0; attempt < 3; attempt++ {
+		if _, err := c.client.Object.Put(ctx, objectKey, bytes.NewReader(data), opt); err == nil {
+			putErr = nil
+			break
+		} else {
+			putErr = err
+			if !retryableUploadError(err) || attempt == 2 {
+				break
+			}
+			delay := time.Duration(200*(1<<attempt)) * time.Millisecond
+			select {
+			case <-ctx.Done():
+				return "", fmt.Errorf("cos: put object: %w", ctx.Err())
+			case <-time.After(delay):
+			}
+		}
+	}
+	if putErr != nil {
+		return "", fmt.Errorf("cos: put object: %w", putErr)
 	}
 
 	publicBase := strings.TrimRight(strings.TrimSpace(c.cfg.PublicBaseURL), "/")
@@ -128,6 +148,19 @@ func sanitizeDir(dir string) string {
 		}
 	}
 	return strings.Join(cleaned, "/")
+}
+
+func retryableUploadError(err error) bool {
+	var dnsErr *net.DNSError
+	if errors.As(err, &dnsErr) {
+		return true
+	}
+	var netErr net.Error
+	if errors.As(err, &netErr) {
+		return true
+	}
+	var urlErr *url.Error
+	return errors.As(err, &urlErr)
 }
 
 func escapePath(key string) string {

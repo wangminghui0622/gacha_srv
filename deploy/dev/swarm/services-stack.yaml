@@ -88,6 +88,10 @@ services:
     image: ${REGISTRY}/gacha/thirdparty-rpc:prod
     environment: *common-env
     networks: [backend]
+    # 外网 DNS：规避 Docker 内置 127.0.0.11 偶发 "server misbehaving"（COS/短信/微信/广告共用）
+    dns:
+      - 223.5.5.5
+      - 119.29.29.29
     <<: *scale-dnsrr
   identity-rpc:
     image: ${REGISTRY}/gacha/identity-rpc:prod
