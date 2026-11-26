@@ -18,6 +18,7 @@ const props = defineProps<{
 const chartEl = ref<HTMLDivElement | null>(null)
 const empty = ref(true)
 let chart: echarts.ECharts | null = null
+let currentMaxCount = 1
 
 const countColors = [
   '#1677ff',
@@ -54,6 +55,7 @@ function render() {
   }
   if (!chart) {
     chart = echarts.init(chartEl.value)
+    chart.on('legendselectchanged', onLegendSelectChanged)
   }
 
   const data = [...props.rows]
@@ -61,6 +63,7 @@ function render() {
     .sort((a, b) => a.cohortDate.localeCompare(b.cohortDate))
   const labels = data.map((row) => row.cohortDate)
   const totals = data.map((row) => row.totalUsers)
+  currentMaxCount = Math.max(1, ...totals)
   const series: any[] = [
     {
       name: '总数',
@@ -195,6 +198,12 @@ function render() {
       yAxis: {
         type: 'value',
         min: 0,
+        max: currentMaxCount,
+        interval: currentMaxCount,
+        axisLabel: {
+          showMinLabel: true,
+          showMaxLabel: true,
+        },
       },
       dataZoom:
         labels.length > 30
@@ -208,6 +217,23 @@ function render() {
     true,
   )
   chart.resize()
+}
+
+// 默认只显示“总数”，Y 轴只保留 0 和最大总数；
+// 勾选任意“第N天占比”后，Y 轴上限切到 100，避免百分比被裁剪。
+function onLegendSelectChanged(params: any) {
+  if (!chart) {
+    return
+  }
+  const selected = params?.selected ?? {}
+  const anyRate = Object.keys(selected).some((name) => name.endsWith('占比') && selected[name])
+  const nextMax = anyRate ? Math.max(100, currentMaxCount) : currentMaxCount
+  chart.setOption({
+    yAxis: {
+      max: nextMax,
+      interval: nextMax,
+    },
+  })
 }
 
 watch(() => [props.rows, props.dayNos], () => render(), { deep: true })
