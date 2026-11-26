@@ -902,6 +902,8 @@ onBeforeUnmount(() => {
 }
 
 .pool-page {
+  display: flex;
+  flex-direction: column;
   min-height: calc(100vh - 132px);
   padding: 14px 16px 18px;
   background: #fff;
@@ -981,7 +983,8 @@ onBeforeUnmount(() => {
 .pool-footer {
   display: flex;
   justify-content: flex-end;
-  margin-top: 16px;
+  margin-top: auto;
+  padding-top: 16px;
 }
 
 .reference-toolbar {
