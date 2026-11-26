@@ -342,7 +342,7 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     path: 'gacha/box-pools',
     title: 'nav.gachaBoxes',
     permissions: ['read', 'create', 'request_publication', 'approve_publication', 'publish'].map(action => ({ resource: 'gacha.pool', action })),
-    showInMenu: true,
+    showInMenu: false,
     menuGroup: 'business',
     icon: GiftOutlined,
     backFallback: '/gacha',
@@ -772,7 +772,7 @@ export interface MenuNode {
 }
 
 const CATALOG_CHILDREN = ['catalog-ip', 'catalog-brand', 'catalog-series', 'catalog'] as const
-const GACHA_CHILDREN = ['gacha-grade', 'gacha', 'gacha-box-pools', 'gacha-match', 'gacha-codex'] as const
+const GACHA_CHILDREN = ['gacha-grade', 'gacha', 'gacha-match', 'gacha-codex'] as const
 const CUSTOMER_CHILDREN = [
   'customers',
   'customer-shipments',

@@ -14,8 +14,8 @@ import PlayPoolCreateForm from '@/views/gacha/PlayPoolCreateForm.vue'
 
 const router = useRouter()
 
-function onSuccess() {
-  router.push('/gacha')
+function onSuccess(mode?: string) {
+  router.push(mode === 'box' ? '/gacha/box-pools' : '/gacha')
 }
 </script>
 

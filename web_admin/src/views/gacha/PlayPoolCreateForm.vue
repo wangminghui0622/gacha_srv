@@ -413,7 +413,7 @@ import GroupBuyPrizeTable from '@/views/gacha/prize/GroupBuyPrizeTable.vue'
 import type { DisplayPrize } from '@/views/gacha/prize/prizeTypes'
 
 const props = defineProps<{ initial?: PlayPoolCreateInitial | null; lockMode?: string }>()
-const emit = defineEmits<{ success: []; cancel: [] }>()
+const emit = defineEmits<{ success: [mode?: string]; cancel: [] }>()
 const saving = ref(false)
 const initialPoolId = ref<string | undefined>(undefined)
 const initialMode = ref('')
@@ -426,6 +426,7 @@ const modeOptions = computed(() => {
   return [
     { label: '吉祥赏', value: 'gashapon' },
     { label: '满车赏', value: 'fullcar' },
+    { label: '无限赏', value: 'box' },
     { label: '串串赏', value: 'combochain' },
     { label: '挖宝赏', value: 'dig' },
     { label: '拼团赏', value: 'groupbuy' },
@@ -1643,7 +1644,7 @@ async function submitBoxDraft() {
       },
     })
     message.success(initialPoolId.value ? '无限赏已更新' : '无限赏已创建')
-    emit('success')
+    emit('success', 'box')
   } catch {
     message.error('创建失败，请检查赏品配置')
   } finally {
@@ -1796,7 +1797,7 @@ async function submit() {
       adminJson,
     })
     message.success(initialPoolId.value ? '赏池已更新' : '赏池已创建')
-    emit('success')
+    emit('success', form.mode)
   } catch {
     message.error('创建失败，请检查赏品配置')
   } finally {
