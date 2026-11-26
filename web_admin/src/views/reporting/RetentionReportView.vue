@@ -5,6 +5,7 @@
         v-model:value="range"
         class="date-range"
         :allow-clear="false"
+        :presets="rangePresets"
         :placeholder="['开始日期', '结束日期']"
       />
       <a-button class="btn-query" type="primary" :loading="loading" @click="load">查 询</a-button>
@@ -17,6 +18,7 @@
           <span>{{ tab.label }}</span>
         </template>
         <div v-if="activeTab === tab.key" class="retention-pane">
+          <div class="report-title">{{ activeTabLabel }}</div>
           <RetentionCurveChart :rows="rows" :day-nos="dayNos" />
           <a-table
             :data-source="tableRows"
@@ -25,7 +27,7 @@
             :pagination="false"
             row-key="cohortDate"
             size="small"
-            :scroll="{ x: 1580 }"
+            :scroll="{ x: 1500 }"
             :row-class-name="rowClassName"
             class="report-table"
           />
@@ -58,19 +60,17 @@ const tabs: { key: RetentionType; label: string }[] = [
   { key: 'pay', label: '消费留存' },
 ]
 
-const cohortLabels: Record<RetentionType, string> = {
-  new: '新增用户',
-  active: '活跃用户',
-  new_pay: '首充用户',
-  join: '参与用户',
-  pay: '充值用户',
-}
-
 const emptyTotal = (): RetentionRow => ({ cohortDate: 'TOTAL', totalUsers: 0, cells: [] })
 
 const activeTab = ref<RetentionType>('new')
-const cohortLabel = computed(() => cohortLabels[activeTab.value])
-const range = ref<[Dayjs, Dayjs]>([dayjs().subtract(90, 'day'), dayjs()])
+const activeTabLabel = computed(() => tabs.find((tab) => tab.key === activeTab.value)?.label ?? '留存报表')
+const rangePresets: { label: string; value: [Dayjs, Dayjs] }[] = [
+  { label: '最近7天', value: [dayjs().subtract(6, 'day'), dayjs()] },
+  { label: '最近30天', value: [dayjs().subtract(29, 'day'), dayjs()] },
+  { label: '最近90天', value: [dayjs().subtract(89, 'day'), dayjs()] },
+  { label: '最近180天', value: [dayjs().subtract(179, 'day'), dayjs()] },
+]
+const range = ref<[Dayjs, Dayjs]>([dayjs().subtract(29, 'day'), dayjs()])
 const loading = ref(false)
 const rows = ref<RetentionRow[]>([])
 const total = ref<RetentionRow>(emptyTotal())
@@ -87,12 +87,11 @@ const tableRows = computed<RetentionTableRow[]>(() => {
 
 function renderCell(row: RetentionRow, dayNo: number) {
   const cell = row.cells?.find((item) => item.dayNo === dayNo)
-  if (!cell?.available) {
-    return h('span', { class: 'ret-empty' }, '—')
-  }
+  const rate = cell?.available ? (cell.rateBps / 100).toFixed(2) : '0.00'
+  const count = cell?.available ? cell.retainedUsers : 0
   return h('div', { class: 'ret-cell' }, [
-    h('span', { class: 'ret-rate' }, `${(cell.rateBps / 100).toFixed(2)}%`),
-    h('span', { class: 'ret-count' }, `${cell.retainedUsers}/${cell.totalUsers}`),
+    h('span', { class: 'ret-rate' }, `${rate}%`),
+    h('span', { class: 'ret-count' }, `${count}`),
   ])
 }
 
@@ -102,20 +101,21 @@ const columns = computed(() => [
     dataIndex: 'cohortDate',
     key: 'cohortDate',
     width: 110,
+    align: 'center' as const,
     fixed: 'left' as const,
   },
   {
-    title: cohortLabel.value,
+    title: '总数',
     dataIndex: 'totalUsers',
     key: 'totalUsers',
-    width: 96,
-    align: 'right' as const,
+    width: 80,
+    align: 'center' as const,
   },
   ...dayNos.value.map((dayNo) => ({
-    title: `D${dayNo}`,
+    title: `第${dayNo}天`,
     key: `d${dayNo}`,
-    width: 96,
-    align: 'right' as const,
+    width: 90,
+    align: 'center' as const,
     customRender: ({ record }: { record: RetentionRow }) => renderCell(record, dayNo),
   })),
 ])
@@ -169,13 +169,13 @@ function csvEscape(value: unknown): string {
 function cellText(row: RetentionRow, dayNo: number): string {
   const cell = row.cells?.find((item) => item.dayNo === dayNo)
   if (!cell?.available) {
-    return '—'
+    return '0.00% (0)'
   }
-  return `${(cell.rateBps / 100).toFixed(2)}% (${cell.retainedUsers}/${cell.totalUsers})`
+  return `${(cell.rateBps / 100).toFixed(2)}% (${cell.retainedUsers})`
 }
 
 function exportCsv() {
-  const header = ['日期', cohortLabel.value, ...dayNos.value.map((dayNo) => `D${dayNo}`)]
+  const header = ['日期', '总数', ...dayNos.value.map((dayNo) => `第${dayNo}天`)]
   const data = tableRows.value.map((row) => [
     row.cohortDate,
     row.totalUsers,
@@ -233,6 +233,13 @@ onMounted(load)
   flex-direction: column;
 }
 
+.report-title {
+  margin: 0 0 12px;
+  color: #262626;
+  font-size: 16px;
+  font-weight: 600;
+}
+
 .report-table {
   :deep(.ant-table-thead > tr > th) {
     background: #fafafa;
@@ -255,7 +262,8 @@ onMounted(load)
 .ret-cell {
   display: flex;
   flex-direction: column;
-  line-height: 1.3;
+  align-items: center;
+  line-height: 1.35;
 }
 
 .ret-rate {
@@ -265,10 +273,6 @@ onMounted(load)
 .ret-count {
   color: #8c8c8c;
   font-size: 12px;
-}
-
-.ret-empty {
-  color: #bfbfbf;
 }
 
 .console-list-footer {

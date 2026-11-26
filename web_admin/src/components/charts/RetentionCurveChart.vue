@@ -1,7 +1,7 @@
 <template>
   <div class="retention-chart-wrap">
     <div ref="chartEl" class="retention-chart" />
-    <div v-if="empty" class="chart-empty">暂无可展示的留存数据（留存天数尚未到期）</div>
+    <div v-if="empty" class="chart-empty">暂无可展示的留存数据</div>
   </div>
 </template>
 
@@ -19,7 +19,7 @@ const chartEl = ref<HTMLDivElement | null>(null)
 const empty = ref(true)
 let chart: echarts.ECharts | null = null
 
-const colors = [
+const countColors = [
   '#1677ff',
   '#52c41a',
   '#faad14',
@@ -32,6 +32,20 @@ const colors = [
   '#f5222d',
   '#8c8c8c',
   '#d46b08',
+]
+const rateColors = [
+  '#69b1ff',
+  '#95de64',
+  '#ffd666',
+  '#ff85c0',
+  '#5cdbd3',
+  '#b37feb',
+  '#ff9c6e',
+  '#85a5ff',
+  '#d3f261',
+  '#ff7875',
+  '#bfbfbf',
+  '#ffc069',
 ]
 
 function render() {
@@ -46,38 +60,61 @@ function render() {
     .filter((row) => row.cohortDate !== 'TOTAL')
     .sort((a, b) => a.cohortDate.localeCompare(b.cohortDate))
   const labels = data.map((row) => row.cohortDate)
-  const series: any[] = []
-  let colorIndex = 0
-
-  for (const dayNo of props.dayNos) {
-    const values = data.map((row) => {
-      const cell = row.cells.find((item) => item.dayNo === dayNo)
-      if (!cell?.available) {
-        return null
-      }
-      return {
-        value: cell.rateBps / 100,
-        retained: cell.retainedUsers,
-        total: cell.totalUsers,
-      }
-    })
-    if (!values.some((value) => value !== null)) {
-      continue
-    }
-    series.push({
-      name: `D${dayNo}`,
+  const totals = data.map((row) => row.totalUsers)
+  const series: any[] = [
+    {
+      name: '总数',
       type: 'line',
-      smooth: true,
-      connectNulls: false,
+      smooth: false,
       symbol: 'circle',
       symbolSize: 5,
-      data: values,
-      itemStyle: { color: colors[colorIndex % colors.length] },
-      lineStyle: { width: 1.6 },
+      data: totals,
+      lineStyle: { width: 1.2 },
+      itemStyle: { color: '#1677ff' },
+      emphasis: { focus: 'series' },
+    },
+  ]
+  const countSelected: Record<string, boolean> = {}
+  const rateSelected: Record<string, boolean> = {}
+
+  props.dayNos.forEach((dayNo, index) => {
+    const countName = `第${dayNo}天`
+    const rateName = `第${dayNo}天占比`
+    countSelected[countName] = false
+    rateSelected[rateName] = false
+    const counts = data.map((row) => {
+      const cell = row.cells.find((item) => item.dayNo === dayNo)
+      return cell?.available ? cell.retainedUsers : null
     })
-    colorIndex += 1
-  }
-  empty.value = series.length === 0
+    const rates = data.map((row) => {
+      const cell = row.cells.find((item) => item.dayNo === dayNo)
+      return cell?.available ? cell.rateBps / 100 : null
+    })
+    series.push({
+      name: countName,
+      type: 'line',
+      smooth: false,
+      symbol: 'circle',
+      symbolSize: 4,
+      data: counts,
+      lineStyle: { width: 1 },
+      itemStyle: { color: countColors[index % countColors.length] },
+      emphasis: { focus: 'series' },
+    })
+    series.push({
+      name: rateName,
+      type: 'line',
+      smooth: false,
+      symbol: 'circle',
+      symbolSize: 4,
+      data: rates,
+      lineStyle: { width: 1 },
+      itemStyle: { color: rateColors[index % rateColors.length] },
+      emphasis: { focus: 'series' },
+    })
+  })
+
+  empty.value = data.length === 0 || data.every((row) => row.totalUsers === 0)
 
   chart.setOption(
     {
@@ -91,30 +128,77 @@ function render() {
           const lines = params
             .filter((item: any) => item.value !== null && item.value !== undefined)
             .map((item: any) => {
-              const value = item.data as { value: number; retained: number; total: number }
-              return `${item.marker}${item.seriesName}: ${value.value.toFixed(2)}%（${value.retained}/${value.total}）`
+              const isRate = String(item.seriesName).endsWith('占比')
+              const text = isRate ? `${Number(item.value).toFixed(2)}%` : `${item.value}`
+              return `${item.marker}${item.seriesName}: ${text}`
             })
           return [title, ...lines].join('<br/>')
         },
       },
-      legend: { type: 'scroll', top: 0 },
-      grid: { left: 56, right: 24, top: 48, bottom: labels.length > 30 ? 72 : 48 },
+      legend: [
+        {
+          data: props.dayNos.map((dayNo) => `第${dayNo}天`),
+          orient: 'vertical',
+          type: 'scroll',
+          left: 8,
+          top: 48,
+          bottom: 48,
+          itemWidth: 8,
+          itemHeight: 8,
+          itemGap: 8,
+          icon: 'circle',
+          textStyle: { fontSize: 12, color: '#595959' },
+          selected: countSelected,
+        },
+        {
+          data: props.dayNos.map((dayNo) => `第${dayNo}天占比`),
+          orient: 'vertical',
+          type: 'scroll',
+          right: 8,
+          top: 48,
+          bottom: 48,
+          itemWidth: 8,
+          itemHeight: 8,
+          itemGap: 8,
+          icon: 'circle',
+          textStyle: { fontSize: 12, color: '#595959' },
+          selected: rateSelected,
+        },
+        {
+          data: ['总数'],
+          left: 'center',
+          top: 8,
+          itemWidth: 8,
+          itemHeight: 8,
+          icon: 'circle',
+          textStyle: { fontSize: 12, color: '#595959' },
+          selected: { 总数: true },
+        },
+      ],
+      grid: {
+        left: 120,
+        right: 120,
+        top: 52,
+        bottom: labels.length > 15 ? 84 : 56,
+      },
       xAxis: {
         type: 'category',
         data: labels,
-        axisLabel: { rotate: labels.length > 15 ? 45 : 0 },
+        axisLabel: {
+          fontSize: 11,
+          rotate: labels.length > 15 ? 45 : 0,
+          hideOverlap: true,
+        },
       },
       yAxis: {
         type: 'value',
-        name: '%',
         min: 0,
-        axisLabel: { formatter: '{value}%' },
       },
       dataZoom:
         labels.length > 30
           ? [
               { type: 'inside' },
-              { type: 'slider', height: 16, bottom: 8 },
+              { type: 'slider', height: 14, bottom: 8 },
             ]
           : undefined,
       series,

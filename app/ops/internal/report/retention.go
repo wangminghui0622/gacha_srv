@@ -203,21 +203,24 @@ ORDER BY cohort_date, day_no`, table),
 		total.TotalUsers += row.TotalUsers
 	}
 	for i, dayNo := range RetentionDays {
-		var denominator, retained int64
+		var retained int64
+		anyAvailable := false
 		for _, row := range result.Rows {
 			cell := row.Cells[i]
 			if !cell.Available {
 				continue
 			}
-			denominator += row.TotalUsers
+			anyAvailable = true
 			retained += cell.RetainedUsers
 		}
+		// TOTAL 行与参考报表一致：分母使用区间内 cohort 总人数，
+		// 尚未到期的 cohort 按 0 留存计入，保证“总数 × 留存率 ≈ 留存数”。
 		total.Cells = append(total.Cells, RetentionCell{
 			DayNo:         dayNo,
-			TotalUsers:    denominator,
+			TotalUsers:    total.TotalUsers,
 			RetainedUsers: retained,
-			RateBps:       rateBps(retained, denominator),
-			Available:     denominator > 0,
+			RateBps:       rateBps(retained, total.TotalUsers),
+			Available:     anyAvailable,
 		})
 	}
 	result.Total = total
