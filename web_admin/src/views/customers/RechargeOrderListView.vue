@@ -381,7 +381,7 @@ onMounted(load)
 
 <style scoped>
 .order-page {
-  padding: 20px 24px 32px;
+  padding: 14px 16px 18px;
   background: #fff;
   border: 1px solid #e4e7ed;
   border-radius: 4px;
@@ -392,7 +392,7 @@ onMounted(load)
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .w-110 { width: 110px; }
