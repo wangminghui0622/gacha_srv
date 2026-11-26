@@ -1,13 +1,15 @@
 <template>
   <div class="customer-manage-body">
     <a-spin :spinning="loading">
-      <a-descriptions class="user-id-summary" :column="2" size="small" bordered>
-        <a-descriptions-item label="对内ID">{{ internalUserId }}</a-descriptions-item>
-        <a-descriptions-item label="对外ID">{{ publicUserId }}</a-descriptions-item>
-      </a-descriptions>
       <a-tabs v-model:activeKey="activeTab">
         <a-tab-pane key="basic" tab="基本信息">
           <a-form :label-col="{ span: 4 }" :wrapper-col="{ span: 20 }" label-align="right">
+            <a-form-item label="对内ID">
+              <span class="user-id-value">{{ internalUserId }}</span>
+            </a-form-item>
+            <a-form-item label="对外ID">
+              <span class="user-id-value">{{ publicUserId }}</span>
+            </a-form-item>
             <a-form-item label="昵称" required>
               <a-input v-model:value="form.nickname" :maxlength="32" placeholder="请输入昵称" allow-clear />
             </a-form-item>
@@ -583,8 +585,11 @@ onMounted(async () => {
 .customer-manage-body {
   padding-top: 4px;
 }
-.user-id-summary {
-  margin-bottom: 16px;
+.user-id-value {
+  display: inline-block;
+  line-height: 32px;
+  color: #303133;
+  font-weight: 600;
 }
 .customer-manage-body :deep(.ant-form-item) {
   margin-bottom: 22px;
