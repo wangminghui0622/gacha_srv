@@ -133,12 +133,19 @@ const canWrite = computed(() => allows(session.permissionNodes, 'payment.order',
 
 const statusOptions = [
   { label: '初始化', value: 1 },
-  { label: '支付中', value: 2 },
-  { label: '充值成功', value: 3 },
-  { label: '已关闭', value: 4 },
-  { label: '退款中', value: 5 },
-  { label: '退款完成', value: 6 },
-  { label: '退款失败', value: 7 },
+  { label: '异常', value: 2 },
+  { label: '已取消', value: 3 },
+  { label: '已完成', value: 4 },
+  { label: '已关闭', value: 5 },
+  { label: '失败', value: 6 },
+  { label: '退款中', value: 7 },
+  { label: '退款异常', value: 8 },
+  { label: '退款完成', value: 9 },
+  { label: '退款失败', value: 10 },
+  { label: '被迫退款中', value: 11 },
+  { label: '被迫退款异常', value: 12 },
+  { label: '被迫退款完成', value: 13 },
+  { label: '被迫退款失败', value: 14 },
 ]
 const typeOptions = ['金币充值', '玩法', '对对碰', '串串赏', '挖宝赏', '拼团赏', '无限赏'].map((value) => ({ label: value, value }))
 const platformOptions = ['支付宝', '汇付', '拉卡拉', '微信'].map((value) => ({ label: value, value }))
@@ -224,12 +231,19 @@ function onPageSizeChange(_current: number, nextPageSize: number) {
 function statusCode(status?: string): number {
   switch (status) {
     case 'RECHARGE_ORDER_STATUS_INIT': return 1
-    case 'RECHARGE_ORDER_STATUS_PAYING': return 2
-    case 'RECHARGE_ORDER_STATUS_SUCCESS': return 3
-    case 'RECHARGE_ORDER_STATUS_CLOSED': return 4
-    case 'RECHARGE_ORDER_STATUS_REFUNDING': return 5
-    case 'RECHARGE_ORDER_STATUS_REFUNDED': return 6
-    case 'RECHARGE_ORDER_STATUS_REFUND_FAILED': return 7
+    case 'RECHARGE_ORDER_STATUS_EXCEPTION': return 2
+    case 'RECHARGE_ORDER_STATUS_CANCELED': return 3
+    case 'RECHARGE_ORDER_STATUS_COMPLETED': return 4
+    case 'RECHARGE_ORDER_STATUS_CLOSED': return 5
+    case 'RECHARGE_ORDER_STATUS_FAILED': return 6
+    case 'RECHARGE_ORDER_STATUS_REFUNDING': return 7
+    case 'RECHARGE_ORDER_STATUS_REFUND_EXCEPTION': return 8
+    case 'RECHARGE_ORDER_STATUS_REFUNDED': return 9
+    case 'RECHARGE_ORDER_STATUS_REFUND_FAILED': return 10
+    case 'RECHARGE_ORDER_STATUS_FORCE_REFUNDING': return 11
+    case 'RECHARGE_ORDER_STATUS_FORCE_REFUND_EXCEPTION': return 12
+    case 'RECHARGE_ORDER_STATUS_FORCE_REFUNDED': return 13
+    case 'RECHARGE_ORDER_STATUS_FORCE_REFUND_FAILED': return 14
     default: return 0
   }
 }
@@ -241,12 +255,19 @@ function statusText(status?: string): string {
 function statusColor(status?: string): string {
   switch (statusCode(status)) {
     case 1: return 'default'
-    case 2: return 'blue'
-    case 3: return 'green'
-    case 4: return 'default'
-    case 5: return 'orange'
-    case 6: return 'purple'
-    case 7: return 'red'
+    case 2: return 'red'
+    case 3: return 'default'
+    case 4: return 'green'
+    case 5: return 'default'
+    case 6: return 'red'
+    case 7: return 'orange'
+    case 8: return 'red'
+    case 9: return 'purple'
+    case 10: return 'red'
+    case 11: return 'orange'
+    case 12: return 'red'
+    case 13: return 'purple'
+    case 14: return 'red'
     default: return 'default'
   }
 }
@@ -263,7 +284,7 @@ function formatTime(value?: string | number): string {
 
 function canRefund(record: RechargeOrder): boolean {
   const code = statusCode(record.status)
-  return code === 3 || code === 7
+  return code === 4 || code === 10 || code === 14
 }
 
 function refundOne(record: RechargeOrder) {

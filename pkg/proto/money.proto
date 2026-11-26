@@ -320,14 +320,21 @@ message PutPaymentRouteReply {
 // 控制台：充值订单（玩家充值记录 / 后台退款）
 // ─────────────────────────────────────────────────────────────
 enum RechargeOrderStatus {
-    RECHARGE_ORDER_STATUS_UNSPECIFIED   = 0;
-    RECHARGE_ORDER_STATUS_INIT          = 1; // 初始化
-    RECHARGE_ORDER_STATUS_PAYING        = 2; // 支付中
-    RECHARGE_ORDER_STATUS_SUCCESS       = 3; // 充值成功
-    RECHARGE_ORDER_STATUS_CLOSED        = 4; // 已关闭
-    RECHARGE_ORDER_STATUS_REFUNDING     = 5; // 退款中
-    RECHARGE_ORDER_STATUS_REFUNDED      = 6; // 退款完成
-    RECHARGE_ORDER_STATUS_REFUND_FAILED = 7; // 退款失败
+    RECHARGE_ORDER_STATUS_UNSPECIFIED          = 0;
+    RECHARGE_ORDER_STATUS_INIT                 = 1;  // 初始化
+    RECHARGE_ORDER_STATUS_EXCEPTION            = 2;  // 异常
+    RECHARGE_ORDER_STATUS_CANCELED             = 3;  // 已取消
+    RECHARGE_ORDER_STATUS_COMPLETED            = 4;  // 已完成
+    RECHARGE_ORDER_STATUS_CLOSED               = 5;  // 已关闭
+    RECHARGE_ORDER_STATUS_FAILED               = 6;  // 失败
+    RECHARGE_ORDER_STATUS_REFUNDING            = 7;  // 退款中
+    RECHARGE_ORDER_STATUS_REFUND_EXCEPTION     = 8;  // 退款异常
+    RECHARGE_ORDER_STATUS_REFUNDED             = 9;  // 退款完成
+    RECHARGE_ORDER_STATUS_REFUND_FAILED        = 10; // 退款失败
+    RECHARGE_ORDER_STATUS_FORCE_REFUNDING      = 11; // 被迫退款中
+    RECHARGE_ORDER_STATUS_FORCE_REFUND_EXCEPTION = 12; // 被迫退款异常
+    RECHARGE_ORDER_STATUS_FORCE_REFUNDED       = 13; // 被迫退款完成
+    RECHARGE_ORDER_STATUS_FORCE_REFUND_FAILED  = 14; // 被迫退款失败
 }
 
 message RechargeOrder {

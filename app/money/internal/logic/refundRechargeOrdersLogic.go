@@ -42,8 +42,9 @@ func (l *RefundRechargeOrdersLogic) RefundRechargeOrders(in *money.RefundRecharg
 				}
 				return err
 			}
-			if row.Status != int32(money.RechargeOrderStatus_RECHARGE_ORDER_STATUS_SUCCESS) &&
-				row.Status != int32(money.RechargeOrderStatus_RECHARGE_ORDER_STATUS_REFUND_FAILED) {
+			if row.Status != int32(money.RechargeOrderStatus_RECHARGE_ORDER_STATUS_COMPLETED) &&
+				row.Status != int32(money.RechargeOrderStatus_RECHARGE_ORDER_STATUS_REFUND_FAILED) &&
+				row.Status != int32(money.RechargeOrderStatus_RECHARGE_ORDER_STATUS_FORCE_REFUND_FAILED) {
 				resp.FailedOrderNos = append(resp.FailedOrderNos, row.OrderNo)
 				continue
 			}

@@ -278,7 +278,7 @@ CREATE TABLE IF NOT EXISTS `recharge_orders` (
   `credited_fen` bigint NOT NULL DEFAULT '0' COMMENT '到账金额（分）',
   `discount_fen` bigint NOT NULL DEFAULT '0' COMMENT '折扣金额（分）',
   `platform` varchar(32) NOT NULL DEFAULT '' COMMENT '充值平台（支付宝/汇付/拉卡拉/微信）',
-  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态：1初始化 2支付中 3充值成功 4已关闭 5退款中 6退款完成 7退款失败',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态：1初始化 2异常 3已取消 4已完成 5已关闭 6失败 7退款中 8退款异常 9退款完成 10退款失败 11被迫退款中 12被迫退款异常 13被迫退款完成 14被迫退款失败',
   `recharge_type` varchar(32) NOT NULL DEFAULT '' COMMENT '充值类型（金币充值/玩法/对对碰等）',
   `created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
   `completed_at` datetime(3) DEFAULT NULL COMMENT '完成时间',
