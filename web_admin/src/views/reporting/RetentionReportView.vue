@@ -32,6 +32,7 @@
             class="report-table"
           />
           <div class="console-list-footer">
+            <span class="retention-note">— 表示留存天尚未完整到期；TOTAL 按区间 cohort 总人数计算</span>
             <span>共 {{ rows.length }} 天</span>
           </div>
         </div>
@@ -284,9 +285,14 @@ onMounted(load)
 
 .console-list-footer {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
   color: #8c8c8c;
   font-size: 13px;
   margin-top: 8px;
+}
+
+.retention-note {
+  color: #8c8c8c;
 }
 </style>
