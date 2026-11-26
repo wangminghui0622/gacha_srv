@@ -19,9 +19,12 @@
       size="middle"
       class="customer-table"
     >
-      <a-table-column title="用户ID" width="140" align="center">
+      <a-table-column title="用户ID" width="160" align="center">
         <template #default="{ record }">
-          <span :title="record.userId ? `数字ID：${record.userId}` : ''">{{ record.publicUserId || record.userId }}</span>
+          <div class="user-id-cell">
+            <span class="user-id-num">{{ record.userId }}</span>
+            <span v-if="record.publicUserId" class="user-id-public">{{ record.publicUserId }}</span>
+          </div>
         </template>
       </a-table-column>
       <a-table-column title="昵称" min-width="150" align="center">
@@ -261,6 +264,21 @@ onMounted(load)
 .customer-table :deep(.ant-table-tbody > tr > td) {
   padding-top: 14px;
   padding-bottom: 14px;
+}
+.user-id-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  line-height: 1.3;
+}
+.user-id-num {
+  color: #303133;
+  font-weight: 600;
+}
+.user-id-public {
+  color: #8c8c8c;
+  font-size: 12px;
 }
 .status-text {
   font-weight: 500;
