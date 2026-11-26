@@ -1,6 +1,7 @@
 // totp e2e 测试工具：RFC 6238（SHA1/6位/30s），纯标准库实现，
 // 与 app_admin/rpc/internal/core/totp.go 参数一致（场景 24 管理控制台两步登录用）。
 // 用法：go run test/tools/totp/main.go <Base32Secret>
+// Secret 以 gacha_ops.console_accounts.totp_secret 为准；重置数据库/重新绑定 TOTP 后会变化。
 package main
 
 import (
@@ -14,7 +15,6 @@ import (
 	"time"
 )
 
-// LYOVYER3O2KDH2TR3CWLKN2G3MHPOYTP
 func main() {
 	if len(os.Args) != 2 || os.Args[1] == "" {
 		fmt.Fprintln(os.Stderr, "用法: totp <Base32Secret>")
