@@ -5,10 +5,10 @@
         <a-tab-pane key="basic" tab="基本信息">
           <a-form :label-col="{ span: 4 }" :wrapper-col="{ span: 20 }" label-align="right">
             <a-form-item label="对内ID">
-              <span class="user-id-value">{{ internalUserId }}</span>
+              <a-input class="user-id-input" :value="internalUserId" disabled />
             </a-form-item>
             <a-form-item label="对外ID">
-              <span class="user-id-value">{{ publicUserId }}</span>
+              <a-input class="user-id-input" :value="publicUserId" disabled />
             </a-form-item>
             <a-form-item label="昵称" required>
               <a-input v-model:value="form.nickname" :maxlength="32" placeholder="请输入昵称" allow-clear />
@@ -585,11 +585,10 @@ onMounted(async () => {
 .customer-manage-body {
   padding-top: 4px;
 }
-.user-id-value {
-  display: inline-block;
-  line-height: 32px;
-  color: #303133;
-  font-weight: 600;
+.user-id-input:disabled {
+  background: #f5f5f5;
+  color: #595959;
+  cursor: not-allowed;
 }
 .customer-manage-body :deep(.ant-form-item) {
   margin-bottom: 22px;
