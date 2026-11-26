@@ -245,7 +245,7 @@ WHERE b.name = '泡泡玛特'
 -- 商品列表演示数据（倒序插入以匹配 ID 倒序展示）
 INSERT IGNORE INTO `products`
   (`id`, `product_code`, `title`, `status`, `version`, `ip_id`, `brand_id`, `series_id`, `sale_type`, `shipped_quantity`, `cost_amount_minor`, `cover_url`)
-SELECT seed.id, seed.product_code, seed.title, 1, 1, i.id, b.id, s.id, 'IN_STOCK', 0, seed.cost, seed.cover
+SELECT seed.id, seed.product_code, seed.title, 2, 1, i.id, b.id, s.id, 'IN_STOCK', 0, seed.cost, seed.cover
 FROM (
   SELECT 800000001 AS id, 'PSZFrT0qaA' AS product_code, '泡泡玛特 Hirono小野 钢琴家 艺术潮流公仔 8cm' AS title, 32900 AS cost, '/covers/popmart-5.svg' AS cover
   UNION ALL SELECT 800000002, 'P9hbgyFmxi', '泡泡玛特 Hirono小野 人偶熊猫 吊卡', 29900, '/covers/popmart-4.svg'
@@ -272,7 +272,7 @@ INSERT IGNORE INTO `skus`
 SELECT p.id, CONCAT(p.product_code, '-SKU'), p.title, 1, 1,
        p.cost_amount_minor * 2, p.cost_amount_minor * 2, 'CNY', '', 1
 FROM `products` AS p
-WHERE p.product_code LIKE 'PM-%';
+WHERE p.id BETWEEN 800000001 AND 800000015;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
