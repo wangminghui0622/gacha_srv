@@ -19,13 +19,13 @@
       size="middle"
       class="customer-table"
     >
-      <a-table-column title="对外ID" width="140" align="center">
-        <template #default="{ record }">{{ record.publicUserId || '-' }}</template>
-      </a-table-column>
       <a-table-column title="对内ID" width="110" align="center">
         <template #default="{ record }">
           <span class="user-id-num">{{ record.userId }}</span>
         </template>
+      </a-table-column>
+      <a-table-column title="对外ID" width="140" align="center">
+        <template #default="{ record }">{{ record.publicUserId || '-' }}</template>
       </a-table-column>
       <a-table-column title="昵称" min-width="150" align="center">
         <template #default="{ record }">{{ record.nickname || '-' }}</template>
