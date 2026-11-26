@@ -31,63 +31,63 @@
       :pagination="false"
       :row-selection="rowSelection"
       :row-key="(record: RechargeOrder) => String(record.dbId ?? '')"
-      :scroll="{ x: 2600 }"
-      size="middle"
+      :scroll="{ x: 1774 }"
+      size="small"
     >
-      <a-table-column title="ID" width="200" align="center">
+      <a-table-column title="ID" :width="140" align="center">
         <template #default="{ record }">{{ record.orderNo || '-' }}</template>
       </a-table-column>
-      <a-table-column title="用户ID" width="90" align="center">
+      <a-table-column title="用户ID" :width="45" align="center">
         <template #default="{ record }">{{ record.userId }}</template>
       </a-table-column>
-      <a-table-column title="用户昵称" width="130" align="center">
+      <a-table-column title="用户昵称" :width="62" ellipsis align="center">
         <template #default="{ record }">{{ record.userNickname || '-' }}</template>
       </a-table-column>
-      <a-table-column title="充值金额" width="100" align="center">
+      <a-table-column title="充值金额" :width="75" align="center">
         <template #default="{ record }">{{ money(record.amountFen) }}</template>
       </a-table-column>
-      <a-table-column title="到账金额" width="100" align="center">
+      <a-table-column title="到账金额" :width="75" align="center">
         <template #default="{ record }">{{ money(record.creditedFen) }}</template>
       </a-table-column>
-      <a-table-column title="折扣金额" width="100" align="center">
+      <a-table-column title="折扣金额" :width="75" align="center">
         <template #default="{ record }">{{ money(record.discountFen) }}</template>
       </a-table-column>
-      <a-table-column title="充值平台" width="100" align="center">
+      <a-table-column title="充值平台" :width="55" align="center">
         <template #default="{ record }">{{ record.platform || '-' }}</template>
       </a-table-column>
-      <a-table-column title="充值状态" width="110" align="center">
+      <a-table-column title="充值状态" :width="70" align="center">
         <template #default="{ record }">
           <a-tag :color="statusColor(record.status)">{{ statusText(record.status) }}</a-tag>
         </template>
       </a-table-column>
-      <a-table-column title="充值类型" width="110" align="center">
+      <a-table-column title="充值类型" :width="70" align="center">
         <template #default="{ record }">{{ record.rechargeType || '-' }}</template>
       </a-table-column>
-      <a-table-column title="创建时间" width="180" align="center">
+      <a-table-column title="创建时间" :width="136" align="center">
         <template #default="{ record }">{{ formatTime(record.createdAtUnixMillis) }}</template>
       </a-table-column>
-      <a-table-column title="完成时间" width="180" align="center">
+      <a-table-column title="完成时间" :width="136" align="center">
         <template #default="{ record }">{{ formatTime(record.completedAtUnixMillis) }}</template>
       </a-table-column>
-      <a-table-column title="退款时间" width="180" align="center">
+      <a-table-column title="退款时间" :width="136" align="center">
         <template #default="{ record }">{{ formatTime(record.refundedAtUnixMillis) }}</template>
       </a-table-column>
-      <a-table-column title="退款金额" width="100" align="center">
+      <a-table-column title="退款金额" :width="75" align="center">
         <template #default="{ record }">{{ money(record.refundAmountFen) }}</template>
       </a-table-column>
-      <a-table-column title="退款订单ID" width="200" align="center">
-        <template #default="{ record }">{{ record.refundOrderNo || '-' }}</template>
+      <a-table-column title="退款订单ID" :width="136" ellipsis align="center">
+        <template #default="{ record }"><span :title="record.refundOrderNo || ''">{{ record.refundOrderNo || '-' }}</span></template>
       </a-table-column>
-      <a-table-column title="支付平台订单ID" width="260" align="center">
-        <template #default="{ record }">{{ record.payPlatformOrderId || '-' }}</template>
+      <a-table-column title="支付平台订单ID" :width="130" ellipsis align="center">
+        <template #default="{ record }"><span :title="record.payPlatformOrderId || ''">{{ record.payPlatformOrderId || '-' }}</span></template>
       </a-table-column>
-      <a-table-column title="支付平台OpenID" width="200" align="center">
-        <template #default="{ record }">{{ record.payPlatformOpenid || '-' }}</template>
+      <a-table-column title="支付平台OpenID" :width="90" ellipsis align="center">
+        <template #default="{ record }"><span :title="record.payPlatformOpenid || ''">{{ record.payPlatformOpenid || '-' }}</span></template>
       </a-table-column>
-      <a-table-column title="错误信息" min-width="220" align="center">
-        <template #default="{ record }">{{ record.errorMessage || '-' }}</template>
+      <a-table-column title="错误信息" :width="80" ellipsis align="center">
+        <template #default="{ record }"><span :title="record.errorMessage || ''">{{ record.errorMessage || '-' }}</span></template>
       </a-table-column>
-      <a-table-column title="操作" width="110" align="center" fixed="right">
+      <a-table-column title="操作" :width="156" align="center" fixed="right">
         <template #default="{ record }">
           <a-button
             v-if="canWrite && canRefund(record)"
@@ -389,6 +389,18 @@ onMounted(load)
   background: #fff;
   border: 1px solid #e4e7ed;
   border-radius: 4px;
+}
+
+.order-page :deep(.ant-table-small .ant-table-thead > tr > th),
+.order-page :deep(.ant-table-small .ant-table-tbody > tr > td) {
+  padding: 6px 4px;
+  white-space: nowrap;
+}
+
+.order-page :deep(.ant-tag) {
+  margin-inline-end: 0;
+  padding-inline: 4px;
+  line-height: 18px;
 }
 
 .order-toolbar {

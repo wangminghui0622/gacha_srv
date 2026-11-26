@@ -42,57 +42,57 @@
       :pagination="false"
       :row-selection="rowSelection"
       :row-key="(record: RefundOrder) => String(record.dbId ?? '')"
-      :scroll="{ x: 2700 }"
-      size="middle"
+      :scroll="{ x: 1586 }"
+      size="small"
     >
-      <a-table-column title="ID" width="200" align="center">
+      <a-table-column title="ID" :width="140" align="center">
         <template #default="{ record }">{{ record.orderNo || '-' }}</template>
       </a-table-column>
-      <a-table-column title="用户ID" width="80" align="center">
+      <a-table-column title="用户ID" :width="45" align="center">
         <template #default="{ record }">{{ record.userId }}</template>
       </a-table-column>
-      <a-table-column title="用户昵称" width="110" align="center">
+      <a-table-column title="用户昵称" :width="62" ellipsis align="center">
         <template #default="{ record }">{{ record.userNickname || '-' }}</template>
       </a-table-column>
-      <a-table-column title="真实姓名" width="100" align="center">
+      <a-table-column title="真实姓名" :width="64" ellipsis align="center">
         <template #default="{ record }">{{ record.realName || '-' }}</template>
       </a-table-column>
-      <a-table-column title="支付宝账号" width="150" align="center">
-        <template #default="{ record }">{{ record.alipayAccount || '-' }}</template>
+      <a-table-column title="支付宝账号" :width="95" ellipsis align="center">
+        <template #default="{ record }"><span :title="record.alipayAccount || ''">{{ record.alipayAccount || '-' }}</span></template>
       </a-table-column>
-      <a-table-column title="退款金额" width="100" align="center">
+      <a-table-column title="退款金额" :width="75" align="center">
         <template #default="{ record }">{{ money(record.amountFen) }}</template>
       </a-table-column>
-      <a-table-column title="状态" width="100" align="center">
+      <a-table-column title="状态" :width="70" align="center">
         <template #default="{ record }">
           <a-tag :color="statusColor(record.status)">{{ statusText(record.status) }}</a-tag>
         </template>
       </a-table-column>
-      <a-table-column title="创建时间" width="180" align="center">
+      <a-table-column title="创建时间" :width="136" align="center">
         <template #default="{ record }">{{ formatTime(record.createdAtUnixMillis) }}</template>
       </a-table-column>
-      <a-table-column title="完成时间" width="180" align="center">
+      <a-table-column title="完成时间" :width="136" align="center">
         <template #default="{ record }">{{ formatTime(record.completedAtUnixMillis) }}</template>
       </a-table-column>
-      <a-table-column title="第三方订单ID" width="230" align="center">
-        <template #default="{ record }">{{ record.thirdPartyOrderId || '--' }}</template>
+      <a-table-column title="第三方订单ID" :width="125" ellipsis align="center">
+        <template #default="{ record }"><span :title="record.thirdPartyOrderId || ''">{{ record.thirdPartyOrderId || '--' }}</span></template>
       </a-table-column>
-      <a-table-column title="退款商户ID" width="180" align="center">
-        <template #default="{ record }">{{ record.refundMerchantId || '--' }}</template>
+      <a-table-column title="退款商户ID" :width="110" ellipsis align="center">
+        <template #default="{ record }"><span :title="record.refundMerchantId || ''">{{ record.refundMerchantId || '--' }}</span></template>
       </a-table-column>
-      <a-table-column title="审核人" width="110" align="center">
+      <a-table-column title="审核人" :width="80" ellipsis align="center">
         <template #default="{ record }">{{ record.auditor || '--' }}</template>
       </a-table-column>
-      <a-table-column title="财务审核人" width="110" align="center">
+      <a-table-column title="财务审核人" :width="80" ellipsis align="center">
         <template #default="{ record }">{{ record.financeAuditor || '--' }}</template>
       </a-table-column>
-      <a-table-column title="审核备注" width="180" align="center">
-        <template #default="{ record }">{{ record.auditRemark || '--' }}</template>
+      <a-table-column title="审核备注" :width="90" ellipsis align="center">
+        <template #default="{ record }"><span :title="record.auditRemark || ''">{{ record.auditRemark || '--' }}</span></template>
       </a-table-column>
-      <a-table-column title="错误信息" min-width="240" align="center">
-        <template #default="{ record }">{{ record.errorMessage || '--' }}</template>
+      <a-table-column title="错误信息" :width="90" ellipsis align="center">
+        <template #default="{ record }"><span :title="record.errorMessage || ''">{{ record.errorMessage || '--' }}</span></template>
       </a-table-column>
-      <a-table-column title="操作" width="280" align="center" fixed="right">
+      <a-table-column title="操作" :width="156" align="center" fixed="right">
         <template #default="{ record }">
           <a-space v-if="canWrite" :size="4" wrap>
             <a-button v-if="statusCode(record.status) === 1" class="btn-audit" size="small" @click="openAudit(record)">审核</a-button>
@@ -467,6 +467,18 @@ onMounted(() => {
   background: #fff;
   border: 1px solid #e4e7ed;
   border-radius: 4px;
+}
+
+.refund-page :deep(.ant-table-small .ant-table-thead > tr > th),
+.refund-page :deep(.ant-table-small .ant-table-tbody > tr > td) {
+  padding: 6px 4px;
+  white-space: nowrap;
+}
+
+.refund-page :deep(.ant-tag) {
+  margin-inline-end: 0;
+  padding-inline: 4px;
+  line-height: 18px;
 }
 
 .auto-bar {
