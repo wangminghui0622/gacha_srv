@@ -68,7 +68,7 @@ function render() {
     {
       name: '总数',
       type: 'line',
-      smooth: false,
+      smooth: 0.35,
       symbol: 'circle',
       symbolSize: 5,
       data: totals,
@@ -96,7 +96,7 @@ function render() {
     series.push({
       name: countName,
       type: 'line',
-      smooth: false,
+      smooth: 0.35,
       symbol: 'circle',
       symbolSize: 4,
       data: counts,
@@ -107,7 +107,7 @@ function render() {
     series.push({
       name: rateName,
       type: 'line',
-      smooth: false,
+      smooth: 0.35,
       symbol: 'circle',
       symbolSize: 4,
       data: rates,
