@@ -10,7 +10,6 @@
       <a-button class="btn-query" type="primary" :loading="loading" @click="search">{{ $t('poolAdmin.query') }}</a-button>
       <a-button class="btn-plain" @click="openReference">{{ $t('poolAdmin.referenceQuery') }}</a-button>
       <a-button v-if="canCreate" class="btn-plain" @click="openCreate">{{ $t('poolAdmin.create') }}</a-button>
-      <a-button class="btn-plain" @click="router.push('/gacha/box-pools')">无限赏列表</a-button>
       <a-button v-if="canWrite" class="btn-plain" @click="saveWeights">{{ $t('poolAdmin.saveSort') }}</a-button>
       <a-button v-if="canWrite" class="btn-plain" @click="deleteSelected">{{ $t('poolAdmin.deletePools') }}</a-button>
       <a-button v-if="canWrite" class="btn-plain" :loading="publishingSelected" @click="publishSelected">{{ $t('poolAdmin.publishSelected') }}</a-button>
