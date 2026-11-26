@@ -59,7 +59,11 @@ type Config struct {
 		Accounts  []TencentAdAccount
 		MiniAppID string
 	}
-	// OSS 对象存储（管理后台图片等上传；Enabled=false 时上传接口返回 9013）
+	// Storage 对象存储选择：cos（默认）| oss
+	Storage struct {
+		Provider string
+	}
+	// OSS 阿里云对象存储（备用；Enabled=false 时不可用）
 	OSS struct {
 		Enabled         bool
 		Endpoint        string // 如 oss-cn-hangzhou.aliyuncs.com（可带 https://）
@@ -68,6 +72,15 @@ type Config struct {
 		AccessKeySecret string
 		PublicBaseURL   string // 可选 CDN/自定义域名，如 https://cdn.example.com
 		Dir             string // 默认目录前缀，如 gacha
+	}
+	// COS 腾讯云对象存储（默认）
+	COS struct {
+		Enabled       bool
+		Endpoint      string // https://<bucket>.cos.<region>.myqcloud.com
+		SecretID      string
+		SecretKey     string
+		PublicBaseURL string // 可选 CDN/自定义域名
+		Dir           string // 默认目录前缀，如 gacha
 	}
 	// OpsRpc 运营服务客户端（M15d 指标事件 outbox 直投 ApplyMetricEvent，走 Etcd）
 	OpsRpc zrpc.RpcClientConf

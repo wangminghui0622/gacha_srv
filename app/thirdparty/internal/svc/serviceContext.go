@@ -2,14 +2,17 @@ package svc
 
 import (
 	"errors"
+	"strings"
 
 	"gacha_srv/app/ops/opsClient"
 	"gacha_srv/app/thirdparty/internal/alipay"
 	"gacha_srv/app/thirdparty/internal/config"
+	"gacha_srv/app/thirdparty/internal/cos"
 	"gacha_srv/app/thirdparty/internal/oss"
 	"gacha_srv/app/thirdparty/internal/outbox"
 	"gacha_srv/app/thirdparty/internal/repo"
 	"gacha_srv/app/thirdparty/internal/sms"
+	"gacha_srv/app/thirdparty/internal/storage"
 	"gacha_srv/app/thirdparty/internal/tencentad"
 	"gacha_srv/app/thirdparty/internal/wechat"
 	thirdpartymodel "gacha_srv/pkg/model_nocache/gacha_thirdparty"
@@ -40,7 +43,7 @@ type ServiceContext struct {
 	Alipay           *alipay.OAuthClient
 	TencentAd        *tencentad.Service
 	MetricDispatcher *outbox.Dispatcher
-	OSS              *oss.Client
+	Storage          storage.Uploader
 }
 
 // TencentAdConfigured 腾讯广告是否可用（server_v2 TxAdClick 的 nil 守卫同款语义：
@@ -114,17 +117,42 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		panic("failed to init metric dispatcher: " + err.Error())
 	}
 
-	ossClient, err := oss.New(oss.Config{
-		Enabled:         c.OSS.Enabled,
-		Endpoint:        c.OSS.Endpoint,
-		Bucket:          c.OSS.Bucket,
-		AccessKeyID:     c.OSS.AccessKeyID,
-		AccessKeySecret: c.OSS.AccessKeySecret,
-		PublicBaseURL:   c.OSS.PublicBaseURL,
-		Dir:             c.OSS.Dir,
-	})
-	if err != nil {
-		panic("failed to init oss client: " + err.Error())
+	// 上传对象存储二选一：默认腾讯云 COS，可切阿里云 OSS
+	provider := strings.ToLower(strings.TrimSpace(c.Storage.Provider))
+	if provider == "" {
+		provider = "cos"
+	}
+	var uploader storage.Uploader
+	switch provider {
+	case "cos":
+		cosClient, cosErr := cos.New(cos.Config{
+			Enabled:       c.COS.Enabled,
+			Endpoint:      c.COS.Endpoint,
+			SecretID:      c.COS.SecretID,
+			SecretKey:     c.COS.SecretKey,
+			PublicBaseURL: c.COS.PublicBaseURL,
+			Dir:           c.COS.Dir,
+		})
+		if cosErr != nil {
+			panic("failed to init cos client: " + cosErr.Error())
+		}
+		uploader = cosClient
+	case "oss":
+		ossClient, ossErr := oss.New(oss.Config{
+			Enabled:         c.OSS.Enabled,
+			Endpoint:        c.OSS.Endpoint,
+			Bucket:          c.OSS.Bucket,
+			AccessKeyID:     c.OSS.AccessKeyID,
+			AccessKeySecret: c.OSS.AccessKeySecret,
+			PublicBaseURL:   c.OSS.PublicBaseURL,
+			Dir:             c.OSS.Dir,
+		})
+		if ossErr != nil {
+			panic("failed to init oss client: " + ossErr.Error())
+		}
+		uploader = ossClient
+	default:
+		panic("unsupported storage provider: " + provider)
 	}
 
 	return &ServiceContext{
@@ -157,6 +185,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Alipay:             alipayClient,
 		TencentAd:          tencentad.NewService(repo.NewTxAdClickStore(thirdpartymodel.NewIntegrationTxAdClickModel(db))),
 		MetricDispatcher:   dispatcher,
-		OSS:                ossClient,
+		Storage:            uploader,
 	}
 }
