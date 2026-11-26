@@ -165,16 +165,16 @@
         <a-form-item label="自动退款剩余金额">
           <a-input-number v-model:value="configForm.remainingAmountYuan" :min="0" :precision="2" style="width: 100%" />
         </a-form-item>
-        <a-form-item label="审核金额上限(含)">
+        <a-form-item label="自动退款审核金额上限(含)">
           <a-input-number v-model:value="configForm.auditLimitYuan" :min="0" :precision="2" style="width: 100%" />
         </a-form-item>
-        <a-form-item label="退款延迟时间(秒)">
+        <a-form-item label="自动退款延迟时间(秒)">
           <a-input-number v-model:value="configForm.delaySeconds" :min="0" :precision="0" style="width: 100%" />
         </a-form-item>
-        <a-form-item label="交替退款次数">
+        <a-form-item label="自动交替退款次数">
           <a-input-number v-model:value="configForm.alternateCount" :min="0" :precision="0" style="width: 100%" />
         </a-form-item>
-        <a-form-item label="交替退款金额(≤)">
+        <a-form-item label="自动交替退款金额(≤)">
           <a-input-number v-model:value="configForm.alternateAmountYuan" :min="0" :precision="2" style="width: 100%" />
         </a-form-item>
       </a-form>
