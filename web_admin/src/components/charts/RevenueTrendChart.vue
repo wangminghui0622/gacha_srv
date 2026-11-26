@@ -104,6 +104,15 @@ const colors = [
   '#ff9c6e',
 ]
 
+const defaultSelected: Record<string, boolean> = Object.fromEntries(
+  defs.map((def) => [def.name, false]),
+)
+for (const name of ['注册数', '日活', '总付费', '付费用户数', '渗透率', '前1天流失率', 'arpu', '总营收']) {
+  if (name in defaultSelected) {
+    defaultSelected[name] = true
+  }
+}
+
 function seriesColor(index: number): string {
   if (index < colors.length) {
     return colors[index] ?? '#1677ff'
@@ -146,15 +155,19 @@ function render() {
         },
       },
       legend: {
-        type: 'scroll',
+        type: 'plain',
         top: 0,
+        left: 0,
+        right: 0,
         data: defs.map((def) => def.name),
         icon: 'circle',
-        itemWidth: 8,
-        itemHeight: 8,
-        textStyle: { fontSize: 12, color: '#595959' },
+        itemWidth: 6,
+        itemHeight: 6,
+        itemGap: 4,
+        textStyle: { fontSize: 10, color: '#595959' },
+        selected: defaultSelected,
       },
-      grid: { left: 64, right: 64, top: 54, bottom: labels.length > 15 ? 84 : 56 },
+      grid: { left: 64, right: 64, top: 96, bottom: labels.length > 15 ? 84 : 56 },
       xAxis: {
         type: 'category',
         data: labels,
@@ -223,7 +236,7 @@ onBeforeUnmount(() => {
 .revenue-chart-wrap {
   position: relative;
   width: 100%;
-  height: 360px;
+  height: 420px;
 }
 
 .revenue-chart {
