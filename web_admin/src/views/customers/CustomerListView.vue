@@ -1,7 +1,7 @@
 <template>
   <div class="customer-page console-list-page">
     <div class="customer-toolbar">
-      <a-input v-model:value="keyword" class="filter-input keyword-input" placeholder="昵称/数字ID/字符串ID" allow-clear @press-enter="queryList" />
+      <a-input v-model:value="keyword" class="filter-input keyword-input" placeholder="昵称/数字ID/对外ID" allow-clear @press-enter="queryList" />
       <a-input v-model:value="phone" class="filter-input phone-input" placeholder="手机号" allow-clear @press-enter="queryList" />
       <a-select v-model:value="identity" class="filter-select" :options="identityOptions" />
       <a-select v-model:value="status" class="filter-select" :options="statusOptions" />
@@ -24,7 +24,7 @@
           <span class="user-id-num">{{ record.userId }}</span>
         </template>
       </a-table-column>
-      <a-table-column title="字符串ID" width="140" align="center">
+      <a-table-column title="对外ID" width="140" align="center">
         <template #default="{ record }">{{ record.publicUserId || '-' }}</template>
       </a-table-column>
       <a-table-column title="昵称" min-width="150" align="center">
