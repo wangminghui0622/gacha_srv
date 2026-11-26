@@ -32,6 +32,23 @@ type (
 	GetPaymentResp             = money.GetPaymentResp
 	GetPaymentRouteReply       = money.GetPaymentRouteReply
 	GetPaymentRouteRequest     = money.GetPaymentRouteRequest
+	GetRefundAutoConfigReq     = money.GetRefundAutoConfigReq
+	GetRefundAutoConfigResp    = money.GetRefundAutoConfigResp
+	ListRechargeOrdersReq      = money.ListRechargeOrdersReq
+	ListRechargeOrdersResp     = money.ListRechargeOrdersResp
+	ListRefundOrdersReq        = money.ListRefundOrdersReq
+	ListRefundOrdersResp       = money.ListRefundOrdersResp
+	OperateRefundOrderReq      = money.OperateRefundOrderReq
+	RechargeOrder              = money.RechargeOrder
+	RechargeOrderStatus        = money.RechargeOrderStatus
+	RefundAutoConfig           = money.RefundAutoConfig
+	RefundOrder                = money.RefundOrder
+	RefundOrderAction          = money.RefundOrderAction
+	RefundOrderStatus          = money.RefundOrderStatus
+	RefundRechargeOrdersReq    = money.RefundRechargeOrdersReq
+	RefundRechargeOrdersResp   = money.RefundRechargeOrdersResp
+	UpdateRefundAutoConfigReq  = money.UpdateRefundAutoConfigReq
+	UpdateRefundAutoConfigResp = money.UpdateRefundAutoConfigResp
 	GetWalletReq               = money.GetWalletReq
 	GetWalletResp              = money.GetWalletResp
 	GrantAssetReq              = money.GrantAssetReq
@@ -79,6 +96,13 @@ type (
 		// ── M14d 控制台：支付路由存管（半成品，无消费方；形状照抄 server_v2 payment_route）──
 		GetPaymentRoute(ctx context.Context, in *GetPaymentRouteRequest, opts ...grpc.CallOption) (*GetPaymentRouteReply, error)
 		PutPaymentRoute(ctx context.Context, in *PutPaymentRouteRequest, opts ...grpc.CallOption) (*PutPaymentRouteReply, error)
+		// 控制台：充值订单 / 退款订单
+		ListRechargeOrders(ctx context.Context, in *ListRechargeOrdersReq, opts ...grpc.CallOption) (*ListRechargeOrdersResp, error)
+		RefundRechargeOrders(ctx context.Context, in *RefundRechargeOrdersReq, opts ...grpc.CallOption) (*RefundRechargeOrdersResp, error)
+		ListRefundOrders(ctx context.Context, in *ListRefundOrdersReq, opts ...grpc.CallOption) (*ListRefundOrdersResp, error)
+		OperateRefundOrder(ctx context.Context, in *OperateRefundOrderReq, opts ...grpc.CallOption) (*RefundOrder, error)
+		GetRefundAutoConfig(ctx context.Context, in *GetRefundAutoConfigReq, opts ...grpc.CallOption) (*GetRefundAutoConfigResp, error)
+		UpdateRefundAutoConfig(ctx context.Context, in *UpdateRefundAutoConfigReq, opts ...grpc.CallOption) (*UpdateRefundAutoConfigResp, error)
 	}
 
 	defaultMoney struct {
@@ -191,4 +215,35 @@ func (m *defaultMoney) GetPaymentRoute(ctx context.Context, in *GetPaymentRouteR
 func (m *defaultMoney) PutPaymentRoute(ctx context.Context, in *PutPaymentRouteRequest, opts ...grpc.CallOption) (*PutPaymentRouteReply, error) {
 	client := money.NewMoneyClient(m.cli.Conn())
 	return client.PutPaymentRoute(ctx, in, opts...)
+}
+
+// 控制台：充值订单 / 退款订单
+func (m *defaultMoney) ListRechargeOrders(ctx context.Context, in *ListRechargeOrdersReq, opts ...grpc.CallOption) (*ListRechargeOrdersResp, error) {
+	client := money.NewMoneyClient(m.cli.Conn())
+	return client.ListRechargeOrders(ctx, in, opts...)
+}
+
+func (m *defaultMoney) RefundRechargeOrders(ctx context.Context, in *RefundRechargeOrdersReq, opts ...grpc.CallOption) (*RefundRechargeOrdersResp, error) {
+	client := money.NewMoneyClient(m.cli.Conn())
+	return client.RefundRechargeOrders(ctx, in, opts...)
+}
+
+func (m *defaultMoney) ListRefundOrders(ctx context.Context, in *ListRefundOrdersReq, opts ...grpc.CallOption) (*ListRefundOrdersResp, error) {
+	client := money.NewMoneyClient(m.cli.Conn())
+	return client.ListRefundOrders(ctx, in, opts...)
+}
+
+func (m *defaultMoney) OperateRefundOrder(ctx context.Context, in *OperateRefundOrderReq, opts ...grpc.CallOption) (*RefundOrder, error) {
+	client := money.NewMoneyClient(m.cli.Conn())
+	return client.OperateRefundOrder(ctx, in, opts...)
+}
+
+func (m *defaultMoney) GetRefundAutoConfig(ctx context.Context, in *GetRefundAutoConfigReq, opts ...grpc.CallOption) (*GetRefundAutoConfigResp, error) {
+	client := money.NewMoneyClient(m.cli.Conn())
+	return client.GetRefundAutoConfig(ctx, in, opts...)
+}
+
+func (m *defaultMoney) UpdateRefundAutoConfig(ctx context.Context, in *UpdateRefundAutoConfigReq, opts ...grpc.CallOption) (*UpdateRefundAutoConfigResp, error) {
+	client := money.NewMoneyClient(m.cli.Conn())
+	return client.UpdateRefundAutoConfig(ctx, in, opts...)
 }

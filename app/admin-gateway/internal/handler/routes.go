@@ -173,6 +173,30 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: customer.ResetUserBindingLimitHandler(serverCtx, "realname"),
 				},
 				{
+					// 发货订单列表（identity.user:read）
+					Method:  http.MethodGet,
+					Path:    "/shipment-orders",
+					Handler: customer.ListShipmentOrdersHandler(serverCtx),
+				},
+				{
+					// 发货订单详情（identity.user:read）
+					Method:  http.MethodGet,
+					Path:    "/shipment-orders/:id",
+					Handler: customer.GetShipmentOrderHandler(serverCtx),
+				},
+				{
+					// 编辑发货订单（identity.user:write）
+					Method:  http.MethodPut,
+					Path:    "/shipment-orders/:id",
+					Handler: customer.UpdateShipmentOrderHandler(serverCtx),
+				},
+				{
+					// 关闭发货订单（identity.user:write）
+					Method:  http.MethodPost,
+					Path:    "/shipment-orders/:id/close",
+					Handler: customer.CloseShipmentOrderHandler(serverCtx),
+				},
+				{
 					// 弹窗列表（system.popup:read）
 					Method:  http.MethodGet,
 					Path:    "/popups",
@@ -492,6 +516,42 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Method:  http.MethodGet,
 					Path:    "/payment/routes",
 					Handler: money.GetPaymentRouteHandler(serverCtx),
+				},
+				{
+					// 充值订单列表（payment.order:read）
+					Method:  http.MethodGet,
+					Path:    "/recharge-orders",
+					Handler: money.ListRechargeOrdersHandler(serverCtx),
+				},
+				{
+					// 批量退款充值订单（payment.order:write）
+					Method:  http.MethodPost,
+					Path:    "/recharge-orders/refund",
+					Handler: money.RefundRechargeOrdersHandler(serverCtx),
+				},
+				{
+					// 退款订单列表（payment.order:read）
+					Method:  http.MethodGet,
+					Path:    "/refund-orders",
+					Handler: money.ListRefundOrdersHandler(serverCtx),
+				},
+				{
+					// 退款订单操作（payment.order:write）
+					Method:  http.MethodPost,
+					Path:    "/refund-orders/:id/operate",
+					Handler: money.OperateRefundOrderHandler(serverCtx),
+				},
+				{
+					// 读取自动退款配置（payment.order:read）
+					Method:  http.MethodGet,
+					Path:    "/refund-auto-config",
+					Handler: money.GetRefundAutoConfigHandler(serverCtx),
+				},
+				{
+					// 保存自动退款配置（payment.order:write）
+					Method:  http.MethodPut,
+					Path:    "/refund-auto-config",
+					Handler: money.UpdateRefundAutoConfigHandler(serverCtx),
 				},
 				{
 					// 配置支付路由（money.route:write；expectedVersion CAS + 审计）

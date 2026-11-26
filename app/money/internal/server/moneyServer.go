@@ -123,3 +123,39 @@ func (s *MoneyServer) PutPaymentRoute(ctx context.Context, in *money.PutPaymentR
 	l := logic.NewPutPaymentRouteLogic(ctx, s.svcCtx)
 	return l.PutPaymentRoute(in)
 }
+
+// 充值订单列表（控制台）
+func (s *MoneyServer) ListRechargeOrders(ctx context.Context, in *money.ListRechargeOrdersReq) (*money.ListRechargeOrdersResp, error) {
+	l := logic.NewListRechargeOrdersLogic(ctx, s.svcCtx)
+	return l.ListRechargeOrders(in)
+}
+
+// 充值订单批量退款（控制台）
+func (s *MoneyServer) RefundRechargeOrders(ctx context.Context, in *money.RefundRechargeOrdersReq) (*money.RefundRechargeOrdersResp, error) {
+	l := logic.NewRefundRechargeOrdersLogic(ctx, s.svcCtx)
+	return l.RefundRechargeOrders(in)
+}
+
+// 退款订单列表（控制台）
+func (s *MoneyServer) ListRefundOrders(ctx context.Context, in *money.ListRefundOrdersReq) (*money.ListRefundOrdersResp, error) {
+	l := logic.NewListRefundOrdersLogic(ctx, s.svcCtx)
+	return l.ListRefundOrders(in)
+}
+
+// 退款订单操作（审核/被迫退款/人工处理/重试）
+func (s *MoneyServer) OperateRefundOrder(ctx context.Context, in *money.OperateRefundOrderReq) (*money.RefundOrder, error) {
+	l := logic.NewOperateRefundOrderLogic(ctx, s.svcCtx)
+	return l.OperateRefundOrder(in)
+}
+
+// 读取自动退款配置
+func (s *MoneyServer) GetRefundAutoConfig(ctx context.Context, in *money.GetRefundAutoConfigReq) (*money.GetRefundAutoConfigResp, error) {
+	l := logic.NewGetRefundAutoConfigLogic(ctx, s.svcCtx)
+	return l.GetRefundAutoConfig(in)
+}
+
+// 保存自动退款配置
+func (s *MoneyServer) UpdateRefundAutoConfig(ctx context.Context, in *money.UpdateRefundAutoConfigReq) (*money.UpdateRefundAutoConfigResp, error) {
+	l := logic.NewUpdateRefundAutoConfigLogic(ctx, s.svcCtx)
+	return l.UpdateRefundAutoConfig(in)
+}

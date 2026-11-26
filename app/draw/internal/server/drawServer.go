@@ -65,6 +65,30 @@ func (s *DrawServer) ListWarehouse(ctx context.Context, in *draw.ListWarehouseRe
 	return l.ListWarehouse(in)
 }
 
+// 发货订单列表（后台）
+func (s *DrawServer) ListShipmentOrders(ctx context.Context, in *draw.ListShipmentOrdersReq) (*draw.ListShipmentOrdersResp, error) {
+	l := logic.NewListShipmentOrdersLogic(ctx, s.svcCtx)
+	return l.ListShipmentOrders(in)
+}
+
+// 发货订单详情
+func (s *DrawServer) GetShipmentOrder(ctx context.Context, in *draw.GetShipmentOrderReq) (*draw.ShipmentOrder, error) {
+	l := logic.NewGetShipmentOrderLogic(ctx, s.svcCtx)
+	return l.GetShipmentOrder(in)
+}
+
+// 编辑发货订单
+func (s *DrawServer) UpdateShipmentOrder(ctx context.Context, in *draw.UpdateShipmentOrderReq) (*draw.ShipmentOrder, error) {
+	l := logic.NewUpdateShipmentOrderLogic(ctx, s.svcCtx)
+	return l.UpdateShipmentOrder(in)
+}
+
+// 关闭发货订单
+func (s *DrawServer) CloseShipmentOrder(ctx context.Context, in *draw.CloseShipmentOrderReq) (*draw.ShipmentOrder, error) {
+	l := logic.NewCloseShipmentOrderLogic(ctx, s.svcCtx)
+	return l.CloseShipmentOrder(in)
+}
+
 // 滚动中奖最近中奖列表（首页 marquee 数据源；M12）
 func (s *DrawServer) ListRollingDrawRecentWins(ctx context.Context, in *draw.ListRollingDrawRecentWinsReq) (*draw.ListRollingDrawRecentWinsResp, error) {
 	l := logic.NewListRollingDrawRecentWinsLogic(ctx, s.svcCtx)

@@ -41,6 +41,14 @@ service Money {
     rpc CaptureWalletPaymentRevert(CaptureWalletPaymentReq) returns (CaptureWalletPaymentResp);
     rpc Refund(RefundReq) returns (RefundResp);
     rpc GetPayment(GetPaymentReq) returns (GetPaymentResp);
+    // ── 控制台：充值订单（玩家充值/后台退款）──
+    rpc ListRechargeOrders(ListRechargeOrdersReq) returns (ListRechargeOrdersResp);
+    rpc RefundRechargeOrders(RefundRechargeOrdersReq) returns (RefundRechargeOrdersResp);
+    // ── 控制台：退款订单（审核/重试/人工处理）──
+    rpc ListRefundOrders(ListRefundOrdersReq) returns (ListRefundOrdersResp);
+    rpc OperateRefundOrder(OperateRefundOrderReq) returns (RefundOrder);
+    rpc GetRefundAutoConfig(GetRefundAutoConfigReq) returns (GetRefundAutoConfigResp);
+    rpc UpdateRefundAutoConfig(UpdateRefundAutoConfigReq) returns (UpdateRefundAutoConfigResp);
     // ── M14d 控制台：支付路由存管（半成品，无消费方；形状照抄 server_v2 payment_route）──
     rpc GetPaymentRoute(GetPaymentRouteRequest) returns (GetPaymentRouteReply);
     rpc PutPaymentRoute(PutPaymentRouteRequest) returns (PutPaymentRouteReply);
@@ -306,4 +314,155 @@ message PutPaymentRouteRequest {
 message PutPaymentRouteReply {
     PaymentRoutePolicy policy = 1;
     repeated PaymentRouteCandidate candidates = 2;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 控制台：充值订单（玩家充值记录 / 后台退款）
+// ─────────────────────────────────────────────────────────────
+enum RechargeOrderStatus {
+    RECHARGE_ORDER_STATUS_UNSPECIFIED   = 0;
+    RECHARGE_ORDER_STATUS_INIT          = 1; // 初始化
+    RECHARGE_ORDER_STATUS_PAYING        = 2; // 支付中
+    RECHARGE_ORDER_STATUS_SUCCESS       = 3; // 充值成功
+    RECHARGE_ORDER_STATUS_CLOSED        = 4; // 已关闭
+    RECHARGE_ORDER_STATUS_REFUNDING     = 5; // 退款中
+    RECHARGE_ORDER_STATUS_REFUNDED      = 6; // 退款完成
+    RECHARGE_ORDER_STATUS_REFUND_FAILED = 7; // 退款失败
+}
+
+message RechargeOrder {
+    int64 dbId = 1;
+    string orderNo = 2;
+    int64 userId = 3;
+    string userNickname = 4;
+    int64 amountFen = 5;
+    int64 creditedFen = 6;
+    int64 discountFen = 7;
+    string platform = 8;
+    RechargeOrderStatus status = 9;
+    string rechargeType = 10;
+    int64 createdAtUnixMillis = 11;
+    int64 completedAtUnixMillis = 12;
+    int64 refundedAtUnixMillis = 13;
+    int64 refundAmountFen = 14;
+    string refundOrderNo = 15;
+    string payPlatformOrderId = 16;
+    string payPlatformOpenid = 17;
+    string errorMessage = 18;
+}
+
+message ListRechargeOrdersReq {
+    string keyword = 1;       // 用户ID/订单ID
+    int32 status = 2;         // 0=全部
+    string rechargeType = 3;  // 充值类型
+    string platform = 4;      // 充值平台
+    string payKeyword = 5;    // 支付平台订单ID/OpenID/退款订单ID
+    int64 minAmountFen = 6;
+    int64 maxAmountFen = 7;
+    string timeField = 8;     // created/completed/refunded
+    int64 startAtUnixMillis = 9;
+    int64 endAtUnixMillis = 10;
+    int32 page = 11;
+    int32 pageSize = 12;
+}
+
+message ListRechargeOrdersResp {
+    repeated RechargeOrder items = 1;
+    int64 total = 2;
+}
+
+message RefundRechargeOrdersReq {
+    repeated int64 ids = 1; // 充值订单 DB 主键
+}
+
+message RefundRechargeOrdersResp {
+    int32 refunded = 1;
+    repeated string failedOrderNos = 2;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 控制台：退款订单（审核 / 被迫退款 / 人工处理 / 重试）
+// ─────────────────────────────────────────────────────────────
+enum RefundOrderStatus {
+    REFUND_ORDER_STATUS_UNSPECIFIED = 0;
+    REFUND_ORDER_STATUS_PENDING     = 1; // 待审核
+    REFUND_ORDER_STATUS_APPROVED    = 2; // 审核通过
+    REFUND_ORDER_STATUS_SUCCESS     = 3; // 已成功
+    REFUND_ORDER_STATUS_REJECTED    = 4; // 已驳回
+    REFUND_ORDER_STATUS_EXCEPTION   = 5; // 退款异常
+    REFUND_ORDER_STATUS_MANUAL      = 6; // 人工处理
+}
+
+enum RefundOrderAction {
+    REFUND_ORDER_ACTION_UNSPECIFIED = 0;
+    REFUND_ORDER_ACTION_APPROVE      = 1; // 审核通过
+    REFUND_ORDER_ACTION_FORCE_REFUND = 2; // 被迫退款
+    REFUND_ORDER_ACTION_MANUAL       = 3; // 人工处理
+    REFUND_ORDER_ACTION_RETRY        = 4; // 重试退款
+}
+
+message RefundOrder {
+    int64 dbId = 1;
+    string orderNo = 2;
+    int64 userId = 3;
+    string userNickname = 4;
+    string realName = 5;
+    string alipayAccount = 6;
+    int64 amountFen = 7;
+    RefundOrderStatus status = 8;
+    int64 createdAtUnixMillis = 9;
+    int64 completedAtUnixMillis = 10;
+    string thirdPartyOrderId = 11;
+    string refundMerchantId = 12;
+    string auditor = 13;
+    string financeAuditor = 14;
+    string auditRemark = 15;
+    string errorMessage = 16;
+}
+
+message ListRefundOrdersReq {
+    string keyword = 1;      // 用户ID/订单ID/支付宝账号/真实姓名
+    string auditRemark = 2;  // 审核备注关键字
+    int32 status = 3;        // 0=全部
+    int64 minAmountFen = 4;
+    int64 maxAmountFen = 5;
+    string timeField = 6;    // created/completed
+    int64 startAtUnixMillis = 7;
+    int64 endAtUnixMillis = 8;
+    int32 page = 9;
+    int32 pageSize = 10;
+}
+
+message ListRefundOrdersResp {
+    repeated RefundOrder items = 1;
+    int64 total = 2;
+}
+
+message OperateRefundOrderReq {
+    int64 id = 1;
+    RefundOrderAction action = 2;
+    string remark = 3;
+    string auditor = 4; // 网关从 JWT 填充
+}
+
+message RefundAutoConfig {
+    int64 remainingAmountFen = 1; // 自动退款剩余金额（分）
+    int64 auditLimitFen = 2;      // 自动退款审核金额上限（含，分）
+    int64 delaySeconds = 3;       // 自动退款延迟时间（秒）
+    int32 alternateCount = 4;     // 自动交替退款次数
+    int64 alternateAmountFen = 5; // 自动交替退款金额（≤，分）
+}
+
+message GetRefundAutoConfigReq {}
+
+message GetRefundAutoConfigResp {
+    RefundAutoConfig config = 1;
+}
+
+message UpdateRefundAutoConfigReq {
+    RefundAutoConfig config = 1;
+}
+
+message UpdateRefundAutoConfigResp {
+    RefundAutoConfig config = 1;
 }

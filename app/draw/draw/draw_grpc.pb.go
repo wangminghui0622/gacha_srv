@@ -26,6 +26,10 @@ const (
 	Draw_ListRecords_FullMethodName               = "/draw.Draw/ListRecords"
 	Draw_GetRecord_FullMethodName                 = "/draw.Draw/GetRecord"
 	Draw_ListWarehouse_FullMethodName             = "/draw.Draw/ListWarehouse"
+	Draw_ListShipmentOrders_FullMethodName        = "/draw.Draw/ListShipmentOrders"
+	Draw_GetShipmentOrder_FullMethodName          = "/draw.Draw/GetShipmentOrder"
+	Draw_UpdateShipmentOrder_FullMethodName       = "/draw.Draw/UpdateShipmentOrder"
+	Draw_CloseShipmentOrder_FullMethodName        = "/draw.Draw/CloseShipmentOrder"
 	Draw_ListRollingDrawRecentWins_FullMethodName = "/draw.Draw/ListRollingDrawRecentWins"
 	Draw_CreatePoolDraft_FullMethodName           = "/draw.Draw/CreatePoolDraft"
 	Draw_GetPoolVersion_FullMethodName            = "/draw.Draw/GetPoolVersion"
@@ -55,6 +59,14 @@ type DrawClient interface {
 	GetRecord(ctx context.Context, in *GetRecordReq, opts ...grpc.CallOption) (*GetRecordResp, error)
 	// 吉仓物品列表
 	ListWarehouse(ctx context.Context, in *ListWarehouseReq, opts ...grpc.CallOption) (*ListWarehouseResp, error)
+	// 发货订单列表（后台）
+	ListShipmentOrders(ctx context.Context, in *ListShipmentOrdersReq, opts ...grpc.CallOption) (*ListShipmentOrdersResp, error)
+	// 发货订单详情（含物品明细）
+	GetShipmentOrder(ctx context.Context, in *GetShipmentOrderReq, opts ...grpc.CallOption) (*ShipmentOrder, error)
+	// 编辑发货订单（状态/收货信息/物流/备注）
+	UpdateShipmentOrder(ctx context.Context, in *UpdateShipmentOrderReq, opts ...grpc.CallOption) (*ShipmentOrder, error)
+	// 关闭发货订单（管理员关闭/用户关闭）
+	CloseShipmentOrder(ctx context.Context, in *CloseShipmentOrderReq, opts ...grpc.CallOption) (*ShipmentOrder, error)
 	// 滚动中奖最近中奖列表（首页 marquee 数据源；M12）
 	ListRollingDrawRecentWins(ctx context.Context, in *ListRollingDrawRecentWinsReq, opts ...grpc.CallOption) (*ListRollingDrawRecentWinsResp, error)
 	// ── M14b 控制台：赏池草稿/版本/发布（server_v2 GachaService 池管理契约）──
@@ -141,6 +153,42 @@ func (c *drawClient) GetRecord(ctx context.Context, in *GetRecordReq, opts ...gr
 func (c *drawClient) ListWarehouse(ctx context.Context, in *ListWarehouseReq, opts ...grpc.CallOption) (*ListWarehouseResp, error) {
 	out := new(ListWarehouseResp)
 	err := c.cc.Invoke(ctx, Draw_ListWarehouse_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *drawClient) ListShipmentOrders(ctx context.Context, in *ListShipmentOrdersReq, opts ...grpc.CallOption) (*ListShipmentOrdersResp, error) {
+	out := new(ListShipmentOrdersResp)
+	err := c.cc.Invoke(ctx, Draw_ListShipmentOrders_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *drawClient) GetShipmentOrder(ctx context.Context, in *GetShipmentOrderReq, opts ...grpc.CallOption) (*ShipmentOrder, error) {
+	out := new(ShipmentOrder)
+	err := c.cc.Invoke(ctx, Draw_GetShipmentOrder_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *drawClient) UpdateShipmentOrder(ctx context.Context, in *UpdateShipmentOrderReq, opts ...grpc.CallOption) (*ShipmentOrder, error) {
+	out := new(ShipmentOrder)
+	err := c.cc.Invoke(ctx, Draw_UpdateShipmentOrder_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *drawClient) CloseShipmentOrder(ctx context.Context, in *CloseShipmentOrderReq, opts ...grpc.CallOption) (*ShipmentOrder, error) {
+	out := new(ShipmentOrder)
+	err := c.cc.Invoke(ctx, Draw_CloseShipmentOrder_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -246,6 +294,14 @@ type DrawServer interface {
 	GetRecord(context.Context, *GetRecordReq) (*GetRecordResp, error)
 	// 吉仓物品列表
 	ListWarehouse(context.Context, *ListWarehouseReq) (*ListWarehouseResp, error)
+	// 发货订单列表（后台）
+	ListShipmentOrders(context.Context, *ListShipmentOrdersReq) (*ListShipmentOrdersResp, error)
+	// 发货订单详情（含物品明细）
+	GetShipmentOrder(context.Context, *GetShipmentOrderReq) (*ShipmentOrder, error)
+	// 编辑发货订单（状态/收货信息/物流/备注）
+	UpdateShipmentOrder(context.Context, *UpdateShipmentOrderReq) (*ShipmentOrder, error)
+	// 关闭发货订单（管理员关闭/用户关闭）
+	CloseShipmentOrder(context.Context, *CloseShipmentOrderReq) (*ShipmentOrder, error)
 	// 滚动中奖最近中奖列表（首页 marquee 数据源；M12）
 	ListRollingDrawRecentWins(context.Context, *ListRollingDrawRecentWinsReq) (*ListRollingDrawRecentWinsResp, error)
 	// ── M14b 控制台：赏池草稿/版本/发布（server_v2 GachaService 池管理契约）──
@@ -292,6 +348,18 @@ func (UnimplementedDrawServer) GetRecord(context.Context, *GetRecordReq) (*GetRe
 }
 func (UnimplementedDrawServer) ListWarehouse(context.Context, *ListWarehouseReq) (*ListWarehouseResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListWarehouse not implemented")
+}
+func (UnimplementedDrawServer) ListShipmentOrders(context.Context, *ListShipmentOrdersReq) (*ListShipmentOrdersResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListShipmentOrders not implemented")
+}
+func (UnimplementedDrawServer) GetShipmentOrder(context.Context, *GetShipmentOrderReq) (*ShipmentOrder, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetShipmentOrder not implemented")
+}
+func (UnimplementedDrawServer) UpdateShipmentOrder(context.Context, *UpdateShipmentOrderReq) (*ShipmentOrder, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateShipmentOrder not implemented")
+}
+func (UnimplementedDrawServer) CloseShipmentOrder(context.Context, *CloseShipmentOrderReq) (*ShipmentOrder, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CloseShipmentOrder not implemented")
 }
 func (UnimplementedDrawServer) ListRollingDrawRecentWins(context.Context, *ListRollingDrawRecentWinsReq) (*ListRollingDrawRecentWinsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRollingDrawRecentWins not implemented")
@@ -455,6 +523,78 @@ func _Draw_ListWarehouse_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DrawServer).ListWarehouse(ctx, req.(*ListWarehouseReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Draw_ListShipmentOrders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListShipmentOrdersReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DrawServer).ListShipmentOrders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Draw_ListShipmentOrders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DrawServer).ListShipmentOrders(ctx, req.(*ListShipmentOrdersReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Draw_GetShipmentOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetShipmentOrderReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DrawServer).GetShipmentOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Draw_GetShipmentOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DrawServer).GetShipmentOrder(ctx, req.(*GetShipmentOrderReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Draw_UpdateShipmentOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateShipmentOrderReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DrawServer).UpdateShipmentOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Draw_UpdateShipmentOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DrawServer).UpdateShipmentOrder(ctx, req.(*UpdateShipmentOrderReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Draw_CloseShipmentOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CloseShipmentOrderReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DrawServer).CloseShipmentOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Draw_CloseShipmentOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DrawServer).CloseShipmentOrder(ctx, req.(*CloseShipmentOrderReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -655,6 +795,22 @@ var Draw_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListWarehouse",
 			Handler:    _Draw_ListWarehouse_Handler,
+		},
+		{
+			MethodName: "ListShipmentOrders",
+			Handler:    _Draw_ListShipmentOrders_Handler,
+		},
+		{
+			MethodName: "GetShipmentOrder",
+			Handler:    _Draw_GetShipmentOrder_Handler,
+		},
+		{
+			MethodName: "UpdateShipmentOrder",
+			Handler:    _Draw_UpdateShipmentOrder_Handler,
+		},
+		{
+			MethodName: "CloseShipmentOrder",
+			Handler:    _Draw_CloseShipmentOrder_Handler,
 		},
 		{
 			MethodName: "ListRollingDrawRecentWins",

@@ -20,6 +20,14 @@ service Draw {
   rpc GetRecord(GetRecordReq) returns (GetRecordResp);
   // 吉仓物品列表
   rpc ListWarehouse(ListWarehouseReq) returns (ListWarehouseResp);
+  // 发货订单列表（后台）
+  rpc ListShipmentOrders(ListShipmentOrdersReq) returns (ListShipmentOrdersResp);
+  // 发货订单详情（含物品明细）
+  rpc GetShipmentOrder(GetShipmentOrderReq) returns (ShipmentOrder);
+  // 编辑发货订单（状态/收货信息/物流/备注）
+  rpc UpdateShipmentOrder(UpdateShipmentOrderReq) returns (ShipmentOrder);
+  // 关闭发货订单（管理员关闭/用户关闭）
+  rpc CloseShipmentOrder(CloseShipmentOrderReq) returns (ShipmentOrder);
   // 滚动中奖最近中奖列表（首页 marquee 数据源；M12）
   rpc ListRollingDrawRecentWins(ListRollingDrawRecentWinsReq) returns (ListRollingDrawRecentWinsResp);
   // ── M14b 控制台：赏池草稿/版本/发布（server_v2 GachaService 池管理契约）──
@@ -338,4 +346,80 @@ message ListPublishedPoolsResp {
   repeated BoxDraft pools = 1;
   int64 nextAfterPoolId = 2;
   int64 nextAfterVersion = 3;
+}
+
+// ── 发货订单（吉仓物品申请发货后的后台订单）──
+enum ShipmentOrderStatus {
+  SHIPMENT_ORDER_STATUS_UNSPECIFIED      = 0;
+  SHIPMENT_ORDER_STATUS_PENDING_PAYMENT  = 1; // 待付款
+  SHIPMENT_ORDER_STATUS_PENDING_FINAL    = 2; // 待支付尾款
+  SHIPMENT_ORDER_STATUS_PENDING_SHIPMENT = 3; // 待发货
+  SHIPMENT_ORDER_STATUS_PENDING_RECEIPT  = 4; // 待收货
+  SHIPMENT_ORDER_STATUS_COMPLETED        = 5; // 已完成
+  SHIPMENT_ORDER_STATUS_CLOSED           = 6; // 已关闭
+  SHIPMENT_ORDER_STATUS_USER_CLOSED      = 7; // 用户关闭
+}
+
+message ShipmentOrderItem {
+  int64 id = 1;
+  int64 warehouseItemId = 2;
+  int64 boxId = 3;
+  string itemName = 4;
+  string imageUrl = 5;
+  int32 quantity = 6;
+  int64 createdAtUnixMillis = 7;
+}
+
+message ShipmentOrder {
+  int64 id = 1;
+  string orderNo = 2;             // 对外订单号（列表 ID）
+  int64 userId = 3;
+  ShipmentOrderStatus status = 4;
+  int64 createdAtUnixMillis = 5;
+  int64 paidAtUnixMillis = 6;
+  int32 submittedDays = 7;        // 已提交天数（仅待发货/待收货展示）
+  int64 shippedAtUnixMillis = 8;
+  int64 completedAtUnixMillis = 9;
+  string remark = 10;
+  string receiverName = 11;
+  string receiverPhone = 12;
+  string receiverAddress = 13;
+  string logisticsCompany = 14;
+  string trackingNo = 15;
+  repeated ShipmentOrderItem items = 16;
+  int32 itemCount = 17;
+}
+
+message ListShipmentOrdersReq {
+  string keyword = 1; // 订单号或用户ID
+  int32 status = 2;   // 0=全部
+  int32 page = 3;
+  int32 pageSize = 4;
+}
+
+message ListShipmentOrdersResp {
+  repeated ShipmentOrder items = 1;
+  int64 total = 2;
+}
+
+message GetShipmentOrderReq {
+  int64 id = 1;
+}
+
+message UpdateShipmentOrderReq {
+  int64 id = 1;
+  int32 status = 2;
+  string remark = 3;
+  string receiverName = 4;
+  string receiverPhone = 5;
+  string receiverAddress = 6;
+  string logisticsCompany = 7;
+  string trackingNo = 8;
+  int64 shippedAtUnixMillis = 9;   // 0=清空
+  int64 completedAtUnixMillis = 10; // 0=清空
+}
+
+message CloseShipmentOrderReq {
+  int64 id = 1;
+  int32 status = 2; // 6=管理员关闭 7=用户关闭
 }

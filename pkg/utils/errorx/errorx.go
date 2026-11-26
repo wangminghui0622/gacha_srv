@@ -91,6 +91,8 @@ const (
 	CodePoolVersionConflict     = 3008 // 赏池版本冲突（config_hash/状态不满足操作）
 	CodePoolPublicationConflict = 3009 // 赏池发布审批冲突（自批/未提请/状态错）
 	CodePoolDraftKeyConflict    = 3010 // 草稿幂等键冲突（同 key 不同载荷）
+	CodeShipmentOrderNotFound   = 3011 // 发货订单不存在
+	CodeShipmentOrderInvalid    = 3012 // 发货订单参数/状态无效
 )
 
 // 基础域 4000-4999（base-rpc 资格+风控；旧仓 5000 段平移）

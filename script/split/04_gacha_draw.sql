@@ -132,6 +132,45 @@ CREATE TABLE IF NOT EXISTS `draw_warehouse_items` (
   KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='吉仓表';
 
+CREATE TABLE IF NOT EXISTS `shipment_orders` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `order_no` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '发货订单号（对外展示 ID）',
+  `user_id` bigint unsigned NOT NULL COMMENT '用户ID',
+  `status` tinyint NOT NULL DEFAULT '3' COMMENT '状态：1=待付款 2=待支付尾款 3=待发货 4=待收货 5=已完成 6=已关闭 7=用户关闭',
+  `receiver_name` varchar(64) NOT NULL DEFAULT '' COMMENT '收件人姓名',
+  `receiver_phone` varchar(32) NOT NULL DEFAULT '' COMMENT '收件人手机号',
+  `receiver_address` varchar(512) NOT NULL DEFAULT '' COMMENT '收件地址',
+  `logistics_company` varchar(64) NOT NULL DEFAULT '' COMMENT '物流公司',
+  `tracking_no` varchar(64) NOT NULL DEFAULT '' COMMENT '物流单号',
+  `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
+  `paid_at` datetime(3) DEFAULT NULL COMMENT '支付时间',
+  `submitted_at` datetime(3) DEFAULT NULL COMMENT '提交发货时间（已提交天数基准）',
+  `shipped_at` datetime(3) DEFAULT NULL COMMENT '发货时间',
+  `completed_at` datetime(3) DEFAULT NULL COMMENT '完成时间',
+  `closed_at` datetime(3) DEFAULT NULL COMMENT '关闭时间',
+  `created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  `updated_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_order_no` (`order_no`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='发货订单表';
+
+CREATE TABLE IF NOT EXISTS `shipment_order_items` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `order_id` bigint unsigned NOT NULL COMMENT '发货订单ID（shipment_orders.id）',
+  `warehouse_item_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '吉仓物品ID（draw_warehouse_items.id）',
+  `box_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '来源宝箱ID',
+  `item_name` varchar(64) NOT NULL DEFAULT '' COMMENT '物品名称',
+  `image_url` varchar(512) NOT NULL DEFAULT '' COMMENT '物品图片',
+  `quantity` int NOT NULL DEFAULT '1' COMMENT '数量',
+  `created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_order_id` (`order_id`),
+  KEY `idx_warehouse_item_id` (`warehouse_item_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='发货订单物品表';
+
 CREATE TABLE IF NOT EXISTS `dtm_barrier` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
   `trans_type` varchar(45) DEFAULT '' COMMENT '事务类型：saga/xa/tcc/msg',

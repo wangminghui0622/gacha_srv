@@ -48,6 +48,14 @@ type (
 	RollingDrawWinItem            = draw.RollingDrawWinItem
 	SettleDrawReq                 = draw.SettleDrawReq
 	SettleDrawResp                = draw.SettleDrawResp
+	ListShipmentOrdersReq         = draw.ListShipmentOrdersReq
+	ListShipmentOrdersResp        = draw.ListShipmentOrdersResp
+	GetShipmentOrderReq           = draw.GetShipmentOrderReq
+	UpdateShipmentOrderReq        = draw.UpdateShipmentOrderReq
+	CloseShipmentOrderReq         = draw.CloseShipmentOrderReq
+	ShipmentOrder                 = draw.ShipmentOrder
+	ShipmentOrderItem             = draw.ShipmentOrderItem
+	ShipmentOrderStatus           = draw.ShipmentOrderStatus
 	WarehouseItem                 = draw.WarehouseItem
 
 	Draw interface {
@@ -65,6 +73,14 @@ type (
 		GetRecord(ctx context.Context, in *GetRecordReq, opts ...grpc.CallOption) (*GetRecordResp, error)
 		// 吉仓物品列表
 		ListWarehouse(ctx context.Context, in *ListWarehouseReq, opts ...grpc.CallOption) (*ListWarehouseResp, error)
+		// 发货订单列表（后台）
+		ListShipmentOrders(ctx context.Context, in *ListShipmentOrdersReq, opts ...grpc.CallOption) (*ListShipmentOrdersResp, error)
+		// 发货订单详情
+		GetShipmentOrder(ctx context.Context, in *GetShipmentOrderReq, opts ...grpc.CallOption) (*ShipmentOrder, error)
+		// 编辑发货订单
+		UpdateShipmentOrder(ctx context.Context, in *UpdateShipmentOrderReq, opts ...grpc.CallOption) (*ShipmentOrder, error)
+		// 关闭发货订单
+		CloseShipmentOrder(ctx context.Context, in *CloseShipmentOrderReq, opts ...grpc.CallOption) (*ShipmentOrder, error)
 		// 滚动中奖最近中奖列表（首页 marquee 数据源；M12）
 		ListRollingDrawRecentWins(ctx context.Context, in *ListRollingDrawRecentWinsReq, opts ...grpc.CallOption) (*ListRollingDrawRecentWinsResp, error)
 		// ── M14b 控制台：赏池草稿/版本/发布（server_v2 GachaService 池管理契约）──
@@ -136,6 +152,30 @@ func (m *defaultDraw) GetRecord(ctx context.Context, in *GetRecordReq, opts ...g
 func (m *defaultDraw) ListWarehouse(ctx context.Context, in *ListWarehouseReq, opts ...grpc.CallOption) (*ListWarehouseResp, error) {
 	client := draw.NewDrawClient(m.cli.Conn())
 	return client.ListWarehouse(ctx, in, opts...)
+}
+
+// 发货订单列表（后台）
+func (m *defaultDraw) ListShipmentOrders(ctx context.Context, in *ListShipmentOrdersReq, opts ...grpc.CallOption) (*ListShipmentOrdersResp, error) {
+	client := draw.NewDrawClient(m.cli.Conn())
+	return client.ListShipmentOrders(ctx, in, opts...)
+}
+
+// 发货订单详情
+func (m *defaultDraw) GetShipmentOrder(ctx context.Context, in *GetShipmentOrderReq, opts ...grpc.CallOption) (*ShipmentOrder, error) {
+	client := draw.NewDrawClient(m.cli.Conn())
+	return client.GetShipmentOrder(ctx, in, opts...)
+}
+
+// 编辑发货订单
+func (m *defaultDraw) UpdateShipmentOrder(ctx context.Context, in *UpdateShipmentOrderReq, opts ...grpc.CallOption) (*ShipmentOrder, error) {
+	client := draw.NewDrawClient(m.cli.Conn())
+	return client.UpdateShipmentOrder(ctx, in, opts...)
+}
+
+// 关闭发货订单
+func (m *defaultDraw) CloseShipmentOrder(ctx context.Context, in *CloseShipmentOrderReq, opts ...grpc.CallOption) (*ShipmentOrder, error) {
+	client := draw.NewDrawClient(m.cli.Conn())
+	return client.CloseShipmentOrder(ctx, in, opts...)
 }
 
 // 滚动中奖最近中奖列表（首页 marquee 数据源；M12）

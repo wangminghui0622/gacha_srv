@@ -36,6 +36,12 @@ const (
 	Money_CaptureWalletPaymentRevert_FullMethodName = "/money.Money/CaptureWalletPaymentRevert"
 	Money_Refund_FullMethodName                     = "/money.Money/Refund"
 	Money_GetPayment_FullMethodName                 = "/money.Money/GetPayment"
+	Money_ListRechargeOrders_FullMethodName         = "/money.Money/ListRechargeOrders"
+	Money_RefundRechargeOrders_FullMethodName       = "/money.Money/RefundRechargeOrders"
+	Money_ListRefundOrders_FullMethodName           = "/money.Money/ListRefundOrders"
+	Money_OperateRefundOrder_FullMethodName         = "/money.Money/OperateRefundOrder"
+	Money_GetRefundAutoConfig_FullMethodName        = "/money.Money/GetRefundAutoConfig"
+	Money_UpdateRefundAutoConfig_FullMethodName     = "/money.Money/UpdateRefundAutoConfig"
 	Money_GetPaymentRoute_FullMethodName            = "/money.Money/GetPaymentRoute"
 	Money_PutPaymentRoute_FullMethodName            = "/money.Money/PutPaymentRoute"
 )
@@ -66,6 +72,14 @@ type MoneyClient interface {
 	CaptureWalletPaymentRevert(ctx context.Context, in *CaptureWalletPaymentReq, opts ...grpc.CallOption) (*CaptureWalletPaymentResp, error)
 	Refund(ctx context.Context, in *RefundReq, opts ...grpc.CallOption) (*RefundResp, error)
 	GetPayment(ctx context.Context, in *GetPaymentReq, opts ...grpc.CallOption) (*GetPaymentResp, error)
+	// ── 控制台：充值订单（玩家充值/后台退款）──
+	ListRechargeOrders(ctx context.Context, in *ListRechargeOrdersReq, opts ...grpc.CallOption) (*ListRechargeOrdersResp, error)
+	RefundRechargeOrders(ctx context.Context, in *RefundRechargeOrdersReq, opts ...grpc.CallOption) (*RefundRechargeOrdersResp, error)
+	// ── 控制台：退款订单（审核/重试/人工处理）──
+	ListRefundOrders(ctx context.Context, in *ListRefundOrdersReq, opts ...grpc.CallOption) (*ListRefundOrdersResp, error)
+	OperateRefundOrder(ctx context.Context, in *OperateRefundOrderReq, opts ...grpc.CallOption) (*RefundOrder, error)
+	GetRefundAutoConfig(ctx context.Context, in *GetRefundAutoConfigReq, opts ...grpc.CallOption) (*GetRefundAutoConfigResp, error)
+	UpdateRefundAutoConfig(ctx context.Context, in *UpdateRefundAutoConfigReq, opts ...grpc.CallOption) (*UpdateRefundAutoConfigResp, error)
 	// ── M14d 控制台：支付路由存管（半成品，无消费方；形状照抄 server_v2 payment_route）──
 	GetPaymentRoute(ctx context.Context, in *GetPaymentRouteRequest, opts ...grpc.CallOption) (*GetPaymentRouteReply, error)
 	PutPaymentRoute(ctx context.Context, in *PutPaymentRouteRequest, opts ...grpc.CallOption) (*PutPaymentRouteReply, error)
@@ -232,6 +246,60 @@ func (c *moneyClient) GetPayment(ctx context.Context, in *GetPaymentReq, opts ..
 	return out, nil
 }
 
+func (c *moneyClient) ListRechargeOrders(ctx context.Context, in *ListRechargeOrdersReq, opts ...grpc.CallOption) (*ListRechargeOrdersResp, error) {
+	out := new(ListRechargeOrdersResp)
+	err := c.cc.Invoke(ctx, Money_ListRechargeOrders_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *moneyClient) RefundRechargeOrders(ctx context.Context, in *RefundRechargeOrdersReq, opts ...grpc.CallOption) (*RefundRechargeOrdersResp, error) {
+	out := new(RefundRechargeOrdersResp)
+	err := c.cc.Invoke(ctx, Money_RefundRechargeOrders_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *moneyClient) ListRefundOrders(ctx context.Context, in *ListRefundOrdersReq, opts ...grpc.CallOption) (*ListRefundOrdersResp, error) {
+	out := new(ListRefundOrdersResp)
+	err := c.cc.Invoke(ctx, Money_ListRefundOrders_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *moneyClient) OperateRefundOrder(ctx context.Context, in *OperateRefundOrderReq, opts ...grpc.CallOption) (*RefundOrder, error) {
+	out := new(RefundOrder)
+	err := c.cc.Invoke(ctx, Money_OperateRefundOrder_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *moneyClient) GetRefundAutoConfig(ctx context.Context, in *GetRefundAutoConfigReq, opts ...grpc.CallOption) (*GetRefundAutoConfigResp, error) {
+	out := new(GetRefundAutoConfigResp)
+	err := c.cc.Invoke(ctx, Money_GetRefundAutoConfig_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *moneyClient) UpdateRefundAutoConfig(ctx context.Context, in *UpdateRefundAutoConfigReq, opts ...grpc.CallOption) (*UpdateRefundAutoConfigResp, error) {
+	out := new(UpdateRefundAutoConfigResp)
+	err := c.cc.Invoke(ctx, Money_UpdateRefundAutoConfig_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *moneyClient) GetPaymentRoute(ctx context.Context, in *GetPaymentRouteRequest, opts ...grpc.CallOption) (*GetPaymentRouteReply, error) {
 	out := new(GetPaymentRouteReply)
 	err := c.cc.Invoke(ctx, Money_GetPaymentRoute_FullMethodName, in, out, opts...)
@@ -276,6 +344,14 @@ type MoneyServer interface {
 	CaptureWalletPaymentRevert(context.Context, *CaptureWalletPaymentReq) (*CaptureWalletPaymentResp, error)
 	Refund(context.Context, *RefundReq) (*RefundResp, error)
 	GetPayment(context.Context, *GetPaymentReq) (*GetPaymentResp, error)
+	// ── 控制台：充值订单（玩家充值/后台退款）──
+	ListRechargeOrders(context.Context, *ListRechargeOrdersReq) (*ListRechargeOrdersResp, error)
+	RefundRechargeOrders(context.Context, *RefundRechargeOrdersReq) (*RefundRechargeOrdersResp, error)
+	// ── 控制台：退款订单（审核/重试/人工处理）──
+	ListRefundOrders(context.Context, *ListRefundOrdersReq) (*ListRefundOrdersResp, error)
+	OperateRefundOrder(context.Context, *OperateRefundOrderReq) (*RefundOrder, error)
+	GetRefundAutoConfig(context.Context, *GetRefundAutoConfigReq) (*GetRefundAutoConfigResp, error)
+	UpdateRefundAutoConfig(context.Context, *UpdateRefundAutoConfigReq) (*UpdateRefundAutoConfigResp, error)
 	// ── M14d 控制台：支付路由存管（半成品，无消费方；形状照抄 server_v2 payment_route）──
 	GetPaymentRoute(context.Context, *GetPaymentRouteRequest) (*GetPaymentRouteReply, error)
 	PutPaymentRoute(context.Context, *PutPaymentRouteRequest) (*PutPaymentRouteReply, error)
@@ -336,6 +412,24 @@ func (UnimplementedMoneyServer) Refund(context.Context, *RefundReq) (*RefundResp
 }
 func (UnimplementedMoneyServer) GetPayment(context.Context, *GetPaymentReq) (*GetPaymentResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPayment not implemented")
+}
+func (UnimplementedMoneyServer) ListRechargeOrders(context.Context, *ListRechargeOrdersReq) (*ListRechargeOrdersResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListRechargeOrders not implemented")
+}
+func (UnimplementedMoneyServer) RefundRechargeOrders(context.Context, *RefundRechargeOrdersReq) (*RefundRechargeOrdersResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RefundRechargeOrders not implemented")
+}
+func (UnimplementedMoneyServer) ListRefundOrders(context.Context, *ListRefundOrdersReq) (*ListRefundOrdersResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListRefundOrders not implemented")
+}
+func (UnimplementedMoneyServer) OperateRefundOrder(context.Context, *OperateRefundOrderReq) (*RefundOrder, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OperateRefundOrder not implemented")
+}
+func (UnimplementedMoneyServer) GetRefundAutoConfig(context.Context, *GetRefundAutoConfigReq) (*GetRefundAutoConfigResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRefundAutoConfig not implemented")
+}
+func (UnimplementedMoneyServer) UpdateRefundAutoConfig(context.Context, *UpdateRefundAutoConfigReq) (*UpdateRefundAutoConfigResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateRefundAutoConfig not implemented")
 }
 func (UnimplementedMoneyServer) GetPaymentRoute(context.Context, *GetPaymentRouteRequest) (*GetPaymentRouteReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPaymentRoute not implemented")
@@ -662,6 +756,114 @@ func _Money_GetPayment_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Money_ListRechargeOrders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRechargeOrdersReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MoneyServer).ListRechargeOrders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Money_ListRechargeOrders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MoneyServer).ListRechargeOrders(ctx, req.(*ListRechargeOrdersReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Money_RefundRechargeOrders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RefundRechargeOrdersReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MoneyServer).RefundRechargeOrders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Money_RefundRechargeOrders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MoneyServer).RefundRechargeOrders(ctx, req.(*RefundRechargeOrdersReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Money_ListRefundOrders_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRefundOrdersReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MoneyServer).ListRefundOrders(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Money_ListRefundOrders_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MoneyServer).ListRefundOrders(ctx, req.(*ListRefundOrdersReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Money_OperateRefundOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OperateRefundOrderReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MoneyServer).OperateRefundOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Money_OperateRefundOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MoneyServer).OperateRefundOrder(ctx, req.(*OperateRefundOrderReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Money_GetRefundAutoConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRefundAutoConfigReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MoneyServer).GetRefundAutoConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Money_GetRefundAutoConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MoneyServer).GetRefundAutoConfig(ctx, req.(*GetRefundAutoConfigReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Money_UpdateRefundAutoConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRefundAutoConfigReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MoneyServer).UpdateRefundAutoConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Money_UpdateRefundAutoConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MoneyServer).UpdateRefundAutoConfig(ctx, req.(*UpdateRefundAutoConfigReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Money_GetPaymentRoute_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetPaymentRouteRequest)
 	if err := dec(in); err != nil {
@@ -772,6 +974,30 @@ var Money_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPayment",
 			Handler:    _Money_GetPayment_Handler,
+		},
+		{
+			MethodName: "ListRechargeOrders",
+			Handler:    _Money_ListRechargeOrders_Handler,
+		},
+		{
+			MethodName: "RefundRechargeOrders",
+			Handler:    _Money_RefundRechargeOrders_Handler,
+		},
+		{
+			MethodName: "ListRefundOrders",
+			Handler:    _Money_ListRefundOrders_Handler,
+		},
+		{
+			MethodName: "OperateRefundOrder",
+			Handler:    _Money_OperateRefundOrder_Handler,
+		},
+		{
+			MethodName: "GetRefundAutoConfig",
+			Handler:    _Money_GetRefundAutoConfig_Handler,
+		},
+		{
+			MethodName: "UpdateRefundAutoConfig",
+			Handler:    _Money_UpdateRefundAutoConfig_Handler,
 		},
 		{
 			MethodName: "GetPaymentRoute",

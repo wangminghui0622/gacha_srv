@@ -269,4 +269,72 @@ CREATE TABLE IF NOT EXISTS `payment_route_policies` (
   UNIQUE KEY `uk_tenant_channel_scene` (`tenant_id`,`channel`,`scene`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='支付路由策略表';
 
+CREATE TABLE IF NOT EXISTS `recharge_orders` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `order_no` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '充值订单号（对外展示 ID）',
+  `user_id` bigint unsigned NOT NULL COMMENT '用户ID',
+  `user_nickname` varchar(64) NOT NULL DEFAULT '' COMMENT '用户昵称快照',
+  `amount_fen` bigint NOT NULL DEFAULT '0' COMMENT '充值金额（分）',
+  `credited_fen` bigint NOT NULL DEFAULT '0' COMMENT '到账金额（分）',
+  `discount_fen` bigint NOT NULL DEFAULT '0' COMMENT '折扣金额（分）',
+  `platform` varchar(32) NOT NULL DEFAULT '' COMMENT '充值平台（支付宝/汇付/拉卡拉/微信）',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态：1初始化 2支付中 3充值成功 4已关闭 5退款中 6退款完成 7退款失败',
+  `recharge_type` varchar(32) NOT NULL DEFAULT '' COMMENT '充值类型（金币充值/玩法/对对碰等）',
+  `created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  `completed_at` datetime(3) DEFAULT NULL COMMENT '完成时间',
+  `refunded_at` datetime(3) DEFAULT NULL COMMENT '退款时间',
+  `refund_amount_fen` bigint NOT NULL DEFAULT '0' COMMENT '退款金额（分）',
+  `refund_order_no` varchar(64) NOT NULL DEFAULT '' COMMENT '退款订单号',
+  `pay_platform_order_id` varchar(128) NOT NULL DEFAULT '' COMMENT '支付平台订单ID',
+  `pay_platform_openid` varchar(128) NOT NULL DEFAULT '' COMMENT '支付平台OpenID',
+  `error_message` varchar(512) NOT NULL DEFAULT '' COMMENT '错误信息',
+  `updated_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_order_no` (`order_no`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_created_at` (`created_at`),
+  KEY `idx_pay_platform_order_id` (`pay_platform_order_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='充值订单表';
+
+CREATE TABLE IF NOT EXISTS `refund_orders` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `order_no` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '退款订单号（对外展示 ID）',
+  `user_id` bigint unsigned NOT NULL COMMENT '用户ID',
+  `user_nickname` varchar(64) NOT NULL DEFAULT '' COMMENT '用户昵称快照',
+  `real_name` varchar(64) NOT NULL DEFAULT '' COMMENT '真实姓名',
+  `alipay_account` varchar(128) NOT NULL DEFAULT '' COMMENT '支付宝账号',
+  `amount_fen` bigint NOT NULL DEFAULT '0' COMMENT '退款金额（分）',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态：1待审核 2审核通过 3已成功 4已驳回 5退款异常 6人工处理',
+  `created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  `completed_at` datetime(3) DEFAULT NULL COMMENT '完成时间',
+  `third_party_order_id` varchar(128) NOT NULL DEFAULT '' COMMENT '第三方订单ID',
+  `refund_merchant_id` varchar(128) NOT NULL DEFAULT '' COMMENT '退款商户ID',
+  `auditor` varchar(64) NOT NULL DEFAULT '' COMMENT '审核人',
+  `finance_auditor` varchar(64) NOT NULL DEFAULT '' COMMENT '财务审核人',
+  `audit_remark` varchar(512) NOT NULL DEFAULT '' COMMENT '审核备注',
+  `error_message` varchar(1024) NOT NULL DEFAULT '' COMMENT '错误信息',
+  `updated_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_order_no` (`order_no`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_created_at` (`created_at`),
+  KEY `idx_alipay_account` (`alipay_account`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='退款订单表';
+
+CREATE TABLE IF NOT EXISTS `refund_auto_configs` (
+  `id` tinyint unsigned NOT NULL DEFAULT '1' COMMENT '配置主键（单行固定 1）',
+  `remaining_amount_fen` bigint NOT NULL DEFAULT '0' COMMENT '自动退款剩余金额（分）',
+  `audit_limit_fen` bigint NOT NULL DEFAULT '0' COMMENT '自动退款审核金额上限（含，分）',
+  `delay_seconds` bigint NOT NULL DEFAULT '0' COMMENT '自动退款延迟时间（秒）',
+  `alternate_count` int NOT NULL DEFAULT '0' COMMENT '自动交替退款次数',
+  `alternate_amount_fen` bigint NOT NULL DEFAULT '0' COMMENT '自动交替退款金额（≤，分）',
+  `updated_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='自动退款配置表';
+
+INSERT INTO `refund_auto_configs` (`id`) VALUES (1)
+ON DUPLICATE KEY UPDATE `id` = VALUES(`id`);
+
 SET FOREIGN_KEY_CHECKS = 1;
