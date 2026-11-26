@@ -1,3 +1,15 @@
 @import './base.css';
 
 #app { width: 100%; min-height: 100vh; }
+
+/* 列表页统一布局：分页无论有无数据都贴近页面底部 */
+.console-list-page {
+  display: flex !important;
+  flex-direction: column;
+  min-height: calc(100vh - 132px) !important;
+}
+
+.console-list-footer {
+  margin-top: auto !important;
+  padding-top: 16px;
+}

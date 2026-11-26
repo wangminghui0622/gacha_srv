@@ -1,5 +1,5 @@
 <template>
-  <div class="ip-page">
+  <div class="ip-page console-list-page">
     <div class="ip-toolbar">
       <a-input
         v-model:value="keyword"
@@ -31,7 +31,7 @@
       </a-table-column>
     </a-table>
 
-    <div class="ip-footer">
+    <div class="ip-footer console-list-footer">
       <a-pagination
         :current="page"
         :page-size="pageSize"

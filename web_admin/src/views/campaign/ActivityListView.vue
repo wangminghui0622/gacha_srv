@@ -1,5 +1,5 @@
 <template>
-  <div class="activity-page">
+  <div class="activity-page console-list-page">
     <div class="activity-toolbar">
       <span class="toolbar-label">活动key:</span>
       <a-input
@@ -76,7 +76,7 @@
       </a-table-column>
     </a-table>
 
-    <div class="activity-footer">
+    <div class="activity-footer console-list-footer">
       <a-pagination
         v-model:current="page"
         v-model:page-size="pageSize"

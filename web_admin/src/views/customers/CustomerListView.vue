@@ -1,5 +1,5 @@
 <template>
-  <div class="customer-page">
+  <div class="customer-page console-list-page">
     <div class="customer-toolbar">
       <a-input v-model:value="keyword" class="filter-input keyword-input" placeholder="昵称或用户ID" allow-clear @press-enter="queryList" />
       <a-input v-model:value="phone" class="filter-input phone-input" placeholder="手机号" allow-clear @press-enter="queryList" />
@@ -65,7 +65,7 @@
       </a-table-column>
     </a-table>
 
-    <div class="customer-footer">
+    <div class="customer-footer console-list-footer">
       <a-pagination
         v-model:current="page"
         v-model:page-size="pageSize"

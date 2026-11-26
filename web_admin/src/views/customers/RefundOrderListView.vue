@@ -1,5 +1,5 @@
 <template>
-  <div class="refund-page">
+  <div class="refund-page console-list-page">
     <div class="auto-bar">
       <div class="auto-item">
         <span>自动退款剩余金额：</span><b>{{ money(autoConfig.remainingAmountFen) }}</b>
@@ -112,7 +112,7 @@
       </a-table-column>
     </a-table>
 
-    <div class="refund-footer">
+    <div class="refund-footer console-list-footer">
       <a-pagination
         :current="page"
         :page-size="pageSize"

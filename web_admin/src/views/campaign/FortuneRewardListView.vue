@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="fortune-list-page">
+    <div class="fortune-list-page console-list-page">
       <div class="list-toolbar">
         <a-button type="primary" :loading="loading" @click="queryList">查询</a-button>
         <a-button v-if="canWrite" @click="goCreate">创建</a-button>
@@ -128,7 +128,7 @@
         </template>
       </a-table>
 
-      <div class="list-footer">
+      <div class="list-footer console-list-footer">
         <a-pagination
           v-model:current="page"
           v-model:page-size="pageSize"

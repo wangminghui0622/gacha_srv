@@ -1,5 +1,5 @@
 <template>
-  <div class="codex-page">
+  <div class="codex-page console-list-page">
     <div class="page-head">
       <h2>图鉴集合</h2>
     </div>
@@ -56,7 +56,7 @@
       </template>
     </a-table>
 
-    <div class="pager">
+    <div class="pager console-list-footer">
       <a-pagination
         v-model:current="query.page"
         v-model:page-size="query.pageSize"

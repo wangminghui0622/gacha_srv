@@ -1,5 +1,5 @@
 <template>
-  <div class="order-page">
+  <div class="order-page console-list-page">
     <div class="order-toolbar">
       <a-input v-model:value="filters.keyword" class="w-180" placeholder="用户ID或订单ID" allow-clear @press-enter="search" />
       <a-select v-model:value="filters.status" class="w-140" placeholder="订单状态" :options="statusOptions" allow-clear />
@@ -102,7 +102,7 @@
       </a-table-column>
     </a-table>
 
-    <div class="order-footer">
+    <div class="order-footer console-list-footer">
       <a-pagination
         :current="page"
         :page-size="pageSize"

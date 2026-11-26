@@ -1,5 +1,5 @@
 <template>
-  <div class="popup-page">
+  <div class="popup-page console-list-page">
     <div class="popup-toolbar">
       <a-button :loading="loading" @click="queryList">查询</a-button>
       <a-button v-if="canWrite" type="primary" @click="openCreate">创建</a-button>
@@ -56,7 +56,7 @@
       </a-table-column>
     </a-table>
 
-    <div class="popup-footer">
+    <div class="popup-footer console-list-footer">
       <a-pagination
         v-model:current="page"
         v-model:page-size="pageSize"

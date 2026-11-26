@@ -1,5 +1,5 @@
 <template>
-  <section class="coupon-page">
+  <section class="coupon-page console-list-page">
     <a-tabs v-model:activeKey="activeTab" class="coupon-tabs" @change="onTabChange" @tabClick="onTabClick">
       <a-tab-pane key="templates" :tab="$t('couponAdmin.tabTemplateCreate')">
         <div class="coupon-tab-actions">
@@ -49,7 +49,7 @@
           </a-table-column>
         </a-table>
 
-        <div class="coupon-footer">
+        <div class="coupon-footer console-list-footer">
           <a-pagination
             v-model:current="page"
             v-model:page-size="pageSize"
@@ -114,7 +114,7 @@
           </a-table-column>
         </a-table>
 
-        <div class="coupon-footer">
+        <div class="coupon-footer console-list-footer">
           <a-pagination
             v-model:current="drawPage"
             v-model:page-size="drawPageSize"
@@ -170,7 +170,7 @@
               <template #default="{ record }">{{ record.remark || '-' }}</template>
             </a-table-column>
           </a-table>
-          <div class="coupon-footer">
+          <div class="coupon-footer console-list-footer">
             <a-pagination
               v-model:current="ledgerPage"
               v-model:page-size="ledgerPageSize"

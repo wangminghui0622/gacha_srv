@@ -1,5 +1,5 @@
 <template>
-  <div class="brand-page">
+  <div class="brand-page console-list-page">
     <div class="brand-toolbar">
       <a-input
         v-model:value="keyword"
@@ -35,7 +35,7 @@
       </a-table-column>
     </a-table>
 
-    <div class="brand-footer">
+    <div class="brand-footer console-list-footer">
       <a-pagination
         :current="page"
         :page-size="pageSize"

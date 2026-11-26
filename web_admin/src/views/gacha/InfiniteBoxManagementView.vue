@@ -1,5 +1,5 @@
 <template>
-  <div class="box-page">
+  <div class="box-page console-list-page">
     <div class="box-toolbar">
       <a-input
         v-model:value="filters.keyword"
@@ -85,7 +85,7 @@
       </a-table-column>
     </a-table>
 
-    <div class="box-footer">
+    <div class="box-footer console-list-footer">
       <a-pagination
         :current="page"
         :page-size="pageSize"

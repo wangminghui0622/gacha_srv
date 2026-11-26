@@ -1,5 +1,5 @@
 <template>
-  <div class="banner-page">
+  <div class="banner-page console-list-page">
     <div class="banner-toolbar">
       <a-button class="btn-query" type="primary" :loading="loading" @click="queryList">查询</a-button>
       <a-button v-if="canWrite" @click="openCreate">创建</a-button>
@@ -55,7 +55,7 @@
       </a-table-column>
     </a-table>
 
-    <div class="banner-footer">
+    <div class="banner-footer console-list-footer">
       <a-pagination
         v-model:current="page"
         v-model:page-size="pageSize"
