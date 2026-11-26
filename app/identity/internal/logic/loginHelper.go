@@ -23,7 +23,7 @@ func issueToken(ctx context.Context, svcCtx *svc.ServiceContext, userID int64) (
 		}
 		return nil, errorx.FromMySQLError(err)
 	}
-	publicUserID := publicUserIdOf(u.Id)
+	publicUserID := publicUserIdOfUser(u)
 	token, err := jwtutil.NewTokenWithPublicId(svcCtx.Config.JwtAuth.AccessSecret, svcCtx.Config.JwtAuth.AccessExpire,
 		u.Id, publicUserID, u.Username, u.Nickname)
 	if err != nil {

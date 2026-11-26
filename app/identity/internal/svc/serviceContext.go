@@ -69,16 +69,21 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		panic("phone crypto init failed: " + err.Error())
 	}
 
+	// 历史用户补齐 public_id（新用户由 UserUsers.AfterCreate 写入）
+	if err := repo.BackfillUserPublicIDs(db); err != nil {
+		panic("backfill user public_id failed: " + err.Error())
+	}
+
 	// ClientErrorInterceptor：下游业务码还原为 CodeError，跨服务不失真
 	thirdpartyRpc := thirdpartyClient.NewThirdparty(zrpc.MustNewClient(c.ThirdpartyRpc,
 		zrpc.WithUnaryClientInterceptor(errorx.ClientErrorInterceptor)))
 
 	return &ServiceContext{
-		Config:          c,
-		DB:              db,
-		UserModel:       gacha_identity.NewUserUsersModel(db),
-		PhoneRepo:       repo.NewPhoneRepo(db, phoneCodec),
-		ThirdPartyRepo:  repo.NewThirdPartyRepo(db),
-		ThirdpartyRpc:   thirdpartyRpc,
+		Config:         c,
+		DB:             db,
+		UserModel:      gacha_identity.NewUserUsersModel(db),
+		PhoneRepo:      repo.NewPhoneRepo(db, phoneCodec),
+		ThirdPartyRepo: repo.NewThirdPartyRepo(db),
+		ThirdpartyRpc:  thirdpartyRpc,
 	}
 }

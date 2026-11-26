@@ -34,6 +34,7 @@ type (
 
 	UserUsers struct {
 		Id        int64     `gorm:"column:id;primary_key"` // 自增主键
+		PublicId  *string   `gorm:"column:public_id"`      // 对外字符串用户ID（u+Base62，唯一；NULL=待回填）
 		Username  string    `gorm:"column:username"`       // 用户名（登录账号）
 		Password  string    `gorm:"column:password"`       // bcrypt 密码哈希
 		Nickname  string    `gorm:"column:nickname"`       // 昵称（展示用）

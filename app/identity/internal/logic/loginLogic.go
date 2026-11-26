@@ -44,7 +44,7 @@ func (l *LoginLogic) Login(in *identity.LoginReq) (*identity.LoginResp, error) {
 	if bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(in.Password)) != nil {
 		return nil, errorx.NewCodeError(errorx.CodePasswordWrong, "密码错误")
 	}
-	publicUserID := publicUserIdOf(u.Id)
+	publicUserID := publicUserIdOfUser(u)
 	token, err := jwtutil.NewTokenWithPublicId(l.svcCtx.Config.JwtAuth.AccessSecret, l.svcCtx.Config.JwtAuth.AccessExpire,
 		u.Id, publicUserID, u.Username, u.Nickname)
 	if err != nil {

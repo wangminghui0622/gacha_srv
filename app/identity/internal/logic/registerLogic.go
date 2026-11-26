@@ -59,6 +59,7 @@ func (l *RegisterLogic) Register(in *identity.RegisterReq) (*identity.RegisterRe
 
 	now := time.Now()
 	var userId int64
+	var publicUserId string
 	err = l.svcCtx.DB.Transaction(func(tx *gorm.DB) error {
 		u := &gacha_identity.UserUsers{
 			Username:  in.Username,
@@ -75,6 +76,7 @@ func (l *RegisterLogic) Register(in *identity.RegisterReq) (*identity.RegisterRe
 			return err
 		}
 		userId = u.Id
+		publicUserId = publicUserIdOfUser(u)
 		return nil
 	})
 	if err != nil {
@@ -85,5 +87,5 @@ func (l *RegisterLogic) Register(in *identity.RegisterReq) (*identity.RegisterRe
 		return nil, errorx.FromMySQLError(err)
 	}
 	l.Infof("Register success, username: %s, userId: %d", in.Username, userId)
-	return &identity.RegisterResp{UserId: userId, PublicUserId: publicUserIdOf(userId)}, nil
+	return &identity.RegisterResp{UserId: userId, PublicUserId: publicUserId}, nil
 }

@@ -43,6 +43,6 @@ func (l *GetProfileLogic) GetProfile(in *identity.GetProfileReq) (*identity.GetP
 		UserId:       u.Id,
 		Username:     u.Username,
 		Nickname:     u.Nickname,
-		PublicUserId: publicUserIdOf(u.Id),
+		PublicUserId: publicUserIdOfUser(u),
 	}, nil
 }

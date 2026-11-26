@@ -72,14 +72,35 @@ CREATE TABLE IF NOT EXISTS `user_third_parties` (
 
 CREATE TABLE IF NOT EXISTS `user_users` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `public_id` varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL COMMENT '对外字符串用户ID（u+Base62，唯一；NULL=待回填）',
   `username` varchar(32) NOT NULL COMMENT '用户名（登录账号）',
   `password` varchar(100) NOT NULL COMMENT 'bcrypt 密码哈希',
   `nickname` varchar(32) NOT NULL DEFAULT '' COMMENT '昵称（展示用）',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_username` (`username`)
+  UNIQUE KEY `uk_username` (`username`),
+  UNIQUE KEY `uk_public_id` (`public_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1000001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户表';
+
+-- 增量升级（已有库）：补 public_id 列与唯一索引；历史值由 identity-rpc 启动时回填
+DROP PROCEDURE IF EXISTS `__upgrade_user_public_id`;
+
+DELIMITER $$
+CREATE PROCEDURE `__upgrade_user_public_id`()
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_identity' AND TABLE_NAME='user_users' AND COLUMN_NAME='public_id') THEN
+    ALTER TABLE `user_users`
+      ADD COLUMN `public_id` varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL COMMENT '对外字符串用户ID（u+Base62，唯一；NULL=待回填）' AFTER `id`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.STATISTICS WHERE TABLE_SCHEMA='gacha_identity' AND TABLE_NAME='user_users' AND INDEX_NAME='uk_public_id') THEN
+    ALTER TABLE `user_users` ADD UNIQUE KEY `uk_public_id` (`public_id`);
+  END IF;
+END$$
+DELIMITER ;
+
+CALL `__upgrade_user_public_id`();
+DROP PROCEDURE `__upgrade_user_public_id`;
 
 
 -- ============================================================
@@ -89,9 +110,11 @@ CREATE TABLE IF NOT EXISTS `user_users` (
 -- 种子数据：演示用户 demo / 123456，初始余额 100000 分（1000 元）
 -- 用户数据库 ID 从 1000001 开始（demo 占首号，后续注册从 1000002 递增）
 -- ON DUPLICATE KEY UPDATE id=id 实现幂等：已存在则不动
-INSERT INTO `user_users` (`id`, `username`, `password`, `nickname`) VALUES
-    (1000001, 'demo', '$2a$10$K/388oYK.gV1IwQ3zK3YeOIQzUhCTH97QWOzHyXiBy2n7ISiTm.JO', '演示用户')
-ON DUPLICATE KEY UPDATE `id` = `id`;
+INSERT INTO `user_users` (`id`, `public_id`, `username`, `password`, `nickname`) VALUES
+    (1000001, 'uDENLRy4c5', 'demo', '$2a$10$K/388oYK.gV1IwQ3zK3YeOIQzUhCTH97QWOzHyXiBy2n7ISiTm.JO', '演示用户')
+ON DUPLICATE KEY UPDATE
+    `id` = `id`,
+    `public_id` = COALESCE(NULLIF(`public_id`, ''), VALUES(`public_id`));
 
 -- 已有库升级时把自增值推到 1000001 以上；新库在插入 demo 后自动变为 1000002
 ALTER TABLE `user_users` AUTO_INCREMENT = 1000001;

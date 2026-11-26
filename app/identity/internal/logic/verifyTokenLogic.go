@@ -36,20 +36,31 @@ func (l *VerifyTokenLogic) VerifyToken(in *identity.VerifyTokenReq) (*identity.V
 		return nil, errorx.NewCodeError(errorx.CodeUnauthorized, "令牌无效或已过期")
 	}
 
-	// 对外字符串 ID 是用户身份的主来源；数字 ID 仅作兼容与内部校验。
+	// 对外字符串 ID 以库中持久化的 public_id 为准；数字 ID 仍作内部主键。
+	// 新令牌同时携带两者，不能再强制解码 public_id（否则密钥轮换后旧 ID 会失效）。
 	userID := claims.UserId
 	publicUserID := claims.PublicUserId
-	if publicUserID != "" {
+	if publicUserID == "" && userID > 0 {
+		if u, err := l.svcCtx.UserModel.FindOne(l.ctx, userID); err == nil {
+			publicUserID = publicUserIdOfUser(u)
+		} else {
+			publicUserID = publicid.MustEncodeUserID(userID)
+		}
+	}
+	if userID <= 0 {
+		if publicUserID == "" {
+			return nil, errorx.NewCodeError(errorx.CodeUnauthorized, "令牌缺少用户ID")
+		}
+		// 兼容只有 publicUserId 的旧令牌：先按当前密钥解码，失败再查库。
 		decoded, err := publicid.DecodeUserID(publicUserID)
 		if err != nil {
-			return nil, errorx.NewCodeError(errorx.CodeUnauthorized, "令牌用户ID无效")
-		}
-		if userID != 0 && userID != decoded {
-			return nil, errorx.NewCodeError(errorx.CodeUnauthorized, "令牌用户ID不一致")
+			if u, findErr := l.svcCtx.UserModel.FindOneByPublicId(l.ctx, publicUserID); findErr == nil {
+				decoded = u.Id
+			} else {
+				return nil, errorx.NewCodeError(errorx.CodeUnauthorized, "令牌用户ID无效")
+			}
 		}
 		userID = decoded
-	} else if userID > 0 {
-		publicUserID = publicid.MustEncodeUserID(userID)
 	}
 	if userID <= 0 {
 		return nil, errorx.NewCodeError(errorx.CodeUnauthorized, "令牌缺少用户ID")

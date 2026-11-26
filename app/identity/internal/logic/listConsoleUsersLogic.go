@@ -68,11 +68,8 @@ func (l *ListConsoleUsersLogic) ListConsoleUsers(in *identity.ListConsoleUsersRe
 		like := "%" + keyword + "%"
 		switch {
 		case strings.HasPrefix(keyword, publicid.UserPrefix):
-			if id, err := publicid.DecodeUserID(keyword); err == nil && id > 0 {
-				query = query.Where("(user_users.id = ? OR user_users.nickname LIKE ? OR user_users.username LIKE ?)", id, like, like)
-			} else {
-				query = query.Where("(user_users.nickname LIKE ? OR user_users.username LIKE ?)", like, like)
-			}
+			// 对外 ID 以库中 public_id 为准，不再依赖可逆解码（支持密钥轮换）
+			query = query.Where("(user_users.public_id = ? OR user_users.nickname LIKE ? OR user_users.username LIKE ?)", keyword, like, like)
 		default:
 			if id, err := strconv.ParseInt(keyword, 10, 64); err == nil && id > 0 {
 				query = query.Where("(user_users.id = ? OR user_users.nickname LIKE ? OR user_users.username LIKE ?)", id, like, like)
@@ -137,7 +134,7 @@ func (l *ListConsoleUsersLogic) ListConsoleUsers(in *identity.ListConsoleUsersRe
 		}
 		items = append(items, &identity.ConsoleUser{
 			UserId:              user.Id,
-			PublicUserId:        publicUserIdOf(user.Id),
+			PublicUserId:        publicUserIdOfUser(user),
 			Username:            user.Username,
 			Nickname:            user.Nickname,
 			Phone:               phone,
