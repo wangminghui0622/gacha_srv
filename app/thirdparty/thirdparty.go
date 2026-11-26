@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"strings"
 
 	"gacha_srv/app/thirdparty/internal/config"
 	"gacha_srv/app/thirdparty/internal/server"
@@ -19,11 +21,23 @@ import (
 
 var configFile = flag.String("f", "../../pkg/etcs/thirdparty-rpc.yaml", "the config file")
 
+// resolveConfigFile 本地开发优先读取同名 .local.yaml（gitignored，放 COS/OSS 等真实密钥）。
+func resolveConfigFile(path string) string {
+	path = strings.TrimSpace(path)
+	if strings.HasSuffix(path, ".yaml") {
+		localPath := strings.TrimSuffix(path, ".yaml") + ".local.yaml"
+		if _, err := os.Stat(localPath); err == nil {
+			return localPath
+		}
+	}
+	return path
+}
+
 func main() {
 	flag.Parse()
 
 	var c config.Config
-	conf.MustLoad(*configFile, &c)
+	conf.MustLoad(resolveConfigFile(*configFile), &c)
 	ctx := svc.NewServiceContext(c)
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
