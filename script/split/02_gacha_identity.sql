@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS `user_users` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_username` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户表';
+) ENGINE=InnoDB AUTO_INCREMENT=1000001 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户表';
 
 
 -- ============================================================
@@ -87,10 +87,14 @@ CREATE TABLE IF NOT EXISTS `user_users` (
 -- ============================================================
 
 -- 种子数据：演示用户 demo / 123456，初始余额 100000 分（1000 元）
+-- 用户数据库 ID 从 1000001 开始（demo 占首号，后续注册从 1000002 递增）
 -- ON DUPLICATE KEY UPDATE id=id 实现幂等：已存在则不动
 INSERT INTO `user_users` (`id`, `username`, `password`, `nickname`) VALUES
-    (1, 'demo', '$2a$10$K/388oYK.gV1IwQ3zK3YeOIQzUhCTH97QWOzHyXiBy2n7ISiTm.JO', '演示用户')
+    (1000001, 'demo', '$2a$10$K/388oYK.gV1IwQ3zK3YeOIQzUhCTH97QWOzHyXiBy2n7ISiTm.JO', '演示用户')
 ON DUPLICATE KEY UPDATE `id` = `id`;
+
+-- 已有库升级时把自增值推到 1000001 以上；新库在插入 demo 后自动变为 1000002
+ALTER TABLE `user_users` AUTO_INCREMENT = 1000001;
 
 SET FOREIGN_KEY_CHECKS = 1;
 

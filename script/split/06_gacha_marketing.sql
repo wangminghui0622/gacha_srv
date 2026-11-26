@@ -25,8 +25,7 @@ CREATE TABLE IF NOT EXISTS `campaign_box_entitlements` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_entitlement_no` (`entitlement_no`),
-  KEY `idx_user_status` (`user_id`,`status`),
-  KEY `idx_pool_entry` (`pool_entry_id`)
+  KEY `idx_user_status` (`user_id`,`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='活动宝箱资格表';
 
 
@@ -62,8 +61,7 @@ CREATE TABLE IF NOT EXISTS `campaign_prize_grants` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_grant_no` (`grant_no`),
   KEY `idx_participation` (`participation_id`),
-  KEY `idx_user_status` (`user_id`,`status`),
-  KEY `idx_pool_entry` (`pool_entry_id`)
+  KEY `idx_user_status` (`user_id`,`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='活动奖品发放流水表';
 
 

@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS `wallet_ledgers` (
 
 
 INSERT INTO `user_balances` (`id`, `user_id`, `balance`) VALUES
-    (1, 1, 100000)
+    (1, 1000001, 100000)
 ON DUPLICATE KEY UPDATE `id` = `id`;
 
 
@@ -166,9 +166,9 @@ INSERT IGNORE INTO `wallet_accounts` (`user_id`, `wallet_kind`, `currency`, `ava
 SELECT `user_id`, 1, 'CNY', `balance`, 0, NOW(), NOW() FROM `user_balances`;
 
 
--- 演示用户（id=1）忠诚点种子：1000 积分（M10 积分抵现联调，10 积分=1 元）
+-- 演示用户（id=1000001）忠诚点种子：1000 积分（M10 积分抵现联调，10 积分=1 元）
 INSERT INTO `wallet_accounts` (`user_id`, `wallet_kind`, `currency`, `available`, `held`) VALUES
-    (1, 4, 'POINT', 1000, 0)
+    (1000001, 4, 'POINT', 1000, 0)
 ON DUPLICATE KEY UPDATE `id` = `id`;
 
 

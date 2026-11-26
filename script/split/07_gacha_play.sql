@@ -861,6 +861,38 @@ CREATE TABLE IF NOT EXISTS `memory_match_appearances` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='对对碰外观池';
 
+-- 图鉴集合（play-rpc 启动时也会 AutoMigrate + 空表种子；此处保留终态 DDL，保证纯 SQL 初始化也完整）
+CREATE TABLE IF NOT EXISTS `collection_sets` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `code` varchar(64) NOT NULL,
+  `name` varchar(128) NOT NULL,
+  `version` bigint NOT NULL DEFAULT '1',
+  `status` bigint NOT NULL DEFAULT '1',
+  `accumulate_type` bigint NOT NULL DEFAULT '1',
+  `cycle_type` bigint NOT NULL DEFAULT '0',
+  `sort` bigint NOT NULL DEFAULT '0',
+  `config_json` json DEFAULT NULL,
+  `start_at` varchar(32) NOT NULL DEFAULT '',
+  `end_at` varchar(32) NOT NULL DEFAULT '',
+  `created_at` datetime(3) DEFAULT NULL,
+  `updated_at` datetime(3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_collection_sets_code` (`code`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='图鉴集合表';
+
+INSERT IGNORE INTO `collection_sets`
+  (`id`, `code`, `name`, `version`, `status`, `accumulate_type`, `cycle_type`, `sort`, `config_json`, `start_at`, `end_at`, `created_at`, `updated_at`)
+VALUES
+  (1, 'TEST_COLLECTION_POKEMON', '宝可梦伙伴集结', 1, 3, 1, -1, 400, JSON_OBJECT(), '', '', NOW(3), NOW(3)),
+  (2, 'TEST_COLLECTION_ONE_PIECE', '伟大航路伙伴图鉴', 1, 2, 1, 3, 300, JSON_OBJECT(), '', '', NOW(3), NOW(3)),
+  (3, 'TEST_COLLECTION_GUNDAM', '高达机甲集结', 1, 2, 2, -1, 200, JSON_OBJECT(), '', '', NOW(3), NOW(3)),
+  (4, 'TEST_COLLECTION_CHIKAWA', '吉伊卡哇冬日伙伴', 1, 2, 1, 0, 100, JSON_OBJECT(), '', '', NOW(3), NOW(3)),
+  (5, 'COL_20260922093645_DA274806F5EC', '【凡人修仙图鉴】', 1, 2, 2, 0, 10, JSON_OBJECT(), '', '', NOW(3), NOW(3)),
+  (6, 'COL_20260922100339_09AF547DBF38', '【凡人修仙图鉴】', 2, 1, 2, 0, 10, JSON_OBJECT(), '', '', NOW(3), NOW(3)),
+  (7, 'COL_20260923030234_4B4E061DF1CF', '【凡人修仙图鉴】', 3, 2, 2, 0, 10, JSON_OBJECT(), '', '', NOW(3), NOW(3)),
+  (8, 'COL_20260923040011_4E4ECA2C28F1', '【凡人修仙图鉴】', 4, 1, 2, 0, 10, JSON_OBJECT(), '', '', NOW(3), NOW(3)),
+  (9, 'COL_20261009073326_25A8FDD8EE9F', '【凡人修仙图鉴】', 5, 1, 2, 0, 10, JSON_OBJECT(), '', '', NOW(3), NOW(3));
+
 INSERT IGNORE INTO `memory_match_global_rules`
   (`id`, `name`, `pair_probability_mode`, `initial_hand_count`, `pair_size`, `replenish_count`,
    `second_destiny_enabled`, `destiny_double_enabled`, `destiny_income`, `double_destiny_buff`,
