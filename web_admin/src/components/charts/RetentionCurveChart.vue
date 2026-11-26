@@ -115,6 +115,8 @@ function render() {
   })
 
   empty.value = data.length === 0 || data.every((row) => row.totalUsers === 0)
+  // 左右图例必须停在 x 轴上方，避免 30 天日期旋转后图例压到轴标签下面。
+  const legendBottom = labels.length > 15 ? 84 : 56
 
   chart.setOption(
     {
@@ -141,11 +143,11 @@ function render() {
           orient: 'vertical',
           type: 'scroll',
           left: 8,
-          top: 48,
-          bottom: 48,
+          top: 32,
+          bottom: legendBottom,
           itemWidth: 8,
           itemHeight: 8,
-          itemGap: 8,
+          itemGap: 6,
           icon: 'circle',
           textStyle: { fontSize: 12, color: '#595959' },
           selected: countSelected,
@@ -155,11 +157,11 @@ function render() {
           orient: 'vertical',
           type: 'scroll',
           right: 8,
-          top: 48,
-          bottom: 48,
+          top: 32,
+          bottom: legendBottom,
           itemWidth: 8,
           itemHeight: 8,
-          itemGap: 8,
+          itemGap: 6,
           icon: 'circle',
           textStyle: { fontSize: 12, color: '#595959' },
           selected: rateSelected,
