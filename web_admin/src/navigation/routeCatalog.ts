@@ -578,7 +578,7 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     title: 'nav.reportRevenue',
     showInMenu: false,
     backFallback: '/dashboard',
-    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+    component: () => import('@/views/reporting/RevenueReportView.vue'),
   },
   {
     name: 'report-realtime',

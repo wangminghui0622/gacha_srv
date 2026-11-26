@@ -92,4 +92,28 @@ CREATE TABLE IF NOT EXISTS `retention_pay` (
   PRIMARY KEY (`cohort_date`,`day_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='消费留存：成功充值 cohort 后第 N 天成功充值';
 
+-- 营收报表每日聚合（统一大盘趋势图 + 营收明细）
+CREATE TABLE IF NOT EXISTS `revenue_daily` (
+  `report_date` date NOT NULL COMMENT '统计日期（东八区）',
+  `registrations` bigint NOT NULL DEFAULT '0' COMMENT '注册用户数',
+  `active_users` bigint NOT NULL DEFAULT '0' COMMENT '日活',
+  `new_active_users` bigint NOT NULL DEFAULT '0' COMMENT '日活（新）',
+  `old_active_users` bigint NOT NULL DEFAULT '0' COMMENT '日活（旧）',
+  `active_users_7d` bigint NOT NULL DEFAULT '0' COMMENT '有效用户数（近7天）',
+  `active_users_15d` bigint NOT NULL DEFAULT '0' COMMENT '有效用户数（近15天）',
+  `churn_1d_bps` bigint NOT NULL DEFAULT '0' COMMENT '前1天流失率（万分比）',
+  `churn_3d_bps` bigint NOT NULL DEFAULT '0' COMMENT '前3天流失率（万分比）',
+  `pay_amount_fen` bigint NOT NULL DEFAULT '0' COMMENT '总付费（分）',
+  `new_pay_amount_fen` bigint NOT NULL DEFAULT '0' COMMENT '总付费（新，分）',
+  `old_pay_amount_fen` bigint NOT NULL DEFAULT '0' COMMENT '总付费（旧，分）',
+  `refund_amount_fen` bigint NOT NULL DEFAULT '0' COMMENT '退款金额（分）',
+  `refund_users` bigint NOT NULL DEFAULT '0' COMMENT '退款人数',
+  `paying_users` bigint NOT NULL DEFAULT '0' COMMENT '付费用户数',
+  `new_paying_users` bigint NOT NULL DEFAULT '0' COMMENT '付费用户数（新）',
+  `old_paying_users` bigint NOT NULL DEFAULT '0' COMMENT '付费用户数（旧）',
+  `net_revenue_fen` bigint NOT NULL DEFAULT '0' COMMENT '总营收（分，总付费-退款）',
+  `updated_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (`report_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='营收报表每日聚合';
+
 SET FOREIGN_KEY_CHECKS = 1;

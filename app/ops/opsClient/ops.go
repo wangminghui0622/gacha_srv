@@ -24,6 +24,9 @@ type (
 	RetentionReportReply                  = ops.RetentionReportReply
 	RetentionReportRequest                = ops.RetentionReportRequest
 	RetentionRow                          = ops.RetentionRow
+	RevenueReportReply                    = ops.RevenueReportReply
+	RevenueReportRequest                  = ops.RevenueReportRequest
+	RevenueReportRow                      = ops.RevenueReportRow
 	ApproveTaskPlanPublicationRequest     = ops.ApproveTaskPlanPublicationRequest
 	AttributeValue                        = ops.AttributeValue
 	AuthorizationDecision                 = ops.AuthorizationDecision
@@ -147,6 +150,8 @@ type (
 		GetBusinessDailyReport(ctx context.Context, in *BusinessDailyReportRequest, opts ...grpc.CallOption) (*BusinessDailyReportReply, error)
 		// 留存报表（读 gacha_report 5 张留存表）
 		GetRetentionReport(ctx context.Context, in *RetentionReportRequest, opts ...grpc.CallOption) (*RetentionReportReply, error)
+		// 营收报表（读 gacha_report.revenue_daily）
+		GetRevenueReport(ctx context.Context, in *RevenueReportRequest, opts ...grpc.CallOption) (*RevenueReportReply, error)
 		// 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
 		ApplyMetricEvent(ctx context.Context, in *ApplyMetricEventRequest, opts ...grpc.CallOption) (*ApplyMetricEventReply, error)
 	}
@@ -343,6 +348,12 @@ func (m *defaultOps) GetBusinessDailyReport(ctx context.Context, in *BusinessDai
 func (m *defaultOps) GetRetentionReport(ctx context.Context, in *RetentionReportRequest, opts ...grpc.CallOption) (*RetentionReportReply, error) {
 	client := ops.NewOpsClient(m.cli.Conn())
 	return client.GetRetentionReport(ctx, in, opts...)
+}
+
+// 营收报表（读 gacha_report.revenue_daily）
+func (m *defaultOps) GetRevenueReport(ctx context.Context, in *RevenueReportRequest, opts ...grpc.CallOption) (*RevenueReportReply, error) {
+	client := ops.NewOpsClient(m.cli.Conn())
+	return client.GetRevenueReport(ctx, in, opts...)
 }
 
 // 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）

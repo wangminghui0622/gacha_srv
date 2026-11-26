@@ -63,6 +63,8 @@ service Ops {
     rpc GetBusinessDailyReport(BusinessDailyReportRequest) returns (BusinessDailyReportReply);
     // 留存报表（读 gacha_report 5 张留存表；ops-rpc 定时聚合）
     rpc GetRetentionReport(RetentionReportRequest) returns (RetentionReportReply);
+    // 营收报表（读 gacha_report.revenue_daily；ops-rpc 定时聚合）
+    rpc GetRevenueReport(RevenueReportRequest) returns (RevenueReportReply);
     // 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
     rpc ApplyMetricEvent(ApplyMetricEventRequest) returns (ApplyMetricEventReply);
 }
@@ -721,5 +723,39 @@ message RetentionReportReply {
     repeated int32 day_nos = 2;
     repeated RetentionRow rows = 3;
     RetentionRow total = 4;
+}
+
+// ── 营收报表（读 gacha_report.revenue_daily）──
+message RevenueReportRequest {
+    string start_date = 1; // YYYY-MM-DD（东八区）
+    string end_date = 2;   // YYYY-MM-DD（东八区，闭区间）
+}
+
+message RevenueReportRow {
+    string date = 1;
+    int64 registrations = 2;
+    int64 active_users = 3;
+    int64 new_active_users = 4;
+    int64 old_active_users = 5;
+    int64 active_users_7d = 6;
+    int64 active_users_15d = 7;
+    int64 churn_1d_bps = 8;
+    int64 churn_3d_bps = 9;
+    int64 pay_amount_fen = 10;
+    int64 new_pay_amount_fen = 11;
+    int64 old_pay_amount_fen = 12;
+    int64 refund_amount_fen = 13;
+    int64 refund_users = 14;
+    int64 paying_users = 15;
+    int64 new_paying_users = 16;
+    int64 old_paying_users = 17;
+    int64 arpu_fen = 18;
+    int64 arppu_fen = 19;
+    int64 penetration_bps = 20;
+    int64 net_revenue_fen = 21;
+}
+
+message RevenueReportReply {
+    repeated RevenueReportRow rows = 1;
 }
 

@@ -151,9 +151,10 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	if err := ctx.PlanStore.EnsureBootstrapPlan(context.Background()); err != nil {
 		panic("任务计划种子初始化失败: " + err.Error())
 	}
-	// 经营日报 + 留存报表：启动回填 + 定时聚合（读业务库，写 gacha_report）
+	// 经营日报 + 留存报表 + 营收报表：启动回填 + 定时聚合（读业务库，写 gacha_report）
 	report.Start(db, reportDB, c.Report.BackfillDays)
 	report.StartRetention(db, reportDB)
+	report.StartRevenue(db, reportDB)
 	return ctx
 }
 
