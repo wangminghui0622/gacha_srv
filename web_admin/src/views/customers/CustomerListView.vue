@@ -15,17 +15,17 @@
       :pagination="false"
       :row-selection="rowSelection"
       :row-key="(record: ConsoleUser) => String(record.userId)"
-      :scroll="{ x: 1500 }"
+      :scroll="{ x: 1600 }"
       size="middle"
       class="customer-table"
     >
-      <a-table-column title="用户ID" width="160" align="center">
+      <a-table-column title="数字ID" width="110" align="center">
         <template #default="{ record }">
-          <div class="user-id-cell">
-            <span class="user-id-num">{{ record.userId }}</span>
-            <span v-if="record.publicUserId" class="user-id-public">{{ record.publicUserId }}</span>
-          </div>
+          <span class="user-id-num">{{ record.userId }}</span>
         </template>
+      </a-table-column>
+      <a-table-column title="字符串ID" width="140" align="center">
+        <template #default="{ record }">{{ record.publicUserId || '-' }}</template>
       </a-table-column>
       <a-table-column title="昵称" min-width="150" align="center">
         <template #default="{ record }">{{ record.nickname || '-' }}</template>
@@ -265,20 +265,9 @@ onMounted(load)
   padding-top: 14px;
   padding-bottom: 14px;
 }
-.user-id-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  line-height: 1.3;
-}
 .user-id-num {
   color: #303133;
   font-weight: 600;
-}
-.user-id-public {
-  color: #8c8c8c;
-  font-size: 12px;
 }
 .status-text {
   font-weight: 500;
