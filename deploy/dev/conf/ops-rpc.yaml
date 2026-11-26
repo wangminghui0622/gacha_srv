@@ -11,6 +11,12 @@ Etcd:
 MySQL:
   DataSource: root:${MYSQL_PASS}@tcp(${MYSQL_HOST}:3306)/gacha_ops?charset=utf8mb4&parseTime=True&loc=Local
 
+# 经营日报读模型库 + 聚合任务
+ReportMySQL:
+  DataSource: root:${MYSQL_PASS}@tcp(${MYSQL_HOST}:3306)/gacha_report?charset=utf8mb4&parseTime=True&loc=Local
+Report:
+  BackfillDays: 90
+
 # 业务 Redis：登录票据（TOTP challenge，5 分钟）、会话吊销键 console:session:revoked:<jti>
 CacheRedis:
   - Host: ${REDIS_HOST}:6379

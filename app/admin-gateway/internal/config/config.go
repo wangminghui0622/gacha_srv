@@ -12,11 +12,6 @@ import (
 type Config struct {
 	rest.RestConf
 
-	// 经营日报只读查询（跨库聚合；仅 admin-gateway 使用）
-	MySQL struct {
-		DataSource string
-	}
-
 	// 运营服务客户端（会话/权限/审计，走 Etcd 服务发现）
 	OpsRpc zrpc.RpcClientConf
 	// 抽奖服务客户端（赏池控制台：草稿/版本/发布 + 箱子读取；M14b）

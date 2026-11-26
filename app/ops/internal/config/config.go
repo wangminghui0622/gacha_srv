@@ -11,6 +11,14 @@ type Config struct {
 		// DataSource 本服务数据库 DSN（gacha_ops）
 		DataSource string
 	}
+	// ReportMySQL 报表读模型库（gacha_report）；经营日报只读该库
+	ReportMySQL struct {
+		DataSource string
+	}
+	// Report 经营日报聚合任务
+	Report struct {
+		BackfillDays int64
+	}
 	// CacheRedis 业务 Redis：登录票据（TOTP challenge，5 分钟）与
 	// 会话吊销键 console:session:revoked:<jti>（模型全 nocache，不建模型缓存）
 	CacheRedis cache.CacheConf

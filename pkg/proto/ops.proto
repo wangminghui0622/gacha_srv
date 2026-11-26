@@ -59,6 +59,8 @@ service Ops {
     rpc GetDashboard(GetDashboardRequest) returns (Dashboard);
     rpc QueryDashboard(QueryDashboardRequest) returns (QueryDashboardReply);
     rpc QueryUserProfitCurve(QueryUserProfitCurveRequest) returns (QueryUserProfitCurveReply);
+    // 经营日报（读 gacha_report 读模型；ops-rpc 定时聚合）
+    rpc GetBusinessDailyReport(BusinessDailyReportRequest) returns (BusinessDailyReportReply);
     // 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
     rpc ApplyMetricEvent(ApplyMetricEventRequest) returns (ApplyMetricEventReply);
 }
@@ -630,5 +632,64 @@ message QueryUserProfitCurveRequest {
 message QueryUserProfitCurveReply {
     repeated UserProfitCurvePoint points = 1;
     bool data_ready = 2; // false = 空态（照抄 server_v2：投影未迁入，前端展示空态）
+}
+
+// ── 经营日报（读 gacha_report 读模型）──
+message BusinessDailyReportRequest {
+    string start_date = 1; // YYYY-MM-DD（东八区）
+    string end_date = 2;   // YYYY-MM-DD（东八区，闭区间）
+}
+
+message BusinessDailySummary {
+    int64 registrations = 1;
+    int64 paying_users = 2;
+    int64 draw_count = 3;
+    int64 draw_amount_fen = 4;
+    int64 prize_amount_fen = 5;
+    int64 gross_profit_fen = 6;
+    int64 gross_margin_bps = 7;
+    int64 total_received_fen = 8;
+    int64 total_recharge_fen = 9;
+    int64 total_refund_fen = 10;
+    int64 alipay_recharge_fen = 11;
+    int64 huifu_recharge_fen = 12;
+    int64 alipay_refund_fen = 13;
+    int64 huifu_refund_fen = 14;
+    int64 recharge_original_refund_fen = 15;
+    int64 user_refund_fen = 16;
+    int64 recharge_minus_refund_fen = 17;
+    int64 refund_rate_bps = 18;
+}
+
+message BusinessDailyRow {
+    string date = 1;
+    int64 registrations = 2;
+    int64 active_users = 3;
+    int64 paying_users = 4;
+    int64 refundable_fen = 5;
+    int64 balance_fen = 6;
+    int64 inventory_value_fen = 7;
+    int64 draw_count = 8;
+    int64 draw_amount_fen = 9;
+    int64 prize_amount_fen = 10;
+    int64 gross_profit_fen = 11;
+    int64 gross_margin_bps = 12;
+    int64 total_received_fen = 13;
+    int64 total_recharge_fen = 14;
+    int64 total_refund_fen = 15;
+    int64 alipay_recharge_fen = 16;
+    int64 huifu_recharge_fen = 17;
+    int64 alipay_refund_fen = 18;
+    int64 huifu_refund_fen = 19;
+    int64 recharge_original_refund_fen = 20;
+    int64 user_refund_fen = 21;
+    int64 recharge_minus_refund_fen = 22;
+    int64 refund_rate_bps = 23;
+}
+
+message BusinessDailyReportReply {
+    BusinessDailySummary summary = 1;
+    BusinessDailySummary month = 2;
+    repeated BusinessDailyRow rows = 3;
 }
 

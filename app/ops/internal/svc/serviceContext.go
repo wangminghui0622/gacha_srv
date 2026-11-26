@@ -9,6 +9,7 @@ import (
 	"gacha_srv/app/ops/internal/config"
 	"gacha_srv/app/ops/internal/core"
 	"gacha_srv/app/ops/internal/repo"
+	"gacha_srv/app/ops/internal/report"
 	opsmodel "gacha_srv/pkg/model_nocache/gacha_ops"
 
 	"github.com/redis/go-redis/v9"
@@ -19,9 +20,10 @@ import (
 )
 
 type ServiceContext struct {
-	Config config.Config
-	DB     *gorm.DB
-	Rdb    *redis.Client
+	Config   config.Config
+	DB       *gorm.DB
+	ReportDB *gorm.DB
+	Rdb      *redis.Client
 
 	AccountsModel opsmodel.ConsoleAccountsModel
 	SessionsModel opsmodel.ConsoleSessionsModel
@@ -68,6 +70,19 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		}
 	})
 
+	// 经营日报读模型库（gacha_report）
+	reportDB, err := gorm.Open(mysql.Open(c.ReportMySQL.DataSource), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect report database: " + err.Error())
+	}
+	reportSQLDB, err := reportDB.DB()
+	if err != nil {
+		panic("failed to get report sql.DB: " + err.Error())
+	}
+	reportSQLDB.SetMaxOpenConns(20)
+	reportSQLDB.SetMaxIdleConns(5)
+	proc.AddShutdownListener(func() { _ = reportSQLDB.Close() })
+
 	// 业务 Redis（登录票据/会话吊销键；模型全 nocache 不走模型缓存）
 	if len(c.CacheRedis) == 0 {
 		panic("ops-rpc 需要配置 CacheRedis（登录票据/会话吊销键）")
@@ -102,9 +117,10 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	}
 
 	ctx := &ServiceContext{
-		Config: c,
-		DB:     db,
-		Rdb:    rdb,
+		Config:   c,
+		DB:       db,
+		ReportDB: reportDB,
+		Rdb:      rdb,
 
 		AccountsModel: opsmodel.NewConsoleAccountsModel(db),
 		SessionsModel: opsmodel.NewConsoleSessionsModel(db),
@@ -135,6 +151,8 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	if err := ctx.PlanStore.EnsureBootstrapPlan(context.Background()); err != nil {
 		panic("任务计划种子初始化失败: " + err.Error())
 	}
+	// 经营日报：启动回填 + 定时聚合（读业务库，写 gacha_report）
+	report.Start(reportDB, reportDB, c.Report.BackfillDays)
 	return ctx
 }
 

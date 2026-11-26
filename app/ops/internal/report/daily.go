@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
 )
 
@@ -42,6 +43,7 @@ type Row struct {
 	RefundableFen             int64  `json:"refundableFen"`
 	BalanceFen                int64  `json:"balanceFen"`
 	InventoryValueFen         int64  `json:"inventoryValueFen"`
+	DrawCount                 int64  `json:"drawCount"`
 	DrawAmountFen             int64  `json:"drawAmountFen"`
 	PrizeAmountFen            int64  `json:"prizeAmountFen"`
 	GrossProfitFen            int64  `json:"grossProfitFen"`
@@ -98,31 +100,81 @@ type refundRow struct {
 	RefundFen int64  `gorm:"column:refund_fen"`
 }
 
-// QueryDaily 查询 [start, end]（本地日期，闭区间）的经营日报。
-func QueryDaily(db *gorm.DB, start, end time.Time) (*Result, error) {
+// QueryDaily 从报表读模型查询 [start, end]（本地日期，闭区间）的经营日报。
+func QueryDaily(reportDB *gorm.DB, start, end time.Time) (*Result, error) {
 	startLocal := time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, cst)
 	endLocal := time.Date(end.Year(), end.Month(), end.Day(), 0, 0, 0, 0, cst)
 	if endLocal.Before(startLocal) {
 		return nil, fmt.Errorf("end date before start date")
 	}
-	startUTC := startLocal.UTC()
-	endUTC := endLocal.AddDate(0, 0, 1).UTC()
-	allStart := time.Date(2000, 1, 1, 0, 0, 0, 0, cst).UTC()
-	monthStart := time.Date(endLocal.Year(), endLocal.Month(), 1, 0, 0, 0, 0, cst).UTC()
+	allStart := time.Date(2000, 1, 1, 0, 0, 0, 0, cst)
+	monthStart := time.Date(endLocal.Year(), endLocal.Month(), 1, 0, 0, 0, 0, cst)
 
-	summary, err := loadSummary(db, allStart, endUTC)
+	summary, err := summaryForRange(reportDB, allStart, endLocal)
 	if err != nil {
 		return nil, err
 	}
-	month, err := loadSummary(db, monthStart, endUTC)
+	month, err := summaryForRange(reportDB, monthStart, endLocal)
 	if err != nil {
 		return nil, err
 	}
-	rows, err := loadRows(db, startLocal, endLocal, startUTC, endUTC)
-	if err != nil {
-		return nil, err
+
+	var rows []Row
+	if err := reportDB.Raw(`
+SELECT DATE_FORMAT(report_date, '%Y-%m-%d') AS date,
+       registrations, active_users, paying_users,
+       refundable_fen, balance_fen, inventory_value_fen,
+       draw_amount_fen, prize_amount_fen, gross_profit_fen,
+       CASE WHEN draw_amount_fen > 0 THEN gross_profit_fen * 10000 / draw_amount_fen ELSE 0 END AS gross_margin_bps,
+       total_received_fen, total_recharge_fen, total_refund_fen,
+       alipay_recharge_fen, huifu_recharge_fen, alipay_refund_fen, huifu_refund_fen,
+       recharge_original_refund_fen, user_refund_fen, recharge_minus_refund_fen,
+       CASE WHEN total_recharge_fen > 0 THEN total_refund_fen * 10000 / total_recharge_fen ELSE 0 END AS refund_rate_bps
+FROM gacha_report.business_daily
+WHERE report_date >= ? AND report_date <= ?
+ORDER BY report_date DESC`,
+		startLocal.Format("2006-01-02"), endLocal.Format("2006-01-02"),
+	).Scan(&rows).Error; err != nil {
+		return nil, fmt.Errorf("query report rows: %w", err)
 	}
 	return &Result{Summary: *summary, Month: *month, Rows: rows}, nil
+}
+
+func summaryForRange(reportDB *gorm.DB, start, end time.Time) (*Summary, error) {
+	var s Summary
+	if err := reportDB.Raw(`
+SELECT COALESCE(SUM(registrations), 0) AS registrations,
+       COALESCE(SUM(draw_count), 0) AS draw_count,
+       COALESCE(SUM(draw_amount_fen), 0) AS draw_amount_fen,
+       COALESCE(SUM(prize_amount_fen), 0) AS prize_amount_fen,
+       COALESCE(SUM(total_received_fen), 0) AS total_received_fen,
+       COALESCE(SUM(total_recharge_fen), 0) AS total_recharge_fen,
+       COALESCE(SUM(alipay_recharge_fen), 0) AS alipay_recharge_fen,
+       COALESCE(SUM(huifu_recharge_fen), 0) AS huifu_recharge_fen,
+       COALESCE(SUM(alipay_refund_fen), 0) AS alipay_refund_fen,
+       COALESCE(SUM(huifu_refund_fen), 0) AS huifu_refund_fen,
+       COALESCE(SUM(recharge_original_refund_fen), 0) AS recharge_original_refund_fen,
+       COALESCE(SUM(user_refund_fen), 0) AS user_refund_fen
+FROM gacha_report.business_daily
+WHERE report_date >= ? AND report_date <= ?`,
+		start.Format("2006-01-02"), end.Format("2006-01-02"),
+	).Scan(&s).Error; err != nil {
+		return nil, fmt.Errorf("summary report rows: %w", err)
+	}
+	if err := reportDB.Raw(`
+SELECT COUNT(DISTINCT user_id)
+FROM gacha_report.business_daily_payer
+WHERE report_date >= ? AND report_date <= ?`,
+		start.Format("2006-01-02"), end.Format("2006-01-02"),
+	).Scan(&s.PayingUsers).Error; err != nil {
+		return nil, fmt.Errorf("summary paying users: %w", err)
+	}
+	s.GrossProfitFen = s.DrawAmountFen - s.PrizeAmountFen
+	s.GrossMarginBps = rateBps(s.GrossProfitFen, s.DrawAmountFen)
+	s.TotalRefundFen = s.RechargeOriginalRefundFen + s.UserRefundFen
+	s.RechargeMinusRefundFen = s.TotalRechargeFen - s.TotalRefundFen
+	s.RefundRateBps = rateBps(s.TotalRefundFen, s.TotalRechargeFen)
+	return &s, nil
 }
 
 func loadSummary(db *gorm.DB, startUTC, endUTC time.Time) (*Summary, error) {
@@ -280,6 +332,7 @@ func loadRows(db *gorm.DB, startLocal, endLocal, startUTC, endUTC time.Time) ([]
 			RefundableFen:             currentRefundable,
 			BalanceFen:                currentBalance,
 			InventoryValueFen:         inventory,
+			DrawCount:                 draw.Draws,
 			DrawAmountFen:             draw.DrawFen,
 			PrizeAmountFen:            draw.PrizeFen,
 			GrossProfitFen:            grossProfit,
@@ -302,6 +355,163 @@ func loadRows(db *gorm.DB, startLocal, endLocal, startUTC, endUTC time.Time) ([]
 		rows[i], rows[j] = rows[j], rows[i]
 	}
 	return rows, nil
+}
+
+// AggregateRange 从业务库聚合 [start, end] 的每日数据，写入 gacha_report。
+func AggregateRange(sourceDB, reportDB *gorm.DB, start, end time.Time) error {
+	startLocal := time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, cst)
+	endLocal := time.Date(end.Year(), end.Month(), end.Day(), 0, 0, 0, 0, cst)
+	if endLocal.Before(startLocal) {
+		return fmt.Errorf("aggregate end date before start date")
+	}
+	startUTC := startLocal.UTC()
+	endUTC := endLocal.AddDate(0, 0, 1).UTC()
+
+	rows, err := loadRows(sourceDB, startLocal, endLocal, startUTC, endUTC)
+	if err != nil {
+		return err
+	}
+	payers, err := loadPayerDays(sourceDB, startUTC, endUTC)
+	if err != nil {
+		return err
+	}
+
+	return reportDB.Transaction(func(tx *gorm.DB) error {
+		for _, row := range rows {
+			if err := upsertDaily(tx, row); err != nil {
+				return err
+			}
+		}
+		if err := tx.Exec(
+			"DELETE FROM gacha_report.business_daily_payer WHERE report_date >= ? AND report_date <= ?",
+			startLocal.Format("2006-01-02"), endLocal.Format("2006-01-02"),
+		).Error; err != nil {
+			return fmt.Errorf("clear report payers: %w", err)
+		}
+		for day, userIDs := range payers {
+			for _, userID := range userIDs {
+				if err := tx.Exec(
+					"INSERT IGNORE INTO gacha_report.business_daily_payer (report_date, user_id) VALUES (?, ?)",
+					day, userID,
+				).Error; err != nil {
+					return fmt.Errorf("insert report payer %s/%d: %w", day, userID, err)
+				}
+			}
+		}
+		return nil
+	})
+}
+
+func upsertDaily(tx *gorm.DB, row Row) error {
+	return tx.Exec(`
+INSERT INTO gacha_report.business_daily
+  (report_date, registrations, active_users, paying_users, refundable_fen, balance_fen,
+   inventory_value_fen, draw_count, draw_amount_fen, prize_amount_fen, gross_profit_fen,
+   total_received_fen, total_recharge_fen, total_refund_fen,
+   alipay_recharge_fen, huifu_recharge_fen, alipay_refund_fen, huifu_refund_fen,
+   recharge_original_refund_fen, user_refund_fen, recharge_minus_refund_fen)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON DUPLICATE KEY UPDATE
+  registrations = VALUES(registrations),
+  active_users = VALUES(active_users),
+  paying_users = VALUES(paying_users),
+  refundable_fen = VALUES(refundable_fen),
+  balance_fen = VALUES(balance_fen),
+  inventory_value_fen = VALUES(inventory_value_fen),
+  draw_count = VALUES(draw_count),
+  draw_amount_fen = VALUES(draw_amount_fen),
+  prize_amount_fen = VALUES(prize_amount_fen),
+  gross_profit_fen = VALUES(gross_profit_fen),
+  total_received_fen = VALUES(total_received_fen),
+  total_recharge_fen = VALUES(total_recharge_fen),
+  total_refund_fen = VALUES(total_refund_fen),
+  alipay_recharge_fen = VALUES(alipay_recharge_fen),
+  huifu_recharge_fen = VALUES(huifu_recharge_fen),
+  alipay_refund_fen = VALUES(alipay_refund_fen),
+  huifu_refund_fen = VALUES(huifu_refund_fen),
+  recharge_original_refund_fen = VALUES(recharge_original_refund_fen),
+  user_refund_fen = VALUES(user_refund_fen),
+  recharge_minus_refund_fen = VALUES(recharge_minus_refund_fen),
+  updated_at = NOW(3)`,
+		row.Date, row.Registrations, row.ActiveUsers, row.PayingUsers, row.RefundableFen, row.BalanceFen,
+		row.InventoryValueFen, row.DrawCount, row.DrawAmountFen, row.PrizeAmountFen, row.GrossProfitFen,
+		row.TotalReceivedFen, row.TotalRechargeFen, row.TotalRefundFen,
+		row.AlipayRechargeFen, row.HuifuRechargeFen, row.AlipayRefundFen, row.HuifuRefundFen,
+		row.RechargeOriginalRefundFen, row.UserRefundFen, row.RechargeMinusRefundFen,
+	).Error
+}
+
+func loadPayerDays(db *gorm.DB, startUTC, endUTC time.Time) (map[string][]int64, error) {
+	var rows []struct {
+		D      string `gorm:"column:d"`
+		UserID int64  `gorm:"column:user_id"`
+	}
+	if err := db.Raw(`
+SELECT DATE_FORMAT(DATE_ADD(created_at, INTERVAL 8 HOUR), '%Y-%m-%d') AS d, user_id
+FROM gacha_money.recharge_orders
+WHERE status = 4 AND created_at >= ? AND created_at < ?
+GROUP BY d, user_id`,
+		startUTC, endUTC,
+	).Scan(&rows).Error; err != nil {
+		return nil, fmt.Errorf("load report payers: %w", err)
+	}
+	out := make(map[string][]int64)
+	for _, r := range rows {
+		out[r.D] = append(out[r.D], r.UserID)
+	}
+	return out, nil
+}
+
+// Start 启动经营日报聚合：启动时回填历史，之后每 10 分钟更新昨天/今天。
+func Start(sourceDB, reportDB *gorm.DB, backfillDays int64) {
+	if sourceDB == nil || reportDB == nil {
+		return
+	}
+	if backfillDays <= 0 {
+		backfillDays = 90
+	}
+	go func() {
+		end := time.Now().In(cst)
+		start := end.AddDate(0, 0, -int(backfillDays)+1)
+		if earliest, ok := earliestBusinessDate(sourceDB); ok && earliest.Before(start) {
+			start = earliest
+		}
+		if err := AggregateRange(sourceDB, reportDB, start, end); err != nil {
+			logx.Errorf("business daily backfill failed, start: %s, end: %s, err: %v", start.Format("2006-01-02"), end.Format("2006-01-02"), err)
+		} else {
+			logx.Infof("business daily backfill done, start: %s, end: %s", start.Format("2006-01-02"), end.Format("2006-01-02"))
+		}
+
+		ticker := time.NewTicker(10 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			now := time.Now().In(cst)
+			if err := AggregateRange(sourceDB, reportDB, now.AddDate(0, 0, -1), now); err != nil {
+				logx.Errorf("business daily refresh failed, err: %v", err)
+			}
+		}
+	}()
+}
+
+// earliestBusinessDate 取注册/充值/抽赏的最早日期，确保“累计”从第一笔业务开始回填。
+func earliestBusinessDate(db *gorm.DB) (time.Time, bool) {
+	var raw string
+	err := db.Raw(`
+SELECT DATE_FORMAT(DATE_ADD(MIN(d), INTERVAL 8 HOUR), '%Y-%m-%d') FROM (
+  SELECT MIN(created_at) AS d FROM gacha_identity.user_users
+  UNION ALL
+  SELECT MIN(created_at) FROM gacha_money.recharge_orders
+  UNION ALL
+  SELECT MIN(created_at) FROM gacha_draw.draw_records
+) x`).Scan(&raw).Error
+	if err != nil || raw == "" {
+		return time.Time{}, false
+	}
+	parsed, err := time.ParseInLocation("2006-01-02", raw, cst)
+	if err != nil {
+		return time.Time{}, false
+	}
+	return parsed, true
 }
 
 func loadCounts(db *gorm.DB, table string, startUTC, endUTC time.Time) (map[string]int64, error) {

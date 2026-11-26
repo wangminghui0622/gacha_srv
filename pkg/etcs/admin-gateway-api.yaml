@@ -2,10 +2,6 @@ Name: admin-gateway-api
 Host: 0.0.0.0
 Port: 9321
 
-# 经营日报只读查询（跨库聚合 identity/money/draw/catalog）
-MySQL:
-  DataSource: root:we7root@tcp(127.0.0.1:3306)/gacha_ops?charset=utf8mb4&parseTime=True&loc=Local
-
 OpsRpc:
   Etcd:
     Hosts:
