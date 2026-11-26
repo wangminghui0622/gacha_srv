@@ -1,11 +1,26 @@
 <template>
   <div class="refund-page">
     <div class="auto-bar">
-      <span class="auto-item">自动退款剩余金额：<b>{{ money(autoConfig.remainingAmountFen) }}</b><a-button type="link" size="small" @click="openConfig">修改</a-button></span>
-      <span class="auto-item">自动退款审核金额上限(含)：<b>{{ money(autoConfig.auditLimitFen) }}</b><a-button type="link" size="small" @click="openConfig">修改</a-button></span>
-      <span class="auto-item">自动退款延迟时间(秒)：<b>{{ Number(autoConfig.delaySeconds ?? 0) }}</b><a-button type="link" size="small" @click="openConfig">修改</a-button></span>
-      <span class="auto-item">自动交替退款次数：<b>{{ Number(autoConfig.alternateCount ?? 0) }}</b><a-button type="link" size="small" @click="openConfig">修改</a-button></span>
-      <span class="auto-item">自动交替退款金额(≤)：<b>{{ money(autoConfig.alternateAmountFen) }}</b><a-button type="link" size="small" @click="openConfig">修改</a-button></span>
+      <div class="auto-item">
+        <span>自动退款剩余金额：</span><b>{{ money(autoConfig.remainingAmountFen) }}</b>
+        <a-button class="auto-edit" type="link" size="small" @click="openConfig">修改</a-button>
+      </div>
+      <div class="auto-item">
+        <span>自动退款审核金额上限(含)：</span><b>{{ money(autoConfig.auditLimitFen) }}</b>
+        <a-button class="auto-edit" type="link" size="small" @click="openConfig">修改</a-button>
+      </div>
+      <div class="auto-item">
+        <span>自动退款延迟时间(秒)：</span><b>{{ Number(autoConfig.delaySeconds ?? 0) }}</b>
+        <a-button class="auto-edit" type="link" size="small" @click="openConfig">修改</a-button>
+      </div>
+      <div class="auto-item">
+        <span>自动交替退款次数：</span><b>{{ Number(autoConfig.alternateCount ?? 0) }}</b>
+        <a-button class="auto-edit" type="link" size="small" @click="openConfig">修改</a-button>
+      </div>
+      <div class="auto-item">
+        <span>自动交替退款金额(≤)：</span><b>{{ money(autoConfig.alternateAmountFen) }}</b>
+        <a-button class="auto-edit" type="link" size="small" @click="openConfig">修改</a-button>
+      </div>
     </div>
 
     <div class="refund-toolbar">
@@ -454,15 +469,34 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
   padding: 8px 0 14px;
   font-size: 13px;
   color: #303133;
 }
 
+.auto-item {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  overflow: hidden;
+  padding-left: 12px;
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+}
+
 .auto-item b {
-  margin: 0 4px;
+  margin-right: 4px;
   color: #cf1322;
+}
+
+.auto-item :deep(.auto-edit) {
+  height: 32px;
+  margin-left: 4px;
+  padding: 0 12px;
+  border-left: 1px solid #f0f0f0;
+  border-radius: 0;
 }
 
 .refund-toolbar {
