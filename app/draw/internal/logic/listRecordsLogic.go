@@ -70,6 +70,8 @@ func (l *ListRecordsLogic) ListRecords(in *draw.ListRecordsReq) (*draw.ListRecor
 			Price:     utils.FenToYuan(r.Price),
 			CreatedAt: r.CreatedAt.Unix(),
 			Status:    int32(r.Status),
+			OrderId:   r.OrderId,
+			OrderNo:   r.OrderNo,
 		})
 	}
 	return &draw.ListRecordsResp{Records: items, Total: total}, nil

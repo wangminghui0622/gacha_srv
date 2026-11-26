@@ -113,12 +113,35 @@ CREATE TABLE IF NOT EXISTS `draw_records` (
   `price` bigint NOT NULL COMMENT '本次抽盒价格（分）',
   `seed_hex` varchar(64) NOT NULL DEFAULT '' COMMENT '引擎种子（hex，64 字符；确定性开奖，可复算审计）',
   `audit_hash` varchar(64) NOT NULL DEFAULT '' COMMENT '审计哈希（hex，64 字符；SHA256 覆盖种子+条目+结果，公平性可验证）',
+  `order_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '内部订单号（年月日*10^9+序号）',
+  `order_seq` bigint unsigned NOT NULL DEFAULT '0' COMMENT '订单序号（从 333000000 起全局递增）',
+  `order_no` varchar(32) NOT NULL DEFAULT '' COMMENT '对外订单号（o+Base62）',
   `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态：1 正常 2 已撤销',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '开奖时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_request_id` (`request_id`),
-  KEY `idx_user_id` (`user_id`)
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_order_id` (`order_id`),
+  KEY `idx_order_no` (`order_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='抽赏记录表';
+
+CREATE TABLE IF NOT EXISTS `draw_order_sequences` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '订单序号（从 333000000 起全局递增）',
+  `created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '发号时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=333000000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='抽盒订单发号表';
+
+CREATE TABLE IF NOT EXISTS `draw_order_allocations` (
+  `request_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '请求ID（= 订单来源 gid）',
+  `order_id` bigint unsigned NOT NULL COMMENT '内部订单号',
+  `order_seq` bigint unsigned NOT NULL COMMENT '订单序号',
+  `order_no` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '对外订单号',
+  `created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
+  PRIMARY KEY (`request_id`),
+  UNIQUE KEY `uk_order_id` (`order_id`),
+  UNIQUE KEY `uk_order_seq` (`order_seq`),
+  UNIQUE KEY `uk_order_no` (`order_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='抽盒订单号分配表（requestId 幂等）';
 
 CREATE TABLE IF NOT EXISTS `draw_warehouse_items` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
@@ -354,3 +377,35 @@ DELIMITER ;
 
 CALL `__upgrade_draw_box_admin_fields`();
 DROP PROCEDURE `__upgrade_draw_box_admin_fields`;
+
+-- ============================================================
+-- 增量升级（幂等）：抽盒订单号（YYYYMMDD*10^9 + 333000000 起序号）
+-- ============================================================
+DROP PROCEDURE IF EXISTS `__upgrade_draw_order_ids`;
+
+DELIMITER $$
+CREATE PROCEDURE `__upgrade_draw_order_ids`()
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_records' AND COLUMN_NAME='order_id') THEN
+    ALTER TABLE `draw_records` ADD COLUMN `order_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '内部订单号（年月日*10^9+序号）' AFTER `audit_hash`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_records' AND COLUMN_NAME='order_seq') THEN
+    ALTER TABLE `draw_records` ADD COLUMN `order_seq` bigint unsigned NOT NULL DEFAULT '0' COMMENT '订单序号（从 333000000 起全局递增）' AFTER `order_id`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_records' AND COLUMN_NAME='order_no') THEN
+    ALTER TABLE `draw_records` ADD COLUMN `order_no` varchar(32) NOT NULL DEFAULT '' COMMENT '对外订单号（o+Base62）' AFTER `order_seq`;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.STATISTICS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_records' AND INDEX_NAME='idx_order_id') THEN
+    ALTER TABLE `draw_records` ADD KEY `idx_order_id` (`order_id`);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.STATISTICS WHERE TABLE_SCHEMA='gacha_draw' AND TABLE_NAME='draw_records' AND INDEX_NAME='idx_order_no') THEN
+    ALTER TABLE `draw_records` ADD KEY `idx_order_no` (`order_no`);
+  END IF;
+  IF (SELECT COUNT(*) FROM `draw_order_sequences`) = 0 THEN
+    ALTER TABLE `draw_order_sequences` AUTO_INCREMENT = 333000000;
+  END IF;
+END$$
+DELIMITER ;
+
+CALL `__upgrade_draw_order_ids`();
+DROP PROCEDURE `__upgrade_draw_order_ids`;

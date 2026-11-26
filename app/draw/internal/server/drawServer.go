@@ -41,6 +41,12 @@ func (s *DrawServer) SettleDraw(ctx context.Context, in *draw.SettleDrawReq) (*d
 	return l.SettleDraw(in)
 }
 
+// 抽盒下单发号（requestId 幂等）
+func (s *DrawServer) AllocateDrawOrder(ctx context.Context, in *draw.AllocateDrawOrderReq) (*draw.AllocateDrawOrderResp, error) {
+	l := logic.NewAllocateDrawOrderLogic(ctx, s.svcCtx)
+	return l.AllocateDrawOrder(in)
+}
+
 // SAGA 补偿分支：记录置已撤销 + 吉仓撤销 + 归还库存（无记录=空补偿）
 func (s *DrawServer) SettleDrawRevert(ctx context.Context, in *draw.SettleDrawReq) (*draw.SettleDrawResp, error) {
 	l := logic.NewSettleDrawRevertLogic(ctx, s.svcCtx)

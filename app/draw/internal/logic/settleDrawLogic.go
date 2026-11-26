@@ -82,6 +82,8 @@ func (l *SettleDrawLogic) SettleDraw(in *draw.SettleDrawReq) (*draw.SettleDrawRe
 			recordId  int64
 			prizeName string
 			isPrize   bool
+			orderId   int64
+			orderNo   string
 		}
 		businessRan bool
 		winnerEntry *drawmodel.DrawPoolEntries // commit 后延迟双删用
@@ -89,6 +91,21 @@ func (l *SettleDrawLogic) SettleDraw(in *draw.SettleDrawReq) (*draw.SettleDrawRe
 	err = barrier.CallWithDB(rawDB, func(tx *sql.Tx) error {
 		businessRan = true
 		db := txutil.WithTx(l.ctx, l.svcCtx.DB, tx)
+
+		// 订单号：按 requestId 幂等分配；SAGA 重试/补偿复用同一订单号。
+		alloc, err := allocateDrawOrder(db, in.RequestId)
+		if err != nil {
+			return status.Error(codes.Internal, "订单号分配失败: "+err.Error())
+		}
+		if in.OrderId != 0 && in.OrderId != alloc.OrderID {
+			return status.Error(codes.Aborted, "code=400 msg=订单号不一致")
+		}
+		if in.OrderNo != "" && in.OrderNo != alloc.OrderNo {
+			return status.Error(codes.Aborted, "code=400 msg=对外订单号不一致")
+		}
+		if in.OrderSeq != 0 && in.OrderSeq != alloc.OrderSeq {
+			return status.Error(codes.Aborted, "code=400 msg=订单序号不一致")
+		}
 
 		// ① FOR UPDATE 锁宝箱行：校验存在与上架；价格取锁行（不信外部传参）
 		var b drawmodel.DrawBoxes
@@ -224,6 +241,9 @@ func (l *SettleDrawLogic) SettleDraw(in *draw.SettleDrawReq) (*draw.SettleDrawRe
 			Price:     priceFen,
 			SeedHex:   seedHex,
 			AuditHash: auditHex,
+			OrderId:   alloc.OrderID,
+			OrderSeq:  alloc.OrderSeq,
+			OrderNo:   alloc.OrderNo,
 			Status:    recordStatusNormal,
 			CreatedAt: time.Now(),
 		}
@@ -250,6 +270,8 @@ func (l *SettleDrawLogic) SettleDraw(in *draw.SettleDrawReq) (*draw.SettleDrawRe
 		out.recordId = rec.Id
 		out.prizeName = winner.Name
 		out.isPrize = winner.IsPrize == 1
+		out.orderId = alloc.OrderID
+		out.orderNo = alloc.OrderNo
 		return nil
 	})
 	if errors.Is(err, errRecordDup) {
@@ -288,6 +310,8 @@ func (l *SettleDrawLogic) SettleDraw(in *draw.SettleDrawReq) (*draw.SettleDrawRe
 		PrizeName: out.prizeName,
 		IsPrize:   out.isPrize,
 		RecordId:  out.recordId,
+		OrderId:   out.orderId,
+		OrderNo:   out.orderNo,
 	}, nil
 }
 
@@ -308,6 +332,8 @@ func (l *SettleDrawLogic) readBackRecord(requestId string) (*draw.SettleDrawResp
 		PrizeName: rec.EntryName,
 		IsPrize:   rec.IsPrize == 1,
 		RecordId:  rec.Id,
+		OrderId:   rec.OrderId,
+		OrderNo:   rec.OrderNo,
 	}, nil
 }
 

@@ -2,6 +2,7 @@ package draw
 
 import (
 	"context"
+	"strconv"
 
 	drawClient "gacha_srv/app/draw/drawClient"
 	"gacha_srv/app/gateway/internal/middleware"
@@ -68,6 +69,8 @@ func toRecordItem(rec *drawClient.RecordItem) types.DrawRecordItem {
 	return types.DrawRecordItem{
 		RecordId:  rec.RecordId,
 		RequestId: rec.RequestId,
+		OrderId:   strconv.FormatInt(rec.OrderId, 10),
+		OrderNo:   rec.OrderNo,
 		BoxId:     rec.BoxId,
 		BoxName:   rec.BoxName,
 		EntryName: rec.EntryName,

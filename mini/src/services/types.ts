@@ -130,6 +130,8 @@ export interface BuyBoxRequest {
 
 export interface BuyBoxResponse {
   requestId: string
+  orderId?: string
+  orderNo?: string
   status: string
 }
 
@@ -143,6 +145,8 @@ export interface DrawRecordItem {
   isPrize: boolean
   price: string
   createdAt: number
+  orderId?: string
+  orderNo?: string
 }
 
 // 与后端 RecordsListResp 对齐（分页固定结构 list/total）
@@ -302,6 +306,8 @@ export interface EntitlementListResponse {
 // 活动宝箱开箱（M11c）：提交 SAGA 后 pending（轮询 /draw/records）；success=同 Key 重放命中
 export interface OpenCampaignBoxResponse {
   requestId: string
+  orderId?: string
+  orderNo?: string
   status: string
 }
 

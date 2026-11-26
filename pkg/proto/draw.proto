@@ -12,6 +12,8 @@ service Draw {
   rpc BoxDetail(BoxDetailReq) returns (BoxDetailResp);
   // SAGA 正向分支：按公示概率开奖 + 扣条目库存 + 落记录 + 中奖入吉仓
   rpc SettleDraw(SettleDrawReq) returns (SettleDrawResp);
+  // 抽盒下单发号：requestId 幂等，返回内部订单号与对外 o 订单号
+  rpc AllocateDrawOrder(AllocateDrawOrderReq) returns (AllocateDrawOrderResp);
   // SAGA 补偿分支：记录置已撤销 + 吉仓撤销 + 归还库存（无记录=空补偿）
   rpc SettleDrawRevert(SettleDrawReq) returns (SettleDrawResp);
   // 抽赏记录（分页）
@@ -102,6 +104,9 @@ message SettleDrawReq {
   string requestId = 3; // 全局事务 gid（= 网关幂等键）
   string price = 4;     // 本次实付价格（元，两位小数；M8 网关传箱价，M10 起传报价实付）
   int64 loyaltyPointsDebit = 5; // 抵扣积分数（M8 恒 0，M10 起用）
+  int64 orderId = 6;    // 内部订单号（0=按 requestId 现场分配）
+  int64 orderSeq = 7;   // 订单序号
+  string orderNo = 8;   // 对外订单号（o+Base62）
 }
 
 message SettleDrawResp {
@@ -109,6 +114,18 @@ message SettleDrawResp {
   string prizeName = 2; // 开奖条目名称（谢谢参与时为"谢谢参与"）
   bool isPrize = 3;     // 是否中奖
   int64 recordId = 4;   // 抽赏记录ID（幂等重复返回已有记录）
+  int64 orderId = 5;    // 内部订单号
+  string orderNo = 6;   // 对外订单号
+}
+
+message AllocateDrawOrderReq {
+  string requestId = 1; // 幂等键（= 抽盒下单 gid）
+}
+
+message AllocateDrawOrderResp {
+  int64 orderId = 1;    // 内部订单号（YYYYMMDD*10^9+序号）
+  int64 orderSeq = 2;   // 订单序号
+  string orderNo = 3;   // 对外订单号（o+Base62）
 }
 
 message ListRecordsReq {
@@ -127,6 +144,8 @@ message RecordItem {
   string price = 7;   // 本次抽盒价格（元）
   int64 createdAt = 8; // unix 秒
   int32 status = 9;    // 记录状态：1 正常 2 已撤销（SAGA 补偿后）
+  int64 orderId = 10;  // 内部订单号
+  string orderNo = 11; // 对外订单号
 }
 
 message ListRecordsResp {

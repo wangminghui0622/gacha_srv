@@ -48,6 +48,8 @@ type (
 	RollingDrawWinItem            = draw.RollingDrawWinItem
 	SettleDrawReq                 = draw.SettleDrawReq
 	SettleDrawResp                = draw.SettleDrawResp
+	AllocateDrawOrderReq          = draw.AllocateDrawOrderReq
+	AllocateDrawOrderResp         = draw.AllocateDrawOrderResp
 	ListShipmentOrdersReq         = draw.ListShipmentOrdersReq
 	ListShipmentOrdersResp        = draw.ListShipmentOrdersResp
 	GetShipmentOrderReq           = draw.GetShipmentOrderReq
@@ -65,6 +67,8 @@ type (
 		BoxDetail(ctx context.Context, in *BoxDetailReq, opts ...grpc.CallOption) (*BoxDetailResp, error)
 		// SAGA 正向分支：按公示概率开奖 + 扣条目库存 + 落记录 + 中奖入吉仓
 		SettleDraw(ctx context.Context, in *SettleDrawReq, opts ...grpc.CallOption) (*SettleDrawResp, error)
+		// 抽盒下单发号（requestId 幂等）
+		AllocateDrawOrder(ctx context.Context, in *AllocateDrawOrderReq, opts ...grpc.CallOption) (*AllocateDrawOrderResp, error)
 		// SAGA 补偿分支：记录置已撤销 + 吉仓撤销 + 归还库存（无记录=空补偿）
 		SettleDrawRevert(ctx context.Context, in *SettleDrawReq, opts ...grpc.CallOption) (*SettleDrawResp, error)
 		// 抽赏记录（分页）
@@ -128,6 +132,12 @@ func (m *defaultDraw) BoxDetail(ctx context.Context, in *BoxDetailReq, opts ...g
 func (m *defaultDraw) SettleDraw(ctx context.Context, in *SettleDrawReq, opts ...grpc.CallOption) (*SettleDrawResp, error) {
 	client := draw.NewDrawClient(m.cli.Conn())
 	return client.SettleDraw(ctx, in, opts...)
+}
+
+// 抽盒下单发号（requestId 幂等）
+func (m *defaultDraw) AllocateDrawOrder(ctx context.Context, in *AllocateDrawOrderReq, opts ...grpc.CallOption) (*AllocateDrawOrderResp, error) {
+	client := draw.NewDrawClient(m.cli.Conn())
+	return client.AllocateDrawOrder(ctx, in, opts...)
 }
 
 // SAGA 补偿分支：记录置已撤销 + 吉仓撤销 + 归还库存（无记录=空补偿）

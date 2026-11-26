@@ -2,6 +2,7 @@ package campaign
 
 import (
 	"context"
+	"strconv"
 
 	drawClient "gacha_srv/app/draw/drawClient"
 	"gacha_srv/app/gateway/internal/logic/draw"
@@ -106,13 +107,20 @@ func (l *CampaignBoxOpenLogic) OpenCampaignBox(req *types.OpenCampaignBoxReq) (r
 		return nil, errorx.FromError(err)
 	}
 
+	// ④ 发订单号（requestId 幂等）
+	alloc, err := l.svcCtx.DrawRpc.AllocateDrawOrder(l.ctx, &drawClient.AllocateDrawOrderReq{RequestId: gid})
+	if err != nil {
+		l.Errorf("OpenCampaignBox AllocateDrawOrder failed, gid: %s, err: %v", gid, err)
+		return nil, errorx.FromError(err)
+	}
+
 	// ⑤ 组装并提交 7 分支 SAGA（共享构建器；SettleDraw price=FenToYuan(payable=0)="0.00"）
-	alreadyDone, err := draw.SubmitDrawSaga(l.ctx, l.svcCtx, l.Logger, gid, l.requestId, userId, ent.BoxId, amountFen, quote)
+	alreadyDone, err := draw.SubmitDrawSaga(l.ctx, l.svcCtx, l.Logger, gid, l.requestId, userId, ent.BoxId, amountFen, alloc.OrderId, alloc.OrderSeq, alloc.OrderNo, quote)
 	if err != nil {
 		return nil, err
 	}
 	if alreadyDone {
-		return &types.OpenCampaignBoxResp{RequestId: gid, Status: "success"}, nil
+		return &types.OpenCampaignBoxResp{RequestId: gid, OrderId: strconv.FormatInt(alloc.OrderId, 10), OrderNo: alloc.OrderNo, Status: "success"}, nil
 	}
-	return &types.OpenCampaignBoxResp{RequestId: gid, Status: "pending"}, nil
+	return &types.OpenCampaignBoxResp{RequestId: gid, OrderId: strconv.FormatInt(alloc.OrderId, 10), OrderNo: alloc.OrderNo, Status: "pending"}, nil
 }

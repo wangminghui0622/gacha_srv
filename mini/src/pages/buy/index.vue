@@ -27,6 +27,7 @@ const detail = ref<BoxDetailResponse | null>(null)
 const loadError = ref('')
 const record = ref<DrawRecordItem | null>(null)
 const failed = ref(false)
+const orderNo = ref('')
 
 // M10 报价：服务端算价（原价/券/积分抵扣），仅预览；购买时后端按同参数重算
 const quote = ref<BoxQuoteResponse | null>(null)
@@ -164,6 +165,7 @@ function startPoll(requestId: string) {
         // 开奖动画 2.5s 后揭晓（体验节奏）
         setTimeout(() => {
           record.value = res.list[0] ?? null
+          if (record.value?.orderNo) orderNo.value = record.value.orderNo
           failed.value = false
           phase.value = 'done'
           void refreshProfile()
@@ -191,10 +193,12 @@ async function buy() {
       useLoyaltyOffset: useLoyalty.value,
     })
     // status=pending：SAGA 已提交异步开奖；success：同 Key 重试命中已有单号
+    if (res.orderNo) orderNo.value = res.orderNo
     if (res.status === 'success') {
       const existing = await drawApi.getRecordByRequestId(res.requestId)
       if (existing.list.length > 0) {
         record.value = existing.list[0] ?? null
+        if (record.value?.orderNo) orderNo.value = record.value.orderNo
         failed.value = false
         phase.value = 'done'
         void refreshProfile()
@@ -325,6 +329,7 @@ onUnload(stopPoll)
             phase === 'submitting' ? t('buy.submitting') : phase === 'polling' ? t('buy.submitted') : t('buy.drawing')
           }}
         </view>
+        <view v-if="orderNo" class="buy-order">{{ t('buy.orderNo') }}：{{ orderNo }}</view>
         <view v-if="phase !== 'drawing'" class="spinner"></view>
       </view>
 
@@ -335,6 +340,7 @@ onUnload(stopPoll)
           <view class="result-title">{{ resultIsPrize ? t('buy.winTitle') : t('buy.thanksTitle') }}</view>
           <view v-if="resultIsPrize" class="result-prize">{{ record.entryName }}</view>
           <view v-else class="result-thanks">{{ t('buy.thanksText') }}</view>
+          <view v-if="record?.orderNo" class="result-order">{{ t('buy.orderNo') }}：{{ record.orderNo }}</view>
           <view class="result-actions">
             <view v-if="resultIsPrize" class="btn-primary" @click="goWarehouse">
               {{ t('buy.goWarehouse') }}
@@ -463,6 +469,12 @@ onUnload(stopPoll)
     margin-bottom: 16rpx;
   }
 
+  .buy-order {
+    font-size: 24rpx;
+    color: var(--color-text-secondary);
+    margin-bottom: 16rpx;
+  }
+
   .spinner {
     width: 48rpx;
     height: 48rpx;
@@ -506,6 +518,12 @@ onUnload(stopPoll)
   font-size: 26rpx;
   color: var(--color-text-secondary);
   margin-bottom: 32rpx;
+}
+
+.result-order {
+  font-size: 24rpx;
+  color: var(--color-text-secondary);
+  margin: -16rpx 0 28rpx;
 }
 
 .result-actions {

@@ -71,6 +71,8 @@ func (l *GetRecordLogic) GetRecord(in *draw.GetRecordReq) (*draw.GetRecordResp, 
 			Price:     utils.FenToYuan(rec.Price),
 			CreatedAt: rec.CreatedAt.Unix(),
 			Status:    int32(rec.Status),
+			OrderId:   rec.OrderId,
+			OrderNo:   rec.OrderNo,
 		},
 	}, nil
 }

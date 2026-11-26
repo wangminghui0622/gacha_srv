@@ -22,6 +22,7 @@ const (
 	Draw_ListBoxes_FullMethodName                 = "/draw.Draw/ListBoxes"
 	Draw_BoxDetail_FullMethodName                 = "/draw.Draw/BoxDetail"
 	Draw_SettleDraw_FullMethodName                = "/draw.Draw/SettleDraw"
+	Draw_AllocateDrawOrder_FullMethodName         = "/draw.Draw/AllocateDrawOrder"
 	Draw_SettleDrawRevert_FullMethodName          = "/draw.Draw/SettleDrawRevert"
 	Draw_ListRecords_FullMethodName               = "/draw.Draw/ListRecords"
 	Draw_GetRecord_FullMethodName                 = "/draw.Draw/GetRecord"
@@ -51,6 +52,8 @@ type DrawClient interface {
 	BoxDetail(ctx context.Context, in *BoxDetailReq, opts ...grpc.CallOption) (*BoxDetailResp, error)
 	// SAGA 正向分支：按公示概率开奖 + 扣条目库存 + 落记录 + 中奖入吉仓
 	SettleDraw(ctx context.Context, in *SettleDrawReq, opts ...grpc.CallOption) (*SettleDrawResp, error)
+	// 抽盒下单发号：requestId 幂等，返回内部订单号与对外 o 订单号
+	AllocateDrawOrder(ctx context.Context, in *AllocateDrawOrderReq, opts ...grpc.CallOption) (*AllocateDrawOrderResp, error)
 	// SAGA 补偿分支：记录置已撤销 + 吉仓撤销 + 归还库存（无记录=空补偿）
 	SettleDrawRevert(ctx context.Context, in *SettleDrawReq, opts ...grpc.CallOption) (*SettleDrawResp, error)
 	// 抽赏记录（分页）
@@ -117,6 +120,15 @@ func (c *drawClient) BoxDetail(ctx context.Context, in *BoxDetailReq, opts ...gr
 func (c *drawClient) SettleDraw(ctx context.Context, in *SettleDrawReq, opts ...grpc.CallOption) (*SettleDrawResp, error) {
 	out := new(SettleDrawResp)
 	err := c.cc.Invoke(ctx, Draw_SettleDraw_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *drawClient) AllocateDrawOrder(ctx context.Context, in *AllocateDrawOrderReq, opts ...grpc.CallOption) (*AllocateDrawOrderResp, error) {
+	out := new(AllocateDrawOrderResp)
+	err := c.cc.Invoke(ctx, Draw_AllocateDrawOrder_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -286,6 +298,8 @@ type DrawServer interface {
 	BoxDetail(context.Context, *BoxDetailReq) (*BoxDetailResp, error)
 	// SAGA 正向分支：按公示概率开奖 + 扣条目库存 + 落记录 + 中奖入吉仓
 	SettleDraw(context.Context, *SettleDrawReq) (*SettleDrawResp, error)
+	// 抽盒下单发号：requestId 幂等，返回内部订单号与对外 o 订单号
+	AllocateDrawOrder(context.Context, *AllocateDrawOrderReq) (*AllocateDrawOrderResp, error)
 	// SAGA 补偿分支：记录置已撤销 + 吉仓撤销 + 归还库存（无记录=空补偿）
 	SettleDrawRevert(context.Context, *SettleDrawReq) (*SettleDrawResp, error)
 	// 抽赏记录（分页）
@@ -336,6 +350,9 @@ func (UnimplementedDrawServer) BoxDetail(context.Context, *BoxDetailReq) (*BoxDe
 }
 func (UnimplementedDrawServer) SettleDraw(context.Context, *SettleDrawReq) (*SettleDrawResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SettleDraw not implemented")
+}
+func (UnimplementedDrawServer) AllocateDrawOrder(context.Context, *AllocateDrawOrderReq) (*AllocateDrawOrderResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AllocateDrawOrder not implemented")
 }
 func (UnimplementedDrawServer) SettleDrawRevert(context.Context, *SettleDrawReq) (*SettleDrawResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SettleDrawRevert not implemented")
@@ -451,6 +468,24 @@ func _Draw_SettleDraw_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DrawServer).SettleDraw(ctx, req.(*SettleDrawReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Draw_AllocateDrawOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AllocateDrawOrderReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DrawServer).AllocateDrawOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Draw_AllocateDrawOrder_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DrawServer).AllocateDrawOrder(ctx, req.(*AllocateDrawOrderReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -779,6 +814,10 @@ var Draw_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SettleDraw",
 			Handler:    _Draw_SettleDraw_Handler,
+		},
+		{
+			MethodName: "AllocateDrawOrder",
+			Handler:    _Draw_AllocateDrawOrder_Handler,
 		},
 		{
 			MethodName: "SettleDrawRevert",

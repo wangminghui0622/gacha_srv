@@ -50,6 +50,8 @@ type BuyBoxReq struct {
 
 type BuyBoxResp struct {
 	RequestId string `json:"requestId"`
+	OrderId   string `json:"orderId"`
+	OrderNo   string `json:"orderNo"`
 	Status    string `json:"status"`
 }
 
@@ -120,6 +122,8 @@ type CouponTemplateListResp struct {
 type DrawRecordItem struct {
 	RecordId  int64  `json:"recordId"`
 	RequestId string `json:"requestId"`
+	OrderId   string `json:"orderId"`
+	OrderNo   string `json:"orderNo"`
 	BoxId     int64  `json:"boxId"`
 	BoxName   string `json:"boxName"`
 	EntryName string `json:"entryName"`
@@ -347,6 +351,8 @@ type OpenCampaignBoxReq struct {
 
 type OpenCampaignBoxResp struct {
 	RequestId string `json:"requestId"`
+	OrderId   string `json:"orderId"`
+	OrderNo   string `json:"orderNo"`
 	Status    string `json:"status"` // pending=事务已提交（轮询 /draw/records）；success=幂等重放命中
 }
 

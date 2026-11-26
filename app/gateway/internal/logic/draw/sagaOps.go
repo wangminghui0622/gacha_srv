@@ -30,7 +30,7 @@ import (
 // Submit 失败且带幂等键（requestId 非空）→ 回查抽赏记录：命中=同 gid 事务已存在（重试成功），
 // 返回 alreadyDone=true；未命中才是真故障。
 // 分支错误语义：Aborted=业务失败→补偿；Internal=未知→退避重试（RetryLimit=10 封顶）。
-func SubmitDrawSaga(ctx context.Context, svcCtx *svc.ServiceContext, log logx.Logger, gid, requestId string, userId, boxId, amountFen int64, quote *marketingClient.QuoteCheckoutResp) (alreadyDone bool, err error) {
+func SubmitDrawSaga(ctx context.Context, svcCtx *svc.ServiceContext, log logx.Logger, gid, requestId string, userId, boxId, amountFen int64, orderId, orderSeq int64, orderNo string, quote *marketingClient.QuoteCheckoutResp) (alreadyDone bool, err error) {
 	// 同步预检：资格评估 + 风控评估（拒绝立即返回，不入分布式事务）
 	if err := saga.Precheck(ctx, log, svcCtx.BaseRpc, gid, userId, boxId, amountFen, "DRAW"); err != nil {
 		return false, err
@@ -59,6 +59,9 @@ func SubmitDrawSaga(ctx context.Context, svcCtx *svc.ServiceContext, log logx.Lo
 				RequestId:          gid,
 				Price:              utils.FenToYuan(quote.PayableFen),
 				LoyaltyPointsDebit: quote.LoyaltyPointsDebit,
+				OrderId:            orderId,
+				OrderSeq:           orderSeq,
+				OrderNo:            orderNo,
 			},
 		).
 		// 04 发资产（资金域）：asset_no="a_"+requestId 幂等，奖品名从开奖记录反查

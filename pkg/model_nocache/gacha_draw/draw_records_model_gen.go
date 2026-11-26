@@ -43,6 +43,9 @@ type (
 		Price     int64     `gorm:"column:price"`          // 本次抽盒价格（分）
 		SeedHex   string    `gorm:"column:seed_hex"`       // 引擎种子（hex，64 字符；确定性开奖，可复算审计）
 		AuditHash string    `gorm:"column:audit_hash"`     // 审计哈希（hex，64 字符；SHA256 覆盖种子+条目+结果）
+		OrderId   int64     `gorm:"column:order_id"`       // 内部订单号（年月日*10^9+序号）
+		OrderSeq  int64     `gorm:"column:order_seq"`      // 订单序号（从 333000000 起全局递增）
+		OrderNo   string    `gorm:"column:order_no"`       // 对外订单号（o+Base62）
 		Status    int64     `gorm:"column:status"`         // 状态：1 正常 2 已撤销
 		CreatedAt time.Time `gorm:"column:created_at"`     // 开奖时间
 	}

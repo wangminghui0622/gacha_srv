@@ -2,6 +2,7 @@ package draw
 
 import (
 	"context"
+	"strconv"
 
 	drawClient "gacha_srv/app/draw/drawClient"
 	"gacha_srv/app/gateway/internal/middleware"
@@ -42,12 +43,13 @@ func (l *BoxBuyLogic) SetRequestId(id string) {
 // BoxBuy 购买开奖：网关发起 DTM SAGA 事务（参考 dtm_shop createOrderLogic 编排模式）。
 //
 // M10 起（M11c 抽成共享构建器 SubmitDrawSaga，BoxBuy 与活动宝箱开箱共用）：
-//   同步预检：base.EvaluatePolicy 资格 + base.RiskEvaluate 风控（闸门，拒绝立即返回 4001/4002）
-//   5 分支 SAGA：
-//   [01 marketing.LockQuote 锁券 → 02 money.AuthorizeWalletPayment 建单+冻结 →
-//    03 draw.SettleDraw 开奖 → 04 money.GrantAsset 发资产 →
-//    05 money.CaptureWalletPayment 捕获核销]
-//   补偿：[ReleaseQuote → CancelPayment → SettleDrawRevert → GrantAssetRevert → 空]
+//
+//	同步预检：base.EvaluatePolicy 资格 + base.RiskEvaluate 风控（闸门，拒绝立即返回 4001/4002）
+//	5 分支 SAGA：
+//	[01 marketing.LockQuote 锁券 → 02 money.AuthorizeWalletPayment 建单+冻结 →
+//	 03 draw.SettleDraw 开奖 → 04 money.GrantAsset 发资产 →
+//	 05 money.CaptureWalletPayment 捕获核销]
+//	补偿：[ReleaseQuote → CancelPayment → SettleDrawRevert → GrantAssetRevert → 空]
 //
 // 安全不变式：
 //  1. userId 取 JWT 上下文，不接受客户端传入；
@@ -103,8 +105,15 @@ func (l *BoxBuyLogic) BoxBuy(req *types.BuyBoxReq) (resp *types.BuyBoxResp, err 
 		return nil, errorx.FromError(err)
 	}
 
-	// ④ 组装并提交 7 分支 SAGA（共享构建器：BoxBuy / CampaignBoxOpen 同款编排）
-	alreadyDone, err := SubmitDrawSaga(l.ctx, l.svcCtx, l.Logger, gid, l.requestId, userId, req.BoxId, amountFen, quote)
+	// ④ 发订单号（requestId 幂等）；SAGA 重试复用同一订单号
+	alloc, err := l.svcCtx.DrawRpc.AllocateDrawOrder(l.ctx, &drawClient.AllocateDrawOrderReq{RequestId: gid})
+	if err != nil {
+		l.Errorf("BoxBuy AllocateDrawOrder failed, gid: %s, err: %v", gid, err)
+		return nil, errorx.FromError(err)
+	}
+
+	// ⑤ 组装并提交 7 分支 SAGA（共享构建器：BoxBuy / CampaignBoxOpen 同款编排）
+	alreadyDone, err := SubmitDrawSaga(l.ctx, l.svcCtx, l.Logger, gid, l.requestId, userId, req.BoxId, amountFen, alloc.OrderId, alloc.OrderSeq, alloc.OrderNo, quote)
 	if err != nil {
 		return nil, err
 	}
@@ -112,9 +121,9 @@ func (l *BoxBuyLogic) BoxBuy(req *types.BuyBoxReq) (resp *types.BuyBoxResp, err 
 	//    task_event 按事件号幂等去重，重放安全；失败仅记日志不阻断购买
 	l.applyTaskProgress(userId, gid, quote.PayableFen)
 	if alreadyDone {
-		return &types.BuyBoxResp{RequestId: gid, Status: "success"}, nil
+		return &types.BuyBoxResp{RequestId: gid, OrderId: strconv.FormatInt(alloc.OrderId, 10), OrderNo: alloc.OrderNo, Status: "success"}, nil
 	}
-	return &types.BuyBoxResp{RequestId: gid, Status: "pending"}, nil
+	return &types.BuyBoxResp{RequestId: gid, OrderId: strconv.FormatInt(alloc.OrderId, 10), OrderNo: alloc.OrderNo, Status: "pending"}, nil
 }
 
 // applyTaskProgress 购买挂钩（D9）：事件号="pay:"+订单号（gid），metric=DRAW_SPEND_MINOR，
