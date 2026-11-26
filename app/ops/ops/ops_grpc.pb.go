@@ -53,6 +53,7 @@ const (
 	Ops_QueryDashboard_FullMethodName                 = "/ops.Ops/QueryDashboard"
 	Ops_QueryUserProfitCurve_FullMethodName           = "/ops.Ops/QueryUserProfitCurve"
 	Ops_GetBusinessDailyReport_FullMethodName         = "/ops.Ops/GetBusinessDailyReport"
+	Ops_GetRetentionReport_FullMethodName             = "/ops.Ops/GetRetentionReport"
 	Ops_ApplyMetricEvent_FullMethodName               = "/ops.Ops/ApplyMetricEvent"
 )
 
@@ -101,6 +102,8 @@ type OpsClient interface {
 	QueryUserProfitCurve(ctx context.Context, in *QueryUserProfitCurveRequest, opts ...grpc.CallOption) (*QueryUserProfitCurveReply, error)
 	// 经营日报（读 gacha_report 读模型；ops-rpc 定时聚合）
 	GetBusinessDailyReport(ctx context.Context, in *BusinessDailyReportRequest, opts ...grpc.CallOption) (*BusinessDailyReportReply, error)
+	// 留存报表（读 gacha_report 5 张留存表；ops-rpc 定时聚合）
+	GetRetentionReport(ctx context.Context, in *RetentionReportRequest, opts ...grpc.CallOption) (*RetentionReportReply, error)
 	// 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
 	ApplyMetricEvent(ctx context.Context, in *ApplyMetricEventRequest, opts ...grpc.CallOption) (*ApplyMetricEventReply, error)
 }
@@ -419,6 +422,15 @@ func (c *opsClient) GetBusinessDailyReport(ctx context.Context, in *BusinessDail
 	return out, nil
 }
 
+func (c *opsClient) GetRetentionReport(ctx context.Context, in *RetentionReportRequest, opts ...grpc.CallOption) (*RetentionReportReply, error) {
+	out := new(RetentionReportReply)
+	err := c.cc.Invoke(ctx, Ops_GetRetentionReport_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *opsClient) ApplyMetricEvent(ctx context.Context, in *ApplyMetricEventRequest, opts ...grpc.CallOption) (*ApplyMetricEventReply, error) {
 	out := new(ApplyMetricEventReply)
 	err := c.cc.Invoke(ctx, Ops_ApplyMetricEvent_FullMethodName, in, out, opts...)
@@ -473,6 +485,8 @@ type OpsServer interface {
 	QueryUserProfitCurve(context.Context, *QueryUserProfitCurveRequest) (*QueryUserProfitCurveReply, error)
 	// 经营日报（读 gacha_report 读模型；ops-rpc 定时聚合）
 	GetBusinessDailyReport(context.Context, *BusinessDailyReportRequest) (*BusinessDailyReportReply, error)
+	// 留存报表（读 gacha_report 5 张留存表；ops-rpc 定时聚合）
+	GetRetentionReport(context.Context, *RetentionReportRequest) (*RetentionReportReply, error)
 	// 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
 	ApplyMetricEvent(context.Context, *ApplyMetricEventRequest) (*ApplyMetricEventReply, error)
 	mustEmbedUnimplementedOpsServer()
@@ -583,6 +597,9 @@ func (UnimplementedOpsServer) QueryUserProfitCurve(context.Context, *QueryUserPr
 }
 func (UnimplementedOpsServer) GetBusinessDailyReport(context.Context, *BusinessDailyReportRequest) (*BusinessDailyReportReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBusinessDailyReport not implemented")
+}
+func (UnimplementedOpsServer) GetRetentionReport(context.Context, *RetentionReportRequest) (*RetentionReportReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRetentionReport not implemented")
 }
 func (UnimplementedOpsServer) ApplyMetricEvent(context.Context, *ApplyMetricEventRequest) (*ApplyMetricEventReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ApplyMetricEvent not implemented")
@@ -1212,6 +1229,24 @@ func _Ops_GetBusinessDailyReport_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Ops_GetRetentionReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RetentionReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OpsServer).GetRetentionReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Ops_GetRetentionReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OpsServer).GetRetentionReport(ctx, req.(*RetentionReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Ops_ApplyMetricEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ApplyMetricEventRequest)
 	if err := dec(in); err != nil {
@@ -1372,6 +1407,10 @@ var Ops_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBusinessDailyReport",
 			Handler:    _Ops_GetBusinessDailyReport_Handler,
+		},
+		{
+			MethodName: "GetRetentionReport",
+			Handler:    _Ops_GetRetentionReport_Handler,
 		},
 		{
 			MethodName: "ApplyMetricEvent",

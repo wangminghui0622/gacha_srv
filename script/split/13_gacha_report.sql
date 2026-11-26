@@ -43,4 +43,53 @@ CREATE TABLE IF NOT EXISTS `business_daily_payer` (
   KEY `idx_user_date` (`user_id`,`report_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='经营日报付费用户明细（累计/本月去重）';
 
+-- ── 留存报表（5 个 Tab 各一张表）──
+-- 统一结构：day_no=0 存 cohort 总人数，day_no=1/2/.../180 存第 N 天留存人数。
+-- 由 ops-rpc 从业务库定时聚合写入，后台接口只读本库。
+
+CREATE TABLE IF NOT EXISTS `retention_new` (
+  `cohort_date` date NOT NULL COMMENT 'cohort 日期（注册日，东八区）',
+  `day_no` int NOT NULL COMMENT '留存天数：0=cohort 总数，1/2/.../180',
+  `total_users` bigint NOT NULL DEFAULT '0' COMMENT 'cohort 总用户数',
+  `retained_users` bigint NOT NULL DEFAULT '0' COMMENT '第 N 天留存用户数',
+  `updated_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (`cohort_date`,`day_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='新增留存：注册 cohort 后第 N 天活跃';
+
+CREATE TABLE IF NOT EXISTS `retention_active` (
+  `cohort_date` date NOT NULL COMMENT 'cohort 日期（活跃日，东八区）',
+  `day_no` int NOT NULL COMMENT '留存天数：0=cohort 总数，1/2/.../180',
+  `total_users` bigint NOT NULL DEFAULT '0' COMMENT 'cohort 总用户数',
+  `retained_users` bigint NOT NULL DEFAULT '0' COMMENT '第 N 天留存用户数',
+  `updated_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (`cohort_date`,`day_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='有效用户：活跃 cohort 后第 N 天活跃';
+
+CREATE TABLE IF NOT EXISTS `retention_new_pay` (
+  `cohort_date` date NOT NULL COMMENT 'cohort 日期（首次成功充值日，东八区）',
+  `day_no` int NOT NULL COMMENT '留存天数：0=cohort 总数，1/2/.../180',
+  `total_users` bigint NOT NULL DEFAULT '0' COMMENT 'cohort 总用户数',
+  `retained_users` bigint NOT NULL DEFAULT '0' COMMENT '第 N 天留存用户数',
+  `updated_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (`cohort_date`,`day_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='新增消费：首次成功充值 cohort 后第 N 天成功充值';
+
+CREATE TABLE IF NOT EXISTS `retention_join` (
+  `cohort_date` date NOT NULL COMMENT 'cohort 日期（抽赏日，东八区）',
+  `day_no` int NOT NULL COMMENT '留存天数：0=cohort 总数，1/2/.../180',
+  `total_users` bigint NOT NULL DEFAULT '0' COMMENT 'cohort 总用户数',
+  `retained_users` bigint NOT NULL DEFAULT '0' COMMENT '第 N 天留存用户数',
+  `updated_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (`cohort_date`,`day_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='参与留存：抽赏 cohort 后第 N 天抽赏';
+
+CREATE TABLE IF NOT EXISTS `retention_pay` (
+  `cohort_date` date NOT NULL COMMENT 'cohort 日期（成功充值日，东八区）',
+  `day_no` int NOT NULL COMMENT '留存天数：0=cohort 总数，1/2/.../180',
+  `total_users` bigint NOT NULL DEFAULT '0' COMMENT 'cohort 总用户数',
+  `retained_users` bigint NOT NULL DEFAULT '0' COMMENT '第 N 天留存用户数',
+  `updated_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (`cohort_date`,`day_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='消费留存：成功充值 cohort 后第 N 天成功充值';
+
 SET FOREIGN_KEY_CHECKS = 1;

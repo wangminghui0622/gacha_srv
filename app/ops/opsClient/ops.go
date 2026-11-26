@@ -20,6 +20,10 @@ type (
 	BusinessDailyReportRequest            = ops.BusinessDailyReportRequest
 	BusinessDailyRow                      = ops.BusinessDailyRow
 	BusinessDailySummary                  = ops.BusinessDailySummary
+	RetentionCell                         = ops.RetentionCell
+	RetentionReportReply                  = ops.RetentionReportReply
+	RetentionReportRequest                = ops.RetentionReportRequest
+	RetentionRow                          = ops.RetentionRow
 	ApproveTaskPlanPublicationRequest     = ops.ApproveTaskPlanPublicationRequest
 	AttributeValue                        = ops.AttributeValue
 	AuthorizationDecision                 = ops.AuthorizationDecision
@@ -141,6 +145,8 @@ type (
 		QueryUserProfitCurve(ctx context.Context, in *QueryUserProfitCurveRequest, opts ...grpc.CallOption) (*QueryUserProfitCurveReply, error)
 		// 经营日报（读 gacha_report 读模型）
 		GetBusinessDailyReport(ctx context.Context, in *BusinessDailyReportRequest, opts ...grpc.CallOption) (*BusinessDailyReportReply, error)
+		// 留存报表（读 gacha_report 5 张留存表）
+		GetRetentionReport(ctx context.Context, in *RetentionReportRequest, opts ...grpc.CallOption) (*RetentionReportReply, error)
 		// 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
 		ApplyMetricEvent(ctx context.Context, in *ApplyMetricEventRequest, opts ...grpc.CallOption) (*ApplyMetricEventReply, error)
 	}
@@ -331,6 +337,12 @@ func (m *defaultOps) QueryUserProfitCurve(ctx context.Context, in *QueryUserProf
 func (m *defaultOps) GetBusinessDailyReport(ctx context.Context, in *BusinessDailyReportRequest, opts ...grpc.CallOption) (*BusinessDailyReportReply, error) {
 	client := ops.NewOpsClient(m.cli.Conn())
 	return client.GetBusinessDailyReport(ctx, in, opts...)
+}
+
+// 留存报表（读 gacha_report 5 张留存表）
+func (m *defaultOps) GetRetentionReport(ctx context.Context, in *RetentionReportRequest, opts ...grpc.CallOption) (*RetentionReportReply, error) {
+	client := ops.NewOpsClient(m.cli.Conn())
+	return client.GetRetentionReport(ctx, in, opts...)
 }
 
 // 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）

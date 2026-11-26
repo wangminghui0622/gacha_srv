@@ -61,6 +61,8 @@ service Ops {
     rpc QueryUserProfitCurve(QueryUserProfitCurveRequest) returns (QueryUserProfitCurveReply);
     // 经营日报（读 gacha_report 读模型；ops-rpc 定时聚合）
     rpc GetBusinessDailyReport(BusinessDailyReportRequest) returns (BusinessDailyReportReply);
+    // 留存报表（读 gacha_report 5 张留存表；ops-rpc 定时聚合）
+    rpc GetRetentionReport(RetentionReportRequest) returns (RetentionReportReply);
     // 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
     rpc ApplyMetricEvent(ApplyMetricEventRequest) returns (ApplyMetricEventReply);
 }
@@ -691,5 +693,33 @@ message BusinessDailyReportReply {
     BusinessDailySummary summary = 1;
     BusinessDailySummary month = 2;
     repeated BusinessDailyRow rows = 3;
+}
+
+// ── 留存报表（读 gacha_report 5 张留存表）──
+message RetentionReportRequest {
+    string report_type = 1; // new | active | new_pay | join | pay
+    string start_date = 2;  // YYYY-MM-DD（东八区）
+    string end_date = 3;    // YYYY-MM-DD（东八区，闭区间）
+}
+
+message RetentionCell {
+    int32 day_no = 1;          // 1/2/.../180
+    int64 total_users = 2;     // 该列可用 cohort 的合计分母
+    int64 retained_users = 3;  // 留存人数
+    int64 rate_bps = 4;        // 留存率（万分比）
+    bool available = 5;        // false = 该留存天尚未到期
+}
+
+message RetentionRow {
+    string cohort_date = 1; // YYYY-MM-DD；TOTAL 行为 "TOTAL"
+    int64 total_users = 2;
+    repeated RetentionCell cells = 3;
+}
+
+message RetentionReportReply {
+    string report_type = 1;
+    repeated int32 day_nos = 2;
+    repeated RetentionRow rows = 3;
+    RetentionRow total = 4;
 }
 

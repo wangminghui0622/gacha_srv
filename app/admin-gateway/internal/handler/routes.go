@@ -998,6 +998,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: reporting.BusinessDailyReportHandler(serverCtx),
 				},
 				{
+					// 留存报表（reporting.metric:read）
+					Method:  http.MethodGet,
+					Path:    "/reporting/retention",
+					Handler: reporting.RetentionReportHandler(serverCtx),
+				},
+				{
 					// 保存看板（reporting.dashboard:write；id=0 创建/版本 CAS 更新）
 					Method:  http.MethodPost,
 					Path:    "/reporting/dashboards",

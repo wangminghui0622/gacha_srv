@@ -200,6 +200,12 @@ func (s *OpsServer) GetBusinessDailyReport(ctx context.Context, in *ops.Business
 	return l.GetBusinessDailyReport(in)
 }
 
+// 留存报表（读 gacha_report 5 张留存表）
+func (s *OpsServer) GetRetentionReport(ctx context.Context, in *ops.RetentionReportRequest) (*ops.RetentionReportReply, error) {
+	l := logic.NewGetRetentionReportLogic(ctx, s.svcCtx)
+	return l.GetRetentionReport(in)
+}
+
 // 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
 func (s *OpsServer) ApplyMetricEvent(ctx context.Context, in *ops.ApplyMetricEventRequest) (*ops.ApplyMetricEventReply, error) {
 	l := logic.NewApplyMetricEventLogic(ctx, s.svcCtx)

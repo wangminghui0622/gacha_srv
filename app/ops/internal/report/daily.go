@@ -532,18 +532,8 @@ func loadCounts(db *gorm.DB, table string, startUTC, endUTC time.Time) (map[stri
 func loadActiveCounts(db *gorm.DB, startUTC, endUTC time.Time) (map[string]int64, error) {
 	var rows []countRow
 	if err := db.Raw(`
-SELECT d, COUNT(DISTINCT user_id) AS n FROM (
-  SELECT DATE_FORMAT(DATE_ADD(created_at, INTERVAL 8 HOUR), '%Y-%m-%d') AS d, user_id
-  FROM gacha_draw.draw_records WHERE created_at >= ? AND created_at < ?
-  UNION ALL
-  SELECT DATE_FORMAT(DATE_ADD(created_at, INTERVAL 8 HOUR), '%Y-%m-%d'), user_id
-  FROM gacha_money.recharge_orders WHERE created_at >= ? AND created_at < ?
-  UNION ALL
-  SELECT DATE_FORMAT(DATE_ADD(created_at, INTERVAL 8 HOUR), '%Y-%m-%d'), user_id
-  FROM gacha_money.refund_orders WHERE created_at >= ? AND created_at < ?
-  UNION ALL
-  SELECT DATE_FORMAT(DATE_ADD(created_at, INTERVAL 8 HOUR), '%Y-%m-%d'), user_id
-  FROM gacha_money.payment_orders WHERE created_at >= ? AND created_at < ?
+SELECT DATE_FORMAT(d, '%Y-%m-%d') AS d, COUNT(DISTINCT user_id) AS n FROM (
+`+activeEventsSQL+`
 ) x GROUP BY d`,
 		startUTC, endUTC, startUTC, endUTC, startUTC, endUTC, startUTC, endUTC,
 	).Scan(&rows).Error; err != nil {

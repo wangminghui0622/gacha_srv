@@ -194,6 +194,7 @@ func All() []Operation {
 		{ID: "console.reporting.queryuserprofit", Resource: "reporting.metric", Action: "read", Method: "GET", Path: "/analytics/users/:userId/profit-curve", Title: "用户盈亏曲线"},
 		{ID: "console.reporting.metrics", Resource: "reporting.metric", Action: "read", Method: "GET", Path: "/reporting/metrics", Title: "指标定义列表"},
 		{ID: "console.reporting.businessdaily", Resource: "reporting.metric", Action: "read", Method: "GET", Path: "/reporting/business-daily", Title: "经营日报"},
+		{ID: "console.reporting.retention", Resource: "reporting.metric", Action: "read", Method: "GET", Path: "/reporting/retention", Title: "留存报表"},
 		{ID: "console.reporting.save", Resource: "reporting.dashboard", Action: "write", Method: "POST", Path: "/reporting/dashboards", Title: "保存看板"},
 		{ID: "console.reporting.get", Resource: "reporting.dashboard", Action: "read", Method: "GET", Path: "/reporting/dashboards/:dashboardId", Title: "读取看板"},
 		{ID: "console.reporting.publish", Resource: "reporting.dashboard", Action: "publish", Method: "POST", Path: "/reporting/dashboards/:dashboardId/publish", Title: "发布看板"},

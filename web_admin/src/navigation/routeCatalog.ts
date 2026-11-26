@@ -570,7 +570,7 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     title: 'nav.reportRetention',
     showInMenu: false,
     backFallback: '/dashboard',
-    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+    component: () => import('@/views/reporting/RetentionReportView.vue'),
   },
   {
     name: 'report-revenue',
