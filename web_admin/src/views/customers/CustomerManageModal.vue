@@ -1,6 +1,10 @@
 <template>
   <div class="customer-manage-body">
     <a-spin :spinning="loading">
+      <a-descriptions class="user-id-summary" :column="2" size="small" bordered>
+        <a-descriptions-item label="对内ID">{{ internalUserId }}</a-descriptions-item>
+        <a-descriptions-item label="对外ID">{{ publicUserId }}</a-descriptions-item>
+      </a-descriptions>
       <a-tabs v-model:activeKey="activeTab">
         <a-tab-pane key="basic" tab="基本信息">
           <a-form :label-col="{ span: 4 }" :wrapper-col="{ span: 20 }" label-align="right">
@@ -13,13 +17,13 @@
             <a-form-item label="集市展示状态">
               <a-select v-model:value="form.luckyDisplay" :options="luckyDisplayOptions" />
             </a-form-item>
-            <a-form-item label="上级用户ID">
+            <a-form-item label="上级用户对内ID">
               <a-input-number
                 v-model:value="form.parentUserId"
                 :min="0"
                 :precision="0"
                 :controls="false"
-                placeholder="请输入上级用户ID"
+                placeholder="请输入上级用户对内ID"
                 style="width: 100%"
               />
             </a-form-item>
@@ -198,7 +202,9 @@
               <a-table-column title="创建时间" align="center" width="180">
                 <template #default="{ record }">{{ formatTime(record.createdAtUnixMillis) }}</template>
               </a-table-column>
-              <a-table-column title="用户ID" data-index="userId" align="center" width="100" />
+              <a-table-column title="对外ID" align="center" width="140">
+                <template #default>{{ publicUserId }}</template>
+              </a-table-column>
               <a-table-column title="姓名" data-index="name" align="center" />
               <a-table-column title="支付账号" data-index="paymentAccount" align="center" />
               <a-table-column title="操作" align="center" width="100">
@@ -219,7 +225,9 @@
               <a-table-column title="创建时间" align="center" width="180">
                 <template #default="{ record }">{{ formatTime(record.createdAtUnixMillis) }}</template>
               </a-table-column>
-              <a-table-column title="用户ID" data-index="userId" align="center" width="100" />
+              <a-table-column title="对外ID" align="center" width="140">
+                <template #default>{{ publicUserId }}</template>
+              </a-table-column>
               <a-table-column title="姓名" data-index="name" align="center" />
               <a-table-column title="身份证" data-index="idCard" align="center" />
               <a-table-column title="手机号" data-index="phone" align="center" />
@@ -247,6 +255,9 @@ import { newRequestId } from '@/utils/requestId'
 
 const props = defineProps<{ user: ConsoleUser }>()
 const emit = defineEmits<{ (e: 'success'): void }>()
+
+const internalUserId = computed(() => props.user.userId || '-')
+const publicUserId = computed(() => props.user.publicUserId || '-')
 
 const activeTab = ref('basic')
 const loading = ref(false)
@@ -571,6 +582,9 @@ onMounted(async () => {
 <style scoped lang="scss">
 .customer-manage-body {
   padding-top: 4px;
+}
+.user-id-summary {
+  margin-bottom: 16px;
 }
 .customer-manage-body :deep(.ant-form-item) {
   margin-bottom: 22px;
