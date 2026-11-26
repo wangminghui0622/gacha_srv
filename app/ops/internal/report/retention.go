@@ -297,14 +297,14 @@ func AggregateRetention(sourceDB, reportDB *gorm.DB, start, end time.Time) error
 		},
 	}
 	for _, s := range specs {
-		if err := aggregateRetentionTable(sourceDB, reportDB, s.table, s.cohortSQL, s.cohortArgs, s.retainedSQL, s.retainedArgs, dueDate); err != nil {
+		if err := aggregateRetentionTable(sourceDB, reportDB, s.table, s.cohortSQL, s.cohortArgs, s.retainedSQL, s.retainedArgs, startLocal, dueDate); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func aggregateRetentionTable(sourceDB, reportDB *gorm.DB, table, cohortSQL string, cohortArgs []any, retainedSQL string, retainedArgs []any, dueDate string) error {
+func aggregateRetentionTable(sourceDB, reportDB *gorm.DB, table, cohortSQL string, cohortArgs []any, retainedSQL string, retainedArgs []any, startLocal time.Time, dueDate string) error {
 	query := fmt.Sprintf(`
 WITH cohorts AS (
 %s
@@ -335,7 +335,7 @@ CROSS JOIN (
   %s
 ) dy
 LEFT JOIN retained r ON r.cohort_date = t.cohort_date AND r.day_no = dy.day_no
-WHERE DATE_ADD(t.cohort_date, INTERVAL dy.day_no DAY) <= ?`,
+WHERE dy.day_no = 0 OR DATE_ADD(t.cohort_date, INTERVAL dy.day_no DAY) < ?`,
 		cohortSQL, retainedSQL, retentionDayListSQL(), retentionDayUnionSQL())
 
 	args := make([]any, 0, len(cohortArgs)+len(retainedArgs)+1)
@@ -351,9 +351,26 @@ WHERE DATE_ADD(t.cohort_date, INTERVAL dy.day_no DAY) <= ?`,
 		return nil
 	}
 	if err := reportDB.Transaction(func(tx *gorm.DB) error {
+		if err := deletePendingRetentionRows(tx, table, startLocal.Format("2006-01-02"), dueDate); err != nil {
+			return err
+		}
 		return upsertRetentionRows(tx, table, rows)
 	}); err != nil {
 		return err
+	}
+	return nil
+}
+
+// deletePendingRetentionRows 清理尚未完整结束的留存天（目标日期 >= 今天），
+// 避免通过接口看到当天未跑完的 D1/D2 等部分数据。
+func deletePendingRetentionRows(tx *gorm.DB, table, startDate, dueDate string) error {
+	if err := tx.Exec(fmt.Sprintf(`
+DELETE FROM gacha_report.%s
+WHERE cohort_date >= ? AND day_no > 0
+  AND DATE_ADD(cohort_date, INTERVAL day_no DAY) >= ?`, table),
+		startDate, dueDate,
+	).Error; err != nil {
+		return fmt.Errorf("delete pending %s: %w", table, err)
 	}
 	return nil
 }

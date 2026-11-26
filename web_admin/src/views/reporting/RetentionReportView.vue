@@ -64,13 +64,15 @@ const emptyTotal = (): RetentionRow => ({ cohortDate: 'TOTAL', totalUsers: 0, ce
 
 const activeTab = ref<RetentionType>('new')
 const activeTabLabel = computed(() => tabs.find((tab) => tab.key === activeTab.value)?.label ?? '留存报表')
+// 留存只统计完整自然日，默认截止到昨天。
+const defaultEnd = dayjs().subtract(1, 'day')
 const rangePresets: { label: string; value: [Dayjs, Dayjs] }[] = [
-  { label: '最近7天', value: [dayjs().subtract(6, 'day'), dayjs()] },
-  { label: '最近30天', value: [dayjs().subtract(29, 'day'), dayjs()] },
-  { label: '最近90天', value: [dayjs().subtract(89, 'day'), dayjs()] },
-  { label: '最近180天', value: [dayjs().subtract(179, 'day'), dayjs()] },
+  { label: '最近7天', value: [defaultEnd.subtract(6, 'day'), defaultEnd] },
+  { label: '最近30天', value: [defaultEnd.subtract(29, 'day'), defaultEnd] },
+  { label: '最近90天', value: [defaultEnd.subtract(89, 'day'), defaultEnd] },
+  { label: '最近180天', value: [defaultEnd.subtract(179, 'day'), defaultEnd] },
 ]
-const range = ref<[Dayjs, Dayjs]>([dayjs().subtract(29, 'day'), dayjs()])
+const range = ref<[Dayjs, Dayjs]>([defaultEnd.subtract(29, 'day'), defaultEnd])
 const loading = ref(false)
 const rows = ref<RetentionRow[]>([])
 const total = ref<RetentionRow>(emptyTotal())
@@ -87,11 +89,12 @@ const tableRows = computed<RetentionTableRow[]>(() => {
 
 function renderCell(row: RetentionRow, dayNo: number) {
   const cell = row.cells?.find((item) => item.dayNo === dayNo)
-  const rate = cell?.available ? (cell.rateBps / 100).toFixed(2) : '0.00'
-  const count = cell?.available ? cell.retainedUsers : 0
+  if (!cell?.available) {
+    return h('span', { class: 'ret-empty' }, '—')
+  }
   return h('div', { class: 'ret-cell' }, [
-    h('span', { class: 'ret-rate' }, `${rate}%`),
-    h('span', { class: 'ret-count' }, `${count}`),
+    h('div', { class: 'ret-rate' }, `${(cell.rateBps / 100).toFixed(2)}%`),
+    h('div', { class: 'ret-count' }, `${cell.retainedUsers}`),
   ])
 }
 
@@ -169,7 +172,7 @@ function csvEscape(value: unknown): string {
 function cellText(row: RetentionRow, dayNo: number): string {
   const cell = row.cells?.find((item) => item.dayNo === dayNo)
   if (!cell?.available) {
-    return '0.00% (0)'
+    return '—'
   }
   return `${(cell.rateBps / 100).toFixed(2)}% (${cell.retainedUsers})`
 }
@@ -273,6 +276,10 @@ onMounted(load)
 .ret-count {
   color: #8c8c8c;
   font-size: 12px;
+}
+
+.ret-empty {
+  color: #bfbfbf;
 }
 
 .console-list-footer {

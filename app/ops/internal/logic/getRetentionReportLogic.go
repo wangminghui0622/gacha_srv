@@ -37,7 +37,8 @@ func (l *GetRetentionReportLogic) GetRetentionReport(in *ops.RetentionReportRequ
 	}
 
 	loc := time.FixedZone("CST", 8*3600)
-	end := time.Now().In(loc)
+	// 留存需要完整自然日：默认统计到昨天，避免当天未跑完的 D1/D2 部分数据。
+	end := time.Now().In(loc).AddDate(0, 0, -1)
 	start := end.AddDate(0, 0, -29)
 	var err error
 	if in.GetStartDate() != "" {

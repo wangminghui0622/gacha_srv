@@ -19,7 +19,8 @@ func RetentionReportHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			reportType = "new"
 		}
 
-		end := time.Now().In(reportCST)
+		// 留存的默认区间截止到昨天，只统计完整自然日。
+		end := time.Now().In(reportCST).AddDate(0, 0, -1)
 		start := end.AddDate(0, 0, -29)
 		if raw := restx.QueryString(r, "endDate"); raw != "" {
 			parsed, err := time.ParseInLocation("2006-01-02", raw, reportCST)
