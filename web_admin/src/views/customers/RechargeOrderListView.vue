@@ -24,7 +24,8 @@
       </a-button>
     </div>
 
-    <a-table
+    <div class="table-fill">
+      <a-table
       :data-source="items"
       :loading="loading"
       :pagination="false"
@@ -101,6 +102,7 @@
         </template>
       </a-table-column>
     </a-table>
+    </div>
 
     <div class="order-footer console-list-footer">
       <a-pagination
@@ -381,6 +383,8 @@ onMounted(load)
 
 <style scoped>
 .order-page {
+  height: calc(100vh - 132px);
+  overflow: hidden;
   padding: 14px 16px 18px;
   background: #fff;
   border: 1px solid #e4e7ed;

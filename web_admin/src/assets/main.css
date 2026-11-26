@@ -13,3 +13,47 @@
   margin-top: auto !important;
   padding-top: 16px;
 }
+
+/* 表格区域撑满列表页剩余高度 */
+.table-fill {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.table-fill > .ant-table-wrapper {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.table-fill .ant-spin-nested-loading,
+.table-fill .ant-spin-container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.table-fill .ant-table {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.table-fill .ant-table-container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.table-fill .ant-table-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto !important;
+}
