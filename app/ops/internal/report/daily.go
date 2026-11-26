@@ -124,18 +124,21 @@ func QueryDaily(reportDB *gorm.DB, start, end time.Time) (*Result, error) {
 SELECT DATE_FORMAT(report_date, '%Y-%m-%d') AS date,
        registrations, active_users, paying_users,
        refundable_fen, balance_fen, inventory_value_fen,
-       draw_amount_fen, prize_amount_fen, gross_profit_fen,
-       CASE WHEN draw_amount_fen > 0 THEN gross_profit_fen * 10000 / draw_amount_fen ELSE 0 END AS gross_margin_bps,
+       draw_count, draw_amount_fen, prize_amount_fen, gross_profit_fen,
        total_received_fen, total_recharge_fen, total_refund_fen,
        alipay_recharge_fen, huifu_recharge_fen, alipay_refund_fen, huifu_refund_fen,
-       recharge_original_refund_fen, user_refund_fen, recharge_minus_refund_fen,
-       CASE WHEN total_recharge_fen > 0 THEN total_refund_fen * 10000 / total_recharge_fen ELSE 0 END AS refund_rate_bps
+       recharge_original_refund_fen, user_refund_fen, recharge_minus_refund_fen
 FROM gacha_report.business_daily
 WHERE report_date >= ? AND report_date <= ?
 ORDER BY report_date DESC`,
 		startLocal.Format("2006-01-02"), endLocal.Format("2006-01-02"),
 	).Scan(&rows).Error; err != nil {
 		return nil, fmt.Errorf("query report rows: %w", err)
+	}
+	// 比率在 Go 侧按整数万分比计算，避免 MySQL DECIMAL 扫描到 int64 失败。
+	for i := range rows {
+		rows[i].GrossMarginBps = rateBps(rows[i].GrossProfitFen, rows[i].DrawAmountFen)
+		rows[i].RefundRateBps = rateBps(rows[i].TotalRefundFen, rows[i].TotalRechargeFen)
 	}
 	return &Result{Summary: *summary, Month: *month, Rows: rows}, nil
 }
