@@ -562,7 +562,7 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     title: 'nav.reportDaily',
     showInMenu: false,
     backFallback: '/dashboard',
-    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+    component: () => import('@/views/reporting/DailyReportView.vue'),
   },
   {
     name: 'report-retention',

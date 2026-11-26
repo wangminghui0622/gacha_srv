@@ -22,9 +22,12 @@ import (
 	"gacha_srv/pkg/utils/errorx"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type ServiceContext struct {
@@ -40,7 +43,9 @@ type ServiceContext struct {
 	ThirdpartyRpc thirdpartyClient.Thirdparty
 	IdentityRpc   identityClient.Identity
 	Rdb           *redis.Client
-	PubKey        ed25519.PublicKey
+	// DB 经营日报只读聚合（gacha_ops 连接，跨库查询）
+	DB     *gorm.DB
+	PubKey ed25519.PublicKey
 
 	RequestId        rest.Middleware
 	ConsoleAuth      rest.Middleware
@@ -99,6 +104,21 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		DB:       0,
 	})
 
+	// 经营日报只读聚合库连接（DataSource 指向 gacha_ops，SQL 内跨库查询）
+	db, err := gorm.Open(mysql.Open(c.MySQL.DataSource), &gorm.Config{})
+	if err != nil {
+		panic("failed to init admin-gateway report db: " + err.Error())
+	}
+	sqlDB, err := db.DB()
+	if err != nil {
+		panic("failed to get admin-gateway report sql.DB: " + err.Error())
+	}
+	sqlDB.SetMaxOpenConns(20)
+	sqlDB.SetMaxIdleConns(5)
+	proc.AddShutdownListener(func() {
+		_ = sqlDB.Close()
+	})
+
 	auth := middleware.NewConsoleAuthMiddleware(ed25519.PublicKey(pub), c.Console.Issuer, c.Console.Audience, rdb)
 
 	return &ServiceContext{
@@ -114,6 +134,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		ThirdpartyRpc:    thirdpartyRpc,
 		IdentityRpc:      identityRpc,
 		Rdb:              rdb,
+		DB:               db,
 		PubKey:           ed25519.PublicKey(pub),
 		RequestId:        middleware.NewRequestIdMiddleware().Handle,
 		ConsoleAuth:      auth.Handle,
