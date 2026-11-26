@@ -106,7 +106,12 @@ func (l *BoxBuyLogic) BoxBuy(req *types.BuyBoxReq) (resp *types.BuyBoxResp, err 
 	}
 
 	// ④ 发订单号（requestId 幂等）；SAGA 重试复用同一订单号
-	alloc, err := l.svcCtx.DrawRpc.AllocateDrawOrder(l.ctx, &drawClient.AllocateDrawOrderReq{RequestId: gid})
+	alloc, err := l.svcCtx.DrawRpc.AllocateDrawOrder(l.ctx, &drawClient.AllocateDrawOrderReq{
+		RequestId: gid,
+		UserId:    userId,
+		BoxId:     req.BoxId,
+		PriceFen:  quote.PayableFen,
+	})
 	if err != nil {
 		l.Errorf("BoxBuy AllocateDrawOrder failed, gid: %s, err: %v", gid, err)
 		return nil, errorx.FromError(err)

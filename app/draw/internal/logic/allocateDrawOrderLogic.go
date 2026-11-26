@@ -27,7 +27,7 @@ func (l *AllocateDrawOrderLogic) AllocateDrawOrder(in *draw.AllocateDrawOrderReq
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	alloc, err := allocateDrawOrder(tx, in.GetRequestId())
+	alloc, err := ensureDrawOrder(tx, in.GetRequestId(), in.GetUserId(), in.GetBoxId(), in.GetPriceFen())
 	if err != nil {
 		return nil, errorx.NewCodeError(errorx.CodeParamError, "订单号分配失败："+err.Error())
 	}

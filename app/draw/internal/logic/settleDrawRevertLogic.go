@@ -84,6 +84,8 @@ func (l *SettleDrawRevertLogic) SettleDrawRevert(in *draw.SettleDrawReq) (*draw.
 		var rec drawmodelnc.DrawRecords
 		err := db.Where("request_id = ?", in.RequestId).First(&rec).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// 正向未走到开奖：订单主表若已创建，置取消/失败。
+			_ = db.Exec("UPDATE draw_orders SET status = 3, updated_at = NOW(3) WHERE request_id = ? AND status = 1", in.RequestId)
 			l.Infof("empty compensate: record not found, requestId: %s, skip", in.RequestId)
 			return nil
 		}
@@ -103,6 +105,11 @@ func (l *SettleDrawRevertLogic) SettleDrawRevert(in *draw.SettleDrawReq) (*draw.
 		// ① 记录 → 已撤销（盲更新：仅 status=1 才动）
 		if err := db.Model(&drawmodelnc.DrawRecords{}).Where("id = ? AND status = ?", rec.Id, recordStatusNormal).Update("status", recordStatusCanceled).Error; err != nil {
 			return err
+		}
+		if rec.OrderId > 0 {
+			if err := markDrawOrderCanceled(db, rec.OrderId); err != nil {
+				return err
+			}
 		}
 
 		// ② 吉仓 → 出仓（中奖才有仓；盲更新仅 status=1 才动）

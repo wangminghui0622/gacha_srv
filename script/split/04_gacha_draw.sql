@@ -131,17 +131,25 @@ CREATE TABLE IF NOT EXISTS `draw_order_sequences` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=333000000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='抽盒订单发号表';
 
-CREATE TABLE IF NOT EXISTS `draw_order_allocations` (
-  `request_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '请求ID（= 订单来源 gid）',
-  `order_id` bigint unsigned NOT NULL COMMENT '内部订单号',
-  `order_seq` bigint unsigned NOT NULL COMMENT '订单序号',
-  `order_no` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '对外订单号',
+CREATE TABLE IF NOT EXISTS `draw_orders` (
+  `id` bigint unsigned NOT NULL COMMENT '订单号（YYYYMMDD*10^9+序号）',
+  `request_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '请求ID（= 下单 gid，幂等）',
+  `order_no` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '对外订单号（o+Base62）',
+  `order_seq` bigint unsigned NOT NULL COMMENT '订单序号（从 333000000 起全局递增）',
+  `user_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '用户ID',
+  `box_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '宝箱ID',
+  `price_fen` bigint NOT NULL DEFAULT '0' COMMENT '实付金额（分）',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态：1=处理中 2=已完成 3=已取消/失败',
+  `record_id` bigint unsigned NOT NULL DEFAULT '0' COMMENT '开奖记录ID（draw_records.id）',
   `created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '创建时间',
-  PRIMARY KEY (`request_id`),
-  UNIQUE KEY `uk_order_id` (`order_id`),
+  `updated_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_request_id` (`request_id`),
+  UNIQUE KEY `uk_order_no` (`order_no`),
   UNIQUE KEY `uk_order_seq` (`order_seq`),
-  UNIQUE KEY `uk_order_no` (`order_no`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='抽盒订单号分配表（requestId 幂等）';
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_box_id` (`box_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='抽盒订单主表';
 
 CREATE TABLE IF NOT EXISTS `draw_warehouse_items` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',

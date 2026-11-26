@@ -108,7 +108,12 @@ func (l *CampaignBoxOpenLogic) OpenCampaignBox(req *types.OpenCampaignBoxReq) (r
 	}
 
 	// ④ 发订单号（requestId 幂等）
-	alloc, err := l.svcCtx.DrawRpc.AllocateDrawOrder(l.ctx, &drawClient.AllocateDrawOrderReq{RequestId: gid})
+	alloc, err := l.svcCtx.DrawRpc.AllocateDrawOrder(l.ctx, &drawClient.AllocateDrawOrderReq{
+		RequestId: gid,
+		UserId:    userId,
+		BoxId:     ent.BoxId,
+		PriceFen:  quote.PayableFen,
+	})
 	if err != nil {
 		l.Errorf("OpenCampaignBox AllocateDrawOrder failed, gid: %s, err: %v", gid, err)
 		return nil, errorx.FromError(err)

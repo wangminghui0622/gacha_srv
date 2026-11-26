@@ -120,6 +120,9 @@ message SettleDrawResp {
 
 message AllocateDrawOrderReq {
   string requestId = 1; // 幂等键（= 抽盒下单 gid）
+  int64 userId = 2;     // 用户ID
+  int64 boxId = 3;      // 宝箱ID
+  int64 priceFen = 4;   // 实付金额（分）
 }
 
 message AllocateDrawOrderResp {
