@@ -1,5 +1,8 @@
 <template>
-  <div ref="chartEl" class="retention-chart" />
+  <div class="retention-chart-wrap">
+    <div ref="chartEl" class="retention-chart" />
+    <div v-if="empty" class="chart-empty">暂无可展示的留存数据（留存天数尚未到期）</div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -13,6 +16,7 @@ const props = defineProps<{
 }>()
 
 const chartEl = ref<HTMLDivElement | null>(null)
+const empty = ref(true)
 let chart: echarts.ECharts | null = null
 
 const colors = [
@@ -73,6 +77,7 @@ function render() {
     })
     colorIndex += 1
   }
+  empty.value = series.length === 0
 
   chart.setOption(
     {
@@ -138,8 +143,25 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.retention-chart {
+.retention-chart-wrap {
+  position: relative;
   width: 100%;
   height: 340px;
+}
+
+.retention-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.chart-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bfbfbf;
+  font-size: 14px;
+  pointer-events: none;
 }
 </style>

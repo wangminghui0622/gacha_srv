@@ -30,7 +30,7 @@
             class="report-table"
           />
           <div class="console-list-footer">
-            <span>共 {{ rows.length }} 个 cohort</span>
+            <span>共 {{ rows.length }} 天</span>
           </div>
         </div>
       </a-tab-pane>
@@ -58,9 +58,18 @@ const tabs: { key: RetentionType; label: string }[] = [
   { key: 'pay', label: '消费留存' },
 ]
 
+const cohortLabels: Record<RetentionType, string> = {
+  new: '新增用户',
+  active: '活跃用户',
+  new_pay: '首充用户',
+  join: '参与用户',
+  pay: '充值用户',
+}
+
 const emptyTotal = (): RetentionRow => ({ cohortDate: 'TOTAL', totalUsers: 0, cells: [] })
 
 const activeTab = ref<RetentionType>('new')
+const cohortLabel = computed(() => cohortLabels[activeTab.value])
 const range = ref<[Dayjs, Dayjs]>([dayjs().subtract(29, 'day'), dayjs()])
 const loading = ref(false)
 const rows = ref<RetentionRow[]>([])
@@ -96,10 +105,10 @@ const columns = computed(() => [
     fixed: 'left' as const,
   },
   {
-    title: '用户数',
+    title: cohortLabel.value,
     dataIndex: 'totalUsers',
     key: 'totalUsers',
-    width: 88,
+    width: 96,
     align: 'right' as const,
   },
   ...dayNos.value.map((dayNo) => ({
@@ -166,7 +175,7 @@ function cellText(row: RetentionRow, dayNo: number): string {
 }
 
 function exportCsv() {
-  const header = ['日期', '用户数', ...dayNos.value.map((dayNo) => `D${dayNo}`)]
+  const header = ['日期', cohortLabel.value, ...dayNos.value.map((dayNo) => `D${dayNo}`)]
   const data = tableRows.value.map((row) => [
     row.cohortDate,
     row.totalUsers,
