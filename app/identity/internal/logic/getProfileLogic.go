@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"gacha_srv/app/identity/internal/svc"
 	"gacha_srv/app/identity/identity"
+	"gacha_srv/app/identity/internal/svc"
 	"gacha_srv/pkg/model_nocache/gacha_identity"
 	"gacha_srv/pkg/utils/errorx"
 
@@ -40,8 +40,9 @@ func (l *GetProfileLogic) GetProfile(in *identity.GetProfileReq) (*identity.GetP
 		return nil, errorx.FromMySQLError(err)
 	}
 	return &identity.GetProfileResp{
-		UserId:   u.Id,
-		Username: u.Username,
-		Nickname: u.Nickname,
+		UserId:       u.Id,
+		Username:     u.Username,
+		Nickname:     u.Nickname,
+		PublicUserId: publicUserIdOf(u.Id),
 	}, nil
 }

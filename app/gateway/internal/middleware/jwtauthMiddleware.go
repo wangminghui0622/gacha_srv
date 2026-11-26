@@ -18,16 +18,31 @@ import (
 // ctxKeyUserId 用户身份上下文键（logic 用 UserIdFromCtx 读取）
 type ctxKey int
 
-const ctxKeyUserId ctxKey = iota
+const (
+	ctxKeyUserId ctxKey = iota
+	ctxKeyPublicUserId
+)
 
 // WithUserId 把用户身份写入上下文（JwtAuth 校验通过后）
 func WithUserId(ctx context.Context, userId int64) context.Context {
 	return context.WithValue(ctx, ctxKeyUserId, userId)
 }
 
+// WithUserIdentity 同时写入数字 ID 与对外字符串 ID
+func WithUserIdentity(ctx context.Context, userId int64, publicUserId string) context.Context {
+	ctx = context.WithValue(ctx, ctxKeyUserId, userId)
+	return context.WithValue(ctx, ctxKeyPublicUserId, publicUserId)
+}
+
 // UserIdFromCtx logic 层从上下文读取用户身份（规范 common/api-conventions 规则 11）
 func UserIdFromCtx(ctx context.Context) (int64, bool) {
 	v, ok := ctx.Value(ctxKeyUserId).(int64)
+	return v, ok
+}
+
+// PublicUserIdFromCtx 对外字符串用户 ID（未签发时为空）
+func PublicUserIdFromCtx(ctx context.Context) (string, bool) {
+	v, ok := ctx.Value(ctxKeyPublicUserId).(string)
 	return v, ok
 }
 
@@ -55,7 +70,7 @@ func (m *JwtAuthMiddleware) Handle(next http.HandlerFunc) http.HandlerFunc {
 			httpx.ErrorCtx(r.Context(), w, errorx.FromError(err))
 			return
 		}
-		next(w, r.WithContext(WithUserId(r.Context(), resp.UserId)))
+		next(w, r.WithContext(WithUserIdentity(r.Context(), resp.UserId, resp.PublicUserId)))
 	}
 }
 
@@ -84,6 +99,6 @@ func (m *JwtAuthMiddleware) OptionalHandle(next http.HandlerFunc) http.HandlerFu
 			httpx.ErrorCtx(r.Context(), w, errorx.FromError(err))
 			return
 		}
-		next(w, r.WithContext(WithUserId(r.Context(), resp.UserId)))
+		next(w, r.WithContext(WithUserIdentity(r.Context(), resp.UserId, resp.PublicUserId)))
 	}
 }

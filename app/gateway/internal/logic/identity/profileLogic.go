@@ -1,4 +1,5 @@
 package identity
+
 import (
 	"context"
 
@@ -44,9 +45,10 @@ func (l *ProfileLogic) Profile() (resp *types.UserProfile, err error) {
 		return nil, errorx.FromError(err)
 	}
 	return &types.UserProfile{
-		UserId:   p.UserId,
-		Username: p.Username,
-		Nickname: p.Nickname,
-		Balance:  b.Balance,
+		UserId:       p.UserId,
+		PublicUserId: p.PublicUserId,
+		Username:     p.Username,
+		Nickname:     p.Nickname,
+		Balance:      b.Balance,
 	}, nil
 }

@@ -1,4 +1,5 @@
 package identity
+
 import (
 	"context"
 
@@ -34,5 +35,5 @@ func (l *LoginLogic) Login(req *types.LoginReq) (resp *types.LoginResp, err erro
 		l.Errorf("Login failed, username: %s, err: %v", req.Username, err)
 		return nil, errorx.FromError(err)
 	}
-	return &types.LoginResp{UserId: r.UserId, Token: r.Token}, nil
+	return &types.LoginResp{UserId: r.UserId, PublicUserId: r.PublicUserId, Token: r.Token}, nil
 }

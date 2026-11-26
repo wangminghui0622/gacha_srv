@@ -2,6 +2,7 @@ import { http } from '@/utils/request'
 
 export interface ConsoleUser {
   userId?: string | number
+  publicUserId?: string
   username?: string
   nickname?: string
   phone?: string

@@ -1,4 +1,5 @@
 package identity
+
 import (
 	"context"
 
@@ -40,5 +41,5 @@ func (l *PhoneLoginLogic) PhoneLogin(req *types.PhoneLoginReq) (resp *types.Logi
 		l.Errorf("LoginWithPhoneCode failed, phone: %s, err: %v", req.Phone, err)
 		return nil, errorx.FromError(err)
 	}
-	return &types.LoginResp{UserId: r.UserId, Token: r.Token}, nil
+	return &types.LoginResp{UserId: r.UserId, PublicUserId: r.PublicUserId, Token: r.Token}, nil
 }

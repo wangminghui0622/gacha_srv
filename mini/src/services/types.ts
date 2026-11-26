@@ -25,6 +25,7 @@ export interface LoginRequest {
 // 与后端 LoginResp 对齐
 export interface AuthResponse {
   userId: number
+  publicUserId?: string
   token: string
 }
 
@@ -57,6 +58,7 @@ export interface WeChatLoginRequest {
 // 与后端 UserProfile 对齐
 export interface UserProfile {
   userId: number
+  publicUserId?: string
   username: string
   nickname: string
   balance: string

@@ -1,4 +1,5 @@
 package identity
+
 import (
 	"context"
 
@@ -44,5 +45,5 @@ func (l *WeChatLoginLogic) WeChatLogin(req *types.WeChatLoginReq) (resp *types.L
 		l.Errorf("LoginWithWeChatCode failed, scene: %d, err: %v", req.Scene, err)
 		return nil, errorx.FromError(err)
 	}
-	return &types.LoginResp{UserId: r.UserId, Token: r.Token}, nil
+	return &types.LoginResp{UserId: r.UserId, PublicUserId: r.PublicUserId, Token: r.Token}, nil
 }

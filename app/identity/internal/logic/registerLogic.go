@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"time"
 
-	"gacha_srv/app/identity/internal/svc"
 	"gacha_srv/app/identity/identity"
+	"gacha_srv/app/identity/internal/svc"
 	"gacha_srv/pkg/model_nocache/gacha_identity"
 	"gacha_srv/pkg/utils/errorx"
 
@@ -85,5 +85,5 @@ func (l *RegisterLogic) Register(in *identity.RegisterReq) (*identity.RegisterRe
 		return nil, errorx.FromMySQLError(err)
 	}
 	l.Infof("Register success, username: %s, userId: %d", in.Username, userId)
-	return &identity.RegisterResp{UserId: userId}, nil
+	return &identity.RegisterResp{UserId: userId, PublicUserId: publicUserIdOf(userId)}, nil
 }

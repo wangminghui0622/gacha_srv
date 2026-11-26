@@ -10,19 +10,26 @@ import (
 
 // Claims 自定义载荷：网关鉴权中间件从 ctx 拿到的用户身份
 type Claims struct {
-	UserId   int64  `json:"userId"`
-	Username string `json:"username"`
-	Nickname string `json:"nickname"`
+	UserId       int64  `json:"userId,omitempty"`
+	PublicUserId string `json:"publicUserId,omitempty"`
+	Username     string `json:"username"`
+	Nickname     string `json:"nickname"`
 	jwt.RegisteredClaims
 }
 
-// NewToken 签发 token；expire 单位为秒
+// NewToken 签发 token；expire 单位为秒（兼容旧调用，不写对外用户 ID）
 func NewToken(secret string, expire int64, userId int64, username, nickname string) (string, error) {
+	return NewTokenWithPublicId(secret, expire, userId, "", username, nickname)
+}
+
+// NewTokenWithPublicId 签发 token；同时写入内部数字 ID 与对外字符串 ID
+func NewTokenWithPublicId(secret string, expire int64, userId int64, publicUserId, username, nickname string) (string, error) {
 	now := time.Now()
 	claims := &Claims{
-		UserId:   userId,
-		Username: username,
-		Nickname: nickname,
+		UserId:       userId,
+		PublicUserId: publicUserId,
+		Username:     username,
+		Nickname:     nickname,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "gacha-user",
 			IssuedAt:  jwt.NewNumericDate(now),

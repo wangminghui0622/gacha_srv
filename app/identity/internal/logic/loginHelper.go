@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
+	"gacha_srv/app/identity/identity"
 	"gacha_srv/app/identity/internal/phonecrypto"
 	"gacha_srv/app/identity/internal/repo"
 	"gacha_srv/app/identity/internal/svc"
-	"gacha_srv/app/identity/identity"
 	"gacha_srv/pkg/utils/errorx"
 	"gacha_srv/pkg/utils/jwtutil"
 
@@ -23,12 +23,13 @@ func issueToken(ctx context.Context, svcCtx *svc.ServiceContext, userID int64) (
 		}
 		return nil, errorx.FromMySQLError(err)
 	}
-	token, err := jwtutil.NewToken(svcCtx.Config.JwtAuth.AccessSecret, svcCtx.Config.JwtAuth.AccessExpire,
-		u.Id, u.Username, u.Nickname)
+	publicUserID := publicUserIdOf(u.Id)
+	token, err := jwtutil.NewTokenWithPublicId(svcCtx.Config.JwtAuth.AccessSecret, svcCtx.Config.JwtAuth.AccessExpire,
+		u.Id, publicUserID, u.Username, u.Nickname)
 	if err != nil {
 		return nil, errorx.NewCodeError(errorx.CodeServerError, "令牌签发失败")
 	}
-	return &identity.LoginResp{UserId: u.Id, Token: token}, nil
+	return &identity.LoginResp{UserId: u.Id, PublicUserId: publicUserID, Token: token}, nil
 }
 
 // wechatKindFromScene 微信授权场景 → 第三方种类（identity.proto 两枚举一一对应）

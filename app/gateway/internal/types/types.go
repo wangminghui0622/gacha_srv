@@ -135,8 +135,9 @@ type LoginReq struct {
 }
 
 type LoginResp struct {
-	UserId int64  `json:"userId"`
-	Token  string `json:"token"`
+	UserId       int64  `json:"userId"`
+	PublicUserId string `json:"publicUserId"`
+	Token        string `json:"token"`
 }
 
 // M15a 手机号/微信登录（请求形状照抄 server_v2，device/fingerprint 透传不参与签发）
@@ -208,14 +209,16 @@ type RegisterReq struct {
 }
 
 type RegisterResp struct {
-	UserId int64 `json:"userId"`
+	UserId       int64  `json:"userId"`
+	PublicUserId string `json:"publicUserId"`
 }
 
 type UserProfile struct {
-	UserId   int64  `json:"userId"`
-	Username string `json:"username"`
-	Nickname string `json:"nickname"`
-	Balance  string `json:"balance"`
+	UserId       int64  `json:"userId"`
+	PublicUserId string `json:"publicUserId"`
+	Username     string `json:"username"`
+	Nickname     string `json:"nickname"`
+	Balance      string `json:"balance"`
 }
 
 type WarehouseItem struct {

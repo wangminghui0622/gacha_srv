@@ -11,6 +11,7 @@ import (
 	"gacha_srv/app/identity/internal/svc"
 	"gacha_srv/pkg/model_nocache/gacha_identity"
 	"gacha_srv/pkg/utils/errorx"
+	"gacha_srv/pkg/utils/publicid"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
@@ -65,10 +66,19 @@ func (l *ListConsoleUsersLogic) ListConsoleUsers(in *identity.ListConsoleUsersRe
 
 	if keyword := strings.TrimSpace(in.Keyword); keyword != "" {
 		like := "%" + keyword + "%"
-		if id, err := strconv.ParseInt(keyword, 10, 64); err == nil && id > 0 {
-			query = query.Where("(user_users.id = ? OR user_users.nickname LIKE ? OR user_users.username LIKE ?)", id, like, like)
-		} else {
-			query = query.Where("(user_users.nickname LIKE ? OR user_users.username LIKE ?)", like, like)
+		switch {
+		case strings.HasPrefix(keyword, publicid.UserPrefix):
+			if id, err := publicid.DecodeUserID(keyword); err == nil && id > 0 {
+				query = query.Where("(user_users.id = ? OR user_users.nickname LIKE ? OR user_users.username LIKE ?)", id, like, like)
+			} else {
+				query = query.Where("(user_users.nickname LIKE ? OR user_users.username LIKE ?)", like, like)
+			}
+		default:
+			if id, err := strconv.ParseInt(keyword, 10, 64); err == nil && id > 0 {
+				query = query.Where("(user_users.id = ? OR user_users.nickname LIKE ? OR user_users.username LIKE ?)", id, like, like)
+			} else {
+				query = query.Where("(user_users.nickname LIKE ? OR user_users.username LIKE ?)", like, like)
+			}
 		}
 	}
 	if phoneUserID > 0 {
@@ -127,6 +137,7 @@ func (l *ListConsoleUsersLogic) ListConsoleUsers(in *identity.ListConsoleUsersRe
 		}
 		items = append(items, &identity.ConsoleUser{
 			UserId:              user.Id,
+			PublicUserId:        publicUserIdOf(user.Id),
 			Username:            user.Username,
 			Nickname:            user.Nickname,
 			Phone:               phone,

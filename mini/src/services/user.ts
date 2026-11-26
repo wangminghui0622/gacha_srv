@@ -15,8 +15,8 @@ import type {
 // 用户域服务：端点与后端 .api 定义一致（/user/*，规范 05-api-layer 第 6 条）
 
 /** 用户注册（公开） */
-export function register(data: RegisterRequest): Promise<{ userId: number }> {
-  return post<{ userId: number }>('/user/register', data)
+export function register(data: RegisterRequest): Promise<{ userId: number; publicUserId?: string }> {
+  return post<{ userId: number; publicUserId?: string }>('/user/register', data)
 }
 
 /** 用户登录（公开），返回 token 与 userId */

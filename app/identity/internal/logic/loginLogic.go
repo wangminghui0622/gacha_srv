@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"gacha_srv/app/identity/internal/svc"
 	"gacha_srv/app/identity/identity"
+	"gacha_srv/app/identity/internal/svc"
 	"gacha_srv/pkg/model_nocache/gacha_identity"
 	"gacha_srv/pkg/utils/errorx"
 	"gacha_srv/pkg/utils/jwtutil"
@@ -44,12 +44,13 @@ func (l *LoginLogic) Login(in *identity.LoginReq) (*identity.LoginResp, error) {
 	if bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(in.Password)) != nil {
 		return nil, errorx.NewCodeError(errorx.CodePasswordWrong, "密码错误")
 	}
-	token, err := jwtutil.NewToken(l.svcCtx.Config.JwtAuth.AccessSecret, l.svcCtx.Config.JwtAuth.AccessExpire,
-		u.Id, u.Username, u.Nickname)
+	publicUserID := publicUserIdOf(u.Id)
+	token, err := jwtutil.NewTokenWithPublicId(l.svcCtx.Config.JwtAuth.AccessSecret, l.svcCtx.Config.JwtAuth.AccessExpire,
+		u.Id, publicUserID, u.Username, u.Nickname)
 	if err != nil {
 		l.Errorf("Login sign token failed, userId: %d, err: %v", u.Id, err)
 		return nil, errorx.NewCodeError(errorx.CodeServerError, "令牌签发失败")
 	}
 	l.Infof("Login success, userId: %d", u.Id)
-	return &identity.LoginResp{Token: token, UserId: u.Id}, nil
+	return &identity.LoginResp{Token: token, UserId: u.Id, PublicUserId: publicUserID}, nil
 }

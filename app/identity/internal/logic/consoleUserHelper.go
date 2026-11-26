@@ -50,6 +50,7 @@ func buildConsoleUser(ctx context.Context, svcCtx *svc.ServiceContext, tenantID,
 	}
 	return &identity.ConsoleUser{
 		UserId:              user.Id,
+		PublicUserId:        publicUserIdOf(user.Id),
 		Username:            user.Username,
 		Nickname:            user.Nickname,
 		Phone:               phone,

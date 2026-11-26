@@ -24,6 +24,20 @@ func TestTokenRoundTrip(t *testing.T) {
 	}
 }
 
+func TestTokenWithPublicUserId(t *testing.T) {
+	token, err := NewTokenWithPublicId(testSecret, expire, 1000001, "uDENLRy4c5", "alice", "爱丽丝")
+	if err != nil {
+		t.Fatalf("NewTokenWithPublicId failed: %v", err)
+	}
+	claims, err := ParseToken(testSecret, token)
+	if err != nil {
+		t.Fatalf("ParseToken failed: %v", err)
+	}
+	if claims.UserId != 1000001 || claims.PublicUserId != "uDENLRy4c5" {
+		t.Errorf("public claims mismatch: %+v", claims)
+	}
+}
+
 func TestParseTokenWrongSecret(t *testing.T) {
 	token, err := NewToken(testSecret, expire, 1, "a", "a")
 	if err != nil {

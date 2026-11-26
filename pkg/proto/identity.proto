@@ -43,6 +43,7 @@ message RegisterReq {
 
 message RegisterResp {
     int64 userId = 1; // 新用户ID
+    string publicUserId = 2; // 对外字符串用户ID
 }
 
 message LoginReq {
@@ -53,6 +54,7 @@ message LoginReq {
 message LoginResp {
     int64 userId = 1;   // 用户ID
     string token = 2;   // JWT（网关后续请求放 Authorization: Bearer <token>）
+    string publicUserId = 3; // 对外字符串用户ID
 }
 
 message VerifyTokenReq {
@@ -63,6 +65,7 @@ message VerifyTokenResp {
     int64 userId = 1;   // 用户ID（网关鉴权中间件写入 ctx）
     string username = 2; // 用户名
     string nickname = 3; // 昵称
+    string publicUserId = 4; // 对外字符串用户ID
 }
 
 message GetProfileReq {
@@ -73,6 +76,7 @@ message GetProfileResp {
     int64 userId = 1;   // 用户ID
     string username = 2; // 用户名
     string nickname = 3; // 昵称
+    string publicUserId = 4; // 对外字符串用户ID
 }
 
 // ══════════ M15a 手机号/微信登录（契约照抄 server_v2 identity，字段序号一致）══════════
@@ -198,6 +202,7 @@ message ConsoleUser {
     int64 updatedAtUnixMillis = 13;
     int64 parentUserId = 14;
     bool reissueLuckPoints = 15;
+    string publicUserId = 16; // 对外字符串用户ID
 }
 
 message ListConsoleUsersReq {

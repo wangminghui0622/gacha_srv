@@ -113,6 +113,7 @@ func (l *CreateConsoleUserLogic) CreateConsoleUser(in *identity.CreateConsoleUse
 
 	return &identity.ConsoleUser{
 		UserId:              user.Id,
+		PublicUserId:        publicUserIdOf(user.Id),
 		Username:            user.Username,
 		Nickname:            user.Nickname,
 		Phone:               phone,

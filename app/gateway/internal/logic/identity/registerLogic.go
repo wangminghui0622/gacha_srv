@@ -1,4 +1,5 @@
 package identity
+
 import (
 	"context"
 
@@ -35,5 +36,5 @@ func (l *RegisterLogic) Register(req *types.RegisterReq) (resp *types.RegisterRe
 		l.Errorf("Register failed, username: %s, err: %v", req.Username, err)
 		return nil, errorx.FromError(err)
 	}
-	return &types.RegisterResp{UserId: r.UserId}, nil
+	return &types.RegisterResp{UserId: r.UserId, PublicUserId: r.PublicUserId}, nil
 }
