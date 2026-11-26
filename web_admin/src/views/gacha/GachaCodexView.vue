@@ -413,7 +413,10 @@ onMounted(load)
 
 <style scoped lang="scss">
 .codex-page {
-  padding: 8px 4px 24px;
+  padding: 14px 16px 18px;
+  background: #fff;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
 }
 
 .page-head h2 {
