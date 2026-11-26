@@ -753,6 +753,33 @@ message RevenueReportRow {
     int64 arppu_fen = 19;
     int64 penetration_bps = 20;
     int64 net_revenue_fen = 21;
+    int64 wechat_pay_fen = 22;
+    int64 alipay_pay_fen = 23;
+    int64 huifu_pay_fen = 24;
+    int64 wechat_gift_fen = 25;
+    int64 alipay_gift_fen = 26;
+    int64 huifu_gift_fen = 27;
+    int64 wechat_refund_fen = 28;
+    int64 alipay_refund_fen = 29;
+    int64 huifu_refund_fen = 30;
+    int64 wechat_gift_refund_fen = 31;
+    int64 alipay_gift_refund_fen = 32;
+    int64 huifu_gift_refund_fen = 33;
+    int64 tax_fen = 34;
+    int64 new_tax_fen = 35;
+    int64 old_tax_fen = 36;
+    int64 wallet_balance_fen = 37;
+    int64 bonus_balance_fen = 38;
+    int64 redeem_point_balance = 39;
+    int64 loyalty_point_balance = 40;
+    int64 platform_currency_pay_fen = 41;
+    int64 arpu_new_fen = 42;
+    int64 arpu_old_fen = 43;
+    int64 penetration_new_bps = 44;
+    int64 penetration_old_bps = 45;
+    int64 refund_rate_bps = 46;
+    int64 revenue_rate_bps = 47;
+    int64 revenue_arpu_fen = 48;
 }
 
 message RevenueReportReply {

@@ -26,6 +26,7 @@ interface SeriesDef {
 }
 
 const defs: SeriesDef[] = [
+  // 第 1 页
   { name: '注册数', axis: 0, kind: 'count', value: (r) => r.registrations },
   { name: '日活', axis: 0, kind: 'count', value: (r) => r.activeUsers },
   { name: '日活(新)', axis: 0, kind: 'count', value: (r) => r.newActiveUsers },
@@ -44,8 +45,40 @@ const defs: SeriesDef[] = [
   { name: '付费用户数(旧)', axis: 0, kind: 'count', value: (r) => r.oldPayingUsers },
   { name: 'arpu', axis: 0, kind: 'money', value: (r) => r.arpuFen / 100 },
   { name: 'arppu', axis: 0, kind: 'money', value: (r) => r.arppuFen / 100 },
+  // 第 2 页
+  { name: 'arpu(新)', axis: 0, kind: 'money', value: (r) => r.arpuNewFen / 100 },
+  { name: 'arpu(旧)', axis: 0, kind: 'money', value: (r) => r.arpuOldFen / 100 },
   { name: '渗透率', axis: 1, kind: 'rate', value: (r) => r.penetrationBps / 100 },
+  { name: '渗透率(新)', axis: 1, kind: 'rate', value: (r) => r.penetrationNewBps / 100 },
+  { name: '渗透率(旧)', axis: 1, kind: 'rate', value: (r) => r.penetrationOldBps / 100 },
+  { name: '微信充值', axis: 0, kind: 'money', value: (r) => r.wechatPayFen / 100 },
+  { name: '支付宝充值', axis: 0, kind: 'money', value: (r) => r.alipayPayFen / 100 },
+  { name: '汇付充值', axis: 0, kind: 'money', value: (r) => r.huifuPayFen / 100 },
+  { name: '退微信充值', axis: 0, kind: 'money', value: (r) => r.wechatRefundFen / 100 },
+  { name: '退支付宝充值', axis: 0, kind: 'money', value: (r) => r.alipayRefundFen / 100 },
+  { name: '退汇付充值', axis: 0, kind: 'money', value: (r) => r.huifuRefundFen / 100 },
+  { name: '微信赠送', axis: 0, kind: 'money', value: (r) => r.wechatGiftFen / 100 },
+  { name: '支付宝赠送', axis: 0, kind: 'money', value: (r) => r.alipayGiftFen / 100 },
+  { name: '汇付赠送', axis: 0, kind: 'money', value: (r) => r.huifuGiftFen / 100 },
+  { name: '退微信赠送', axis: 0, kind: 'money', value: (r) => r.wechatGiftRefundFen / 100 },
+  { name: '退支付宝赠送', axis: 0, kind: 'money', value: (r) => r.alipayGiftRefundFen / 100 },
+  { name: '退汇付赠送', axis: 0, kind: 'money', value: (r) => r.huifuGiftRefundFen / 100 },
+  { name: '总退款(¥)', axis: 0, kind: 'money', value: (r) => r.refundAmountFen / 100 },
+  // 第 3 页
+  { name: '退款(¥)用户数', axis: 0, kind: 'count', value: (r) => r.refundUsers },
+  { name: '退款(¥)率', axis: 1, kind: 'rate', value: (r) => r.refundRateBps / 100 },
+  { name: '总税收', axis: 0, kind: 'money', value: (r) => r.taxFen / 100 },
+  { name: '税收(新)', axis: 0, kind: 'money', value: (r) => r.newTaxFen / 100 },
+  { name: '税收(旧)', axis: 0, kind: 'money', value: (r) => r.oldTaxFen / 100 },
   { name: '总营收', axis: 0, kind: 'money', value: (r) => r.netRevenueFen / 100 },
+  { name: '营收率', axis: 1, kind: 'rate', value: (r) => r.revenueRateBps / 100 },
+  { name: '营收ARPU', axis: 0, kind: 'money', value: (r) => r.revenueArpuFen / 100 },
+  { name: 'WalletBalance', axis: 0, kind: 'money', value: (r) => r.walletBalanceFen / 100 },
+  { name: '余额余额', axis: 0, kind: 'money', value: (r) => r.walletBalanceFen / 100 },
+  { name: '吉豆余额', axis: 0, kind: 'count', value: (r) => r.bonusBalanceFen },
+  { name: '积分余额', axis: 0, kind: 'count', value: (r) => r.loyaltyPointBalance },
+  { name: '吉祥值余额', axis: 0, kind: 'count', value: (r) => r.redeemPointBalance },
+  { name: '总吉祥币付费', axis: 0, kind: 'money', value: (r) => r.platformCurrencyPayFen / 100 },
 ]
 
 const colors = [
@@ -70,6 +103,13 @@ const colors = [
   '#b37feb',
   '#ff9c6e',
 ]
+
+function seriesColor(index: number): string {
+  if (index < colors.length) {
+    return colors[index] ?? '#1677ff'
+  }
+  return `hsl(${(index * 47) % 360}, 65%, 50%)`
+}
 
 function render() {
   if (!chartEl.value) {
@@ -152,7 +192,7 @@ function render() {
         data: data.map(def.value),
         yAxisIndex: def.axis,
         lineStyle: { width: 1.3 },
-        itemStyle: { color: colors[index % colors.length] },
+        itemStyle: { color: seriesColor(index) },
         emphasis: { focus: 'series' },
       })),
     },

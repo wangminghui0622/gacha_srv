@@ -22,6 +22,33 @@ export interface RevenueReportRow {
   arppuFen: number
   penetrationBps: number
   netRevenueFen: number
+  wechatPayFen: number
+  alipayPayFen: number
+  huifuPayFen: number
+  wechatGiftFen: number
+  alipayGiftFen: number
+  huifuGiftFen: number
+  wechatRefundFen: number
+  alipayRefundFen: number
+  huifuRefundFen: number
+  wechatGiftRefundFen: number
+  alipayGiftRefundFen: number
+  huifuGiftRefundFen: number
+  taxFen: number
+  newTaxFen: number
+  oldTaxFen: number
+  walletBalanceFen: number
+  bonusBalanceFen: number
+  redeemPointBalance: number
+  loyaltyPointBalance: number
+  platformCurrencyPayFen: number
+  arpuNewFen: number
+  arpuOldFen: number
+  penetrationNewBps: number
+  penetrationOldBps: number
+  refundRateBps: number
+  revenueRateBps: number
+  revenueArpuFen: number
 }
 
 export interface RevenueReportResponse {

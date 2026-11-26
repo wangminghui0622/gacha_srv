@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -33,6 +34,35 @@ type RevenueRow struct {
 	ArppuFen        int64  `json:"arppuFen"`
 	PenetrationBps  int64  `json:"penetrationBps"`
 	NetRevenueFen   int64  `json:"netRevenueFen"`
+
+	WechatPayFen           int64 `gorm:"column:wechat_pay_fen" json:"wechatPayFen"`
+	AlipayPayFen           int64 `gorm:"column:alipay_pay_fen" json:"alipayPayFen"`
+	HuifuPayFen            int64 `gorm:"column:huifu_pay_fen" json:"huifuPayFen"`
+	WechatGiftFen          int64 `gorm:"column:wechat_gift_fen" json:"wechatGiftFen"`
+	AlipayGiftFen          int64 `gorm:"column:alipay_gift_fen" json:"alipayGiftFen"`
+	HuifuGiftFen           int64 `gorm:"column:huifu_gift_fen" json:"huifuGiftFen"`
+	WechatRefundFen        int64 `gorm:"column:wechat_refund_fen" json:"wechatRefundFen"`
+	AlipayRefundFen        int64 `gorm:"column:alipay_refund_fen" json:"alipayRefundFen"`
+	HuifuRefundFen         int64 `gorm:"column:huifu_refund_fen" json:"huifuRefundFen"`
+	WechatGiftRefundFen    int64 `gorm:"column:wechat_gift_refund_fen" json:"wechatGiftRefundFen"`
+	AlipayGiftRefundFen    int64 `gorm:"column:alipay_gift_refund_fen" json:"alipayGiftRefundFen"`
+	HuifuGiftRefundFen     int64 `gorm:"column:huifu_gift_refund_fen" json:"huifuGiftRefundFen"`
+	TaxFen                 int64 `gorm:"column:tax_fen" json:"taxFen"`
+	NewTaxFen              int64 `gorm:"column:new_tax_fen" json:"newTaxFen"`
+	OldTaxFen              int64 `gorm:"column:old_tax_fen" json:"oldTaxFen"`
+	WalletBalanceFen       int64 `gorm:"column:wallet_balance_fen" json:"walletBalanceFen"`
+	BonusBalanceFen        int64 `gorm:"column:bonus_balance_fen" json:"bonusBalanceFen"`
+	RedeemPointBalance     int64 `gorm:"column:redeem_point_balance" json:"redeemPointBalance"`
+	LoyaltyPointBalance    int64 `gorm:"column:loyalty_point_balance" json:"loyaltyPointBalance"`
+	PlatformCurrencyPayFen int64 `gorm:"column:platform_currency_pay_fen" json:"platformCurrencyPayFen"`
+
+	ArpuNewFen        int64 `gorm:"-" json:"arpuNewFen"`
+	ArpuOldFen        int64 `gorm:"-" json:"arpuOldFen"`
+	PenetrationNewBps int64 `gorm:"-" json:"penetrationNewBps"`
+	PenetrationOldBps int64 `gorm:"-" json:"penetrationOldBps"`
+	RefundRateBps     int64 `gorm:"-" json:"refundRateBps"`
+	RevenueRateBps    int64 `gorm:"-" json:"revenueRateBps"`
+	RevenueArpuFen    int64 `gorm:"-" json:"revenueArpuFen"`
 }
 
 // RevenueResult 营收报表。
@@ -60,6 +90,37 @@ SELECT user_id, DATE(DATE_ADD(completed_at, INTERVAL 8 HOUR)) AS d, amount_fen
 FROM gacha_money.refund_orders
 WHERE status = 3 AND completed_at >= ? AND completed_at < ?`
 
+const revenuePlatformPaySQL = `
+SELECT DATE_FORMAT(DATE_ADD(COALESCE(completed_at, created_at), INTERVAL 8 HOUR), '%Y-%m-%d') AS d,
+       platform,
+       COALESCE(SUM(amount_fen), 0) AS pay_fen,
+       COALESCE(SUM(GREATEST(credited_fen - amount_fen, 0)), 0) AS gift_fen
+FROM gacha_money.recharge_orders
+WHERE status = 4 AND COALESCE(completed_at, created_at) >= ? AND COALESCE(completed_at, created_at) < ?
+GROUP BY d, platform`
+
+const revenuePlatformRefundSQL = `
+SELECT DATE_FORMAT(DATE_ADD(refunded_at, INTERVAL 8 HOUR), '%Y-%m-%d') AS d,
+       platform,
+       COALESCE(SUM(refund_amount_fen), 0) AS refund_fen
+FROM gacha_money.recharge_orders
+WHERE refund_amount_fen > 0 AND refunded_at >= ? AND refunded_at < ?
+GROUP BY d, platform`
+
+const revenueTaxSQL = `
+SELECT DATE_FORMAT(DATE_ADD(r.created_at, INTERVAL 8 HOUR), '%Y-%m-%d') AS d,
+       COALESCE(SUM(r.price), 0) AS draw_fen,
+       COALESCE(SUM(CASE WHEN r.is_prize = 1 THEN COALESCE(e.display_value_fen, 0) ELSE 0 END), 0) AS prize_fen
+FROM gacha_draw.draw_records r
+LEFT JOIN gacha_draw.draw_pool_entries e ON e.id = r.entry_id
+WHERE r.status = 1 AND r.created_at >= ? AND r.created_at < ?
+GROUP BY d`
+
+const revenueWalletSQL = `
+SELECT wallet_kind, COALESCE(SUM(available + held), 0) AS balance
+FROM gacha_money.wallet_accounts
+GROUP BY wallet_kind`
+
 type revenueUserDay struct {
 	UserID int64  `gorm:"column:user_id"`
 	D      string `gorm:"column:d"`
@@ -82,6 +143,42 @@ type refundAgg struct {
 	Amount int64
 }
 
+type platformAgg struct {
+	WechatPay    int64
+	AlipayPay    int64
+	HuifuPay     int64
+	WechatGift   int64
+	AlipayGift   int64
+	HuifuGift    int64
+	WechatRefund int64
+	AlipayRefund int64
+	HuifuRefund  int64
+}
+
+type revenuePlatformRow struct {
+	D        string `gorm:"column:d"`
+	Platform string `gorm:"column:platform"`
+	PayFen   int64  `gorm:"column:pay_fen"`
+	GiftFen  int64  `gorm:"column:gift_fen"`
+}
+
+type revenuePlatformRefundRow struct {
+	D         string `gorm:"column:d"`
+	Platform  string `gorm:"column:platform"`
+	RefundFen int64  `gorm:"column:refund_fen"`
+}
+
+type revenueTaxRow struct {
+	D        string `gorm:"column:d"`
+	DrawFen  int64  `gorm:"column:draw_fen"`
+	PrizeFen int64  `gorm:"column:prize_fen"`
+}
+
+type revenueWalletRow struct {
+	WalletKind int64 `gorm:"column:wallet_kind"`
+	Balance    int64 `gorm:"column:balance"`
+}
+
 // QueryRevenue 从 gacha_report 读模型查询 [start, end] 的营收报表。
 func QueryRevenue(reportDB *gorm.DB, start, end time.Time) (*RevenueResult, error) {
 	startLocal := time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, cst)
@@ -97,7 +194,14 @@ SELECT DATE_FORMAT(report_date, '%Y-%m-%d') AS date,
        active_users_7d, active_users_15d, churn_1d_bps, churn_3d_bps,
        pay_amount_fen, new_pay_amount_fen, old_pay_amount_fen,
        refund_amount_fen, refund_users, paying_users,
-       new_paying_users, old_paying_users, net_revenue_fen
+       new_paying_users, old_paying_users, net_revenue_fen,
+       wechat_pay_fen, alipay_pay_fen, huifu_pay_fen,
+       wechat_gift_fen, alipay_gift_fen, huifu_gift_fen,
+       wechat_refund_fen, alipay_refund_fen, huifu_refund_fen,
+       wechat_gift_refund_fen, alipay_gift_refund_fen, huifu_gift_refund_fen,
+       tax_fen, new_tax_fen, old_tax_fen,
+       wallet_balance_fen, bonus_balance_fen, redeem_point_balance, loyalty_point_balance,
+       platform_currency_pay_fen
 FROM gacha_report.revenue_daily
 WHERE report_date >= ? AND report_date <= ?
 ORDER BY report_date DESC`,
@@ -110,9 +214,22 @@ ORDER BY report_date DESC`,
 		if row.ActiveUsers > 0 {
 			row.ArpuFen = row.PayAmountFen / row.ActiveUsers
 			row.PenetrationBps = row.PayingUsers * 10000 / row.ActiveUsers
+			row.RevenueArpuFen = row.NetRevenueFen / row.ActiveUsers
 		}
 		if row.PayingUsers > 0 {
 			row.ArppuFen = row.PayAmountFen / row.PayingUsers
+		}
+		if row.NewActiveUsers > 0 {
+			row.ArpuNewFen = row.NewPayAmountFen / row.NewActiveUsers
+			row.PenetrationNewBps = row.NewPayingUsers * 10000 / row.NewActiveUsers
+		}
+		if row.OldActiveUsers > 0 {
+			row.ArpuOldFen = row.OldPayAmountFen / row.OldActiveUsers
+			row.PenetrationOldBps = row.OldPayingUsers * 10000 / row.OldActiveUsers
+		}
+		if row.PayAmountFen > 0 {
+			row.RefundRateBps = row.RefundAmountFen * 10000 / row.PayAmountFen
+			row.RevenueRateBps = row.NetRevenueFen * 10000 / row.PayAmountFen
 		}
 	}
 	return &RevenueResult{Rows: rows}, nil
@@ -163,6 +280,22 @@ func AggregateRevenue(sourceDB, reportDB *gorm.DB, start, end time.Time) error {
 	var refundRows []revenuePayDay
 	if err := sourceDB.Raw(revenueRefundEventsSQL, startUTC, endUTC, startUTC, endUTC).Scan(&refundRows).Error; err != nil {
 		return fmt.Errorf("revenue refund events: %w", err)
+	}
+	var platformPayRows []revenuePlatformRow
+	if err := sourceDB.Raw(revenuePlatformPaySQL, startUTC, endUTC).Scan(&platformPayRows).Error; err != nil {
+		return fmt.Errorf("revenue platform pay: %w", err)
+	}
+	var platformRefundRows []revenuePlatformRefundRow
+	if err := sourceDB.Raw(revenuePlatformRefundSQL, startUTC, endUTC).Scan(&platformRefundRows).Error; err != nil {
+		return fmt.Errorf("revenue platform refund: %w", err)
+	}
+	var taxRows []revenueTaxRow
+	if err := sourceDB.Raw(revenueTaxSQL, startUTC, endUTC).Scan(&taxRows).Error; err != nil {
+		return fmt.Errorf("revenue tax: %w", err)
+	}
+	var walletRows []revenueWalletRow
+	if err := sourceDB.Raw(revenueWalletSQL).Scan(&walletRows).Error; err != nil {
+		return fmt.Errorf("revenue wallet balances: %w", err)
 	}
 
 	regsByUser := make(map[int64]string, len(regRows))
@@ -219,6 +352,62 @@ func AggregateRevenue(sourceDB, reportDB *gorm.DB, start, end time.Time) error {
 		agg.Amount += row.AmountFen
 	}
 
+	platformByDay := make(map[string]*platformAgg)
+	for _, row := range platformPayRows {
+		day := revenueDayKey(row.D)
+		agg := platformByDay[day]
+		if agg == nil {
+			agg = &platformAgg{}
+			platformByDay[day] = agg
+		}
+		switch classifyPlatform(row.Platform) {
+		case "wechat":
+			agg.WechatPay += row.PayFen
+			agg.WechatGift += row.GiftFen
+		case "alipay":
+			agg.AlipayPay += row.PayFen
+			agg.AlipayGift += row.GiftFen
+		case "huifu":
+			agg.HuifuPay += row.PayFen
+			agg.HuifuGift += row.GiftFen
+		}
+	}
+	for _, row := range platformRefundRows {
+		day := revenueDayKey(row.D)
+		agg := platformByDay[day]
+		if agg == nil {
+			agg = &platformAgg{}
+			platformByDay[day] = agg
+		}
+		switch classifyPlatform(row.Platform) {
+		case "wechat":
+			agg.WechatRefund += row.RefundFen
+		case "alipay":
+			agg.AlipayRefund += row.RefundFen
+		case "huifu":
+			agg.HuifuRefund += row.RefundFen
+		}
+	}
+
+	taxByDay := make(map[string]int64, len(taxRows))
+	for _, row := range taxRows {
+		taxByDay[revenueDayKey(row.D)] = row.DrawFen - row.PrizeFen
+	}
+
+	var walletBalance, bonusBalance, redeemBalance, loyaltyBalance int64
+	for _, row := range walletRows {
+		switch row.WalletKind {
+		case 1:
+			walletBalance = row.Balance
+		case 2:
+			bonusBalance = row.Balance
+		case 3:
+			redeemBalance = row.Balance
+		case 4:
+			loyaltyBalance = row.Balance
+		}
+	}
+
 	rows := make([]RevenueRow, 0, daysBetween(startLocal, endLocal)+1)
 	for d := startLocal; !d.After(endLocal); d = d.AddDate(0, 0, 1) {
 		key := d.Format("2006-01-02")
@@ -251,6 +440,16 @@ func AggregateRevenue(sourceDB, reportDB *gorm.DB, start, end time.Time) error {
 		if pay != nil {
 			payAmount = pay.Amount
 		}
+		platform := platformByDay[key]
+		if platform == nil {
+			platform = &platformAgg{}
+		}
+		tax := taxByDay[key]
+		var newTax int64
+		if payAmount > 0 {
+			newTax = tax * newPayAmount / payAmount
+		}
+		oldTax := tax - newTax
 
 		churn1 := churnBps(regsByDay[key], activeByDay[d.AddDate(0, 0, 1).Format("2006-01-02")], d.AddDate(0, 0, 1), todayLocal)
 		churn3 := churnBps(regsByDay[key], activeByDay[d.AddDate(0, 0, 3).Format("2006-01-02")], d.AddDate(0, 0, 3), todayLocal)
@@ -274,6 +473,24 @@ func AggregateRevenue(sourceDB, reportDB *gorm.DB, start, end time.Time) error {
 			NewPayingUsers:  newPaying,
 			OldPayingUsers:  paying - newPaying,
 			NetRevenueFen:   payAmount - refundAmount,
+
+			WechatPayFen:           platform.WechatPay,
+			AlipayPayFen:           platform.AlipayPay,
+			HuifuPayFen:            platform.HuifuPay,
+			WechatGiftFen:          platform.WechatGift,
+			AlipayGiftFen:          platform.AlipayGift,
+			HuifuGiftFen:           platform.HuifuGift,
+			WechatRefundFen:        platform.WechatRefund,
+			AlipayRefundFen:        platform.AlipayRefund,
+			HuifuRefundFen:         platform.HuifuRefund,
+			TaxFen:                 tax,
+			NewTaxFen:              newTax,
+			OldTaxFen:              oldTax,
+			WalletBalanceFen:       walletBalance,
+			BonusBalanceFen:        bonusBalance,
+			RedeemPointBalance:     redeemBalance,
+			LoyaltyPointBalance:    loyaltyBalance,
+			PlatformCurrencyPayFen: 0,
 		})
 	}
 
@@ -293,6 +510,19 @@ func revenueDayKey(d string) string {
 		return d[:10]
 	}
 	return d
+}
+
+func classifyPlatform(platform string) string {
+	switch {
+	case strings.Contains(platform, "微信"):
+		return "wechat"
+	case strings.Contains(platform, "支付宝"):
+		return "alipay"
+	case strings.Contains(platform, "汇付"):
+		return "huifu"
+	default:
+		return ""
+	}
 }
 
 func churnBps(cohort map[int64]struct{}, active map[int64]struct{}, target, today time.Time) int64 {
@@ -326,8 +556,15 @@ INSERT INTO gacha_report.revenue_daily
    active_users_7d, active_users_15d, churn_1d_bps, churn_3d_bps,
    pay_amount_fen, new_pay_amount_fen, old_pay_amount_fen,
    refund_amount_fen, refund_users, paying_users,
-   new_paying_users, old_paying_users, net_revenue_fen)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+   new_paying_users, old_paying_users, net_revenue_fen,
+   wechat_pay_fen, alipay_pay_fen, huifu_pay_fen,
+   wechat_gift_fen, alipay_gift_fen, huifu_gift_fen,
+   wechat_refund_fen, alipay_refund_fen, huifu_refund_fen,
+   wechat_gift_refund_fen, alipay_gift_refund_fen, huifu_gift_refund_fen,
+   tax_fen, new_tax_fen, old_tax_fen,
+   wallet_balance_fen, bonus_balance_fen, redeem_point_balance, loyalty_point_balance,
+   platform_currency_pay_fen)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON DUPLICATE KEY UPDATE
   registrations = VALUES(registrations),
   active_users = VALUES(active_users),
@@ -346,12 +583,39 @@ ON DUPLICATE KEY UPDATE
   new_paying_users = VALUES(new_paying_users),
   old_paying_users = VALUES(old_paying_users),
   net_revenue_fen = VALUES(net_revenue_fen),
+  wechat_pay_fen = VALUES(wechat_pay_fen),
+  alipay_pay_fen = VALUES(alipay_pay_fen),
+  huifu_pay_fen = VALUES(huifu_pay_fen),
+  wechat_gift_fen = VALUES(wechat_gift_fen),
+  alipay_gift_fen = VALUES(alipay_gift_fen),
+  huifu_gift_fen = VALUES(huifu_gift_fen),
+  wechat_refund_fen = VALUES(wechat_refund_fen),
+  alipay_refund_fen = VALUES(alipay_refund_fen),
+  huifu_refund_fen = VALUES(huifu_refund_fen),
+  wechat_gift_refund_fen = VALUES(wechat_gift_refund_fen),
+  alipay_gift_refund_fen = VALUES(alipay_gift_refund_fen),
+  huifu_gift_refund_fen = VALUES(huifu_gift_refund_fen),
+  tax_fen = VALUES(tax_fen),
+  new_tax_fen = VALUES(new_tax_fen),
+  old_tax_fen = VALUES(old_tax_fen),
+  wallet_balance_fen = VALUES(wallet_balance_fen),
+  bonus_balance_fen = VALUES(bonus_balance_fen),
+  redeem_point_balance = VALUES(redeem_point_balance),
+  loyalty_point_balance = VALUES(loyalty_point_balance),
+  platform_currency_pay_fen = VALUES(platform_currency_pay_fen),
   updated_at = NOW(3)`,
 		row.Date, row.Registrations, row.ActiveUsers, row.NewActiveUsers, row.OldActiveUsers,
 		row.ActiveUsers7d, row.ActiveUsers15d, row.Churn1dBps, row.Churn3dBps,
 		row.PayAmountFen, row.NewPayAmountFen, row.OldPayAmountFen,
 		row.RefundAmountFen, row.RefundUsers, row.PayingUsers,
 		row.NewPayingUsers, row.OldPayingUsers, row.NetRevenueFen,
+		row.WechatPayFen, row.AlipayPayFen, row.HuifuPayFen,
+		row.WechatGiftFen, row.AlipayGiftFen, row.HuifuGiftFen,
+		row.WechatRefundFen, row.AlipayRefundFen, row.HuifuRefundFen,
+		row.WechatGiftRefundFen, row.AlipayGiftRefundFen, row.HuifuGiftRefundFen,
+		row.TaxFen, row.NewTaxFen, row.OldTaxFen,
+		row.WalletBalanceFen, row.BonusBalanceFen, row.RedeemPointBalance, row.LoyaltyPointBalance,
+		row.PlatformCurrencyPayFen,
 	).Error
 }
 

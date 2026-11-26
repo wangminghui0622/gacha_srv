@@ -47,6 +47,34 @@ type RevenueReportRow struct {
 	ArppuFen        int64  `json:"arppuFen"`
 	PenetrationBps  int64  `json:"penetrationBps"`
 	NetRevenueFen   int64  `json:"netRevenueFen"`
+
+	WechatPayFen           int64 `json:"wechatPayFen"`
+	AlipayPayFen           int64 `json:"alipayPayFen"`
+	HuifuPayFen            int64 `json:"huifuPayFen"`
+	WechatGiftFen          int64 `json:"wechatGiftFen"`
+	AlipayGiftFen          int64 `json:"alipayGiftFen"`
+	HuifuGiftFen           int64 `json:"huifuGiftFen"`
+	WechatRefundFen        int64 `json:"wechatRefundFen"`
+	AlipayRefundFen        int64 `json:"alipayRefundFen"`
+	HuifuRefundFen         int64 `json:"huifuRefundFen"`
+	WechatGiftRefundFen    int64 `json:"wechatGiftRefundFen"`
+	AlipayGiftRefundFen    int64 `json:"alipayGiftRefundFen"`
+	HuifuGiftRefundFen     int64 `json:"huifuGiftRefundFen"`
+	TaxFen                 int64 `json:"taxFen"`
+	NewTaxFen              int64 `json:"newTaxFen"`
+	OldTaxFen              int64 `json:"oldTaxFen"`
+	WalletBalanceFen       int64 `json:"walletBalanceFen"`
+	BonusBalanceFen        int64 `json:"bonusBalanceFen"`
+	RedeemPointBalance     int64 `json:"redeemPointBalance"`
+	LoyaltyPointBalance    int64 `json:"loyaltyPointBalance"`
+	PlatformCurrencyPayFen int64 `json:"platformCurrencyPayFen"`
+	ArpuNewFen             int64 `json:"arpuNewFen"`
+	ArpuOldFen             int64 `json:"arpuOldFen"`
+	PenetrationNewBps      int64 `json:"penetrationNewBps"`
+	PenetrationOldBps      int64 `json:"penetrationOldBps"`
+	RefundRateBps          int64 `json:"refundRateBps"`
+	RevenueRateBps         int64 `json:"revenueRateBps"`
+	RevenueArpuFen         int64 `json:"revenueArpuFen"`
 }
 
 type RevenueReportResponse struct {
@@ -88,6 +116,34 @@ func (l *RevenueReportLogic) Query(start, end time.Time) (*RevenueReportResponse
 			ArppuFen:        row.GetArppuFen(),
 			PenetrationBps:  row.GetPenetrationBps(),
 			NetRevenueFen:   row.GetNetRevenueFen(),
+
+			WechatPayFen:           row.GetWechatPayFen(),
+			AlipayPayFen:           row.GetAlipayPayFen(),
+			HuifuPayFen:            row.GetHuifuPayFen(),
+			WechatGiftFen:          row.GetWechatGiftFen(),
+			AlipayGiftFen:          row.GetAlipayGiftFen(),
+			HuifuGiftFen:           row.GetHuifuGiftFen(),
+			WechatRefundFen:        row.GetWechatRefundFen(),
+			AlipayRefundFen:        row.GetAlipayRefundFen(),
+			HuifuRefundFen:         row.GetHuifuRefundFen(),
+			WechatGiftRefundFen:    row.GetWechatGiftRefundFen(),
+			AlipayGiftRefundFen:    row.GetAlipayGiftRefundFen(),
+			HuifuGiftRefundFen:     row.GetHuifuGiftRefundFen(),
+			TaxFen:                 row.GetTaxFen(),
+			NewTaxFen:              row.GetNewTaxFen(),
+			OldTaxFen:              row.GetOldTaxFen(),
+			WalletBalanceFen:       row.GetWalletBalanceFen(),
+			BonusBalanceFen:        row.GetBonusBalanceFen(),
+			RedeemPointBalance:     row.GetRedeemPointBalance(),
+			LoyaltyPointBalance:    row.GetLoyaltyPointBalance(),
+			PlatformCurrencyPayFen: row.GetPlatformCurrencyPayFen(),
+			ArpuNewFen:             row.GetArpuNewFen(),
+			ArpuOldFen:             row.GetArpuOldFen(),
+			PenetrationNewBps:      row.GetPenetrationNewBps(),
+			PenetrationOldBps:      row.GetPenetrationOldBps(),
+			RefundRateBps:          row.GetRefundRateBps(),
+			RevenueRateBps:         row.GetRevenueRateBps(),
+			RevenueArpuFen:         row.GetRevenueArpuFen(),
 		})
 	}
 	return out, nil
