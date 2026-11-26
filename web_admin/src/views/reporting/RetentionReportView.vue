@@ -70,7 +70,7 @@ const emptyTotal = (): RetentionRow => ({ cohortDate: 'TOTAL', totalUsers: 0, ce
 
 const activeTab = ref<RetentionType>('new')
 const cohortLabel = computed(() => cohortLabels[activeTab.value])
-const range = ref<[Dayjs, Dayjs]>([dayjs().subtract(29, 'day'), dayjs()])
+const range = ref<[Dayjs, Dayjs]>([dayjs().subtract(90, 'day'), dayjs()])
 const loading = ref(false)
 const rows = ref<RetentionRow[]>([])
 const total = ref<RetentionRow>(emptyTotal())
