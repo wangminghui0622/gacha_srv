@@ -129,6 +129,7 @@
     "boxName": "Box",
     "result": "Result",
     "time": "Time",
+    "orderNo": "Order No.",
     "thanks": "No prize",
     "empty": "No records yet, go draw a box"
   },

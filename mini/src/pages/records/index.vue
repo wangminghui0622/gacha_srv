@@ -69,6 +69,7 @@ onReachBottom(() => {
         </view>
         <view class="record-line">{{ t('records.time') }}：{{ formatUnix(item.createdAt) }}</view>
         <view class="record-line">{{ t('box.price') }}：{{ formatMoney(item.price) }}</view>
+        <view v-if="item.orderNo" class="record-line">{{ t('records.orderNo') }}：{{ item.orderNo }}</view>
       </view>
     </view>
 
