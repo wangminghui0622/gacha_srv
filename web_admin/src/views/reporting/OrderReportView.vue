@@ -60,6 +60,7 @@
         :page-size-options="['10', '20', '50', '100']"
         :show-quick-jumper="true"
         :show-total="showTotal"
+        :locale="{ items_per_page: '条/页', jump_to: '前往', page: '页' }"
       />
     </div>
   </div>
