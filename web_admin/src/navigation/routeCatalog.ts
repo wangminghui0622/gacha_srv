@@ -594,7 +594,7 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     title: 'nav.reportMarket',
     showInMenu: false,
     backFallback: '/dashboard',
-    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+    component: () => import('@/views/reporting/MarketReportView.vue'),
   },
   {
     name: 'report-invite',

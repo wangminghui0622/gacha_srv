@@ -136,4 +136,16 @@ CREATE TABLE IF NOT EXISTS `revenue_daily` (
   PRIMARY KEY (`report_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='营收报表每日聚合';
 
+-- 市场报表每日聚合（当前市场交易模块未接入，表结构先预留；无数据时页面按日期补 0）
+CREATE TABLE IF NOT EXISTS `market_daily` (
+  `report_date` date NOT NULL COMMENT '统计日期（东八区）',
+  `participants` bigint NOT NULL DEFAULT '0' COMMENT '参与用户数',
+  `new_orders` bigint NOT NULL DEFAULT '0' COMMENT '新增订单数',
+  `amount_total_fen` bigint NOT NULL DEFAULT '0' COMMENT '成交金额（总，分）',
+  `amount_normal_fen` bigint NOT NULL DEFAULT '0' COMMENT '成交金额（普通用户，分）',
+  `amount_sample_fen` bigint NOT NULL DEFAULT '0' COMMENT '成交金额（样子，分）',
+  `updated_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新时间',
+  PRIMARY KEY (`report_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='市场报表每日聚合';
+
 SET FOREIGN_KEY_CHECKS = 1;

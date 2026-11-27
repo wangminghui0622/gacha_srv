@@ -67,6 +67,8 @@ service Ops {
     rpc GetRevenueReport(RevenueReportRequest) returns (RevenueReportReply);
     // 实时报表（今天/昨天 10 分钟桶；ops-rpc 直接查询业务库）
     rpc GetRealtimeReport(RealtimeReportRequest) returns (RealtimeReportReply);
+    // 市场报表（读 gacha_report.market_daily；无数据日期补 0）
+    rpc GetMarketReport(MarketReportRequest) returns (MarketReportReply);
     // 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
     rpc ApplyMetricEvent(ApplyMetricEventRequest) returns (ApplyMetricEventReply);
 }
@@ -819,5 +821,24 @@ message RealtimeReportReply {
     RealtimeSummary summary = 1;
     repeated string labels = 2;
     repeated RealtimeChart charts = 3;
+}
+
+// ── 市场报表（读 gacha_report.market_daily）──
+message MarketReportRequest {
+    string start_date = 1;
+    string end_date = 2;
+}
+
+message MarketReportRow {
+    string date = 1;
+    int64 participants = 2;
+    int64 new_orders = 3;
+    int64 amount_total_fen = 4;
+    int64 amount_normal_fen = 5;
+    int64 amount_sample_fen = 6;
+}
+
+message MarketReportReply {
+    repeated MarketReportRow rows = 1;
 }
 

@@ -1016,6 +1016,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: reporting.RealtimeReportHandler(serverCtx),
 				},
 				{
+					// 市场报表（reporting.metric:read）
+					Method:  http.MethodGet,
+					Path:    "/reporting/market",
+					Handler: reporting.MarketReportHandler(serverCtx),
+				},
+				{
 					// 保存看板（reporting.dashboard:write；id=0 创建/版本 CAS 更新）
 					Method:  http.MethodPost,
 					Path:    "/reporting/dashboards",

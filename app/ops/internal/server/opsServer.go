@@ -218,6 +218,12 @@ func (s *OpsServer) GetRealtimeReport(ctx context.Context, in *ops.RealtimeRepor
 	return l.GetRealtimeReport(in)
 }
 
+// 市场报表（读 gacha_report.market_daily）
+func (s *OpsServer) GetMarketReport(ctx context.Context, in *ops.MarketReportRequest) (*ops.MarketReportReply, error) {
+	l := logic.NewGetMarketReportLogic(ctx, s.svcCtx)
+	return l.GetMarketReport(in)
+}
+
 // 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
 func (s *OpsServer) ApplyMetricEvent(ctx context.Context, in *ops.ApplyMetricEventRequest) (*ops.ApplyMetricEventReply, error) {
 	l := logic.NewApplyMetricEventLogic(ctx, s.svcCtx)
