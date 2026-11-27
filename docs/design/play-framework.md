@@ -104,7 +104,7 @@ go vet ./app/play/... ./app/gateway/...
 
 | 表 | 用途 |
 | --- | --- |
-| `play_pool_heads` | 赏池头（mode/name/next_version，ID 从 1000000 起） |
+| `play_pools` | 赏池主表（mode/name/next_version，ID 从 1000000 起） |
 | `play_pool_versions` | 版本（status 1 DRAFT / 2 PUBLISHED / 3 RETIRED，price/config_json/config_hash） |
 | `play_pool_prizes` | 奖品（prize_type、sku_id、special_kind、target_value、资产字段、parent_index、extra_json） |
 | `play_pool_drafts` | 创建草稿幂等（idempotency_key + request_hash） |

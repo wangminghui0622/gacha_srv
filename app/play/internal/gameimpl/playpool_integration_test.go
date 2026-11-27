@@ -332,7 +332,7 @@ func cleanupPlayPoolTest(t *testing.T, db *gorm.DB, poolId int64) {
 	db.Exec("DELETE FROM play_pool_prizes WHERE pool_id = ?", poolId)
 	db.Exec("DELETE FROM play_pool_versions WHERE pool_id = ?", poolId)
 	db.Exec("DELETE FROM play_pool_drafts WHERE pool_id = ?", poolId)
-	db.Exec("DELETE FROM play_pool_heads WHERE id = ?", poolId)
+	db.Exec("DELETE FROM play_pools WHERE id = ?", poolId)
 	db.Exec("DELETE FROM gashapon_state WHERE config_id = ?", poolId)
 	db.Exec("DELETE FROM full_car_state WHERE config_id = ?", poolId)
 	db.Exec("DELETE FROM group_buy_state WHERE config_id = ?", poolId)

@@ -42,7 +42,7 @@ const adminPoolSelect = "h.id, h.name, h.mode, h.ip_id, h.tags_json, h.periods, 
 func ListAdminPlayPools(ctx context.Context, svcCtx *svc.ServiceContext, in *play.ListAdminPlayPoolsReq) (*play.ListAdminPlayPoolsResp, error) {
 	page, pageSize := pagination.Normalize(in.Page, in.PageSize, 15)
 	query := func() *gorm.DB {
-		q := svcCtx.DB.WithContext(ctx).Table("play_pool_heads AS h")
+		q := svcCtx.DB.WithContext(ctx).Table("play_pools AS h")
 		if keyword := strings.TrimSpace(in.Keyword); keyword != "" {
 			like := "%" + keyword + "%"
 			q = q.Where("(h.name LIKE ? OR CAST(h.id AS CHAR) LIKE ?)", like, like)
@@ -102,13 +102,13 @@ func UpdateAdminPlayPool(ctx context.Context, svcCtx *svc.ServiceContext, in *pl
 	}
 	err = svcCtx.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var head struct{ ID int64 }
-		if err := tx.Table("play_pool_heads").Select("id").Where("id = ?", in.PoolId).Take(&head).Error; err != nil {
+		if err := tx.Table("play_pools").Select("id").Where("id = ?", in.PoolId).Take(&head).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return status.Error(codes.InvalidArgument, "赏池不存在")
 			}
 			return err
 		}
-		if err := tx.Table("play_pool_heads").Where("id = ?", in.PoolId).Updates(map[string]any{
+		if err := tx.Table("play_pools").Where("id = ?", in.PoolId).Updates(map[string]any{
 			"name": name, "ip_id": in.IpId, "tags_json": tags,
 			"periods": in.Periods, "weight": in.Weight,
 		}).Error; err != nil {
@@ -142,7 +142,7 @@ func SaveAdminPlayPoolWeights(ctx context.Context, svcCtx *svc.ServiceContext, i
 			if w.PoolId <= 0 {
 				continue
 			}
-			if err := tx.Table("play_pool_heads").Where("id = ?", w.PoolId).Update("weight", w.Weight).Error; err != nil {
+			if err := tx.Table("play_pools").Where("id = ?", w.PoolId).Update("weight", w.Weight).Error; err != nil {
 				return err
 			}
 		}
@@ -170,7 +170,7 @@ func DeleteAdminPlayPools(ctx context.Context, svcCtx *svc.ServiceContext, in *p
 		if err := tx.Where("pool_id IN ?", in.PoolIds).Delete(&gamemodelnc.PlayPoolDraft{}).Error; err != nil {
 			return err
 		}
-		res := tx.Where("id IN ?", in.PoolIds).Delete(&gamemodelnc.PlayPoolHead{})
+		res := tx.Where("id IN ?", in.PoolIds).Delete(&gamemodelnc.PlayPool{})
 		if res.Error != nil {
 			return res.Error
 		}
@@ -185,7 +185,7 @@ func DeleteAdminPlayPools(ctx context.Context, svcCtx *svc.ServiceContext, in *p
 
 func getAdminPool(ctx context.Context, svcCtx *svc.ServiceContext, poolID int64) (*play.AdminPlayPool, error) {
 	var row adminPoolRow
-	if err := svcCtx.DB.WithContext(ctx).Table("play_pool_heads AS h").Select(adminPoolSelect).
+	if err := svcCtx.DB.WithContext(ctx).Table("play_pools AS h").Select(adminPoolSelect).
 		Where("h.id = ?", poolID).Take(&row).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, status.Error(codes.InvalidArgument, "赏池不存在")

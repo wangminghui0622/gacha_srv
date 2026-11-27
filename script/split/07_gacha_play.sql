@@ -691,7 +691,7 @@ ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
 -- 统一 play 赏池/奖品模型（所有玩法共用；发布时投影到各玩法运行表）
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS `play_pool_heads` (
+CREATE TABLE IF NOT EXISTS `play_pools` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '赏池ID（从 1000000 开始）',
   `mode` varchar(32) NOT NULL COMMENT '玩法：gashapon/fullcar/combochain/dig/groupbuy/memorymatch',
   `name` varchar(128) NOT NULL DEFAULT '' COMMENT '主题名称',
@@ -707,7 +707,7 @@ CREATE TABLE IF NOT EXISTS `play_pool_heads` (
   KEY `idx_mode_id` (`mode`,`id`),
   KEY `idx_pool_ip` (`ip_id`),
   KEY `idx_pool_weight` (`weight`)
-) ENGINE=InnoDB AUTO_INCREMENT=1000000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='统一玩赏池头表';
+) ENGINE=InnoDB AUTO_INCREMENT=1000000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='统一玩赏池主表';
 
 CREATE TABLE IF NOT EXISTS `play_pool_versions` (
   `pool_id` bigint unsigned NOT NULL COMMENT '赏池ID',

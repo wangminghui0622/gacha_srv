@@ -43,7 +43,7 @@ func GetPlayPoolVersion(ctx context.Context, svcCtx *svc.ServiceContext, in *pla
 	var head struct {
 		AdminJSON string `gorm:"column:admin_json"`
 	}
-	if err := svcCtx.DB.Table("play_pool_heads").Select("admin_json").
+	if err := svcCtx.DB.Table("play_pools").Select("admin_json").
 		Where("id = ?", v.PoolId).Take(&head).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
@@ -71,11 +71,11 @@ func ListPlayPools(ctx context.Context, svcCtx *svc.ServiceContext, in *play.Lis
 	if pageSize > 100 {
 		pageSize = 100
 	}
-	q := svcCtx.DB.Model(&gamemodelnc.PlayPoolHead{}).Where("id > ?", in.AfterPoolId)
+	q := svcCtx.DB.Model(&gamemodelnc.PlayPool{}).Where("id > ?", in.AfterPoolId)
 	if in.Mode != "" {
 		q = q.Where("mode = ?", in.Mode)
 	}
-	var heads []gamemodelnc.PlayPoolHead
+	var heads []gamemodelnc.PlayPool
 	if err := q.Order("id ASC").Limit(int(pageSize)).Find(&heads).Error; err != nil {
 		return nil, err
 	}

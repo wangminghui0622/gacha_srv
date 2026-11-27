@@ -2,8 +2,8 @@ package gacha_play
 
 import "time"
 
-// PlayPoolHead 统一玩赏池头（所有玩法共用）。
-type PlayPoolHead struct {
+// PlayPool 统一玩赏池主表（所有玩法共用）。
+type PlayPool struct {
 	Id          int64     `gorm:"column:id;primaryKey;autoIncrement"`
 	Mode        string    `gorm:"column:mode"`
 	Name        string    `gorm:"column:name"`
@@ -12,7 +12,7 @@ type PlayPoolHead struct {
 	UpdatedAt   time.Time `gorm:"column:updated_at"`
 }
 
-func (PlayPoolHead) TableName() string { return "play_pool_heads" }
+func (PlayPool) TableName() string { return "play_pools" }
 
 // PlayPoolVersion 统一玩赏池版本。
 type PlayPoolVersion struct {

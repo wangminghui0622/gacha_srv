@@ -45,7 +45,7 @@ func CreatePlayPoolDraft(ctx context.Context, svcCtx *svc.ServiceContext, in *pl
 			}
 		}
 
-		var head gamemodelnc.PlayPoolHead
+		var head gamemodelnc.PlayPool
 		if in.PoolId > 0 {
 			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 				Where("id = ?", in.PoolId).First(&head).Error; err != nil {
@@ -58,7 +58,7 @@ func CreatePlayPoolDraft(ctx context.Context, svcCtx *svc.ServiceContext, in *pl
 				return status.Error(codes.InvalidArgument, "赏池玩法不一致")
 			}
 		} else {
-			head = gamemodelnc.PlayPoolHead{
+			head = gamemodelnc.PlayPool{
 				Mode:        in.Mode,
 				Name:        in.Name,
 				NextVersion: 1,
@@ -79,7 +79,7 @@ func CreatePlayPoolDraft(ctx context.Context, svcCtx *svc.ServiceContext, in *pl
 		if adminJSON == "" {
 			adminJSON = "{}"
 		}
-		if err := tx.Model(&gamemodelnc.PlayPoolHead{}).Where("id = ?", head.Id).Updates(map[string]interface{}{
+		if err := tx.Model(&gamemodelnc.PlayPool{}).Where("id = ?", head.Id).Updates(map[string]interface{}{
 			"name":         in.Name,
 			"next_version": version + 1,
 			"ip_id":        in.IpId,

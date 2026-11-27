@@ -23,7 +23,7 @@ func RetirePlayPool(ctx context.Context, svcCtx *svc.ServiceContext, in *play.Re
 	}
 	var retired int64
 	err := svcCtx.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		var head gamemodelnc.PlayPoolHead
+		var head gamemodelnc.PlayPool
 		if err := tx.Select("id, mode").Where("id = ?", in.PoolId).Take(&head).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return status.Error(codes.InvalidArgument, "赏池不存在")

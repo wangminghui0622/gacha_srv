@@ -59,7 +59,7 @@ func (l *QueryPlayPoolReferencesLogic) QueryPlayPoolReferences(in *play.QueryPla
 		"JOIN (SELECT pool_id, MAX(version) AS version FROM play_pool_versions GROUP BY pool_id) lv " +
 		"  ON lv.pool_id = p.pool_id AND lv.version = p.version " +
 		"JOIN play_pool_versions v ON v.pool_id = lv.pool_id AND v.version = lv.version " +
-		"JOIN play_pool_heads h ON h.id = p.pool_id " +
+		"JOIN play_pools h ON h.id = p.pool_id " +
 		"WHERE " + condition + " "
 
 	var total int64
