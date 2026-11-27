@@ -76,6 +76,7 @@ const defs: SeriesDef[] = [
   { name: '微信充值', axis: 0, kind: 'money', value: (r) => r.wechatPayFen / 100 },
   { name: '支付宝充值', axis: 0, kind: 'money', value: (r) => r.alipayPayFen / 100 },
   { name: '汇付充值', axis: 0, kind: 'money', value: (r) => r.huifuPayFen / 100 },
+  { name: '退微信充值', axis: 0, kind: 'money', value: (r) => r.wechatRefundFen / 100 },
   { name: '退支付宝充值', axis: 0, kind: 'money', value: (r) => r.alipayRefundFen / 100 },
   { name: '退汇付充值', axis: 0, kind: 'money', value: (r) => r.huifuRefundFen / 100 },
   { name: '支付宝赠送', axis: 0, kind: 'money', value: (r) => r.alipayGiftFen / 100 },
