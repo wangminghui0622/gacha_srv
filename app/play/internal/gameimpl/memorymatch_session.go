@@ -6,6 +6,7 @@ import (
 	"errors"
 	"gacha_srv/app/marketing/marketingClient"
 	"gacha_srv/app/play/internal/core/memorymatch"
+	"gacha_srv/app/play/internal/playpool"
 	"gacha_srv/app/play/internal/repo"
 	"gacha_srv/app/play/internal/svc"
 	"gacha_srv/app/play/play"
@@ -443,20 +444,16 @@ func mmConfigItem(db *gorm.DB, cfg *gamemodel.MemoryMatchConfigs, rules *mmRules
 	return item, nil
 }
 
-// mmPoolEntryImages 读取赏池最新已发布版本的奖品图（按目标碰数匹配运行态奖档）。
+// mmPoolEntryImages 读取赏池当前奖档图（按总碰数匹配运行态奖档）。
 func mmPoolEntryImages(db *gorm.DB, poolID int64) map[int32]string {
-	var v gamemodelnc.PlayPoolVersion
-	if err := db.Where("pool_id = ? AND status = ?", poolID, 2).Order("version DESC").First(&v).Error; err != nil {
-		return nil
-	}
-	var prizes []gamemodelnc.PlayPoolPrize
-	if err := db.Where("pool_id = ? AND version = ?", poolID, v.Version).Find(&prizes).Error; err != nil {
+	var prizes []playpool.PrizeRow
+	if err := db.Table("play_memorymatch_prizes").Where("pool_id = ?", poolID).Find(&prizes).Error; err != nil {
 		return nil
 	}
 	out := make(map[int32]string, len(prizes))
 	for _, p := range prizes {
-		if p.ImageUrl != "" {
-			out[int32(p.TargetValue)] = p.ImageUrl
+		if p.ImageURL != "" {
+			out[int32(p.TotalPairCount)] = p.ImageURL
 		}
 	}
 	return out

@@ -4,65 +4,47 @@ import (
 	"context"
 	"errors"
 
+	"gacha_srv/app/play/internal/playpool"
 	"gacha_srv/app/play/internal/svc"
 	"gacha_srv/app/play/play"
-	gamemodelnc "gacha_srv/pkg/model_nocache/gacha_play"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
 )
 
-// GetPlayPoolVersion 查询统一玩赏池版本详情。
+// GetPlayPoolVersion 查询赏池当前配置。旧接口名保留；version 固定为 1。
 func GetPlayPoolVersion(ctx context.Context, svcCtx *svc.ServiceContext, in *play.GetPlayPoolVersionReq) (*play.GetPlayPoolVersionResp, error) {
 	if in.PoolId <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "poolId 非法")
 	}
-	var v gamemodelnc.PlayPoolVersion
-	q := svcCtx.DB.Where("pool_id = ?", in.PoolId)
-	if in.Version > 0 {
-		q = q.Where("version = ?", in.Version)
-	} else {
-		q = q.Order("version DESC")
-	}
-	if err := q.First(&v).Error; err != nil {
+	p, err := playpool.Get(svcCtx.DB, in.PoolId)
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, status.Error(codes.InvalidArgument, "赏池版本不存在")
+			return nil, status.Error(codes.InvalidArgument, "赏池不存在")
 		}
 		return nil, err
 	}
-	var prizes []gamemodelnc.PlayPoolPrize
-	if err := svcCtx.DB.Where("pool_id = ? AND version = ?", v.PoolId, v.Version).
-		Order("prize_index ASC").Find(&prizes).Error; err != nil {
-		return nil, err
-	}
 	publishedAt := int64(0)
-	if v.PublishedAt != nil {
-		publishedAt = v.PublishedAt.Unix()
-	}
-	var head struct {
-		AdminJSON string `gorm:"column:admin_json"`
-	}
-	if err := svcCtx.DB.Table("play_pools").Select("admin_json").
-		Where("id = ?", v.PoolId).Take(&head).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, err
+	if p.PublishedAt != nil {
+		publishedAt = p.PublishedAt.Unix()
 	}
 	return &play.GetPlayPoolVersionResp{
-		PoolId:      v.PoolId,
-		Version:     v.Version,
-		Mode:        v.Mode,
-		Name:        v.Name,
-		PriceFen:    v.PriceFen,
-		ConfigJson:  v.ConfigJson,
-		ConfigHash:  v.ConfigHash,
-		Status:      v.Status,
+		PoolId:      p.ID,
+		Version:     1,
+		Mode:        p.Mode,
+		Name:        p.Name,
+		PriceFen:    p.PriceFen,
+		ConfigJson:  p.ConfigJSON,
+		ConfigHash:  "",
+		Status:      legacyPoolStatus(p.Status),
 		PublishedAt: publishedAt,
-		Prizes:      playPoolPrizesToProto(prizes),
-		AdminJson:   head.AdminJSON,
+		Prizes:      playPoolPrizesToProtoV2(p),
+		AdminJson:   p.AdminJSON,
 	}, nil
 }
 
-// ListPlayPools 分页列出统一玩赏池（按 poolId 升序，返回每个池的最新版本摘要）。
+// ListPlayPools 分页列出赏池；每个池固定 version=1。
 func ListPlayPools(ctx context.Context, svcCtx *svc.ServiceContext, in *play.ListPlayPoolsReq) (*play.ListPlayPoolsResp, error) {
 	pageSize := in.PageSize
 	if pageSize <= 0 {
@@ -71,35 +53,70 @@ func ListPlayPools(ctx context.Context, svcCtx *svc.ServiceContext, in *play.Lis
 	if pageSize > 100 {
 		pageSize = 100
 	}
-	q := svcCtx.DB.Model(&gamemodelnc.PlayPool{}).Where("id > ?", in.AfterPoolId)
+	q := svcCtx.DB.WithContext(ctx).Model(&playpool.CatalogRow{}).Where("id > ?", in.AfterPoolId)
 	if in.Mode != "" {
 		q = q.Where("mode = ?", in.Mode)
 	}
-	var heads []gamemodelnc.PlayPool
-	if err := q.Order("id ASC").Limit(int(pageSize)).Find(&heads).Error; err != nil {
+	var rows []playpool.CatalogRow
+	if err := q.Order("id ASC").Limit(int(pageSize)).Find(&rows).Error; err != nil {
 		return nil, err
 	}
-	items := make([]*play.PlayPoolSummary, 0, len(heads))
-	for _, h := range heads {
-		var v gamemodelnc.PlayPoolVersion
-		if err := svcCtx.DB.Where("pool_id = ?", h.Id).Order("version DESC").First(&v).Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				continue
-			}
-			return nil, err
-		}
+	items := make([]*play.PlayPoolSummary, 0, len(rows))
+	for _, row := range rows {
 		publishedAt := int64(0)
-		if v.PublishedAt != nil {
-			publishedAt = v.PublishedAt.Unix()
+		if row.PublishedAt != nil {
+			publishedAt = row.PublishedAt.Unix()
 		}
 		items = append(items, &play.PlayPoolSummary{
-			PoolId:        h.Id,
-			LatestVersion: v.Version,
-			Mode:          h.Mode,
-			Name:          h.Name,
-			Status:        v.Status,
+			PoolId:        row.ID,
+			LatestVersion: 1,
+			Mode:          row.Mode,
+			Name:          row.Name,
+			Status:        legacyPoolStatus(row.Status),
 			PublishedAt:   publishedAt,
 		})
 	}
 	return &play.ListPlayPoolsResp{Items: items}, nil
+}
+
+func legacyPoolStatus(status int64) int64 {
+	switch status {
+	case playpool.StatusDraft:
+		return 1
+	case playpool.StatusLive:
+		return 2
+	case playpool.StatusOffline, playpool.StatusVoid:
+		return 3
+	default:
+		return status
+	}
+}
+
+func playPoolPrizesToProtoV2(p *playpool.Pool) []*play.PlayPoolPrize {
+	out := make([]*play.PlayPoolPrize, 0, len(p.Prizes))
+	for _, prize := range p.Prizes {
+		out = append(out, &play.PlayPoolPrize{
+			PrizeIndex:       int64(prize.Index),
+			PrizeGrade:       prize.PrizeGrade,
+			SpecialKind:      prize.SpecialKind,
+			PrizeType:        int64(prize.PrizeType),
+			Name:             prize.Name,
+			SkuId:            prize.SkuID,
+			ChildPoolId:      prize.ChildPoolID,
+			Weight:           prize.Weight,
+			Quantity:         int64(prize.Quantity),
+			Remaining:        int64(prize.Quantity),
+			IsPrize:          prize.IsPrize,
+			TargetValue:      int64(prize.TargetValue),
+			CashFen:          prize.CashFen,
+			PointsAmount:     prize.PointsAmount,
+			CouponTemplateNo: prize.CouponTemplateNo,
+			CostFen:          prize.CostFen,
+			ImageUrl:         prize.ImageURL,
+			ParentIndex:      int64(prize.ParentIndex),
+			ExtraJson:        prize.ExtraJSON,
+			HasParent:        prize.ParentIndex >= 0,
+		})
+	}
+	return out
 }
