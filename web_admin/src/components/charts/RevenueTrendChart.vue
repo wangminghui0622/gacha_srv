@@ -82,6 +82,10 @@ const defs: SeriesDef[] = [
   { name: '微信赠送', axis: 0, kind: 'money', value: (r) => r.wechatGiftFen / 100 },
   { name: '支付宝赠送', axis: 0, kind: 'money', value: (r) => r.alipayGiftFen / 100 },
   { name: '汇付赠送', axis: 0, kind: 'money', value: (r) => r.huifuGiftFen / 100 },
+  { name: '退微信赠送', axis: 0, kind: 'money', value: (r) => r.wechatGiftRefundFen / 100 },
+  { name: '退支付宝赠送', axis: 0, kind: 'money', value: (r) => r.alipayGiftRefundFen / 100 },
+  { name: '退汇付赠送', axis: 0, kind: 'money', value: (r) => r.huifuGiftRefundFen / 100 },
+  { name: '总退款(¥)', axis: 0, kind: 'money', value: (r) => r.refundAmountFen / 100 },
   { name: '退款(¥)率', axis: 1, kind: 'rate', value: (r) => r.refundRateBps / 100 },
   { name: '总税收', axis: 0, kind: 'money', value: (r) => r.taxFen / 100 },
   { name: '税收(新)', axis: 0, kind: 'money', value: (r) => r.newTaxFen / 100 },
@@ -274,7 +278,7 @@ onBeforeUnmount(() => {
 .legend-item {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 0;
   min-width: 0;
   padding: 0;
   border: 0;
@@ -298,8 +302,8 @@ onBeforeUnmount(() => {
 
 .legend-dot {
   flex: 0 0 auto;
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
 }
 
