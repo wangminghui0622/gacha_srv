@@ -86,7 +86,11 @@ function render() {
       xAxis: {
         type: 'category',
         data: props.labels,
-        axisLabel: { fontSize: 11, interval: 5 },
+        axisLabel: {
+          fontSize: 11,
+          // 00:10、01:00、01:50 ... 每 50 分钟一个标签，和实时报表参考图一致。
+          interval: (index: number) => index % 5 === 1,
+        },
       },
       yAxis: {
         type: 'value',
