@@ -1,13 +1,38 @@
 <template>
   <div class="revenue-chart-wrap">
-    <div ref="chartEl" class="revenue-chart" />
-    <div v-if="empty" class="chart-empty">暂无可展示的营收数据</div>
+    <div class="custom-legend">
+      <div
+        v-for="(row, rowIndex) in legendRows"
+        :key="rowIndex"
+        class="legend-row"
+        :class="{ 'legend-row-compact': rowIndex === 2 }"
+      >
+        <button
+          v-for="item in row"
+          :key="item.name"
+          type="button"
+          class="legend-item"
+          :class="{ 'is-selected': selectedMap[item.name] }"
+          @click="toggle(item.name)"
+        >
+          <span
+            class="legend-dot"
+            :style="{ backgroundColor: selectedMap[item.name] ? seriesColor(item.index) : '#d9d9d9' }"
+          />
+          <span class="legend-text">{{ item.name }}</span>
+        </button>
+      </div>
+    </div>
+    <div class="chart-box">
+      <div ref="chartEl" class="revenue-chart" />
+      <div v-if="empty" class="chart-empty">暂无可展示的营收数据</div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import * as echarts from 'echarts'
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import type { RevenueReportRow } from '@/api/revenueReport'
 
 const props = defineProps<{
@@ -26,7 +51,7 @@ interface SeriesDef {
 }
 
 const defs: SeriesDef[] = [
-  // 第 1 页
+  // 第 1 行：12 个核心指标
   { name: '注册数', axis: 0, kind: 'count', value: (r) => r.registrations },
   { name: '日活', axis: 0, kind: 'count', value: (r) => r.activeUsers },
   { name: '日活(新)', axis: 0, kind: 'count', value: (r) => r.newActiveUsers },
@@ -39,17 +64,18 @@ const defs: SeriesDef[] = [
   { name: '总付费(新)', axis: 0, kind: 'money', value: (r) => r.newPayAmountFen / 100 },
   { name: '总付费(旧)', axis: 0, kind: 'money', value: (r) => r.oldPayAmountFen / 100 },
   { name: '退款金额', axis: 0, kind: 'money', value: (r) => r.refundAmountFen / 100 },
+  // 第 2 行：10 个付费/渠道指标
   { name: '退款人数', axis: 0, kind: 'count', value: (r) => r.refundUsers },
   { name: '付费用户数', axis: 0, kind: 'count', value: (r) => r.payingUsers },
   { name: '付费用户数(新)', axis: 0, kind: 'count', value: (r) => r.newPayingUsers },
   { name: '付费用户数(旧)', axis: 0, kind: 'count', value: (r) => r.oldPayingUsers },
   { name: 'arpu', axis: 0, kind: 'money', value: (r) => r.arpuFen / 100 },
   { name: 'arppu', axis: 0, kind: 'money', value: (r) => r.arppuFen / 100 },
-  // 第 2 页
   { name: 'arpu(新)', axis: 0, kind: 'money', value: (r) => r.arpuNewFen / 100 },
   { name: 'arpu(旧)', axis: 0, kind: 'money', value: (r) => r.arpuOldFen / 100 },
   { name: '渗透率', axis: 1, kind: 'rate', value: (r) => r.penetrationBps / 100 },
   { name: '渗透率(新)', axis: 1, kind: 'rate', value: (r) => r.penetrationNewBps / 100 },
+  // 第 3 行：剩余指标
   { name: '渗透率(旧)', axis: 1, kind: 'rate', value: (r) => r.penetrationOldBps / 100 },
   { name: '微信充值', axis: 0, kind: 'money', value: (r) => r.wechatPayFen / 100 },
   { name: '支付宝充值', axis: 0, kind: 'money', value: (r) => r.alipayPayFen / 100 },
@@ -64,7 +90,6 @@ const defs: SeriesDef[] = [
   { name: '退支付宝赠送', axis: 0, kind: 'money', value: (r) => r.alipayGiftRefundFen / 100 },
   { name: '退汇付赠送', axis: 0, kind: 'money', value: (r) => r.huifuGiftRefundFen / 100 },
   { name: '总退款(¥)', axis: 0, kind: 'money', value: (r) => r.refundAmountFen / 100 },
-  // 第 3 页
   { name: '退款(¥)用户数', axis: 0, kind: 'count', value: (r) => r.refundUsers },
   { name: '退款(¥)率', axis: 1, kind: 'rate', value: (r) => r.refundRateBps / 100 },
   { name: '总税收', axis: 0, kind: 'money', value: (r) => r.taxFen / 100 },
@@ -113,11 +138,23 @@ for (const name of ['注册数', '日活', '总付费', '付费用户数', '渗�
   }
 }
 
+const selectedMap = reactive<Record<string, boolean>>({ ...defaultSelected })
+
+const legendRows = computed(() => {
+  const items = defs.map((def, index) => ({ name: def.name, index }))
+  return [items.slice(0, 12), items.slice(12, 22), items.slice(22)]
+})
+
 function seriesColor(index: number): string {
   if (index < colors.length) {
     return colors[index] ?? '#1677ff'
   }
   return `hsl(${(index * 47) % 360}, 65%, 50%)`
+}
+
+function toggle(name: string) {
+  selectedMap[name] = !selectedMap[name]
+  chart?.setOption({ legend: { selected: { ...selectedMap } } })
 }
 
 function render() {
@@ -155,19 +192,11 @@ function render() {
         },
       },
       legend: {
-        type: 'plain',
-        top: 0,
-        left: 0,
-        right: 0,
+        show: false,
         data: defs.map((def) => def.name),
-        icon: 'circle',
-        itemWidth: 8,
-        itemHeight: 8,
-        itemGap: 2,
-        textStyle: { fontSize: 14, color: '#595959' },
-        selected: defaultSelected,
+        selected: { ...selectedMap },
       },
-      grid: { left: 64, right: 64, top: 100, bottom: labels.length > 15 ? 84 : 56 },
+      grid: { left: 64, right: 64, top: 48, bottom: labels.length > 15 ? 84 : 56 },
       xAxis: {
         type: 'category',
         data: labels,
@@ -234,9 +263,65 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .revenue-chart-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.custom-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.legend-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.legend-row-compact {
+  gap: 8px;
+}
+
+.legend-item {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #8c8c8c;
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.legend-item.is-selected {
+  color: #262626;
+}
+
+.legend-dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legend-row-compact .legend-item {
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.chart-box {
   position: relative;
   width: 100%;
-  height: 420px;
+  height: 340px;
 }
 
 .revenue-chart {
