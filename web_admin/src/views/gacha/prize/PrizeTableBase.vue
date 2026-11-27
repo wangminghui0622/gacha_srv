@@ -15,8 +15,19 @@
     <a-table-column title="类型" width="70" align="center">
       <template #default="{ record }">{{ record.prizeType === 2 ? '商品' : record.prizeType === 3 ? '箱子' : '虚拟' }}</template>
     </a-table-column>
-    <a-table-column v-if="showSpecial" title="特别赏" width="90" align="center">
-      <template #default="{ record }">{{ specialKindText(record.specialKind) }}</template>
+    <a-table-column v-if="showSpecial" title="特别赏" width="110" align="center">
+      <template #default="{ record }">
+        <a-select
+          v-if="specialEditable"
+          :value="record.specialKind || ''"
+          :options="specialOptions"
+          size="small"
+          style="width: 96px"
+          @click.stop
+          @change="(value: string) => emit('specialChange', record, value)"
+        />
+        <template v-else>{{ specialKindText(record.specialKind) }}</template>
+      </template>
     </a-table-column>
     <a-table-column v-if="showReward" title="奖励" width="120" align="center">
       <template #default="{ record }">{{ rewardText(record) }}</template>
@@ -119,6 +130,7 @@ withDefaults(
     showRecord?: boolean
     showQuantityInput?: boolean
     showLuckyStage?: boolean
+    specialEditable?: boolean
   }>(),
   {
     actionsWidth: 100,
@@ -128,6 +140,7 @@ withDefaults(
     showRecord: false,
     showQuantityInput: false,
     showLuckyStage: false,
+    specialEditable: false,
   },
 )
 
@@ -136,7 +149,15 @@ const emit = defineEmits<{
   targetChange: [record: DisplayPrize, value: number | null]
   recordChange: [record: DisplayPrize, value: boolean]
   quantityChange: [record: DisplayPrize, value: number | null]
+  specialChange: [record: DisplayPrize, value: string]
 }>()
+
+const specialOptions = [
+  { label: '普通赏', value: '' },
+  { label: 'Last赏', value: 'LAST' },
+  { label: 'MVP赏', value: 'MVP' },
+  { label: '幸运赏', value: 'LUCKY' },
+]
 
 function specialKindText(value: string | undefined) {
   switch (value) {
@@ -154,6 +175,7 @@ function specialKindText(value: string | undefined) {
 }
 
 function rewardText(record: DisplayPrize) {
+  if (record.specialKind && record.prizeType === 2) return '实物'
   if (Number(record.cashFen ?? 0) > 0) return `¥${(Number(record.cashFen) / 100).toFixed(2)}`
   if (Number(record.pointsAmount ?? 0) > 0) return `${record.pointsAmount} 积分`
   if (record.couponTemplateNo) return `券 ${record.couponTemplateNo}`

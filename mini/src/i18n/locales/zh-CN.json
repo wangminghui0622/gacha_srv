@@ -322,6 +322,7 @@
     "prizeCash": "现金 {amount}",
     "prizePoints": "积分 ×{n}",
     "prizeCoupon": "券 {name}",
+    "prizeGoods": "实物：{name}",
     "kindLast": "末抽大奖",
     "kindMvp": "参与之星",
     "kindLucky": "幸运指派",

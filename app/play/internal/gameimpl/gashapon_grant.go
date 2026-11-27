@@ -65,6 +65,9 @@ func (l *GrantGashaponPrizesLogic) GrantGashaponPrizes(in *play.GrantGashaponPri
 			CashFen:          a.CashFen,
 			Points:           a.PointsAmount,
 			CouponTemplateNo: a.CouponTemplateNo,
+			SkuId:            a.SkuId,
+			ItemName:         a.ItemName,
+			PoolId:           in.ConfigId,
 		})
 	}
 

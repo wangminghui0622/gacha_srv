@@ -376,11 +376,13 @@ export interface DigBuyResponse {
 }
 
 export interface DigPrizeItem {
-  kind: number // 1 CASH 2 POINTS 3 COUPON
+  kind: number // 1 CASH 2 POINTS 3 COUPON 5 GOODS
   amount: string
   points: number
   couponTemplateNo: string
   couponName: string
+  skuId?: number
+  itemName?: string
 }
 
 export interface DigRecordItem {

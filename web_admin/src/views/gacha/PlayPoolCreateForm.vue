@@ -145,13 +145,15 @@
                 :show-special="isSpecialMode"
                 :show-reward="isSpecialMode"
                 :show-record="isBoxMode || form.mode === 'gashapon'"
-                :show-quantity-input="isBoxMode"
+                :show-quantity-input="isBoxMode || form.mode === 'gashapon'"
                 :show-lucky-stage="form.mode === 'gashapon'"
+                :special-editable="form.mode === 'gashapon'"
                 @toggle="togglePrizeExpand"
                 @remove="confirmRemove"
                 @target-change="setPrizeTarget"
                 @record-change="setPrizeRecord"
                 @quantity-change="setPrizeQuantity"
+                @special-change="setPrizeSpecialKind"
               />
             </div>
 
@@ -161,6 +163,12 @@
                 v-model:value="prizeDraft.prizeGrade"
                 :options="gradeOptions"
                 style="width: 90px"
+              />
+              <a-select
+                v-if="form.mode === 'gashapon'"
+                v-model:value="prizeDraft.specialKind"
+                :options="gashaponSpecialOptionsWithNormal"
+                style="width: 100px"
               />
               <a-select
                 v-if="form.mode !== 'memorymatch'"
@@ -183,17 +191,10 @@
               <a-switch v-model:checked="prizeDraft.isPrize" />
             </div>
 
-            <div v-if="isSpecialMode" class="special-prize-panel">
+            <div v-if="form.mode === 'fullcar'" class="special-prize-panel">
               <div class="special-title">特别赏配置：</div>
               <div class="special-row">
                 <a-select
-                  v-if="form.mode === 'gashapon'"
-                  v-model:value="specialDraft.kind"
-                  :options="gashaponSpecialOptions"
-                  style="width: 110px"
-                />
-                <a-select
-                  v-else
                   v-model:value="specialDraft.settlementType"
                   :options="fullcarSettlementOptions"
                   style="width: 130px"
@@ -202,14 +203,6 @@
                   v-model:value="specialDraft.rewardType"
                   :options="rewardTypeOptions"
                   style="width: 90px"
-                />
-                <a-input-number
-                  v-if="form.mode === 'gashapon' && specialDraft.kind === 'LUCKY'"
-                  v-model:value="specialDraft.luckyStage"
-                  :min="0"
-                  :precision="0"
-                  placeholder="Lucky顺序"
-                  style="width: 100px"
                 />
                 <a-input-number
                   v-if="specialDraft.rewardType === 'cash'"
@@ -239,7 +232,7 @@
                 <a-button @click="addSpecialPrize">添加特别赏</a-button>
               </div>
               <div class="special-hint">
-                {{ form.mode === 'gashapon' ? '吉祥赏需至少配置一个 Last赏/MVP赏/幸运赏。' : '满车赏需至少一个普通条目和一个结算奖。' }}
+                满车赏需至少一个普通条目和一个结算奖。
               </div>
             </div>
           </div>
@@ -473,11 +466,14 @@ const form = reactive({
 })
 
 // 对对碰没有子赏/箱子奖，类型只保留商品；无限赏暂不接入箱中箱，额外支持虚拟奖。
-const prizeTypeOptions = computed(() => [
-  ...(isBoxMode.value ? [{ label: '虚拟', value: 0 }] : []),
-  { label: '商品', value: 2 },
-  ...(form.mode === 'memorymatch' || isBoxMode.value ? [] : [{ label: '箱子', value: 3 }]),
-])
+const prizeTypeOptions = computed(() => {
+  if (form.mode === 'gashapon' && prizeDraft.specialKind) return [{ label: '商品', value: 2 }]
+  return [
+    ...(isBoxMode.value ? [{ label: '虚拟', value: 0 }] : []),
+    { label: '商品', value: 2 },
+    ...(form.mode === 'memorymatch' || isBoxMode.value ? [] : [{ label: '箱子', value: 3 }]),
+  ]
+})
 
 const switchItems = [
   { key: 'isOnSale', label: '是否上架' },
@@ -637,6 +633,7 @@ const displayPrizes = computed<DisplayPrize[]>(() => {
 const prizeTableWrap = ref<HTMLElement | null>(null)
 const prizeDraft = reactive({
   prizeGrade: 'SP',
+  specialKind: '',
   prizeType: 2,
   name: '',
   childPoolId: 0,
@@ -730,6 +727,12 @@ watch(
     if (type !== 3) prizeDraft.name = ''
   },
 )
+watch(
+  () => prizeDraft.specialKind,
+  (kind) => {
+    if (form.mode === 'gashapon' && kind && prizeDraft.prizeType === 3) prizeDraft.prizeType = 2
+  },
+)
 
 const isGroupBuy = computed(() => form.mode === 'groupbuy')
 const isBoxMode = computed(() => form.mode === 'box')
@@ -739,6 +742,10 @@ const gashaponSpecialOptions = [
   { label: 'Last赏', value: 'LAST' },
   { label: 'MVP赏', value: 'MVP' },
   { label: '幸运赏', value: 'LUCKY' },
+]
+const gashaponSpecialOptionsWithNormal = [
+  { label: '普通赏', value: '' },
+  ...gashaponSpecialOptions,
 ]
 const fullcarSettlementOptions = [
   { label: '幸运结算奖', value: 1 },
@@ -771,7 +778,7 @@ function addManualPrize() {
   prizes.value.push({
     prizeIndex: nextIndex,
     prizeGrade: prizeDraft.prizeGrade,
-    specialKind: '',
+    specialKind: form.mode === 'gashapon' ? prizeDraft.specialKind : '',
     prizeType: Number(prizeDraft.prizeType ?? 0),
     name,
     skuId: 0,
@@ -840,6 +847,7 @@ function addSpecialPrize() {
 watch(
   () => form.mode,
   (mode, oldMode) => {
+    if (mode !== 'gashapon') prizeDraft.specialKind = ''
     if (mode === 'memorymatch') {
       prizeDraft.prizeGrade = 'PairCard'
       if (prizeDraft.prizeType === 3) {
@@ -1046,6 +1054,7 @@ function removePrize(index: number) {
 // 与后端目标分配保持一致：只按“有奖档”的剩余库存权重计算概率；
 // 无奖档（谢谢参与）概率固定 0.00，不参与分配。
 function prizeAllocationWeight(prize: PlayPoolPrize): number {
+  if (prize.specialKind) return 0
   if (prize.isPrize === false) return 0
   const remaining = Number(prize.remaining ?? NaN)
   if (Number.isFinite(remaining)) {
@@ -1065,6 +1074,7 @@ const totalPrizeWeight = computed(() =>
 )
 
 function probability(prize: DisplayPrize): string {
+  if (prize.specialKind) return '—'
   if (isBoxMode.value) {
     if (totalPrizeWeight.value <= 0) return '0.00'
     return ((100 / totalPrizeWeight.value) * Math.max(0, Number(prize.weight ?? 1))).toFixed(2)
@@ -1406,6 +1416,16 @@ function setPrizeQuantity(record: DisplayPrize, value: number | null) {
   prize.remaining = prize.quantity
 }
 
+function setPrizeSpecialKind(record: DisplayPrize, value: string) {
+  const prize = prizes.value.find((item) => item.prizeIndex === record.prizeIndex)
+  if (!prize) return
+  const previous = prize.specialKind ?? ''
+  prize.specialKind = value
+  if (form.mode !== 'gashapon') return
+  if (value && prize.prizeType === 3) prize.prizeType = 2
+  if (previous === 'LUCKY' && value !== 'LUCKY') prize.targetValue = 0
+}
+
 function prizeCustomRow(record: PlayPoolPrize) {
   const clickable = record.prizeType === 2 && !record.hasParent
   return {
@@ -1508,7 +1528,7 @@ function confirmSkuSelection() {
     prizes.value.push({
       prizeIndex: prizes.value.length,
       prizeGrade: form.mode === 'memorymatch' ? 'PairCard' : prizeDraft.prizeGrade,
-      specialKind: '',
+      specialKind: form.mode === 'gashapon' ? prizeDraft.specialKind : '',
       prizeType: 2,
       name: item.title?.trim() || `SKU ${id}`,
       skuId: id,
@@ -1764,9 +1784,15 @@ async function submit() {
     await submitBoxDraft()
     return
   }
-  if (form.mode === 'gashapon' && !prizes.value.some((prize) => prize.specialKind)) {
-    message.warning('吉祥赏需至少配置一个特别赏（Last/MVP/幸运）')
-    return
+  if (form.mode === 'gashapon') {
+    if (!prizes.value.some((prize) => prize.specialKind)) {
+      message.warning('吉祥赏需至少配置一个特别赏（Last/MVP/幸运）')
+      return
+    }
+    if (!prizes.value.some((prize) => !prize.specialKind)) {
+      message.warning('吉祥赏需至少配置一个普通赏')
+      return
+    }
   }
   if (form.mode === 'fullcar') {
     if (!prizes.value.some((prize) => !prize.specialKind)) {

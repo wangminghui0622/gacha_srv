@@ -94,6 +94,8 @@ func materializeGashapon(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 		CashFen          int64  `json:"cash_fen"`
 		PointsAmount     int64  `json:"points_amount"`
 		CouponTemplateNo string `json:"coupon_template_no"`
+		SkuId            int64  `json:"sku_id,omitempty"`
+		ItemName         string `json:"item_name,omitempty"`
 		Quantity         int32  `json:"quantity"`
 		StageOrder       int32  `json:"stage_order"`
 	}
@@ -101,12 +103,13 @@ func materializeGashapon(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 	entries := make([]gamemodel.GashaponEntries, 0)
 	for _, p := range prizes {
 		if p.SpecialKind != "" {
-			if p.PrizeType == 2 {
-				return status.Error(codes.InvalidArgument, fmt.Sprintf("扭蛋特别赏 %s 暂不支持实物 SKU", p.Name))
-			}
-			kind := playPoolAssetKind(&p)
+			kind := playPoolPrizeKind(&p)
 			if kind == 0 {
 				return status.Error(codes.InvalidArgument, fmt.Sprintf("特别赏 %s 缺少奖金配置", p.Name))
+			}
+			itemName := ""
+			if kind == prizeGoods {
+				itemName = p.Name
 			}
 			stage := int32(0)
 			if p.SpecialKind == "LUCKY" && p.TargetValue > 0 {
@@ -119,6 +122,8 @@ func materializeGashapon(db *gorm.DB, v *gamemodelnc.PlayPoolVersion, prizes []g
 				CashFen:          p.CashFen,
 				PointsAmount:     p.PointsAmount,
 				CouponTemplateNo: p.CouponTemplateNo,
+				SkuId:            p.SkuId,
+				ItemName:         itemName,
 				Quantity:         p.Quantity,
 				StageOrder:       stage,
 			})

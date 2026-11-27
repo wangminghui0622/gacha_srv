@@ -327,15 +327,16 @@ func validateGashaponPool(in *play.CreatePlayPoolDraftReq) error {
 			}
 			continue
 		}
-		if p.PrizeType == 2 {
-			return abortf("扭蛋特别赏 %s 暂不支持实物 SKU", p.Name)
-		}
 		switch p.SpecialKind {
 		case "LAST", "MVP", "LUCKY":
 		default:
 			return abortf("扭蛋不支持 specialKind=%s", p.SpecialKind)
 		}
-		if p.CashFen <= 0 && p.PointsAmount <= 0 && p.CouponTemplateNo == "" {
+		if p.PrizeType == 2 {
+			if p.CashFen > 0 || p.PointsAmount > 0 || p.CouponTemplateNo != "" {
+				return abortf("扭蛋实物特别赏 %s 不能同时配置现金/积分/券", p.Name)
+			}
+		} else if p.CashFen <= 0 && p.PointsAmount <= 0 && p.CouponTemplateNo == "" {
 			return abortf("特别赏 %s 缺少奖金配置", p.Name)
 		}
 		specials++

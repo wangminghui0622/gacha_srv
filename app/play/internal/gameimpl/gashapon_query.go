@@ -172,7 +172,13 @@ func (l *GetGashaponLogic) GetGashapon(in *play.GetGashaponReq) (*play.GetGashap
 		Status:           st.Status,
 	}
 	for _, p := range prizes {
-		item := &play.PrizeItem{Kind: p.PrizeKind, Points: p.PointsAmount, CouponTemplateNo: p.CouponTemplateNo}
+		item := &play.PrizeItem{
+			Kind:             p.PrizeKind,
+			Points:           p.PointsAmount,
+			CouponTemplateNo: p.CouponTemplateNo,
+			SkuId:            p.SkuId,
+			ItemName:         p.ItemName,
+		}
 		switch p.PrizeKind {
 		case prizeCash:
 			item.Amount = utils.FenToYuan(p.CashFen)

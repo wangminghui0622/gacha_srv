@@ -62,6 +62,7 @@ function kindText(kind: string): string {
 function prizeText(p: DigPrizeItem): string {
   if (p.kind === 1) return t('gashapon.prizeCash', { amount: formatMoney(p.amount) })
   if (p.kind === 2) return t('gashapon.prizePoints', { n: p.points })
+  if (p.kind === 5) return t('gashapon.prizeGoods', { name: p.itemName || '—' })
   return t('gashapon.prizeCoupon', { name: p.couponName || p.couponTemplateNo })
 }
 

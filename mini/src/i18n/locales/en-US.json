@@ -322,6 +322,7 @@
     "prizeCash": "Cash {amount}",
     "prizePoints": "{n} points",
     "prizeCoupon": "Coupon {name}",
+    "prizeGoods": "Item: {name}",
     "kindLast": "Last-ticket jackpot",
     "kindMvp": "MVP",
     "kindLucky": "Lucky assignee",

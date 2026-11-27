@@ -27,10 +27,12 @@ const (
 type GashaponSpecialPrize struct {
 	PrizeIndex       int32  `json:"prize_index"`
 	SpecialKind      string `json:"special_kind"` // LAST / MVP / LUCKY
-	PrizeKind        int64  `json:"prize_kind"`   // 1 CASH 2 POINTS 3 COUPON
+	PrizeKind        int64  `json:"prize_kind"`   // 1 CASH 2 POINTS 3 COUPON 5 GOODS
 	CashFen          int64  `json:"cash_fen"`
 	PointsAmount     int64  `json:"points_amount"`
 	CouponTemplateNo string `json:"coupon_template_no"`
+	SkuId            int64  `json:"sku_id,omitempty"`
+	ItemName         string `json:"item_name,omitempty"`
 	Quantity         int32  `json:"quantity"`
 	StageOrder       int32  `json:"stage_order"` // 0=不分阶段（LUCKY 专用）
 }
@@ -48,10 +50,12 @@ type GashaponAward struct {
 	Unit             int32  `json:"unit"`
 	UserID           int64  `json:"user_id"`
 	SpecialKind      string `json:"special_kind"`
-	PrizeKind        int64  `json:"prize_kind"` // 1 CASH 2 POINTS 3 COUPON
+	PrizeKind        int64  `json:"prize_kind"` // 1 CASH 2 POINTS 3 COUPON 5 GOODS
 	CashFen          int64  `json:"cash_fen"`
 	PointsAmount     int64  `json:"points_amount"`
 	CouponTemplateNo string `json:"coupon_template_no"`
+	SkuId            int64  `json:"sku_id,omitempty"`
+	ItemName         string `json:"item_name,omitempty"`
 	StageOrder       int32  `json:"stage_order,omitempty"`
 	RequestID        string `json:"request_id"`
 }
@@ -136,6 +140,8 @@ func StagedGashaponAwards(state *GashaponBoxState, prizes []GashaponSpecialPrize
 			CashFen:          prize.CashFen,
 			PointsAmount:     prize.PointsAmount,
 			CouponTemplateNo: prize.CouponTemplateNo,
+			SkuId:            prize.SkuId,
+			ItemName:         prize.ItemName,
 			StageOrder:       prize.StageOrder,
 		})
 		state.Sent[item.prizeIndex]++
@@ -183,6 +189,8 @@ func FinalGashaponAwards(state *GashaponBoxState, prizes []GashaponSpecialPrize,
 				CashFen:          prize.CashFen,
 				PointsAmount:     prize.PointsAmount,
 				CouponTemplateNo: prize.CouponTemplateNo,
+				SkuId:            prize.SkuId,
+				ItemName:         prize.ItemName,
 				StageOrder:       prize.StageOrder,
 			})
 			state.Sent[index]++

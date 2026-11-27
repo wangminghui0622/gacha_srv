@@ -243,7 +243,13 @@ func gashaponOutcomesToGame(outcomes []gashaponOutcome) []*play.GashaponEntryOut
 func (l *SettleGashaponLogic) specialAwardItems(awards []core.GashaponAward) []*play.PrizeItem {
 	items := make([]*play.PrizeItem, 0, len(awards))
 	for _, a := range awards {
-		item := &play.PrizeItem{Kind: a.PrizeKind, Points: a.PointsAmount, CouponTemplateNo: a.CouponTemplateNo}
+		item := &play.PrizeItem{
+			Kind:             a.PrizeKind,
+			Points:           a.PointsAmount,
+			CouponTemplateNo: a.CouponTemplateNo,
+			SkuId:            a.SkuId,
+			ItemName:         a.ItemName,
+		}
 		switch a.PrizeKind {
 		case prizeCash:
 			item.Amount = utils.FenToYuan(a.CashFen)

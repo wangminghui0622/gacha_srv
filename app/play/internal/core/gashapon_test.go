@@ -135,3 +135,27 @@ func TestStagedLuckyAssigneeMustFallInsideTheStage(t *testing.T) {
 		t.Fatal("fixture never separated the assignee from the ticket owner")
 	}
 }
+
+// 特别赏支持实物 SKU：判定结果必须携带 sku_id / item_name，发奖侧才能走资产发放。
+func TestGashaponGoodsSpecialPrizeCarriesSku(t *testing.T) {
+	prizes := []GashaponSpecialPrize{{
+		PrizeIndex:  0,
+		SpecialKind: GashaponKindLast,
+		PrizeKind:   5,
+		SkuId:       9007,
+		ItemName:    "限定手办",
+		Quantity:    1,
+	}}
+	state := &GashaponBoxState{
+		Participants: map[int64]int64{11: 1},
+		Records:      []GashaponParticipation{{UserID: 11, RequestID: "g-1", Count: 1}},
+		Sent:         []int32{0},
+	}
+	awards := FinalGashaponAwards(state, prizes, 11, []byte("seed"), nil)
+	if len(awards) != 1 {
+		t.Fatalf("want 1 award, got %+v", awards)
+	}
+	if awards[0].PrizeKind != 5 || awards[0].SkuId != 9007 || awards[0].ItemName != "限定手办" {
+		t.Fatalf("goods fields not carried: %+v", awards[0])
+	}
+}
