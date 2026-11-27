@@ -126,6 +126,12 @@ message RetirePlayPoolResp {
   int64  retiredVersions = 2;
 }
 
+message VoidPlayPoolReq {
+  int64  poolId = 1;
+  string reason = 2;
+}
+message VoidPlayPoolResp { string status = 1; }
+
 message GetPlayPoolVersionReq {
   int64 poolId  = 1;
   int64 version = 2;
@@ -254,6 +260,7 @@ service Play {
   rpc CreatePlayPoolDraft(CreatePlayPoolDraftReq) returns (CreatePlayPoolDraftResp);
   rpc PublishPlayPool(PublishPlayPoolReq) returns (PublishPlayPoolResp);
   rpc RetirePlayPool(RetirePlayPoolReq) returns (RetirePlayPoolResp);
+  rpc VoidPlayPool(VoidPlayPoolReq) returns (VoidPlayPoolResp);
   rpc GetPlayPoolVersion(GetPlayPoolVersionReq) returns (GetPlayPoolVersionResp);
   rpc ListPlayPools(ListPlayPoolsReq) returns (ListPlayPoolsResp);
   // 赏级配置（赏别列表，控制台只读）

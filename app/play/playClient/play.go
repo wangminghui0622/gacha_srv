@@ -168,6 +168,8 @@ type (
 	ReleaseGroupBuyResp                = play.ReleaseGroupBuyResp
 	RetirePlayPoolReq                  = play.RetirePlayPoolReq
 	RetirePlayPoolResp                 = play.RetirePlayPoolResp
+	VoidPlayPoolReq                    = play.VoidPlayPoolReq
+	VoidPlayPoolResp                   = play.VoidPlayPoolResp
 	SaveAdminPlayPoolWeightsReq        = play.SaveAdminPlayPoolWeightsReq
 	SaveAdminPlayPoolWeightsResp       = play.SaveAdminPlayPoolWeightsResp
 	SaveMemoryMatchAppearanceReq       = play.SaveMemoryMatchAppearanceReq
@@ -213,6 +215,7 @@ type (
 		CreatePlayPoolDraft(ctx context.Context, in *CreatePlayPoolDraftReq, opts ...grpc.CallOption) (*CreatePlayPoolDraftResp, error)
 		PublishPlayPool(ctx context.Context, in *PublishPlayPoolReq, opts ...grpc.CallOption) (*PublishPlayPoolResp, error)
 		RetirePlayPool(ctx context.Context, in *RetirePlayPoolReq, opts ...grpc.CallOption) (*RetirePlayPoolResp, error)
+		VoidPlayPool(ctx context.Context, in *VoidPlayPoolReq, opts ...grpc.CallOption) (*VoidPlayPoolResp, error)
 		GetPlayPoolVersion(ctx context.Context, in *GetPlayPoolVersionReq, opts ...grpc.CallOption) (*GetPlayPoolVersionResp, error)
 		ListPlayPools(ctx context.Context, in *ListPlayPoolsReq, opts ...grpc.CallOption) (*ListPlayPoolsResp, error)
 		// 赏级配置（赏别列表，控制台只读）
@@ -330,6 +333,11 @@ func (m *defaultPlay) PublishPlayPool(ctx context.Context, in *PublishPlayPoolRe
 func (m *defaultPlay) RetirePlayPool(ctx context.Context, in *RetirePlayPoolReq, opts ...grpc.CallOption) (*RetirePlayPoolResp, error) {
 	client := play.NewPlayClient(m.cli.Conn())
 	return client.RetirePlayPool(ctx, in, opts...)
+}
+
+func (m *defaultPlay) VoidPlayPool(ctx context.Context, in *VoidPlayPoolReq, opts ...grpc.CallOption) (*VoidPlayPoolResp, error) {
+	client := play.NewPlayClient(m.cli.Conn())
+	return client.VoidPlayPool(ctx, in, opts...)
 }
 
 func (m *defaultPlay) GetPlayPoolVersion(ctx context.Context, in *GetPlayPoolVersionReq, opts ...grpc.CallOption) (*GetPlayPoolVersionResp, error) {

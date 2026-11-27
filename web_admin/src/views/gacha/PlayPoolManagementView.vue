@@ -14,6 +14,7 @@
       <a-button v-if="canWrite" class="btn-plain" @click="deleteSelected">{{ $t('poolAdmin.deletePools') }}</a-button>
       <a-button v-if="canWrite" class="btn-plain" :loading="publishingSelected" @click="publishSelected">{{ $t('poolAdmin.publishSelected') }}</a-button>
       <a-button v-if="canWrite" class="btn-plain" :loading="retiringSelected" @click="retireSelected">{{ $t('poolAdmin.retireSelected') }}</a-button>
+      <a-button v-if="canWrite" class="btn-plain" danger :loading="voidingSelected" @click="openVoid">{{ $t('poolAdmin.voidSelected') }}</a-button>
     </div>
 
     <a-table
@@ -242,6 +243,24 @@
         </template>
       </a-table>
     </a-modal>
+
+    <a-modal
+      v-model:open="voidOpen"
+      :title="$t('poolAdmin.voidSelected')"
+      :confirm-loading="voidingSelected"
+      :ok-text="$t('poolAdmin.voidSelected')"
+      :cancel-text="$t('poolAdmin.cancel')"
+      ok-type="danger"
+      @ok="confirmVoid"
+    >
+      <p>{{ $t('poolAdmin.voidConfirm', { n: voidTargets.length }) }}</p>
+      <a-textarea
+        v-model:value="voidReason"
+        :placeholder="$t('poolAdmin.voidReasonPlaceholder')"
+        :rows="3"
+        :maxlength="255"
+      />
+    </a-modal>
   </div>
 </template>
 
@@ -312,6 +331,10 @@ const ipOptions = computed(() => ips.value.filter((item) => item.ipId && item.na
 const selectedRowKeys = ref<string[]>([])
 const publishingSelected = ref(false)
 const retiringSelected = ref(false)
+const voidingSelected = ref(false)
+const voidOpen = ref(false)
+const voidReason = ref('')
+const voidTargets = ref<AdminPlayPool[]>([])
 const rowSelection = computed(() => ({
   selectedRowKeys: selectedRowKeys.value,
   onChange: (keys: (string | number)[]) => {
@@ -779,6 +802,39 @@ function retireSelected() {
       }
     },
   })
+}
+
+function openVoid() {
+  const pools = selectedPools()
+  if (pools.length === 0) {
+    message.warning(t('poolAdmin.selectToVoid'))
+    return
+  }
+  const voidable = pools.filter((pool) => pool.poolId && Number(pool.status) !== 4)
+  if (voidable.length === 0) {
+    message.warning(t('poolAdmin.noVoidable'))
+    return
+  }
+  voidTargets.value = voidable
+  voidReason.value = ''
+  voidOpen.value = true
+}
+
+async function confirmVoid() {
+  voidingSelected.value = true
+  try {
+    const failed = await runPoolBatch(voidTargets.value, (pool) =>
+      playPoolClient.Void({ poolId: pool.poolId as string, reason: voidReason.value.trim() }),
+    )
+    const succeeded = voidTargets.value.length - failed
+    if (succeeded > 0) message.success(t('poolAdmin.voidedCount', { n: succeeded }))
+    if (failed > 0) message.error(t('poolAdmin.voidFailedCount', { n: failed }))
+    voidOpen.value = false
+    selectedRowKeys.value = []
+    await load()
+  } finally {
+    voidingSelected.value = false
+  }
 }
 
 function openReference() {

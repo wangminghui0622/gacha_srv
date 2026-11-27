@@ -1454,6 +1454,102 @@ func (x *RetirePlayPoolResp) GetRetiredVersions() int64 {
 	return 0
 }
 
+type VoidPlayPoolReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PoolId        int64                  `protobuf:"varint,1,opt,name=poolId,proto3" json:"poolId,omitempty"`
+	Reason        string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VoidPlayPoolReq) Reset() {
+	*x = VoidPlayPoolReq{}
+	mi := &file_play_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VoidPlayPoolReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VoidPlayPoolReq) ProtoMessage() {}
+
+func (x *VoidPlayPoolReq) ProtoReflect() protoreflect.Message {
+	mi := &file_play_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VoidPlayPoolReq.ProtoReflect.Descriptor instead.
+func (*VoidPlayPoolReq) Descriptor() ([]byte, []int) {
+	return file_play_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *VoidPlayPoolReq) GetPoolId() int64 {
+	if x != nil {
+		return x.PoolId
+	}
+	return 0
+}
+
+func (x *VoidPlayPoolReq) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type VoidPlayPoolResp struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VoidPlayPoolResp) Reset() {
+	*x = VoidPlayPoolResp{}
+	mi := &file_play_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VoidPlayPoolResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VoidPlayPoolResp) ProtoMessage() {}
+
+func (x *VoidPlayPoolResp) ProtoReflect() protoreflect.Message {
+	mi := &file_play_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VoidPlayPoolResp.ProtoReflect.Descriptor instead.
+func (*VoidPlayPoolResp) Descriptor() ([]byte, []int) {
+	return file_play_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *VoidPlayPoolResp) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
 type GetPlayPoolVersionReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PoolId        int64                  `protobuf:"varint,1,opt,name=poolId,proto3" json:"poolId,omitempty"`
@@ -1464,7 +1560,7 @@ type GetPlayPoolVersionReq struct {
 
 func (x *GetPlayPoolVersionReq) Reset() {
 	*x = GetPlayPoolVersionReq{}
-	mi := &file_play_proto_msgTypes[16]
+	mi := &file_play_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1476,7 +1572,7 @@ func (x *GetPlayPoolVersionReq) String() string {
 func (*GetPlayPoolVersionReq) ProtoMessage() {}
 
 func (x *GetPlayPoolVersionReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[16]
+	mi := &file_play_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1489,7 +1585,7 @@ func (x *GetPlayPoolVersionReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPlayPoolVersionReq.ProtoReflect.Descriptor instead.
 func (*GetPlayPoolVersionReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{16}
+	return file_play_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetPlayPoolVersionReq) GetPoolId() int64 {
@@ -1525,7 +1621,7 @@ type GetPlayPoolVersionResp struct {
 
 func (x *GetPlayPoolVersionResp) Reset() {
 	*x = GetPlayPoolVersionResp{}
-	mi := &file_play_proto_msgTypes[17]
+	mi := &file_play_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1537,7 +1633,7 @@ func (x *GetPlayPoolVersionResp) String() string {
 func (*GetPlayPoolVersionResp) ProtoMessage() {}
 
 func (x *GetPlayPoolVersionResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[17]
+	mi := &file_play_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1550,7 +1646,7 @@ func (x *GetPlayPoolVersionResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPlayPoolVersionResp.ProtoReflect.Descriptor instead.
 func (*GetPlayPoolVersionResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{17}
+	return file_play_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetPlayPoolVersionResp) GetPoolId() int64 {
@@ -1644,7 +1740,7 @@ type PlayPoolSummary struct {
 
 func (x *PlayPoolSummary) Reset() {
 	*x = PlayPoolSummary{}
-	mi := &file_play_proto_msgTypes[18]
+	mi := &file_play_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1656,7 +1752,7 @@ func (x *PlayPoolSummary) String() string {
 func (*PlayPoolSummary) ProtoMessage() {}
 
 func (x *PlayPoolSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[18]
+	mi := &file_play_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1669,7 +1765,7 @@ func (x *PlayPoolSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayPoolSummary.ProtoReflect.Descriptor instead.
 func (*PlayPoolSummary) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{18}
+	return file_play_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *PlayPoolSummary) GetPoolId() int64 {
@@ -1725,7 +1821,7 @@ type ListPlayPoolsReq struct {
 
 func (x *ListPlayPoolsReq) Reset() {
 	*x = ListPlayPoolsReq{}
-	mi := &file_play_proto_msgTypes[19]
+	mi := &file_play_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1737,7 +1833,7 @@ func (x *ListPlayPoolsReq) String() string {
 func (*ListPlayPoolsReq) ProtoMessage() {}
 
 func (x *ListPlayPoolsReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[19]
+	mi := &file_play_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1750,7 +1846,7 @@ func (x *ListPlayPoolsReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPlayPoolsReq.ProtoReflect.Descriptor instead.
 func (*ListPlayPoolsReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{19}
+	return file_play_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ListPlayPoolsReq) GetAfterPoolId() int64 {
@@ -1783,7 +1879,7 @@ type ListPlayPoolsResp struct {
 
 func (x *ListPlayPoolsResp) Reset() {
 	*x = ListPlayPoolsResp{}
-	mi := &file_play_proto_msgTypes[20]
+	mi := &file_play_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1795,7 +1891,7 @@ func (x *ListPlayPoolsResp) String() string {
 func (*ListPlayPoolsResp) ProtoMessage() {}
 
 func (x *ListPlayPoolsResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[20]
+	mi := &file_play_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1808,7 +1904,7 @@ func (x *ListPlayPoolsResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPlayPoolsResp.ProtoReflect.Descriptor instead.
 func (*ListPlayPoolsResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{20}
+	return file_play_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ListPlayPoolsResp) GetItems() []*PlayPoolSummary {
@@ -1829,7 +1925,7 @@ type PrizeGrade struct {
 
 func (x *PrizeGrade) Reset() {
 	*x = PrizeGrade{}
-	mi := &file_play_proto_msgTypes[21]
+	mi := &file_play_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1841,7 +1937,7 @@ func (x *PrizeGrade) String() string {
 func (*PrizeGrade) ProtoMessage() {}
 
 func (x *PrizeGrade) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[21]
+	mi := &file_play_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1854,7 +1950,7 @@ func (x *PrizeGrade) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PrizeGrade.ProtoReflect.Descriptor instead.
 func (*PrizeGrade) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{21}
+	return file_play_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *PrizeGrade) GetSort() int64 {
@@ -1886,7 +1982,7 @@ type ListPrizeGradesReq struct {
 
 func (x *ListPrizeGradesReq) Reset() {
 	*x = ListPrizeGradesReq{}
-	mi := &file_play_proto_msgTypes[22]
+	mi := &file_play_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1898,7 +1994,7 @@ func (x *ListPrizeGradesReq) String() string {
 func (*ListPrizeGradesReq) ProtoMessage() {}
 
 func (x *ListPrizeGradesReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[22]
+	mi := &file_play_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1911,7 +2007,7 @@ func (x *ListPrizeGradesReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPrizeGradesReq.ProtoReflect.Descriptor instead.
 func (*ListPrizeGradesReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{22}
+	return file_play_proto_rawDescGZIP(), []int{24}
 }
 
 type ListPrizeGradesResp struct {
@@ -1923,7 +2019,7 @@ type ListPrizeGradesResp struct {
 
 func (x *ListPrizeGradesResp) Reset() {
 	*x = ListPrizeGradesResp{}
-	mi := &file_play_proto_msgTypes[23]
+	mi := &file_play_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1935,7 +2031,7 @@ func (x *ListPrizeGradesResp) String() string {
 func (*ListPrizeGradesResp) ProtoMessage() {}
 
 func (x *ListPrizeGradesResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[23]
+	mi := &file_play_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1948,7 +2044,7 @@ func (x *ListPrizeGradesResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPrizeGradesResp.ProtoReflect.Descriptor instead.
 func (*ListPrizeGradesResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{23}
+	return file_play_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ListPrizeGradesResp) GetItems() []*PrizeGrade {
@@ -1978,7 +2074,7 @@ type AdminPlayPool struct {
 
 func (x *AdminPlayPool) Reset() {
 	*x = AdminPlayPool{}
-	mi := &file_play_proto_msgTypes[24]
+	mi := &file_play_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1990,7 +2086,7 @@ func (x *AdminPlayPool) String() string {
 func (*AdminPlayPool) ProtoMessage() {}
 
 func (x *AdminPlayPool) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[24]
+	mi := &file_play_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2003,7 +2099,7 @@ func (x *AdminPlayPool) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdminPlayPool.ProtoReflect.Descriptor instead.
 func (*AdminPlayPool) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{24}
+	return file_play_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *AdminPlayPool) GetPoolId() int64 {
@@ -2106,7 +2202,7 @@ type ListAdminPlayPoolsReq struct {
 
 func (x *ListAdminPlayPoolsReq) Reset() {
 	*x = ListAdminPlayPoolsReq{}
-	mi := &file_play_proto_msgTypes[25]
+	mi := &file_play_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2118,7 +2214,7 @@ func (x *ListAdminPlayPoolsReq) String() string {
 func (*ListAdminPlayPoolsReq) ProtoMessage() {}
 
 func (x *ListAdminPlayPoolsReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[25]
+	mi := &file_play_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2131,7 +2227,7 @@ func (x *ListAdminPlayPoolsReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAdminPlayPoolsReq.ProtoReflect.Descriptor instead.
 func (*ListAdminPlayPoolsReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{25}
+	return file_play_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ListAdminPlayPoolsReq) GetKeyword() string {
@@ -2202,7 +2298,7 @@ type ListAdminPlayPoolsResp struct {
 
 func (x *ListAdminPlayPoolsResp) Reset() {
 	*x = ListAdminPlayPoolsResp{}
-	mi := &file_play_proto_msgTypes[26]
+	mi := &file_play_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2214,7 +2310,7 @@ func (x *ListAdminPlayPoolsResp) String() string {
 func (*ListAdminPlayPoolsResp) ProtoMessage() {}
 
 func (x *ListAdminPlayPoolsResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[26]
+	mi := &file_play_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2227,7 +2323,7 @@ func (x *ListAdminPlayPoolsResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAdminPlayPoolsResp.ProtoReflect.Descriptor instead.
 func (*ListAdminPlayPoolsResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{26}
+	return file_play_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ListAdminPlayPoolsResp) GetItems() []*AdminPlayPool {
@@ -2273,7 +2369,7 @@ type UpdateAdminPlayPoolReq struct {
 
 func (x *UpdateAdminPlayPoolReq) Reset() {
 	*x = UpdateAdminPlayPoolReq{}
-	mi := &file_play_proto_msgTypes[27]
+	mi := &file_play_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2285,7 +2381,7 @@ func (x *UpdateAdminPlayPoolReq) String() string {
 func (*UpdateAdminPlayPoolReq) ProtoMessage() {}
 
 func (x *UpdateAdminPlayPoolReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[27]
+	mi := &file_play_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2298,7 +2394,7 @@ func (x *UpdateAdminPlayPoolReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAdminPlayPoolReq.ProtoReflect.Descriptor instead.
 func (*UpdateAdminPlayPoolReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{27}
+	return file_play_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *UpdateAdminPlayPoolReq) GetPoolId() int64 {
@@ -2359,7 +2455,7 @@ type SaveAdminPlayPoolWeightsReq struct {
 
 func (x *SaveAdminPlayPoolWeightsReq) Reset() {
 	*x = SaveAdminPlayPoolWeightsReq{}
-	mi := &file_play_proto_msgTypes[28]
+	mi := &file_play_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2371,7 +2467,7 @@ func (x *SaveAdminPlayPoolWeightsReq) String() string {
 func (*SaveAdminPlayPoolWeightsReq) ProtoMessage() {}
 
 func (x *SaveAdminPlayPoolWeightsReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[28]
+	mi := &file_play_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2384,7 +2480,7 @@ func (x *SaveAdminPlayPoolWeightsReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveAdminPlayPoolWeightsReq.ProtoReflect.Descriptor instead.
 func (*SaveAdminPlayPoolWeightsReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{28}
+	return file_play_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *SaveAdminPlayPoolWeightsReq) GetWeights() []*AdminPlayPoolWeight {
@@ -2404,7 +2500,7 @@ type AdminPlayPoolWeight struct {
 
 func (x *AdminPlayPoolWeight) Reset() {
 	*x = AdminPlayPoolWeight{}
-	mi := &file_play_proto_msgTypes[29]
+	mi := &file_play_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2416,7 +2512,7 @@ func (x *AdminPlayPoolWeight) String() string {
 func (*AdminPlayPoolWeight) ProtoMessage() {}
 
 func (x *AdminPlayPoolWeight) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[29]
+	mi := &file_play_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2429,7 +2525,7 @@ func (x *AdminPlayPoolWeight) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdminPlayPoolWeight.ProtoReflect.Descriptor instead.
 func (*AdminPlayPoolWeight) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{29}
+	return file_play_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *AdminPlayPoolWeight) GetPoolId() int64 {
@@ -2455,7 +2551,7 @@ type SaveAdminPlayPoolWeightsResp struct {
 
 func (x *SaveAdminPlayPoolWeightsResp) Reset() {
 	*x = SaveAdminPlayPoolWeightsResp{}
-	mi := &file_play_proto_msgTypes[30]
+	mi := &file_play_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2467,7 +2563,7 @@ func (x *SaveAdminPlayPoolWeightsResp) String() string {
 func (*SaveAdminPlayPoolWeightsResp) ProtoMessage() {}
 
 func (x *SaveAdminPlayPoolWeightsResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[30]
+	mi := &file_play_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2480,7 +2576,7 @@ func (x *SaveAdminPlayPoolWeightsResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveAdminPlayPoolWeightsResp.ProtoReflect.Descriptor instead.
 func (*SaveAdminPlayPoolWeightsResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{30}
+	return file_play_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *SaveAdminPlayPoolWeightsResp) GetSaved() bool {
@@ -2499,7 +2595,7 @@ type DeleteAdminPlayPoolsReq struct {
 
 func (x *DeleteAdminPlayPoolsReq) Reset() {
 	*x = DeleteAdminPlayPoolsReq{}
-	mi := &file_play_proto_msgTypes[31]
+	mi := &file_play_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2511,7 +2607,7 @@ func (x *DeleteAdminPlayPoolsReq) String() string {
 func (*DeleteAdminPlayPoolsReq) ProtoMessage() {}
 
 func (x *DeleteAdminPlayPoolsReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[31]
+	mi := &file_play_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2524,7 +2620,7 @@ func (x *DeleteAdminPlayPoolsReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteAdminPlayPoolsReq.ProtoReflect.Descriptor instead.
 func (*DeleteAdminPlayPoolsReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{31}
+	return file_play_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *DeleteAdminPlayPoolsReq) GetPoolIds() []int64 {
@@ -2543,7 +2639,7 @@ type DeleteAdminPlayPoolsResp struct {
 
 func (x *DeleteAdminPlayPoolsResp) Reset() {
 	*x = DeleteAdminPlayPoolsResp{}
-	mi := &file_play_proto_msgTypes[32]
+	mi := &file_play_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2555,7 +2651,7 @@ func (x *DeleteAdminPlayPoolsResp) String() string {
 func (*DeleteAdminPlayPoolsResp) ProtoMessage() {}
 
 func (x *DeleteAdminPlayPoolsResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[32]
+	mi := &file_play_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2568,7 +2664,7 @@ func (x *DeleteAdminPlayPoolsResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteAdminPlayPoolsResp.ProtoReflect.Descriptor instead.
 func (*DeleteAdminPlayPoolsResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{32}
+	return file_play_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *DeleteAdminPlayPoolsResp) GetDeleted() int64 {
@@ -2597,7 +2693,7 @@ type PlayPoolReferenceItem struct {
 
 func (x *PlayPoolReferenceItem) Reset() {
 	*x = PlayPoolReferenceItem{}
-	mi := &file_play_proto_msgTypes[33]
+	mi := &file_play_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2609,7 +2705,7 @@ func (x *PlayPoolReferenceItem) String() string {
 func (*PlayPoolReferenceItem) ProtoMessage() {}
 
 func (x *PlayPoolReferenceItem) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[33]
+	mi := &file_play_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2622,7 +2718,7 @@ func (x *PlayPoolReferenceItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayPoolReferenceItem.ProtoReflect.Descriptor instead.
 func (*PlayPoolReferenceItem) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{33}
+	return file_play_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *PlayPoolReferenceItem) GetPoolId() int64 {
@@ -2714,7 +2810,7 @@ type QueryPlayPoolReferencesReq struct {
 
 func (x *QueryPlayPoolReferencesReq) Reset() {
 	*x = QueryPlayPoolReferencesReq{}
-	mi := &file_play_proto_msgTypes[34]
+	mi := &file_play_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2726,7 +2822,7 @@ func (x *QueryPlayPoolReferencesReq) String() string {
 func (*QueryPlayPoolReferencesReq) ProtoMessage() {}
 
 func (x *QueryPlayPoolReferencesReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[34]
+	mi := &file_play_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2739,7 +2835,7 @@ func (x *QueryPlayPoolReferencesReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryPlayPoolReferencesReq.ProtoReflect.Descriptor instead.
 func (*QueryPlayPoolReferencesReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{34}
+	return file_play_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *QueryPlayPoolReferencesReq) GetRefType() int64 {
@@ -2782,7 +2878,7 @@ type QueryPlayPoolReferencesResp struct {
 
 func (x *QueryPlayPoolReferencesResp) Reset() {
 	*x = QueryPlayPoolReferencesResp{}
-	mi := &file_play_proto_msgTypes[35]
+	mi := &file_play_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2794,7 +2890,7 @@ func (x *QueryPlayPoolReferencesResp) String() string {
 func (*QueryPlayPoolReferencesResp) ProtoMessage() {}
 
 func (x *QueryPlayPoolReferencesResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[35]
+	mi := &file_play_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2807,7 +2903,7 @@ func (x *QueryPlayPoolReferencesResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryPlayPoolReferencesResp.ProtoReflect.Descriptor instead.
 func (*QueryPlayPoolReferencesResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{35}
+	return file_play_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *QueryPlayPoolReferencesResp) GetItems() []*PlayPoolReferenceItem {
@@ -2856,7 +2952,7 @@ type PrizeItem struct {
 
 func (x *PrizeItem) Reset() {
 	*x = PrizeItem{}
-	mi := &file_play_proto_msgTypes[36]
+	mi := &file_play_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2868,7 +2964,7 @@ func (x *PrizeItem) String() string {
 func (*PrizeItem) ProtoMessage() {}
 
 func (x *PrizeItem) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[36]
+	mi := &file_play_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2881,7 +2977,7 @@ func (x *PrizeItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PrizeItem.ProtoReflect.Descriptor instead.
 func (*PrizeItem) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{36}
+	return file_play_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *PrizeItem) GetKind() int64 {
@@ -2959,7 +3055,7 @@ type DigBoxItem struct {
 
 func (x *DigBoxItem) Reset() {
 	*x = DigBoxItem{}
-	mi := &file_play_proto_msgTypes[37]
+	mi := &file_play_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2971,7 +3067,7 @@ func (x *DigBoxItem) String() string {
 func (*DigBoxItem) ProtoMessage() {}
 
 func (x *DigBoxItem) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[37]
+	mi := &file_play_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2984,7 +3080,7 @@ func (x *DigBoxItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DigBoxItem.ProtoReflect.Descriptor instead.
 func (*DigBoxItem) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{37}
+	return file_play_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *DigBoxItem) GetBoxId() int64 {
@@ -3023,7 +3119,7 @@ type ListDigBoxesReq struct {
 
 func (x *ListDigBoxesReq) Reset() {
 	*x = ListDigBoxesReq{}
-	mi := &file_play_proto_msgTypes[38]
+	mi := &file_play_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3035,7 +3131,7 @@ func (x *ListDigBoxesReq) String() string {
 func (*ListDigBoxesReq) ProtoMessage() {}
 
 func (x *ListDigBoxesReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[38]
+	mi := &file_play_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3048,7 +3144,7 @@ func (x *ListDigBoxesReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDigBoxesReq.ProtoReflect.Descriptor instead.
 func (*ListDigBoxesReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{38}
+	return file_play_proto_rawDescGZIP(), []int{40}
 }
 
 type ListDigBoxesResp struct {
@@ -3060,7 +3156,7 @@ type ListDigBoxesResp struct {
 
 func (x *ListDigBoxesResp) Reset() {
 	*x = ListDigBoxesResp{}
-	mi := &file_play_proto_msgTypes[39]
+	mi := &file_play_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3072,7 +3168,7 @@ func (x *ListDigBoxesResp) String() string {
 func (*ListDigBoxesResp) ProtoMessage() {}
 
 func (x *ListDigBoxesResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[39]
+	mi := &file_play_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3085,7 +3181,7 @@ func (x *ListDigBoxesResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDigBoxesResp.ProtoReflect.Descriptor instead.
 func (*ListDigBoxesResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{39}
+	return file_play_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *ListDigBoxesResp) GetItems() []*DigBoxItem {
@@ -3105,7 +3201,7 @@ type GetDigBoxSessionReq struct {
 
 func (x *GetDigBoxSessionReq) Reset() {
 	*x = GetDigBoxSessionReq{}
-	mi := &file_play_proto_msgTypes[40]
+	mi := &file_play_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3117,7 +3213,7 @@ func (x *GetDigBoxSessionReq) String() string {
 func (*GetDigBoxSessionReq) ProtoMessage() {}
 
 func (x *GetDigBoxSessionReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[40]
+	mi := &file_play_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3130,7 +3226,7 @@ func (x *GetDigBoxSessionReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDigBoxSessionReq.ProtoReflect.Descriptor instead.
 func (*GetDigBoxSessionReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{40}
+	return file_play_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *GetDigBoxSessionReq) GetUserId() int64 {
@@ -3161,7 +3257,7 @@ type GetDigBoxSessionResp struct {
 
 func (x *GetDigBoxSessionResp) Reset() {
 	*x = GetDigBoxSessionResp{}
-	mi := &file_play_proto_msgTypes[41]
+	mi := &file_play_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3173,7 +3269,7 @@ func (x *GetDigBoxSessionResp) String() string {
 func (*GetDigBoxSessionResp) ProtoMessage() {}
 
 func (x *GetDigBoxSessionResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[41]
+	mi := &file_play_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3186,7 +3282,7 @@ func (x *GetDigBoxSessionResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDigBoxSessionResp.ProtoReflect.Descriptor instead.
 func (*GetDigBoxSessionResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{41}
+	return file_play_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *GetDigBoxSessionResp) GetHasSession() bool {
@@ -3246,7 +3342,7 @@ type LockDigBoxReq struct {
 
 func (x *LockDigBoxReq) Reset() {
 	*x = LockDigBoxReq{}
-	mi := &file_play_proto_msgTypes[42]
+	mi := &file_play_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3258,7 +3354,7 @@ func (x *LockDigBoxReq) String() string {
 func (*LockDigBoxReq) ProtoMessage() {}
 
 func (x *LockDigBoxReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[42]
+	mi := &file_play_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3271,7 +3367,7 @@ func (x *LockDigBoxReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LockDigBoxReq.ProtoReflect.Descriptor instead.
 func (*LockDigBoxReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{42}
+	return file_play_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *LockDigBoxReq) GetRequestId() string {
@@ -3333,7 +3429,7 @@ type LockDigBoxResp struct {
 
 func (x *LockDigBoxResp) Reset() {
 	*x = LockDigBoxResp{}
-	mi := &file_play_proto_msgTypes[43]
+	mi := &file_play_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3345,7 +3441,7 @@ func (x *LockDigBoxResp) String() string {
 func (*LockDigBoxResp) ProtoMessage() {}
 
 func (x *LockDigBoxResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[43]
+	mi := &file_play_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3358,7 +3454,7 @@ func (x *LockDigBoxResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LockDigBoxResp.ProtoReflect.Descriptor instead.
 func (*LockDigBoxResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{43}
+	return file_play_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *LockDigBoxResp) GetSessionNo() string {
@@ -3390,7 +3486,7 @@ type ReleaseDigBoxReq struct {
 
 func (x *ReleaseDigBoxReq) Reset() {
 	*x = ReleaseDigBoxReq{}
-	mi := &file_play_proto_msgTypes[44]
+	mi := &file_play_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3402,7 +3498,7 @@ func (x *ReleaseDigBoxReq) String() string {
 func (*ReleaseDigBoxReq) ProtoMessage() {}
 
 func (x *ReleaseDigBoxReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[44]
+	mi := &file_play_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3415,7 +3511,7 @@ func (x *ReleaseDigBoxReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseDigBoxReq.ProtoReflect.Descriptor instead.
 func (*ReleaseDigBoxReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{44}
+	return file_play_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ReleaseDigBoxReq) GetRequestId() string {
@@ -3477,7 +3573,7 @@ type ReleaseDigBoxResp struct {
 
 func (x *ReleaseDigBoxResp) Reset() {
 	*x = ReleaseDigBoxResp{}
-	mi := &file_play_proto_msgTypes[45]
+	mi := &file_play_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3489,7 +3585,7 @@ func (x *ReleaseDigBoxResp) String() string {
 func (*ReleaseDigBoxResp) ProtoMessage() {}
 
 func (x *ReleaseDigBoxResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[45]
+	mi := &file_play_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3502,7 +3598,7 @@ func (x *ReleaseDigBoxResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseDigBoxResp.ProtoReflect.Descriptor instead.
 func (*ReleaseDigBoxResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{45}
+	return file_play_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *ReleaseDigBoxResp) GetSessionNo() string {
@@ -3534,7 +3630,7 @@ type SettleDigBoxReq struct {
 
 func (x *SettleDigBoxReq) Reset() {
 	*x = SettleDigBoxReq{}
-	mi := &file_play_proto_msgTypes[46]
+	mi := &file_play_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3546,7 +3642,7 @@ func (x *SettleDigBoxReq) String() string {
 func (*SettleDigBoxReq) ProtoMessage() {}
 
 func (x *SettleDigBoxReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[46]
+	mi := &file_play_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3559,7 +3655,7 @@ func (x *SettleDigBoxReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SettleDigBoxReq.ProtoReflect.Descriptor instead.
 func (*SettleDigBoxReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{46}
+	return file_play_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *SettleDigBoxReq) GetRequestId() string {
@@ -3621,7 +3717,7 @@ type SettleDigBoxResp struct {
 
 func (x *SettleDigBoxResp) Reset() {
 	*x = SettleDigBoxResp{}
-	mi := &file_play_proto_msgTypes[47]
+	mi := &file_play_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3633,7 +3729,7 @@ func (x *SettleDigBoxResp) String() string {
 func (*SettleDigBoxResp) ProtoMessage() {}
 
 func (x *SettleDigBoxResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[47]
+	mi := &file_play_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3646,7 +3742,7 @@ func (x *SettleDigBoxResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SettleDigBoxResp.ProtoReflect.Descriptor instead.
 func (*SettleDigBoxResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{47}
+	return file_play_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *SettleDigBoxResp) GetRecordId() int64 {
@@ -3673,7 +3769,7 @@ type GrantDigPrizesReq struct {
 
 func (x *GrantDigPrizesReq) Reset() {
 	*x = GrantDigPrizesReq{}
-	mi := &file_play_proto_msgTypes[48]
+	mi := &file_play_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3685,7 +3781,7 @@ func (x *GrantDigPrizesReq) String() string {
 func (*GrantDigPrizesReq) ProtoMessage() {}
 
 func (x *GrantDigPrizesReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[48]
+	mi := &file_play_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3698,7 +3794,7 @@ func (x *GrantDigPrizesReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrantDigPrizesReq.ProtoReflect.Descriptor instead.
 func (*GrantDigPrizesReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{48}
+	return file_play_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *GrantDigPrizesReq) GetRequestId() string {
@@ -3724,7 +3820,7 @@ type GrantDigPrizesResp struct {
 
 func (x *GrantDigPrizesResp) Reset() {
 	*x = GrantDigPrizesResp{}
-	mi := &file_play_proto_msgTypes[49]
+	mi := &file_play_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3736,7 +3832,7 @@ func (x *GrantDigPrizesResp) String() string {
 func (*GrantDigPrizesResp) ProtoMessage() {}
 
 func (x *GrantDigPrizesResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[49]
+	mi := &file_play_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3749,7 +3845,7 @@ func (x *GrantDigPrizesResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrantDigPrizesResp.ProtoReflect.Descriptor instead.
 func (*GrantDigPrizesResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{49}
+	return file_play_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *GrantDigPrizesResp) GetStatus() string {
@@ -3771,7 +3867,7 @@ type ListDigRecordsReq struct {
 
 func (x *ListDigRecordsReq) Reset() {
 	*x = ListDigRecordsReq{}
-	mi := &file_play_proto_msgTypes[50]
+	mi := &file_play_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3783,7 +3879,7 @@ func (x *ListDigRecordsReq) String() string {
 func (*ListDigRecordsReq) ProtoMessage() {}
 
 func (x *ListDigRecordsReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[50]
+	mi := &file_play_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3796,7 +3892,7 @@ func (x *ListDigRecordsReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDigRecordsReq.ProtoReflect.Descriptor instead.
 func (*ListDigRecordsReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{50}
+	return file_play_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *ListDigRecordsReq) GetUserId() int64 {
@@ -3843,7 +3939,7 @@ type DigRecordItem struct {
 
 func (x *DigRecordItem) Reset() {
 	*x = DigRecordItem{}
-	mi := &file_play_proto_msgTypes[51]
+	mi := &file_play_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3855,7 +3951,7 @@ func (x *DigRecordItem) String() string {
 func (*DigRecordItem) ProtoMessage() {}
 
 func (x *DigRecordItem) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[51]
+	mi := &file_play_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3868,7 +3964,7 @@ func (x *DigRecordItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DigRecordItem.ProtoReflect.Descriptor instead.
 func (*DigRecordItem) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{51}
+	return file_play_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *DigRecordItem) GetRecordId() int64 {
@@ -3937,7 +4033,7 @@ type ListDigRecordsResp struct {
 
 func (x *ListDigRecordsResp) Reset() {
 	*x = ListDigRecordsResp{}
-	mi := &file_play_proto_msgTypes[52]
+	mi := &file_play_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3949,7 +4045,7 @@ func (x *ListDigRecordsResp) String() string {
 func (*ListDigRecordsResp) ProtoMessage() {}
 
 func (x *ListDigRecordsResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[52]
+	mi := &file_play_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3962,7 +4058,7 @@ func (x *ListDigRecordsResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDigRecordsResp.ProtoReflect.Descriptor instead.
 func (*ListDigRecordsResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{52}
+	return file_play_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *ListDigRecordsResp) GetItems() []*DigRecordItem {
@@ -3990,7 +4086,7 @@ type FullCarSeatItem struct {
 
 func (x *FullCarSeatItem) Reset() {
 	*x = FullCarSeatItem{}
-	mi := &file_play_proto_msgTypes[53]
+	mi := &file_play_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4002,7 +4098,7 @@ func (x *FullCarSeatItem) String() string {
 func (*FullCarSeatItem) ProtoMessage() {}
 
 func (x *FullCarSeatItem) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[53]
+	mi := &file_play_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4015,7 +4111,7 @@ func (x *FullCarSeatItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FullCarSeatItem.ProtoReflect.Descriptor instead.
 func (*FullCarSeatItem) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{53}
+	return file_play_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *FullCarSeatItem) GetSeatIndex() int64 {
@@ -4045,7 +4141,7 @@ type FullCarAwardItem struct {
 
 func (x *FullCarAwardItem) Reset() {
 	*x = FullCarAwardItem{}
-	mi := &file_play_proto_msgTypes[54]
+	mi := &file_play_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4057,7 +4153,7 @@ func (x *FullCarAwardItem) String() string {
 func (*FullCarAwardItem) ProtoMessage() {}
 
 func (x *FullCarAwardItem) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[54]
+	mi := &file_play_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4070,7 +4166,7 @@ func (x *FullCarAwardItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FullCarAwardItem.ProtoReflect.Descriptor instead.
 func (*FullCarAwardItem) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{54}
+	return file_play_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *FullCarAwardItem) GetSeatIndex() int64 {
@@ -4110,7 +4206,7 @@ type GetFullCarReq struct {
 
 func (x *GetFullCarReq) Reset() {
 	*x = GetFullCarReq{}
-	mi := &file_play_proto_msgTypes[55]
+	mi := &file_play_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4122,7 +4218,7 @@ func (x *GetFullCarReq) String() string {
 func (*GetFullCarReq) ProtoMessage() {}
 
 func (x *GetFullCarReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[55]
+	mi := &file_play_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4135,7 +4231,7 @@ func (x *GetFullCarReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFullCarReq.ProtoReflect.Descriptor instead.
 func (*GetFullCarReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{55}
+	return file_play_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *GetFullCarReq) GetConfigId() int64 {
@@ -4161,7 +4257,7 @@ type GetFullCarResp struct {
 
 func (x *GetFullCarResp) Reset() {
 	*x = GetFullCarResp{}
-	mi := &file_play_proto_msgTypes[56]
+	mi := &file_play_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4173,7 +4269,7 @@ func (x *GetFullCarResp) String() string {
 func (*GetFullCarResp) ProtoMessage() {}
 
 func (x *GetFullCarResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[56]
+	mi := &file_play_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4186,7 +4282,7 @@ func (x *GetFullCarResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFullCarResp.ProtoReflect.Descriptor instead.
 func (*GetFullCarResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{56}
+	return file_play_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *GetFullCarResp) GetConfigId() int64 {
@@ -4260,7 +4356,7 @@ type LockFullCarReq struct {
 
 func (x *LockFullCarReq) Reset() {
 	*x = LockFullCarReq{}
-	mi := &file_play_proto_msgTypes[57]
+	mi := &file_play_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4272,7 +4368,7 @@ func (x *LockFullCarReq) String() string {
 func (*LockFullCarReq) ProtoMessage() {}
 
 func (x *LockFullCarReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[57]
+	mi := &file_play_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4285,7 +4381,7 @@ func (x *LockFullCarReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LockFullCarReq.ProtoReflect.Descriptor instead.
 func (*LockFullCarReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{57}
+	return file_play_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *LockFullCarReq) GetRequestId() string {
@@ -4340,7 +4436,7 @@ type LockFullCarResp struct {
 
 func (x *LockFullCarResp) Reset() {
 	*x = LockFullCarResp{}
-	mi := &file_play_proto_msgTypes[58]
+	mi := &file_play_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4352,7 +4448,7 @@ func (x *LockFullCarResp) String() string {
 func (*LockFullCarResp) ProtoMessage() {}
 
 func (x *LockFullCarResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[58]
+	mi := &file_play_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4365,7 +4461,7 @@ func (x *LockFullCarResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LockFullCarResp.ProtoReflect.Descriptor instead.
 func (*LockFullCarResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{58}
+	return file_play_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *LockFullCarResp) GetSeatIndex() int64 {
@@ -4396,7 +4492,7 @@ type ReleaseFullCarReq struct {
 
 func (x *ReleaseFullCarReq) Reset() {
 	*x = ReleaseFullCarReq{}
-	mi := &file_play_proto_msgTypes[59]
+	mi := &file_play_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4408,7 +4504,7 @@ func (x *ReleaseFullCarReq) String() string {
 func (*ReleaseFullCarReq) ProtoMessage() {}
 
 func (x *ReleaseFullCarReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[59]
+	mi := &file_play_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4421,7 +4517,7 @@ func (x *ReleaseFullCarReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseFullCarReq.ProtoReflect.Descriptor instead.
 func (*ReleaseFullCarReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{59}
+	return file_play_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *ReleaseFullCarReq) GetRequestId() string {
@@ -4476,7 +4572,7 @@ type ReleaseFullCarResp struct {
 
 func (x *ReleaseFullCarResp) Reset() {
 	*x = ReleaseFullCarResp{}
-	mi := &file_play_proto_msgTypes[60]
+	mi := &file_play_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4488,7 +4584,7 @@ func (x *ReleaseFullCarResp) String() string {
 func (*ReleaseFullCarResp) ProtoMessage() {}
 
 func (x *ReleaseFullCarResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[60]
+	mi := &file_play_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4501,7 +4597,7 @@ func (x *ReleaseFullCarResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseFullCarResp.ProtoReflect.Descriptor instead.
 func (*ReleaseFullCarResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{60}
+	return file_play_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *ReleaseFullCarResp) GetSeatIndex() int64 {
@@ -4531,7 +4627,7 @@ type SettleFullCarReq struct {
 
 func (x *SettleFullCarReq) Reset() {
 	*x = SettleFullCarReq{}
-	mi := &file_play_proto_msgTypes[61]
+	mi := &file_play_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4543,7 +4639,7 @@ func (x *SettleFullCarReq) String() string {
 func (*SettleFullCarReq) ProtoMessage() {}
 
 func (x *SettleFullCarReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[61]
+	mi := &file_play_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4556,7 +4652,7 @@ func (x *SettleFullCarReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SettleFullCarReq.ProtoReflect.Descriptor instead.
 func (*SettleFullCarReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{61}
+	return file_play_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *SettleFullCarReq) GetRequestId() string {
@@ -4607,7 +4703,7 @@ type SettleFullCarResp struct {
 
 func (x *SettleFullCarResp) Reset() {
 	*x = SettleFullCarResp{}
-	mi := &file_play_proto_msgTypes[62]
+	mi := &file_play_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4619,7 +4715,7 @@ func (x *SettleFullCarResp) String() string {
 func (*SettleFullCarResp) ProtoMessage() {}
 
 func (x *SettleFullCarResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[62]
+	mi := &file_play_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4632,7 +4728,7 @@ func (x *SettleFullCarResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SettleFullCarResp.ProtoReflect.Descriptor instead.
 func (*SettleFullCarResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{62}
+	return file_play_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *SettleFullCarResp) GetRecordId() int64 {
@@ -4681,7 +4777,7 @@ type GrantFullCarPrizesReq struct {
 
 func (x *GrantFullCarPrizesReq) Reset() {
 	*x = GrantFullCarPrizesReq{}
-	mi := &file_play_proto_msgTypes[63]
+	mi := &file_play_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4693,7 +4789,7 @@ func (x *GrantFullCarPrizesReq) String() string {
 func (*GrantFullCarPrizesReq) ProtoMessage() {}
 
 func (x *GrantFullCarPrizesReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[63]
+	mi := &file_play_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4706,7 +4802,7 @@ func (x *GrantFullCarPrizesReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrantFullCarPrizesReq.ProtoReflect.Descriptor instead.
 func (*GrantFullCarPrizesReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{63}
+	return file_play_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *GrantFullCarPrizesReq) GetRequestId() string {
@@ -4739,7 +4835,7 @@ type GrantFullCarPrizesResp struct {
 
 func (x *GrantFullCarPrizesResp) Reset() {
 	*x = GrantFullCarPrizesResp{}
-	mi := &file_play_proto_msgTypes[64]
+	mi := &file_play_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4751,7 +4847,7 @@ func (x *GrantFullCarPrizesResp) String() string {
 func (*GrantFullCarPrizesResp) ProtoMessage() {}
 
 func (x *GrantFullCarPrizesResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[64]
+	mi := &file_play_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4764,7 +4860,7 @@ func (x *GrantFullCarPrizesResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrantFullCarPrizesResp.ProtoReflect.Descriptor instead.
 func (*GrantFullCarPrizesResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{64}
+	return file_play_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *GrantFullCarPrizesResp) GetStatus() string {
@@ -4786,7 +4882,7 @@ type ListFullCarRecordsReq struct {
 
 func (x *ListFullCarRecordsReq) Reset() {
 	*x = ListFullCarRecordsReq{}
-	mi := &file_play_proto_msgTypes[65]
+	mi := &file_play_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4798,7 +4894,7 @@ func (x *ListFullCarRecordsReq) String() string {
 func (*ListFullCarRecordsReq) ProtoMessage() {}
 
 func (x *ListFullCarRecordsReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[65]
+	mi := &file_play_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4811,7 +4907,7 @@ func (x *ListFullCarRecordsReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFullCarRecordsReq.ProtoReflect.Descriptor instead.
 func (*ListFullCarRecordsReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{65}
+	return file_play_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *ListFullCarRecordsReq) GetUserId() int64 {
@@ -4860,7 +4956,7 @@ type FullCarRecordItem struct {
 
 func (x *FullCarRecordItem) Reset() {
 	*x = FullCarRecordItem{}
-	mi := &file_play_proto_msgTypes[66]
+	mi := &file_play_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4872,7 +4968,7 @@ func (x *FullCarRecordItem) String() string {
 func (*FullCarRecordItem) ProtoMessage() {}
 
 func (x *FullCarRecordItem) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[66]
+	mi := &file_play_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4885,7 +4981,7 @@ func (x *FullCarRecordItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FullCarRecordItem.ProtoReflect.Descriptor instead.
 func (*FullCarRecordItem) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{66}
+	return file_play_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *FullCarRecordItem) GetRecordId() int64 {
@@ -4968,7 +5064,7 @@ type ListFullCarRecordsResp struct {
 
 func (x *ListFullCarRecordsResp) Reset() {
 	*x = ListFullCarRecordsResp{}
-	mi := &file_play_proto_msgTypes[67]
+	mi := &file_play_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4980,7 +5076,7 @@ func (x *ListFullCarRecordsResp) String() string {
 func (*ListFullCarRecordsResp) ProtoMessage() {}
 
 func (x *ListFullCarRecordsResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[67]
+	mi := &file_play_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4993,7 +5089,7 @@ func (x *ListFullCarRecordsResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFullCarRecordsResp.ProtoReflect.Descriptor instead.
 func (*ListFullCarRecordsResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{67}
+	return file_play_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *ListFullCarRecordsResp) GetItems() []*FullCarRecordItem {
@@ -5025,7 +5121,7 @@ type GashaponSpecialPrizeItem struct {
 
 func (x *GashaponSpecialPrizeItem) Reset() {
 	*x = GashaponSpecialPrizeItem{}
-	mi := &file_play_proto_msgTypes[68]
+	mi := &file_play_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5037,7 +5133,7 @@ func (x *GashaponSpecialPrizeItem) String() string {
 func (*GashaponSpecialPrizeItem) ProtoMessage() {}
 
 func (x *GashaponSpecialPrizeItem) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[68]
+	mi := &file_play_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5050,7 +5146,7 @@ func (x *GashaponSpecialPrizeItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GashaponSpecialPrizeItem.ProtoReflect.Descriptor instead.
 func (*GashaponSpecialPrizeItem) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{68}
+	return file_play_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *GashaponSpecialPrizeItem) GetPrizeIndex() int64 {
@@ -5107,7 +5203,7 @@ type GashaponEntryOutcome struct {
 
 func (x *GashaponEntryOutcome) Reset() {
 	*x = GashaponEntryOutcome{}
-	mi := &file_play_proto_msgTypes[69]
+	mi := &file_play_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5119,7 +5215,7 @@ func (x *GashaponEntryOutcome) String() string {
 func (*GashaponEntryOutcome) ProtoMessage() {}
 
 func (x *GashaponEntryOutcome) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[69]
+	mi := &file_play_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5132,7 +5228,7 @@ func (x *GashaponEntryOutcome) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GashaponEntryOutcome.ProtoReflect.Descriptor instead.
 func (*GashaponEntryOutcome) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{69}
+	return file_play_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *GashaponEntryOutcome) GetName() string {
@@ -5165,7 +5261,7 @@ type GetGashaponReq struct {
 
 func (x *GetGashaponReq) Reset() {
 	*x = GetGashaponReq{}
-	mi := &file_play_proto_msgTypes[70]
+	mi := &file_play_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5177,7 +5273,7 @@ func (x *GetGashaponReq) String() string {
 func (*GetGashaponReq) ProtoMessage() {}
 
 func (x *GetGashaponReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[70]
+	mi := &file_play_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5190,7 +5286,7 @@ func (x *GetGashaponReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGashaponReq.ProtoReflect.Descriptor instead.
 func (*GetGashaponReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{70}
+	return file_play_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *GetGashaponReq) GetConfigId() int64 {
@@ -5216,7 +5312,7 @@ type GetGashaponResp struct {
 
 func (x *GetGashaponResp) Reset() {
 	*x = GetGashaponResp{}
-	mi := &file_play_proto_msgTypes[71]
+	mi := &file_play_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5228,7 +5324,7 @@ func (x *GetGashaponResp) String() string {
 func (*GetGashaponResp) ProtoMessage() {}
 
 func (x *GetGashaponResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[71]
+	mi := &file_play_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5241,7 +5337,7 @@ func (x *GetGashaponResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGashaponResp.ProtoReflect.Descriptor instead.
 func (*GetGashaponResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{71}
+	return file_play_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *GetGashaponResp) GetConfigId() int64 {
@@ -5315,7 +5411,7 @@ type LockGashaponReq struct {
 
 func (x *LockGashaponReq) Reset() {
 	*x = LockGashaponReq{}
-	mi := &file_play_proto_msgTypes[72]
+	mi := &file_play_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5327,7 +5423,7 @@ func (x *LockGashaponReq) String() string {
 func (*LockGashaponReq) ProtoMessage() {}
 
 func (x *LockGashaponReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[72]
+	mi := &file_play_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5340,7 +5436,7 @@ func (x *LockGashaponReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LockGashaponReq.ProtoReflect.Descriptor instead.
 func (*LockGashaponReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{72}
+	return file_play_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *LockGashaponReq) GetRequestId() string {
@@ -5395,7 +5491,7 @@ type LockGashaponResp struct {
 
 func (x *LockGashaponResp) Reset() {
 	*x = LockGashaponResp{}
-	mi := &file_play_proto_msgTypes[73]
+	mi := &file_play_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5407,7 +5503,7 @@ func (x *LockGashaponResp) String() string {
 func (*LockGashaponResp) ProtoMessage() {}
 
 func (x *LockGashaponResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[73]
+	mi := &file_play_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5420,7 +5516,7 @@ func (x *LockGashaponResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LockGashaponResp.ProtoReflect.Descriptor instead.
 func (*LockGashaponResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{73}
+	return file_play_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *LockGashaponResp) GetCount() int64 {
@@ -5451,7 +5547,7 @@ type ReleaseGashaponReq struct {
 
 func (x *ReleaseGashaponReq) Reset() {
 	*x = ReleaseGashaponReq{}
-	mi := &file_play_proto_msgTypes[74]
+	mi := &file_play_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5463,7 +5559,7 @@ func (x *ReleaseGashaponReq) String() string {
 func (*ReleaseGashaponReq) ProtoMessage() {}
 
 func (x *ReleaseGashaponReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[74]
+	mi := &file_play_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5476,7 +5572,7 @@ func (x *ReleaseGashaponReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseGashaponReq.ProtoReflect.Descriptor instead.
 func (*ReleaseGashaponReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{74}
+	return file_play_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *ReleaseGashaponReq) GetRequestId() string {
@@ -5531,7 +5627,7 @@ type ReleaseGashaponResp struct {
 
 func (x *ReleaseGashaponResp) Reset() {
 	*x = ReleaseGashaponResp{}
-	mi := &file_play_proto_msgTypes[75]
+	mi := &file_play_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5543,7 +5639,7 @@ func (x *ReleaseGashaponResp) String() string {
 func (*ReleaseGashaponResp) ProtoMessage() {}
 
 func (x *ReleaseGashaponResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[75]
+	mi := &file_play_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5556,7 +5652,7 @@ func (x *ReleaseGashaponResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseGashaponResp.ProtoReflect.Descriptor instead.
 func (*ReleaseGashaponResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{75}
+	return file_play_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *ReleaseGashaponResp) GetCount() int64 {
@@ -5586,7 +5682,7 @@ type SettleGashaponReq struct {
 
 func (x *SettleGashaponReq) Reset() {
 	*x = SettleGashaponReq{}
-	mi := &file_play_proto_msgTypes[76]
+	mi := &file_play_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5598,7 +5694,7 @@ func (x *SettleGashaponReq) String() string {
 func (*SettleGashaponReq) ProtoMessage() {}
 
 func (x *SettleGashaponReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[76]
+	mi := &file_play_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5611,7 +5707,7 @@ func (x *SettleGashaponReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SettleGashaponReq.ProtoReflect.Descriptor instead.
 func (*SettleGashaponReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{76}
+	return file_play_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *SettleGashaponReq) GetRequestId() string {
@@ -5662,7 +5758,7 @@ type SettleGashaponResp struct {
 
 func (x *SettleGashaponResp) Reset() {
 	*x = SettleGashaponResp{}
-	mi := &file_play_proto_msgTypes[77]
+	mi := &file_play_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5674,7 +5770,7 @@ func (x *SettleGashaponResp) String() string {
 func (*SettleGashaponResp) ProtoMessage() {}
 
 func (x *SettleGashaponResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[77]
+	mi := &file_play_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5687,7 +5783,7 @@ func (x *SettleGashaponResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SettleGashaponResp.ProtoReflect.Descriptor instead.
 func (*SettleGashaponResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{77}
+	return file_play_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *SettleGashaponResp) GetRecordId() int64 {
@@ -5736,7 +5832,7 @@ type GrantGashaponPrizesReq struct {
 
 func (x *GrantGashaponPrizesReq) Reset() {
 	*x = GrantGashaponPrizesReq{}
-	mi := &file_play_proto_msgTypes[78]
+	mi := &file_play_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5748,7 +5844,7 @@ func (x *GrantGashaponPrizesReq) String() string {
 func (*GrantGashaponPrizesReq) ProtoMessage() {}
 
 func (x *GrantGashaponPrizesReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[78]
+	mi := &file_play_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5761,7 +5857,7 @@ func (x *GrantGashaponPrizesReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrantGashaponPrizesReq.ProtoReflect.Descriptor instead.
 func (*GrantGashaponPrizesReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{78}
+	return file_play_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *GrantGashaponPrizesReq) GetRequestId() string {
@@ -5794,7 +5890,7 @@ type GrantGashaponPrizesResp struct {
 
 func (x *GrantGashaponPrizesResp) Reset() {
 	*x = GrantGashaponPrizesResp{}
-	mi := &file_play_proto_msgTypes[79]
+	mi := &file_play_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5806,7 +5902,7 @@ func (x *GrantGashaponPrizesResp) String() string {
 func (*GrantGashaponPrizesResp) ProtoMessage() {}
 
 func (x *GrantGashaponPrizesResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[79]
+	mi := &file_play_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5819,7 +5915,7 @@ func (x *GrantGashaponPrizesResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrantGashaponPrizesResp.ProtoReflect.Descriptor instead.
 func (*GrantGashaponPrizesResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{79}
+	return file_play_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *GrantGashaponPrizesResp) GetStatus() string {
@@ -5841,7 +5937,7 @@ type ListGashaponRecordsReq struct {
 
 func (x *ListGashaponRecordsReq) Reset() {
 	*x = ListGashaponRecordsReq{}
-	mi := &file_play_proto_msgTypes[80]
+	mi := &file_play_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5853,7 +5949,7 @@ func (x *ListGashaponRecordsReq) String() string {
 func (*ListGashaponRecordsReq) ProtoMessage() {}
 
 func (x *ListGashaponRecordsReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[80]
+	mi := &file_play_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5866,7 +5962,7 @@ func (x *ListGashaponRecordsReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGashaponRecordsReq.ProtoReflect.Descriptor instead.
 func (*ListGashaponRecordsReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{80}
+	return file_play_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *ListGashaponRecordsReq) GetUserId() int64 {
@@ -5913,7 +6009,7 @@ type GashaponRecordItem struct {
 
 func (x *GashaponRecordItem) Reset() {
 	*x = GashaponRecordItem{}
-	mi := &file_play_proto_msgTypes[81]
+	mi := &file_play_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5925,7 +6021,7 @@ func (x *GashaponRecordItem) String() string {
 func (*GashaponRecordItem) ProtoMessage() {}
 
 func (x *GashaponRecordItem) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[81]
+	mi := &file_play_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5938,7 +6034,7 @@ func (x *GashaponRecordItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GashaponRecordItem.ProtoReflect.Descriptor instead.
 func (*GashaponRecordItem) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{81}
+	return file_play_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *GashaponRecordItem) GetRecordId() int64 {
@@ -6007,7 +6103,7 @@ type ListGashaponRecordsResp struct {
 
 func (x *ListGashaponRecordsResp) Reset() {
 	*x = ListGashaponRecordsResp{}
-	mi := &file_play_proto_msgTypes[82]
+	mi := &file_play_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6019,7 +6115,7 @@ func (x *ListGashaponRecordsResp) String() string {
 func (*ListGashaponRecordsResp) ProtoMessage() {}
 
 func (x *ListGashaponRecordsResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[82]
+	mi := &file_play_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6032,7 +6128,7 @@ func (x *ListGashaponRecordsResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGashaponRecordsResp.ProtoReflect.Descriptor instead.
 func (*ListGashaponRecordsResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{82}
+	return file_play_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *ListGashaponRecordsResp) GetItems() []*GashaponRecordItem {
@@ -6060,7 +6156,7 @@ type AssignGashaponLuckyUserReq struct {
 
 func (x *AssignGashaponLuckyUserReq) Reset() {
 	*x = AssignGashaponLuckyUserReq{}
-	mi := &file_play_proto_msgTypes[83]
+	mi := &file_play_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6072,7 +6168,7 @@ func (x *AssignGashaponLuckyUserReq) String() string {
 func (*AssignGashaponLuckyUserReq) ProtoMessage() {}
 
 func (x *AssignGashaponLuckyUserReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[83]
+	mi := &file_play_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6085,7 +6181,7 @@ func (x *AssignGashaponLuckyUserReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignGashaponLuckyUserReq.ProtoReflect.Descriptor instead.
 func (*AssignGashaponLuckyUserReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{83}
+	return file_play_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *AssignGashaponLuckyUserReq) GetConfigId() int64 {
@@ -6118,7 +6214,7 @@ type AssignGashaponLuckyUserResp struct {
 
 func (x *AssignGashaponLuckyUserResp) Reset() {
 	*x = AssignGashaponLuckyUserResp{}
-	mi := &file_play_proto_msgTypes[84]
+	mi := &file_play_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6130,7 +6226,7 @@ func (x *AssignGashaponLuckyUserResp) String() string {
 func (*AssignGashaponLuckyUserResp) ProtoMessage() {}
 
 func (x *AssignGashaponLuckyUserResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[84]
+	mi := &file_play_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6143,7 +6239,7 @@ func (x *AssignGashaponLuckyUserResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignGashaponLuckyUserResp.ProtoReflect.Descriptor instead.
 func (*AssignGashaponLuckyUserResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{84}
+	return file_play_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *AssignGashaponLuckyUserResp) GetStatus() string {
@@ -6169,7 +6265,7 @@ type ComboChainSharedPrizeItem struct {
 
 func (x *ComboChainSharedPrizeItem) Reset() {
 	*x = ComboChainSharedPrizeItem{}
-	mi := &file_play_proto_msgTypes[85]
+	mi := &file_play_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6181,7 +6277,7 @@ func (x *ComboChainSharedPrizeItem) String() string {
 func (*ComboChainSharedPrizeItem) ProtoMessage() {}
 
 func (x *ComboChainSharedPrizeItem) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[85]
+	mi := &file_play_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6194,7 +6290,7 @@ func (x *ComboChainSharedPrizeItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ComboChainSharedPrizeItem.ProtoReflect.Descriptor instead.
 func (*ComboChainSharedPrizeItem) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{85}
+	return file_play_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *ComboChainSharedPrizeItem) GetKind() string {
@@ -6256,7 +6352,7 @@ type GetComboChainReq struct {
 
 func (x *GetComboChainReq) Reset() {
 	*x = GetComboChainReq{}
-	mi := &file_play_proto_msgTypes[86]
+	mi := &file_play_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6268,7 +6364,7 @@ func (x *GetComboChainReq) String() string {
 func (*GetComboChainReq) ProtoMessage() {}
 
 func (x *GetComboChainReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[86]
+	mi := &file_play_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6281,7 +6377,7 @@ func (x *GetComboChainReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetComboChainReq.ProtoReflect.Descriptor instead.
 func (*GetComboChainReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{86}
+	return file_play_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *GetComboChainReq) GetConfigId() int64 {
@@ -6319,7 +6415,7 @@ type GetComboChainResp struct {
 
 func (x *GetComboChainResp) Reset() {
 	*x = GetComboChainResp{}
-	mi := &file_play_proto_msgTypes[87]
+	mi := &file_play_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6331,7 +6427,7 @@ func (x *GetComboChainResp) String() string {
 func (*GetComboChainResp) ProtoMessage() {}
 
 func (x *GetComboChainResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[87]
+	mi := &file_play_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6344,7 +6440,7 @@ func (x *GetComboChainResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetComboChainResp.ProtoReflect.Descriptor instead.
 func (*GetComboChainResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{87}
+	return file_play_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *GetComboChainResp) GetConfigId() int64 {
@@ -6452,7 +6548,7 @@ type LockComboChainReq struct {
 
 func (x *LockComboChainReq) Reset() {
 	*x = LockComboChainReq{}
-	mi := &file_play_proto_msgTypes[88]
+	mi := &file_play_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6464,7 +6560,7 @@ func (x *LockComboChainReq) String() string {
 func (*LockComboChainReq) ProtoMessage() {}
 
 func (x *LockComboChainReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[88]
+	mi := &file_play_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6477,7 +6573,7 @@ func (x *LockComboChainReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LockComboChainReq.ProtoReflect.Descriptor instead.
 func (*LockComboChainReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{88}
+	return file_play_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *LockComboChainReq) GetRequestId() string {
@@ -6524,7 +6620,7 @@ type LockComboChainResp struct {
 
 func (x *LockComboChainResp) Reset() {
 	*x = LockComboChainResp{}
-	mi := &file_play_proto_msgTypes[89]
+	mi := &file_play_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6536,7 +6632,7 @@ func (x *LockComboChainResp) String() string {
 func (*LockComboChainResp) ProtoMessage() {}
 
 func (x *LockComboChainResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[89]
+	mi := &file_play_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6549,7 +6645,7 @@ func (x *LockComboChainResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LockComboChainResp.ProtoReflect.Descriptor instead.
 func (*LockComboChainResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{89}
+	return file_play_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *LockComboChainResp) GetStatus() string {
@@ -6572,7 +6668,7 @@ type ReleaseComboChainReq struct {
 
 func (x *ReleaseComboChainReq) Reset() {
 	*x = ReleaseComboChainReq{}
-	mi := &file_play_proto_msgTypes[90]
+	mi := &file_play_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6584,7 +6680,7 @@ func (x *ReleaseComboChainReq) String() string {
 func (*ReleaseComboChainReq) ProtoMessage() {}
 
 func (x *ReleaseComboChainReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[90]
+	mi := &file_play_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6597,7 +6693,7 @@ func (x *ReleaseComboChainReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseComboChainReq.ProtoReflect.Descriptor instead.
 func (*ReleaseComboChainReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{90}
+	return file_play_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *ReleaseComboChainReq) GetRequestId() string {
@@ -6644,7 +6740,7 @@ type ReleaseComboChainResp struct {
 
 func (x *ReleaseComboChainResp) Reset() {
 	*x = ReleaseComboChainResp{}
-	mi := &file_play_proto_msgTypes[91]
+	mi := &file_play_proto_msgTypes[93]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6656,7 +6752,7 @@ func (x *ReleaseComboChainResp) String() string {
 func (*ReleaseComboChainResp) ProtoMessage() {}
 
 func (x *ReleaseComboChainResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[91]
+	mi := &file_play_proto_msgTypes[93]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6669,7 +6765,7 @@ func (x *ReleaseComboChainResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseComboChainResp.ProtoReflect.Descriptor instead.
 func (*ReleaseComboChainResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{91}
+	return file_play_proto_rawDescGZIP(), []int{93}
 }
 
 func (x *ReleaseComboChainResp) GetStatus() string {
@@ -6691,7 +6787,7 @@ type SettleComboChainReq struct {
 
 func (x *SettleComboChainReq) Reset() {
 	*x = SettleComboChainReq{}
-	mi := &file_play_proto_msgTypes[92]
+	mi := &file_play_proto_msgTypes[94]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6703,7 +6799,7 @@ func (x *SettleComboChainReq) String() string {
 func (*SettleComboChainReq) ProtoMessage() {}
 
 func (x *SettleComboChainReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[92]
+	mi := &file_play_proto_msgTypes[94]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6716,7 +6812,7 @@ func (x *SettleComboChainReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SettleComboChainReq.ProtoReflect.Descriptor instead.
 func (*SettleComboChainReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{92}
+	return file_play_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *SettleComboChainReq) GetRequestId() string {
@@ -6759,7 +6855,7 @@ type SettleComboChainResp struct {
 
 func (x *SettleComboChainResp) Reset() {
 	*x = SettleComboChainResp{}
-	mi := &file_play_proto_msgTypes[93]
+	mi := &file_play_proto_msgTypes[95]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6771,7 +6867,7 @@ func (x *SettleComboChainResp) String() string {
 func (*SettleComboChainResp) ProtoMessage() {}
 
 func (x *SettleComboChainResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[93]
+	mi := &file_play_proto_msgTypes[95]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6784,7 +6880,7 @@ func (x *SettleComboChainResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SettleComboChainResp.ProtoReflect.Descriptor instead.
 func (*SettleComboChainResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{93}
+	return file_play_proto_rawDescGZIP(), []int{95}
 }
 
 func (x *SettleComboChainResp) GetRecordId() int64 {
@@ -6826,7 +6922,7 @@ type GrantComboChainPrizesReq struct {
 
 func (x *GrantComboChainPrizesReq) Reset() {
 	*x = GrantComboChainPrizesReq{}
-	mi := &file_play_proto_msgTypes[94]
+	mi := &file_play_proto_msgTypes[96]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6838,7 +6934,7 @@ func (x *GrantComboChainPrizesReq) String() string {
 func (*GrantComboChainPrizesReq) ProtoMessage() {}
 
 func (x *GrantComboChainPrizesReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[94]
+	mi := &file_play_proto_msgTypes[96]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6851,7 +6947,7 @@ func (x *GrantComboChainPrizesReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrantComboChainPrizesReq.ProtoReflect.Descriptor instead.
 func (*GrantComboChainPrizesReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{94}
+	return file_play_proto_rawDescGZIP(), []int{96}
 }
 
 func (x *GrantComboChainPrizesReq) GetRequestId() string {
@@ -6884,7 +6980,7 @@ type GrantComboChainPrizesResp struct {
 
 func (x *GrantComboChainPrizesResp) Reset() {
 	*x = GrantComboChainPrizesResp{}
-	mi := &file_play_proto_msgTypes[95]
+	mi := &file_play_proto_msgTypes[97]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6896,7 +6992,7 @@ func (x *GrantComboChainPrizesResp) String() string {
 func (*GrantComboChainPrizesResp) ProtoMessage() {}
 
 func (x *GrantComboChainPrizesResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[95]
+	mi := &file_play_proto_msgTypes[97]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6909,7 +7005,7 @@ func (x *GrantComboChainPrizesResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrantComboChainPrizesResp.ProtoReflect.Descriptor instead.
 func (*GrantComboChainPrizesResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{95}
+	return file_play_proto_rawDescGZIP(), []int{97}
 }
 
 func (x *GrantComboChainPrizesResp) GetStatus() string {
@@ -6931,7 +7027,7 @@ type ListComboChainRecordsReq struct {
 
 func (x *ListComboChainRecordsReq) Reset() {
 	*x = ListComboChainRecordsReq{}
-	mi := &file_play_proto_msgTypes[96]
+	mi := &file_play_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6943,7 +7039,7 @@ func (x *ListComboChainRecordsReq) String() string {
 func (*ListComboChainRecordsReq) ProtoMessage() {}
 
 func (x *ListComboChainRecordsReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[96]
+	mi := &file_play_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6956,7 +7052,7 @@ func (x *ListComboChainRecordsReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListComboChainRecordsReq.ProtoReflect.Descriptor instead.
 func (*ListComboChainRecordsReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{96}
+	return file_play_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *ListComboChainRecordsReq) GetUserId() int64 {
@@ -7003,7 +7099,7 @@ type ComboChainRecordItem struct {
 
 func (x *ComboChainRecordItem) Reset() {
 	*x = ComboChainRecordItem{}
-	mi := &file_play_proto_msgTypes[97]
+	mi := &file_play_proto_msgTypes[99]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7015,7 +7111,7 @@ func (x *ComboChainRecordItem) String() string {
 func (*ComboChainRecordItem) ProtoMessage() {}
 
 func (x *ComboChainRecordItem) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[97]
+	mi := &file_play_proto_msgTypes[99]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7028,7 +7124,7 @@ func (x *ComboChainRecordItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ComboChainRecordItem.ProtoReflect.Descriptor instead.
 func (*ComboChainRecordItem) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{97}
+	return file_play_proto_rawDescGZIP(), []int{99}
 }
 
 func (x *ComboChainRecordItem) GetRecordId() int64 {
@@ -7097,7 +7193,7 @@ type ListComboChainRecordsResp struct {
 
 func (x *ListComboChainRecordsResp) Reset() {
 	*x = ListComboChainRecordsResp{}
-	mi := &file_play_proto_msgTypes[98]
+	mi := &file_play_proto_msgTypes[100]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7109,7 +7205,7 @@ func (x *ListComboChainRecordsResp) String() string {
 func (*ListComboChainRecordsResp) ProtoMessage() {}
 
 func (x *ListComboChainRecordsResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[98]
+	mi := &file_play_proto_msgTypes[100]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7122,7 +7218,7 @@ func (x *ListComboChainRecordsResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListComboChainRecordsResp.ProtoReflect.Descriptor instead.
 func (*ListComboChainRecordsResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{98}
+	return file_play_proto_rawDescGZIP(), []int{100}
 }
 
 func (x *ListComboChainRecordsResp) GetItems() []*ComboChainRecordItem {
@@ -7152,7 +7248,7 @@ type GroupBuyLuckyPrizeItem struct {
 
 func (x *GroupBuyLuckyPrizeItem) Reset() {
 	*x = GroupBuyLuckyPrizeItem{}
-	mi := &file_play_proto_msgTypes[99]
+	mi := &file_play_proto_msgTypes[101]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7164,7 +7260,7 @@ func (x *GroupBuyLuckyPrizeItem) String() string {
 func (*GroupBuyLuckyPrizeItem) ProtoMessage() {}
 
 func (x *GroupBuyLuckyPrizeItem) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[99]
+	mi := &file_play_proto_msgTypes[101]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7177,7 +7273,7 @@ func (x *GroupBuyLuckyPrizeItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupBuyLuckyPrizeItem.ProtoReflect.Descriptor instead.
 func (*GroupBuyLuckyPrizeItem) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{99}
+	return file_play_proto_rawDescGZIP(), []int{101}
 }
 
 func (x *GroupBuyLuckyPrizeItem) GetPrizeIndex() int64 {
@@ -7218,7 +7314,7 @@ type GetGroupBuyReq struct {
 
 func (x *GetGroupBuyReq) Reset() {
 	*x = GetGroupBuyReq{}
-	mi := &file_play_proto_msgTypes[100]
+	mi := &file_play_proto_msgTypes[102]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7230,7 +7326,7 @@ func (x *GetGroupBuyReq) String() string {
 func (*GetGroupBuyReq) ProtoMessage() {}
 
 func (x *GetGroupBuyReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[100]
+	mi := &file_play_proto_msgTypes[102]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7243,7 +7339,7 @@ func (x *GetGroupBuyReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGroupBuyReq.ProtoReflect.Descriptor instead.
 func (*GetGroupBuyReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{100}
+	return file_play_proto_rawDescGZIP(), []int{102}
 }
 
 func (x *GetGroupBuyReq) GetConfigId() int64 {
@@ -7278,7 +7374,7 @@ type GetGroupBuyResp struct {
 
 func (x *GetGroupBuyResp) Reset() {
 	*x = GetGroupBuyResp{}
-	mi := &file_play_proto_msgTypes[101]
+	mi := &file_play_proto_msgTypes[103]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7290,7 +7386,7 @@ func (x *GetGroupBuyResp) String() string {
 func (*GetGroupBuyResp) ProtoMessage() {}
 
 func (x *GetGroupBuyResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[101]
+	mi := &file_play_proto_msgTypes[103]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7303,7 +7399,7 @@ func (x *GetGroupBuyResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGroupBuyResp.ProtoReflect.Descriptor instead.
 func (*GetGroupBuyResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{101}
+	return file_play_proto_rawDescGZIP(), []int{103}
 }
 
 func (x *GetGroupBuyResp) GetConfigId() int64 {
@@ -7391,7 +7487,7 @@ type LockGroupBuyReq struct {
 
 func (x *LockGroupBuyReq) Reset() {
 	*x = LockGroupBuyReq{}
-	mi := &file_play_proto_msgTypes[102]
+	mi := &file_play_proto_msgTypes[104]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7403,7 +7499,7 @@ func (x *LockGroupBuyReq) String() string {
 func (*LockGroupBuyReq) ProtoMessage() {}
 
 func (x *LockGroupBuyReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[102]
+	mi := &file_play_proto_msgTypes[104]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7416,7 +7512,7 @@ func (x *LockGroupBuyReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LockGroupBuyReq.ProtoReflect.Descriptor instead.
 func (*LockGroupBuyReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{102}
+	return file_play_proto_rawDescGZIP(), []int{104}
 }
 
 func (x *LockGroupBuyReq) GetRequestId() string {
@@ -7471,7 +7567,7 @@ type LockGroupBuyResp struct {
 
 func (x *LockGroupBuyResp) Reset() {
 	*x = LockGroupBuyResp{}
-	mi := &file_play_proto_msgTypes[103]
+	mi := &file_play_proto_msgTypes[105]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7483,7 +7579,7 @@ func (x *LockGroupBuyResp) String() string {
 func (*LockGroupBuyResp) ProtoMessage() {}
 
 func (x *LockGroupBuyResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[103]
+	mi := &file_play_proto_msgTypes[105]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7496,7 +7592,7 @@ func (x *LockGroupBuyResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LockGroupBuyResp.ProtoReflect.Descriptor instead.
 func (*LockGroupBuyResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{103}
+	return file_play_proto_rawDescGZIP(), []int{105}
 }
 
 func (x *LockGroupBuyResp) GetCount() int64 {
@@ -7527,7 +7623,7 @@ type ReleaseGroupBuyReq struct {
 
 func (x *ReleaseGroupBuyReq) Reset() {
 	*x = ReleaseGroupBuyReq{}
-	mi := &file_play_proto_msgTypes[104]
+	mi := &file_play_proto_msgTypes[106]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7539,7 +7635,7 @@ func (x *ReleaseGroupBuyReq) String() string {
 func (*ReleaseGroupBuyReq) ProtoMessage() {}
 
 func (x *ReleaseGroupBuyReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[104]
+	mi := &file_play_proto_msgTypes[106]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7552,7 +7648,7 @@ func (x *ReleaseGroupBuyReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseGroupBuyReq.ProtoReflect.Descriptor instead.
 func (*ReleaseGroupBuyReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{104}
+	return file_play_proto_rawDescGZIP(), []int{106}
 }
 
 func (x *ReleaseGroupBuyReq) GetRequestId() string {
@@ -7607,7 +7703,7 @@ type ReleaseGroupBuyResp struct {
 
 func (x *ReleaseGroupBuyResp) Reset() {
 	*x = ReleaseGroupBuyResp{}
-	mi := &file_play_proto_msgTypes[105]
+	mi := &file_play_proto_msgTypes[107]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7619,7 +7715,7 @@ func (x *ReleaseGroupBuyResp) String() string {
 func (*ReleaseGroupBuyResp) ProtoMessage() {}
 
 func (x *ReleaseGroupBuyResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[105]
+	mi := &file_play_proto_msgTypes[107]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7632,7 +7728,7 @@ func (x *ReleaseGroupBuyResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleaseGroupBuyResp.ProtoReflect.Descriptor instead.
 func (*ReleaseGroupBuyResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{105}
+	return file_play_proto_rawDescGZIP(), []int{107}
 }
 
 func (x *ReleaseGroupBuyResp) GetCount() int64 {
@@ -7662,7 +7758,7 @@ type SettleGroupBuyReq struct {
 
 func (x *SettleGroupBuyReq) Reset() {
 	*x = SettleGroupBuyReq{}
-	mi := &file_play_proto_msgTypes[106]
+	mi := &file_play_proto_msgTypes[108]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7674,7 +7770,7 @@ func (x *SettleGroupBuyReq) String() string {
 func (*SettleGroupBuyReq) ProtoMessage() {}
 
 func (x *SettleGroupBuyReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[106]
+	mi := &file_play_proto_msgTypes[108]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7687,7 +7783,7 @@ func (x *SettleGroupBuyReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SettleGroupBuyReq.ProtoReflect.Descriptor instead.
 func (*SettleGroupBuyReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{106}
+	return file_play_proto_rawDescGZIP(), []int{108}
 }
 
 func (x *SettleGroupBuyReq) GetRequestId() string {
@@ -7737,7 +7833,7 @@ type SettleGroupBuyResp struct {
 
 func (x *SettleGroupBuyResp) Reset() {
 	*x = SettleGroupBuyResp{}
-	mi := &file_play_proto_msgTypes[107]
+	mi := &file_play_proto_msgTypes[109]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7749,7 +7845,7 @@ func (x *SettleGroupBuyResp) String() string {
 func (*SettleGroupBuyResp) ProtoMessage() {}
 
 func (x *SettleGroupBuyResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[107]
+	mi := &file_play_proto_msgTypes[109]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7762,7 +7858,7 @@ func (x *SettleGroupBuyResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SettleGroupBuyResp.ProtoReflect.Descriptor instead.
 func (*SettleGroupBuyResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{107}
+	return file_play_proto_rawDescGZIP(), []int{109}
 }
 
 func (x *SettleGroupBuyResp) GetRecordId() int64 {
@@ -7804,7 +7900,7 @@ type GrantGroupBuyPrizesReq struct {
 
 func (x *GrantGroupBuyPrizesReq) Reset() {
 	*x = GrantGroupBuyPrizesReq{}
-	mi := &file_play_proto_msgTypes[108]
+	mi := &file_play_proto_msgTypes[110]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7816,7 +7912,7 @@ func (x *GrantGroupBuyPrizesReq) String() string {
 func (*GrantGroupBuyPrizesReq) ProtoMessage() {}
 
 func (x *GrantGroupBuyPrizesReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[108]
+	mi := &file_play_proto_msgTypes[110]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7829,7 +7925,7 @@ func (x *GrantGroupBuyPrizesReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrantGroupBuyPrizesReq.ProtoReflect.Descriptor instead.
 func (*GrantGroupBuyPrizesReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{108}
+	return file_play_proto_rawDescGZIP(), []int{110}
 }
 
 func (x *GrantGroupBuyPrizesReq) GetRequestId() string {
@@ -7862,7 +7958,7 @@ type GrantGroupBuyPrizesResp struct {
 
 func (x *GrantGroupBuyPrizesResp) Reset() {
 	*x = GrantGroupBuyPrizesResp{}
-	mi := &file_play_proto_msgTypes[109]
+	mi := &file_play_proto_msgTypes[111]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7874,7 +7970,7 @@ func (x *GrantGroupBuyPrizesResp) String() string {
 func (*GrantGroupBuyPrizesResp) ProtoMessage() {}
 
 func (x *GrantGroupBuyPrizesResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[109]
+	mi := &file_play_proto_msgTypes[111]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7887,7 +7983,7 @@ func (x *GrantGroupBuyPrizesResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrantGroupBuyPrizesResp.ProtoReflect.Descriptor instead.
 func (*GrantGroupBuyPrizesResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{109}
+	return file_play_proto_rawDescGZIP(), []int{111}
 }
 
 func (x *GrantGroupBuyPrizesResp) GetStatus() string {
@@ -7909,7 +8005,7 @@ type ListGroupBuyRecordsReq struct {
 
 func (x *ListGroupBuyRecordsReq) Reset() {
 	*x = ListGroupBuyRecordsReq{}
-	mi := &file_play_proto_msgTypes[110]
+	mi := &file_play_proto_msgTypes[112]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7921,7 +8017,7 @@ func (x *ListGroupBuyRecordsReq) String() string {
 func (*ListGroupBuyRecordsReq) ProtoMessage() {}
 
 func (x *ListGroupBuyRecordsReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[110]
+	mi := &file_play_proto_msgTypes[112]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7934,7 +8030,7 @@ func (x *ListGroupBuyRecordsReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupBuyRecordsReq.ProtoReflect.Descriptor instead.
 func (*ListGroupBuyRecordsReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{110}
+	return file_play_proto_rawDescGZIP(), []int{112}
 }
 
 func (x *ListGroupBuyRecordsReq) GetUserId() int64 {
@@ -7981,7 +8077,7 @@ type GroupBuyRecordItem struct {
 
 func (x *GroupBuyRecordItem) Reset() {
 	*x = GroupBuyRecordItem{}
-	mi := &file_play_proto_msgTypes[111]
+	mi := &file_play_proto_msgTypes[113]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7993,7 +8089,7 @@ func (x *GroupBuyRecordItem) String() string {
 func (*GroupBuyRecordItem) ProtoMessage() {}
 
 func (x *GroupBuyRecordItem) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[111]
+	mi := &file_play_proto_msgTypes[113]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8006,7 +8102,7 @@ func (x *GroupBuyRecordItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupBuyRecordItem.ProtoReflect.Descriptor instead.
 func (*GroupBuyRecordItem) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{111}
+	return file_play_proto_rawDescGZIP(), []int{113}
 }
 
 func (x *GroupBuyRecordItem) GetRecordId() int64 {
@@ -8075,7 +8171,7 @@ type ListGroupBuyRecordsResp struct {
 
 func (x *ListGroupBuyRecordsResp) Reset() {
 	*x = ListGroupBuyRecordsResp{}
-	mi := &file_play_proto_msgTypes[112]
+	mi := &file_play_proto_msgTypes[114]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8087,7 +8183,7 @@ func (x *ListGroupBuyRecordsResp) String() string {
 func (*ListGroupBuyRecordsResp) ProtoMessage() {}
 
 func (x *ListGroupBuyRecordsResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[112]
+	mi := &file_play_proto_msgTypes[114]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8100,7 +8196,7 @@ func (x *ListGroupBuyRecordsResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupBuyRecordsResp.ProtoReflect.Descriptor instead.
 func (*ListGroupBuyRecordsResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{112}
+	return file_play_proto_rawDescGZIP(), []int{114}
 }
 
 func (x *ListGroupBuyRecordsResp) GetItems() []*GroupBuyRecordItem {
@@ -8128,7 +8224,7 @@ type MemoryMatchFaceItem struct {
 
 func (x *MemoryMatchFaceItem) Reset() {
 	*x = MemoryMatchFaceItem{}
-	mi := &file_play_proto_msgTypes[113]
+	mi := &file_play_proto_msgTypes[115]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8140,7 +8236,7 @@ func (x *MemoryMatchFaceItem) String() string {
 func (*MemoryMatchFaceItem) ProtoMessage() {}
 
 func (x *MemoryMatchFaceItem) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[113]
+	mi := &file_play_proto_msgTypes[115]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8153,7 +8249,7 @@ func (x *MemoryMatchFaceItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoryMatchFaceItem.ProtoReflect.Descriptor instead.
 func (*MemoryMatchFaceItem) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{113}
+	return file_play_proto_rawDescGZIP(), []int{115}
 }
 
 func (x *MemoryMatchFaceItem) GetPatternId() int32 {
@@ -8188,7 +8284,7 @@ type MemoryMatchFacePreset struct {
 
 func (x *MemoryMatchFacePreset) Reset() {
 	*x = MemoryMatchFacePreset{}
-	mi := &file_play_proto_msgTypes[114]
+	mi := &file_play_proto_msgTypes[116]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8200,7 +8296,7 @@ func (x *MemoryMatchFacePreset) String() string {
 func (*MemoryMatchFacePreset) ProtoMessage() {}
 
 func (x *MemoryMatchFacePreset) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[114]
+	mi := &file_play_proto_msgTypes[116]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8213,7 +8309,7 @@ func (x *MemoryMatchFacePreset) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoryMatchFacePreset.ProtoReflect.Descriptor instead.
 func (*MemoryMatchFacePreset) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{114}
+	return file_play_proto_rawDescGZIP(), []int{116}
 }
 
 func (x *MemoryMatchFacePreset) GetPresetId() int32 {
@@ -8249,7 +8345,7 @@ type MemoryMatchBackPreset struct {
 
 func (x *MemoryMatchBackPreset) Reset() {
 	*x = MemoryMatchBackPreset{}
-	mi := &file_play_proto_msgTypes[115]
+	mi := &file_play_proto_msgTypes[117]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8261,7 +8357,7 @@ func (x *MemoryMatchBackPreset) String() string {
 func (*MemoryMatchBackPreset) ProtoMessage() {}
 
 func (x *MemoryMatchBackPreset) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[115]
+	mi := &file_play_proto_msgTypes[117]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8274,7 +8370,7 @@ func (x *MemoryMatchBackPreset) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoryMatchBackPreset.ProtoReflect.Descriptor instead.
 func (*MemoryMatchBackPreset) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{115}
+	return file_play_proto_rawDescGZIP(), []int{117}
 }
 
 func (x *MemoryMatchBackPreset) GetPresetId() int32 {
@@ -8320,7 +8416,7 @@ type MemoryMatchEntryItem struct {
 
 func (x *MemoryMatchEntryItem) Reset() {
 	*x = MemoryMatchEntryItem{}
-	mi := &file_play_proto_msgTypes[116]
+	mi := &file_play_proto_msgTypes[118]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8332,7 +8428,7 @@ func (x *MemoryMatchEntryItem) String() string {
 func (*MemoryMatchEntryItem) ProtoMessage() {}
 
 func (x *MemoryMatchEntryItem) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[116]
+	mi := &file_play_proto_msgTypes[118]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8345,7 +8441,7 @@ func (x *MemoryMatchEntryItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoryMatchEntryItem.ProtoReflect.Descriptor instead.
 func (*MemoryMatchEntryItem) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{116}
+	return file_play_proto_rawDescGZIP(), []int{118}
 }
 
 func (x *MemoryMatchEntryItem) GetEntryId() int64 {
@@ -8409,7 +8505,7 @@ type MemoryMatchChampionInfo struct {
 
 func (x *MemoryMatchChampionInfo) Reset() {
 	*x = MemoryMatchChampionInfo{}
-	mi := &file_play_proto_msgTypes[117]
+	mi := &file_play_proto_msgTypes[119]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8421,7 +8517,7 @@ func (x *MemoryMatchChampionInfo) String() string {
 func (*MemoryMatchChampionInfo) ProtoMessage() {}
 
 func (x *MemoryMatchChampionInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[117]
+	mi := &file_play_proto_msgTypes[119]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8434,7 +8530,7 @@ func (x *MemoryMatchChampionInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoryMatchChampionInfo.ProtoReflect.Descriptor instead.
 func (*MemoryMatchChampionInfo) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{117}
+	return file_play_proto_rawDescGZIP(), []int{119}
 }
 
 func (x *MemoryMatchChampionInfo) GetExists() bool {
@@ -8503,7 +8599,7 @@ type MemoryMatchConfigItem struct {
 
 func (x *MemoryMatchConfigItem) Reset() {
 	*x = MemoryMatchConfigItem{}
-	mi := &file_play_proto_msgTypes[118]
+	mi := &file_play_proto_msgTypes[120]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8515,7 +8611,7 @@ func (x *MemoryMatchConfigItem) String() string {
 func (*MemoryMatchConfigItem) ProtoMessage() {}
 
 func (x *MemoryMatchConfigItem) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[118]
+	mi := &file_play_proto_msgTypes[120]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8528,7 +8624,7 @@ func (x *MemoryMatchConfigItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoryMatchConfigItem.ProtoReflect.Descriptor instead.
 func (*MemoryMatchConfigItem) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{118}
+	return file_play_proto_rawDescGZIP(), []int{120}
 }
 
 func (x *MemoryMatchConfigItem) GetConfigId() int64 {
@@ -8750,7 +8846,7 @@ type MemoryMatchConfigSummary struct {
 
 func (x *MemoryMatchConfigSummary) Reset() {
 	*x = MemoryMatchConfigSummary{}
-	mi := &file_play_proto_msgTypes[119]
+	mi := &file_play_proto_msgTypes[121]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8762,7 +8858,7 @@ func (x *MemoryMatchConfigSummary) String() string {
 func (*MemoryMatchConfigSummary) ProtoMessage() {}
 
 func (x *MemoryMatchConfigSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[119]
+	mi := &file_play_proto_msgTypes[121]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8775,7 +8871,7 @@ func (x *MemoryMatchConfigSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoryMatchConfigSummary.ProtoReflect.Descriptor instead.
 func (*MemoryMatchConfigSummary) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{119}
+	return file_play_proto_rawDescGZIP(), []int{121}
 }
 
 func (x *MemoryMatchConfigSummary) GetConfigId() int64 {
@@ -8835,7 +8931,7 @@ type ListMemoryMatchConfigsReq struct {
 
 func (x *ListMemoryMatchConfigsReq) Reset() {
 	*x = ListMemoryMatchConfigsReq{}
-	mi := &file_play_proto_msgTypes[120]
+	mi := &file_play_proto_msgTypes[122]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8847,7 +8943,7 @@ func (x *ListMemoryMatchConfigsReq) String() string {
 func (*ListMemoryMatchConfigsReq) ProtoMessage() {}
 
 func (x *ListMemoryMatchConfigsReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[120]
+	mi := &file_play_proto_msgTypes[122]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8860,7 +8956,7 @@ func (x *ListMemoryMatchConfigsReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMemoryMatchConfigsReq.ProtoReflect.Descriptor instead.
 func (*ListMemoryMatchConfigsReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{120}
+	return file_play_proto_rawDescGZIP(), []int{122}
 }
 
 type ListMemoryMatchConfigsResp struct {
@@ -8872,7 +8968,7 @@ type ListMemoryMatchConfigsResp struct {
 
 func (x *ListMemoryMatchConfigsResp) Reset() {
 	*x = ListMemoryMatchConfigsResp{}
-	mi := &file_play_proto_msgTypes[121]
+	mi := &file_play_proto_msgTypes[123]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8884,7 +8980,7 @@ func (x *ListMemoryMatchConfigsResp) String() string {
 func (*ListMemoryMatchConfigsResp) ProtoMessage() {}
 
 func (x *ListMemoryMatchConfigsResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[121]
+	mi := &file_play_proto_msgTypes[123]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8897,7 +8993,7 @@ func (x *ListMemoryMatchConfigsResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMemoryMatchConfigsResp.ProtoReflect.Descriptor instead.
 func (*ListMemoryMatchConfigsResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{121}
+	return file_play_proto_rawDescGZIP(), []int{123}
 }
 
 func (x *ListMemoryMatchConfigsResp) GetConfigs() []*MemoryMatchConfigSummary {
@@ -8928,7 +9024,7 @@ type CollectionSet struct {
 
 func (x *CollectionSet) Reset() {
 	*x = CollectionSet{}
-	mi := &file_play_proto_msgTypes[122]
+	mi := &file_play_proto_msgTypes[124]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8940,7 +9036,7 @@ func (x *CollectionSet) String() string {
 func (*CollectionSet) ProtoMessage() {}
 
 func (x *CollectionSet) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[122]
+	mi := &file_play_proto_msgTypes[124]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8953,7 +9049,7 @@ func (x *CollectionSet) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CollectionSet.ProtoReflect.Descriptor instead.
 func (*CollectionSet) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{122}
+	return file_play_proto_rawDescGZIP(), []int{124}
 }
 
 func (x *CollectionSet) GetId() int64 {
@@ -9058,7 +9154,7 @@ type CollectionRewardStat struct {
 
 func (x *CollectionRewardStat) Reset() {
 	*x = CollectionRewardStat{}
-	mi := &file_play_proto_msgTypes[123]
+	mi := &file_play_proto_msgTypes[125]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9070,7 +9166,7 @@ func (x *CollectionRewardStat) String() string {
 func (*CollectionRewardStat) ProtoMessage() {}
 
 func (x *CollectionRewardStat) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[123]
+	mi := &file_play_proto_msgTypes[125]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9083,7 +9179,7 @@ func (x *CollectionRewardStat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CollectionRewardStat.ProtoReflect.Descriptor instead.
 func (*CollectionRewardStat) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{123}
+	return file_play_proto_rawDescGZIP(), []int{125}
 }
 
 func (x *CollectionRewardStat) GetName() string {
@@ -9119,7 +9215,7 @@ type ListCollectionSetsReq struct {
 
 func (x *ListCollectionSetsReq) Reset() {
 	*x = ListCollectionSetsReq{}
-	mi := &file_play_proto_msgTypes[124]
+	mi := &file_play_proto_msgTypes[126]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9131,7 +9227,7 @@ func (x *ListCollectionSetsReq) String() string {
 func (*ListCollectionSetsReq) ProtoMessage() {}
 
 func (x *ListCollectionSetsReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[124]
+	mi := &file_play_proto_msgTypes[126]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9144,7 +9240,7 @@ func (x *ListCollectionSetsReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCollectionSetsReq.ProtoReflect.Descriptor instead.
 func (*ListCollectionSetsReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{124}
+	return file_play_proto_rawDescGZIP(), []int{126}
 }
 
 func (x *ListCollectionSetsReq) GetKeyword() string {
@@ -9187,7 +9283,7 @@ type ListCollectionSetsResp struct {
 
 func (x *ListCollectionSetsResp) Reset() {
 	*x = ListCollectionSetsResp{}
-	mi := &file_play_proto_msgTypes[125]
+	mi := &file_play_proto_msgTypes[127]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9199,7 +9295,7 @@ func (x *ListCollectionSetsResp) String() string {
 func (*ListCollectionSetsResp) ProtoMessage() {}
 
 func (x *ListCollectionSetsResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[125]
+	mi := &file_play_proto_msgTypes[127]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9212,7 +9308,7 @@ func (x *ListCollectionSetsResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCollectionSetsResp.ProtoReflect.Descriptor instead.
 func (*ListCollectionSetsResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{125}
+	return file_play_proto_rawDescGZIP(), []int{127}
 }
 
 func (x *ListCollectionSetsResp) GetItems() []*CollectionSet {
@@ -9260,7 +9356,7 @@ type CreateCollectionSetReq struct {
 
 func (x *CreateCollectionSetReq) Reset() {
 	*x = CreateCollectionSetReq{}
-	mi := &file_play_proto_msgTypes[126]
+	mi := &file_play_proto_msgTypes[128]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9272,7 +9368,7 @@ func (x *CreateCollectionSetReq) String() string {
 func (*CreateCollectionSetReq) ProtoMessage() {}
 
 func (x *CreateCollectionSetReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[126]
+	mi := &file_play_proto_msgTypes[128]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9285,7 +9381,7 @@ func (x *CreateCollectionSetReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCollectionSetReq.ProtoReflect.Descriptor instead.
 func (*CreateCollectionSetReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{126}
+	return file_play_proto_rawDescGZIP(), []int{128}
 }
 
 func (x *CreateCollectionSetReq) GetCode() string {
@@ -9368,7 +9464,7 @@ type UpdateCollectionSetReq struct {
 
 func (x *UpdateCollectionSetReq) Reset() {
 	*x = UpdateCollectionSetReq{}
-	mi := &file_play_proto_msgTypes[127]
+	mi := &file_play_proto_msgTypes[129]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9380,7 +9476,7 @@ func (x *UpdateCollectionSetReq) String() string {
 func (*UpdateCollectionSetReq) ProtoMessage() {}
 
 func (x *UpdateCollectionSetReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[127]
+	mi := &file_play_proto_msgTypes[129]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9393,7 +9489,7 @@ func (x *UpdateCollectionSetReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateCollectionSetReq.ProtoReflect.Descriptor instead.
 func (*UpdateCollectionSetReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{127}
+	return file_play_proto_rawDescGZIP(), []int{129}
 }
 
 func (x *UpdateCollectionSetReq) GetId() int64 {
@@ -9469,7 +9565,7 @@ type SetCollectionSetStatusReq struct {
 
 func (x *SetCollectionSetStatusReq) Reset() {
 	*x = SetCollectionSetStatusReq{}
-	mi := &file_play_proto_msgTypes[128]
+	mi := &file_play_proto_msgTypes[130]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9481,7 +9577,7 @@ func (x *SetCollectionSetStatusReq) String() string {
 func (*SetCollectionSetStatusReq) ProtoMessage() {}
 
 func (x *SetCollectionSetStatusReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[128]
+	mi := &file_play_proto_msgTypes[130]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9494,7 +9590,7 @@ func (x *SetCollectionSetStatusReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetCollectionSetStatusReq.ProtoReflect.Descriptor instead.
 func (*SetCollectionSetStatusReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{128}
+	return file_play_proto_rawDescGZIP(), []int{130}
 }
 
 func (x *SetCollectionSetStatusReq) GetId() int64 {
@@ -9520,7 +9616,7 @@ type GetCollectionSetDataReq struct {
 
 func (x *GetCollectionSetDataReq) Reset() {
 	*x = GetCollectionSetDataReq{}
-	mi := &file_play_proto_msgTypes[129]
+	mi := &file_play_proto_msgTypes[131]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9532,7 +9628,7 @@ func (x *GetCollectionSetDataReq) String() string {
 func (*GetCollectionSetDataReq) ProtoMessage() {}
 
 func (x *GetCollectionSetDataReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[129]
+	mi := &file_play_proto_msgTypes[131]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9545,7 +9641,7 @@ func (x *GetCollectionSetDataReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCollectionSetDataReq.ProtoReflect.Descriptor instead.
 func (*GetCollectionSetDataReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{129}
+	return file_play_proto_rawDescGZIP(), []int{131}
 }
 
 func (x *GetCollectionSetDataReq) GetId() int64 {
@@ -9568,7 +9664,7 @@ type GetCollectionSetDataResp struct {
 
 func (x *GetCollectionSetDataResp) Reset() {
 	*x = GetCollectionSetDataResp{}
-	mi := &file_play_proto_msgTypes[130]
+	mi := &file_play_proto_msgTypes[132]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9580,7 +9676,7 @@ func (x *GetCollectionSetDataResp) String() string {
 func (*GetCollectionSetDataResp) ProtoMessage() {}
 
 func (x *GetCollectionSetDataResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[130]
+	mi := &file_play_proto_msgTypes[132]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9593,7 +9689,7 @@ func (x *GetCollectionSetDataResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCollectionSetDataResp.ProtoReflect.Descriptor instead.
 func (*GetCollectionSetDataResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{130}
+	return file_play_proto_rawDescGZIP(), []int{132}
 }
 
 func (x *GetCollectionSetDataResp) GetParticipants() int64 {
@@ -9641,7 +9737,7 @@ type GetMemoryMatchConfigReq struct {
 
 func (x *GetMemoryMatchConfigReq) Reset() {
 	*x = GetMemoryMatchConfigReq{}
-	mi := &file_play_proto_msgTypes[131]
+	mi := &file_play_proto_msgTypes[133]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9653,7 +9749,7 @@ func (x *GetMemoryMatchConfigReq) String() string {
 func (*GetMemoryMatchConfigReq) ProtoMessage() {}
 
 func (x *GetMemoryMatchConfigReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[131]
+	mi := &file_play_proto_msgTypes[133]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9666,7 +9762,7 @@ func (x *GetMemoryMatchConfigReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemoryMatchConfigReq.ProtoReflect.Descriptor instead.
 func (*GetMemoryMatchConfigReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{131}
+	return file_play_proto_rawDescGZIP(), []int{133}
 }
 
 func (x *GetMemoryMatchConfigReq) GetConfigId() int64 {
@@ -9694,7 +9790,7 @@ type GetMemoryMatchConfigResp struct {
 
 func (x *GetMemoryMatchConfigResp) Reset() {
 	*x = GetMemoryMatchConfigResp{}
-	mi := &file_play_proto_msgTypes[132]
+	mi := &file_play_proto_msgTypes[134]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9706,7 +9802,7 @@ func (x *GetMemoryMatchConfigResp) String() string {
 func (*GetMemoryMatchConfigResp) ProtoMessage() {}
 
 func (x *GetMemoryMatchConfigResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[132]
+	mi := &file_play_proto_msgTypes[134]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9719,7 +9815,7 @@ func (x *GetMemoryMatchConfigResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemoryMatchConfigResp.ProtoReflect.Descriptor instead.
 func (*GetMemoryMatchConfigResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{132}
+	return file_play_proto_rawDescGZIP(), []int{134}
 }
 
 func (x *GetMemoryMatchConfigResp) GetConfig() *MemoryMatchConfigItem {
@@ -9771,7 +9867,7 @@ type MemoryMatchGlobalRules struct {
 
 func (x *MemoryMatchGlobalRules) Reset() {
 	*x = MemoryMatchGlobalRules{}
-	mi := &file_play_proto_msgTypes[133]
+	mi := &file_play_proto_msgTypes[135]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9783,7 +9879,7 @@ func (x *MemoryMatchGlobalRules) String() string {
 func (*MemoryMatchGlobalRules) ProtoMessage() {}
 
 func (x *MemoryMatchGlobalRules) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[133]
+	mi := &file_play_proto_msgTypes[135]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9796,7 +9892,7 @@ func (x *MemoryMatchGlobalRules) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoryMatchGlobalRules.ProtoReflect.Descriptor instead.
 func (*MemoryMatchGlobalRules) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{133}
+	return file_play_proto_rawDescGZIP(), []int{135}
 }
 
 func (x *MemoryMatchGlobalRules) GetId() int64 {
@@ -9947,7 +10043,7 @@ type GetMemoryMatchGlobalRulesReq struct {
 
 func (x *GetMemoryMatchGlobalRulesReq) Reset() {
 	*x = GetMemoryMatchGlobalRulesReq{}
-	mi := &file_play_proto_msgTypes[134]
+	mi := &file_play_proto_msgTypes[136]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9959,7 +10055,7 @@ func (x *GetMemoryMatchGlobalRulesReq) String() string {
 func (*GetMemoryMatchGlobalRulesReq) ProtoMessage() {}
 
 func (x *GetMemoryMatchGlobalRulesReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[134]
+	mi := &file_play_proto_msgTypes[136]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9972,7 +10068,7 @@ func (x *GetMemoryMatchGlobalRulesReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemoryMatchGlobalRulesReq.ProtoReflect.Descriptor instead.
 func (*GetMemoryMatchGlobalRulesReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{134}
+	return file_play_proto_rawDescGZIP(), []int{136}
 }
 
 type GetMemoryMatchGlobalRulesResp struct {
@@ -9984,7 +10080,7 @@ type GetMemoryMatchGlobalRulesResp struct {
 
 func (x *GetMemoryMatchGlobalRulesResp) Reset() {
 	*x = GetMemoryMatchGlobalRulesResp{}
-	mi := &file_play_proto_msgTypes[135]
+	mi := &file_play_proto_msgTypes[137]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9996,7 +10092,7 @@ func (x *GetMemoryMatchGlobalRulesResp) String() string {
 func (*GetMemoryMatchGlobalRulesResp) ProtoMessage() {}
 
 func (x *GetMemoryMatchGlobalRulesResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[135]
+	mi := &file_play_proto_msgTypes[137]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10009,7 +10105,7 @@ func (x *GetMemoryMatchGlobalRulesResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemoryMatchGlobalRulesResp.ProtoReflect.Descriptor instead.
 func (*GetMemoryMatchGlobalRulesResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{135}
+	return file_play_proto_rawDescGZIP(), []int{137}
 }
 
 func (x *GetMemoryMatchGlobalRulesResp) GetRules() *MemoryMatchGlobalRules {
@@ -10028,7 +10124,7 @@ type SaveMemoryMatchGlobalRulesReq struct {
 
 func (x *SaveMemoryMatchGlobalRulesReq) Reset() {
 	*x = SaveMemoryMatchGlobalRulesReq{}
-	mi := &file_play_proto_msgTypes[136]
+	mi := &file_play_proto_msgTypes[138]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10040,7 +10136,7 @@ func (x *SaveMemoryMatchGlobalRulesReq) String() string {
 func (*SaveMemoryMatchGlobalRulesReq) ProtoMessage() {}
 
 func (x *SaveMemoryMatchGlobalRulesReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[136]
+	mi := &file_play_proto_msgTypes[138]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10053,7 +10149,7 @@ func (x *SaveMemoryMatchGlobalRulesReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveMemoryMatchGlobalRulesReq.ProtoReflect.Descriptor instead.
 func (*SaveMemoryMatchGlobalRulesReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{136}
+	return file_play_proto_rawDescGZIP(), []int{138}
 }
 
 func (x *SaveMemoryMatchGlobalRulesReq) GetRules() *MemoryMatchGlobalRules {
@@ -10072,7 +10168,7 @@ type SaveMemoryMatchGlobalRulesResp struct {
 
 func (x *SaveMemoryMatchGlobalRulesResp) Reset() {
 	*x = SaveMemoryMatchGlobalRulesResp{}
-	mi := &file_play_proto_msgTypes[137]
+	mi := &file_play_proto_msgTypes[139]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10084,7 +10180,7 @@ func (x *SaveMemoryMatchGlobalRulesResp) String() string {
 func (*SaveMemoryMatchGlobalRulesResp) ProtoMessage() {}
 
 func (x *SaveMemoryMatchGlobalRulesResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[137]
+	mi := &file_play_proto_msgTypes[139]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10097,7 +10193,7 @@ func (x *SaveMemoryMatchGlobalRulesResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveMemoryMatchGlobalRulesResp.ProtoReflect.Descriptor instead.
 func (*SaveMemoryMatchGlobalRulesResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{137}
+	return file_play_proto_rawDescGZIP(), []int{139}
 }
 
 func (x *SaveMemoryMatchGlobalRulesResp) GetRules() *MemoryMatchGlobalRules {
@@ -10123,7 +10219,7 @@ type MemoryMatchDeckTemplate struct {
 
 func (x *MemoryMatchDeckTemplate) Reset() {
 	*x = MemoryMatchDeckTemplate{}
-	mi := &file_play_proto_msgTypes[138]
+	mi := &file_play_proto_msgTypes[140]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10135,7 +10231,7 @@ func (x *MemoryMatchDeckTemplate) String() string {
 func (*MemoryMatchDeckTemplate) ProtoMessage() {}
 
 func (x *MemoryMatchDeckTemplate) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[138]
+	mi := &file_play_proto_msgTypes[140]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10148,7 +10244,7 @@ func (x *MemoryMatchDeckTemplate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoryMatchDeckTemplate.ProtoReflect.Descriptor instead.
 func (*MemoryMatchDeckTemplate) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{138}
+	return file_play_proto_rawDescGZIP(), []int{140}
 }
 
 func (x *MemoryMatchDeckTemplate) GetId() int64 {
@@ -10219,7 +10315,7 @@ type ListMemoryMatchDeckTemplatesReq struct {
 
 func (x *ListMemoryMatchDeckTemplatesReq) Reset() {
 	*x = ListMemoryMatchDeckTemplatesReq{}
-	mi := &file_play_proto_msgTypes[139]
+	mi := &file_play_proto_msgTypes[141]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10231,7 +10327,7 @@ func (x *ListMemoryMatchDeckTemplatesReq) String() string {
 func (*ListMemoryMatchDeckTemplatesReq) ProtoMessage() {}
 
 func (x *ListMemoryMatchDeckTemplatesReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[139]
+	mi := &file_play_proto_msgTypes[141]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10244,7 +10340,7 @@ func (x *ListMemoryMatchDeckTemplatesReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMemoryMatchDeckTemplatesReq.ProtoReflect.Descriptor instead.
 func (*ListMemoryMatchDeckTemplatesReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{139}
+	return file_play_proto_rawDescGZIP(), []int{141}
 }
 
 func (x *ListMemoryMatchDeckTemplatesReq) GetKeyword() string {
@@ -10285,7 +10381,7 @@ type ListMemoryMatchDeckTemplatesResp struct {
 
 func (x *ListMemoryMatchDeckTemplatesResp) Reset() {
 	*x = ListMemoryMatchDeckTemplatesResp{}
-	mi := &file_play_proto_msgTypes[140]
+	mi := &file_play_proto_msgTypes[142]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10297,7 +10393,7 @@ func (x *ListMemoryMatchDeckTemplatesResp) String() string {
 func (*ListMemoryMatchDeckTemplatesResp) ProtoMessage() {}
 
 func (x *ListMemoryMatchDeckTemplatesResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[140]
+	mi := &file_play_proto_msgTypes[142]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10310,7 +10406,7 @@ func (x *ListMemoryMatchDeckTemplatesResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMemoryMatchDeckTemplatesResp.ProtoReflect.Descriptor instead.
 func (*ListMemoryMatchDeckTemplatesResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{140}
+	return file_play_proto_rawDescGZIP(), []int{142}
 }
 
 func (x *ListMemoryMatchDeckTemplatesResp) GetItems() []*MemoryMatchDeckTemplate {
@@ -10336,7 +10432,7 @@ type SaveMemoryMatchDeckTemplateReq struct {
 
 func (x *SaveMemoryMatchDeckTemplateReq) Reset() {
 	*x = SaveMemoryMatchDeckTemplateReq{}
-	mi := &file_play_proto_msgTypes[141]
+	mi := &file_play_proto_msgTypes[143]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10348,7 +10444,7 @@ func (x *SaveMemoryMatchDeckTemplateReq) String() string {
 func (*SaveMemoryMatchDeckTemplateReq) ProtoMessage() {}
 
 func (x *SaveMemoryMatchDeckTemplateReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[141]
+	mi := &file_play_proto_msgTypes[143]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10361,7 +10457,7 @@ func (x *SaveMemoryMatchDeckTemplateReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveMemoryMatchDeckTemplateReq.ProtoReflect.Descriptor instead.
 func (*SaveMemoryMatchDeckTemplateReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{141}
+	return file_play_proto_rawDescGZIP(), []int{143}
 }
 
 func (x *SaveMemoryMatchDeckTemplateReq) GetTemplate() *MemoryMatchDeckTemplate {
@@ -10380,7 +10476,7 @@ type SaveMemoryMatchDeckTemplateResp struct {
 
 func (x *SaveMemoryMatchDeckTemplateResp) Reset() {
 	*x = SaveMemoryMatchDeckTemplateResp{}
-	mi := &file_play_proto_msgTypes[142]
+	mi := &file_play_proto_msgTypes[144]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10392,7 +10488,7 @@ func (x *SaveMemoryMatchDeckTemplateResp) String() string {
 func (*SaveMemoryMatchDeckTemplateResp) ProtoMessage() {}
 
 func (x *SaveMemoryMatchDeckTemplateResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[142]
+	mi := &file_play_proto_msgTypes[144]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10405,7 +10501,7 @@ func (x *SaveMemoryMatchDeckTemplateResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveMemoryMatchDeckTemplateResp.ProtoReflect.Descriptor instead.
 func (*SaveMemoryMatchDeckTemplateResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{142}
+	return file_play_proto_rawDescGZIP(), []int{144}
 }
 
 func (x *SaveMemoryMatchDeckTemplateResp) GetTemplate() *MemoryMatchDeckTemplate {
@@ -10424,7 +10520,7 @@ type DeleteMemoryMatchDeckTemplateReq struct {
 
 func (x *DeleteMemoryMatchDeckTemplateReq) Reset() {
 	*x = DeleteMemoryMatchDeckTemplateReq{}
-	mi := &file_play_proto_msgTypes[143]
+	mi := &file_play_proto_msgTypes[145]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10436,7 +10532,7 @@ func (x *DeleteMemoryMatchDeckTemplateReq) String() string {
 func (*DeleteMemoryMatchDeckTemplateReq) ProtoMessage() {}
 
 func (x *DeleteMemoryMatchDeckTemplateReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[143]
+	mi := &file_play_proto_msgTypes[145]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10449,7 +10545,7 @@ func (x *DeleteMemoryMatchDeckTemplateReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteMemoryMatchDeckTemplateReq.ProtoReflect.Descriptor instead.
 func (*DeleteMemoryMatchDeckTemplateReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{143}
+	return file_play_proto_rawDescGZIP(), []int{145}
 }
 
 func (x *DeleteMemoryMatchDeckTemplateReq) GetId() int64 {
@@ -10468,7 +10564,7 @@ type DeleteMemoryMatchDeckTemplateResp struct {
 
 func (x *DeleteMemoryMatchDeckTemplateResp) Reset() {
 	*x = DeleteMemoryMatchDeckTemplateResp{}
-	mi := &file_play_proto_msgTypes[144]
+	mi := &file_play_proto_msgTypes[146]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10480,7 +10576,7 @@ func (x *DeleteMemoryMatchDeckTemplateResp) String() string {
 func (*DeleteMemoryMatchDeckTemplateResp) ProtoMessage() {}
 
 func (x *DeleteMemoryMatchDeckTemplateResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[144]
+	mi := &file_play_proto_msgTypes[146]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10493,7 +10589,7 @@ func (x *DeleteMemoryMatchDeckTemplateResp) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use DeleteMemoryMatchDeckTemplateResp.ProtoReflect.Descriptor instead.
 func (*DeleteMemoryMatchDeckTemplateResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{144}
+	return file_play_proto_rawDescGZIP(), []int{146}
 }
 
 func (x *DeleteMemoryMatchDeckTemplateResp) GetDeleted() bool {
@@ -10524,7 +10620,7 @@ type MemoryMatchAppearanceItem struct {
 
 func (x *MemoryMatchAppearanceItem) Reset() {
 	*x = MemoryMatchAppearanceItem{}
-	mi := &file_play_proto_msgTypes[145]
+	mi := &file_play_proto_msgTypes[147]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10536,7 +10632,7 @@ func (x *MemoryMatchAppearanceItem) String() string {
 func (*MemoryMatchAppearanceItem) ProtoMessage() {}
 
 func (x *MemoryMatchAppearanceItem) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[145]
+	mi := &file_play_proto_msgTypes[147]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10549,7 +10645,7 @@ func (x *MemoryMatchAppearanceItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoryMatchAppearanceItem.ProtoReflect.Descriptor instead.
 func (*MemoryMatchAppearanceItem) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{145}
+	return file_play_proto_rawDescGZIP(), []int{147}
 }
 
 func (x *MemoryMatchAppearanceItem) GetId() int64 {
@@ -10656,7 +10752,7 @@ type ListMemoryMatchAppearancesReq struct {
 
 func (x *ListMemoryMatchAppearancesReq) Reset() {
 	*x = ListMemoryMatchAppearancesReq{}
-	mi := &file_play_proto_msgTypes[146]
+	mi := &file_play_proto_msgTypes[148]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10668,7 +10764,7 @@ func (x *ListMemoryMatchAppearancesReq) String() string {
 func (*ListMemoryMatchAppearancesReq) ProtoMessage() {}
 
 func (x *ListMemoryMatchAppearancesReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[146]
+	mi := &file_play_proto_msgTypes[148]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10681,7 +10777,7 @@ func (x *ListMemoryMatchAppearancesReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMemoryMatchAppearancesReq.ProtoReflect.Descriptor instead.
 func (*ListMemoryMatchAppearancesReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{146}
+	return file_play_proto_rawDescGZIP(), []int{148}
 }
 
 func (x *ListMemoryMatchAppearancesReq) GetType() int64 {
@@ -10729,7 +10825,7 @@ type ListMemoryMatchAppearancesResp struct {
 
 func (x *ListMemoryMatchAppearancesResp) Reset() {
 	*x = ListMemoryMatchAppearancesResp{}
-	mi := &file_play_proto_msgTypes[147]
+	mi := &file_play_proto_msgTypes[149]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10741,7 +10837,7 @@ func (x *ListMemoryMatchAppearancesResp) String() string {
 func (*ListMemoryMatchAppearancesResp) ProtoMessage() {}
 
 func (x *ListMemoryMatchAppearancesResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[147]
+	mi := &file_play_proto_msgTypes[149]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10754,7 +10850,7 @@ func (x *ListMemoryMatchAppearancesResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMemoryMatchAppearancesResp.ProtoReflect.Descriptor instead.
 func (*ListMemoryMatchAppearancesResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{147}
+	return file_play_proto_rawDescGZIP(), []int{149}
 }
 
 func (x *ListMemoryMatchAppearancesResp) GetItems() []*MemoryMatchAppearanceItem {
@@ -10780,7 +10876,7 @@ type SaveMemoryMatchAppearanceReq struct {
 
 func (x *SaveMemoryMatchAppearanceReq) Reset() {
 	*x = SaveMemoryMatchAppearanceReq{}
-	mi := &file_play_proto_msgTypes[148]
+	mi := &file_play_proto_msgTypes[150]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10792,7 +10888,7 @@ func (x *SaveMemoryMatchAppearanceReq) String() string {
 func (*SaveMemoryMatchAppearanceReq) ProtoMessage() {}
 
 func (x *SaveMemoryMatchAppearanceReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[148]
+	mi := &file_play_proto_msgTypes[150]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10805,7 +10901,7 @@ func (x *SaveMemoryMatchAppearanceReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveMemoryMatchAppearanceReq.ProtoReflect.Descriptor instead.
 func (*SaveMemoryMatchAppearanceReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{148}
+	return file_play_proto_rawDescGZIP(), []int{150}
 }
 
 func (x *SaveMemoryMatchAppearanceReq) GetItem() *MemoryMatchAppearanceItem {
@@ -10824,7 +10920,7 @@ type SaveMemoryMatchAppearanceResp struct {
 
 func (x *SaveMemoryMatchAppearanceResp) Reset() {
 	*x = SaveMemoryMatchAppearanceResp{}
-	mi := &file_play_proto_msgTypes[149]
+	mi := &file_play_proto_msgTypes[151]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10836,7 +10932,7 @@ func (x *SaveMemoryMatchAppearanceResp) String() string {
 func (*SaveMemoryMatchAppearanceResp) ProtoMessage() {}
 
 func (x *SaveMemoryMatchAppearanceResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[149]
+	mi := &file_play_proto_msgTypes[151]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10849,7 +10945,7 @@ func (x *SaveMemoryMatchAppearanceResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveMemoryMatchAppearanceResp.ProtoReflect.Descriptor instead.
 func (*SaveMemoryMatchAppearanceResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{149}
+	return file_play_proto_rawDescGZIP(), []int{151}
 }
 
 func (x *SaveMemoryMatchAppearanceResp) GetItem() *MemoryMatchAppearanceItem {
@@ -10868,7 +10964,7 @@ type DeleteMemoryMatchAppearanceReq struct {
 
 func (x *DeleteMemoryMatchAppearanceReq) Reset() {
 	*x = DeleteMemoryMatchAppearanceReq{}
-	mi := &file_play_proto_msgTypes[150]
+	mi := &file_play_proto_msgTypes[152]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10880,7 +10976,7 @@ func (x *DeleteMemoryMatchAppearanceReq) String() string {
 func (*DeleteMemoryMatchAppearanceReq) ProtoMessage() {}
 
 func (x *DeleteMemoryMatchAppearanceReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[150]
+	mi := &file_play_proto_msgTypes[152]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10893,7 +10989,7 @@ func (x *DeleteMemoryMatchAppearanceReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteMemoryMatchAppearanceReq.ProtoReflect.Descriptor instead.
 func (*DeleteMemoryMatchAppearanceReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{150}
+	return file_play_proto_rawDescGZIP(), []int{152}
 }
 
 func (x *DeleteMemoryMatchAppearanceReq) GetId() int64 {
@@ -10912,7 +11008,7 @@ type DeleteMemoryMatchAppearanceResp struct {
 
 func (x *DeleteMemoryMatchAppearanceResp) Reset() {
 	*x = DeleteMemoryMatchAppearanceResp{}
-	mi := &file_play_proto_msgTypes[151]
+	mi := &file_play_proto_msgTypes[153]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10924,7 +11020,7 @@ func (x *DeleteMemoryMatchAppearanceResp) String() string {
 func (*DeleteMemoryMatchAppearanceResp) ProtoMessage() {}
 
 func (x *DeleteMemoryMatchAppearanceResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[151]
+	mi := &file_play_proto_msgTypes[153]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10937,7 +11033,7 @@ func (x *DeleteMemoryMatchAppearanceResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteMemoryMatchAppearanceResp.ProtoReflect.Descriptor instead.
 func (*DeleteMemoryMatchAppearanceResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{151}
+	return file_play_proto_rawDescGZIP(), []int{153}
 }
 
 func (x *DeleteMemoryMatchAppearanceResp) GetDeleted() bool {
@@ -10959,7 +11055,7 @@ type MemoryMatchAppearanceView struct {
 
 func (x *MemoryMatchAppearanceView) Reset() {
 	*x = MemoryMatchAppearanceView{}
-	mi := &file_play_proto_msgTypes[152]
+	mi := &file_play_proto_msgTypes[154]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10971,7 +11067,7 @@ func (x *MemoryMatchAppearanceView) String() string {
 func (*MemoryMatchAppearanceView) ProtoMessage() {}
 
 func (x *MemoryMatchAppearanceView) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[152]
+	mi := &file_play_proto_msgTypes[154]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10984,7 +11080,7 @@ func (x *MemoryMatchAppearanceView) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoryMatchAppearanceView.ProtoReflect.Descriptor instead.
 func (*MemoryMatchAppearanceView) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{152}
+	return file_play_proto_rawDescGZIP(), []int{154}
 }
 
 func (x *MemoryMatchAppearanceView) GetFacePresetId() int64 {
@@ -11018,7 +11114,7 @@ type GetMemoryMatchAppearanceReq struct {
 
 func (x *GetMemoryMatchAppearanceReq) Reset() {
 	*x = GetMemoryMatchAppearanceReq{}
-	mi := &file_play_proto_msgTypes[153]
+	mi := &file_play_proto_msgTypes[155]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11030,7 +11126,7 @@ func (x *GetMemoryMatchAppearanceReq) String() string {
 func (*GetMemoryMatchAppearanceReq) ProtoMessage() {}
 
 func (x *GetMemoryMatchAppearanceReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[153]
+	mi := &file_play_proto_msgTypes[155]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11043,7 +11139,7 @@ func (x *GetMemoryMatchAppearanceReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemoryMatchAppearanceReq.ProtoReflect.Descriptor instead.
 func (*GetMemoryMatchAppearanceReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{153}
+	return file_play_proto_rawDescGZIP(), []int{155}
 }
 
 func (x *GetMemoryMatchAppearanceReq) GetConfigId() int64 {
@@ -11069,7 +11165,7 @@ type GetMemoryMatchAppearanceResp struct {
 
 func (x *GetMemoryMatchAppearanceResp) Reset() {
 	*x = GetMemoryMatchAppearanceResp{}
-	mi := &file_play_proto_msgTypes[154]
+	mi := &file_play_proto_msgTypes[156]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11081,7 +11177,7 @@ func (x *GetMemoryMatchAppearanceResp) String() string {
 func (*GetMemoryMatchAppearanceResp) ProtoMessage() {}
 
 func (x *GetMemoryMatchAppearanceResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[154]
+	mi := &file_play_proto_msgTypes[156]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11094,7 +11190,7 @@ func (x *GetMemoryMatchAppearanceResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemoryMatchAppearanceResp.ProtoReflect.Descriptor instead.
 func (*GetMemoryMatchAppearanceResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{154}
+	return file_play_proto_rawDescGZIP(), []int{156}
 }
 
 func (x *GetMemoryMatchAppearanceResp) GetAppearance() *MemoryMatchAppearanceView {
@@ -11116,7 +11212,7 @@ type SetMemoryMatchAppearanceReq struct {
 
 func (x *SetMemoryMatchAppearanceReq) Reset() {
 	*x = SetMemoryMatchAppearanceReq{}
-	mi := &file_play_proto_msgTypes[155]
+	mi := &file_play_proto_msgTypes[157]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11128,7 +11224,7 @@ func (x *SetMemoryMatchAppearanceReq) String() string {
 func (*SetMemoryMatchAppearanceReq) ProtoMessage() {}
 
 func (x *SetMemoryMatchAppearanceReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[155]
+	mi := &file_play_proto_msgTypes[157]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11141,7 +11237,7 @@ func (x *SetMemoryMatchAppearanceReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetMemoryMatchAppearanceReq.ProtoReflect.Descriptor instead.
 func (*SetMemoryMatchAppearanceReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{155}
+	return file_play_proto_rawDescGZIP(), []int{157}
 }
 
 func (x *SetMemoryMatchAppearanceReq) GetConfigId() int64 {
@@ -11181,7 +11277,7 @@ type SetMemoryMatchAppearanceResp struct {
 
 func (x *SetMemoryMatchAppearanceResp) Reset() {
 	*x = SetMemoryMatchAppearanceResp{}
-	mi := &file_play_proto_msgTypes[156]
+	mi := &file_play_proto_msgTypes[158]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11193,7 +11289,7 @@ func (x *SetMemoryMatchAppearanceResp) String() string {
 func (*SetMemoryMatchAppearanceResp) ProtoMessage() {}
 
 func (x *SetMemoryMatchAppearanceResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[156]
+	mi := &file_play_proto_msgTypes[158]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11206,7 +11302,7 @@ func (x *SetMemoryMatchAppearanceResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetMemoryMatchAppearanceResp.ProtoReflect.Descriptor instead.
 func (*SetMemoryMatchAppearanceResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{156}
+	return file_play_proto_rawDescGZIP(), []int{158}
 }
 
 func (x *SetMemoryMatchAppearanceResp) GetAppearance() *MemoryMatchAppearanceView {
@@ -11227,7 +11323,7 @@ type SelectMemoryMatchDestinyReq struct {
 
 func (x *SelectMemoryMatchDestinyReq) Reset() {
 	*x = SelectMemoryMatchDestinyReq{}
-	mi := &file_play_proto_msgTypes[157]
+	mi := &file_play_proto_msgTypes[159]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11239,7 +11335,7 @@ func (x *SelectMemoryMatchDestinyReq) String() string {
 func (*SelectMemoryMatchDestinyReq) ProtoMessage() {}
 
 func (x *SelectMemoryMatchDestinyReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[157]
+	mi := &file_play_proto_msgTypes[159]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11252,7 +11348,7 @@ func (x *SelectMemoryMatchDestinyReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelectMemoryMatchDestinyReq.ProtoReflect.Descriptor instead.
 func (*SelectMemoryMatchDestinyReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{157}
+	return file_play_proto_rawDescGZIP(), []int{159}
 }
 
 func (x *SelectMemoryMatchDestinyReq) GetSessionId() int64 {
@@ -11286,7 +11382,7 @@ type SelectMemoryMatchDestinyResp struct {
 
 func (x *SelectMemoryMatchDestinyResp) Reset() {
 	*x = SelectMemoryMatchDestinyResp{}
-	mi := &file_play_proto_msgTypes[158]
+	mi := &file_play_proto_msgTypes[160]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11298,7 +11394,7 @@ func (x *SelectMemoryMatchDestinyResp) String() string {
 func (*SelectMemoryMatchDestinyResp) ProtoMessage() {}
 
 func (x *SelectMemoryMatchDestinyResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[158]
+	mi := &file_play_proto_msgTypes[160]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11311,7 +11407,7 @@ func (x *SelectMemoryMatchDestinyResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SelectMemoryMatchDestinyResp.ProtoReflect.Descriptor instead.
 func (*SelectMemoryMatchDestinyResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{158}
+	return file_play_proto_rawDescGZIP(), []int{160}
 }
 
 func (x *SelectMemoryMatchDestinyResp) GetPatternId() int32 {
@@ -11339,7 +11435,7 @@ type SelectMemoryMatchSecondDestinyReq struct {
 
 func (x *SelectMemoryMatchSecondDestinyReq) Reset() {
 	*x = SelectMemoryMatchSecondDestinyReq{}
-	mi := &file_play_proto_msgTypes[159]
+	mi := &file_play_proto_msgTypes[161]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11351,7 +11447,7 @@ func (x *SelectMemoryMatchSecondDestinyReq) String() string {
 func (*SelectMemoryMatchSecondDestinyReq) ProtoMessage() {}
 
 func (x *SelectMemoryMatchSecondDestinyReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[159]
+	mi := &file_play_proto_msgTypes[161]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11364,7 +11460,7 @@ func (x *SelectMemoryMatchSecondDestinyReq) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use SelectMemoryMatchSecondDestinyReq.ProtoReflect.Descriptor instead.
 func (*SelectMemoryMatchSecondDestinyReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{159}
+	return file_play_proto_rawDescGZIP(), []int{161}
 }
 
 func (x *SelectMemoryMatchSecondDestinyReq) GetSessionId() int64 {
@@ -11398,7 +11494,7 @@ type SelectMemoryMatchSecondDestinyResp struct {
 
 func (x *SelectMemoryMatchSecondDestinyResp) Reset() {
 	*x = SelectMemoryMatchSecondDestinyResp{}
-	mi := &file_play_proto_msgTypes[160]
+	mi := &file_play_proto_msgTypes[162]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11410,7 +11506,7 @@ func (x *SelectMemoryMatchSecondDestinyResp) String() string {
 func (*SelectMemoryMatchSecondDestinyResp) ProtoMessage() {}
 
 func (x *SelectMemoryMatchSecondDestinyResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[160]
+	mi := &file_play_proto_msgTypes[162]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11423,7 +11519,7 @@ func (x *SelectMemoryMatchSecondDestinyResp) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use SelectMemoryMatchSecondDestinyResp.ProtoReflect.Descriptor instead.
 func (*SelectMemoryMatchSecondDestinyResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{160}
+	return file_play_proto_rawDescGZIP(), []int{162}
 }
 
 func (x *SelectMemoryMatchSecondDestinyResp) GetPatternId() int32 {
@@ -11451,7 +11547,7 @@ type MemoryMatchRoundBrief struct {
 
 func (x *MemoryMatchRoundBrief) Reset() {
 	*x = MemoryMatchRoundBrief{}
-	mi := &file_play_proto_msgTypes[161]
+	mi := &file_play_proto_msgTypes[163]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11463,7 +11559,7 @@ func (x *MemoryMatchRoundBrief) String() string {
 func (*MemoryMatchRoundBrief) ProtoMessage() {}
 
 func (x *MemoryMatchRoundBrief) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[161]
+	mi := &file_play_proto_msgTypes[163]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11476,7 +11572,7 @@ func (x *MemoryMatchRoundBrief) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoryMatchRoundBrief.ProtoReflect.Descriptor instead.
 func (*MemoryMatchRoundBrief) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{161}
+	return file_play_proto_rawDescGZIP(), []int{163}
 }
 
 func (x *MemoryMatchRoundBrief) GetRoundNo() int64 {
@@ -11512,7 +11608,7 @@ type MemoryMatchSettlementView struct {
 
 func (x *MemoryMatchSettlementView) Reset() {
 	*x = MemoryMatchSettlementView{}
-	mi := &file_play_proto_msgTypes[162]
+	mi := &file_play_proto_msgTypes[164]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11524,7 +11620,7 @@ func (x *MemoryMatchSettlementView) String() string {
 func (*MemoryMatchSettlementView) ProtoMessage() {}
 
 func (x *MemoryMatchSettlementView) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[162]
+	mi := &file_play_proto_msgTypes[164]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11537,7 +11633,7 @@ func (x *MemoryMatchSettlementView) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoryMatchSettlementView.ProtoReflect.Descriptor instead.
 func (*MemoryMatchSettlementView) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{162}
+	return file_play_proto_rawDescGZIP(), []int{164}
 }
 
 func (x *MemoryMatchSettlementView) GetTotalPairCount() int64 {
@@ -11578,7 +11674,7 @@ type GetMemoryMatchSessionReq struct {
 
 func (x *GetMemoryMatchSessionReq) Reset() {
 	*x = GetMemoryMatchSessionReq{}
-	mi := &file_play_proto_msgTypes[163]
+	mi := &file_play_proto_msgTypes[165]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11590,7 +11686,7 @@ func (x *GetMemoryMatchSessionReq) String() string {
 func (*GetMemoryMatchSessionReq) ProtoMessage() {}
 
 func (x *GetMemoryMatchSessionReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[163]
+	mi := &file_play_proto_msgTypes[165]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11603,7 +11699,7 @@ func (x *GetMemoryMatchSessionReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemoryMatchSessionReq.ProtoReflect.Descriptor instead.
 func (*GetMemoryMatchSessionReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{163}
+	return file_play_proto_rawDescGZIP(), []int{165}
 }
 
 func (x *GetMemoryMatchSessionReq) GetSessionId() int64 {
@@ -11641,7 +11737,7 @@ type GetMemoryMatchSessionResp struct {
 
 func (x *GetMemoryMatchSessionResp) Reset() {
 	*x = GetMemoryMatchSessionResp{}
-	mi := &file_play_proto_msgTypes[164]
+	mi := &file_play_proto_msgTypes[166]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11653,7 +11749,7 @@ func (x *GetMemoryMatchSessionResp) String() string {
 func (*GetMemoryMatchSessionResp) ProtoMessage() {}
 
 func (x *GetMemoryMatchSessionResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[164]
+	mi := &file_play_proto_msgTypes[166]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11666,7 +11762,7 @@ func (x *GetMemoryMatchSessionResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemoryMatchSessionResp.ProtoReflect.Descriptor instead.
 func (*GetMemoryMatchSessionResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{164}
+	return file_play_proto_rawDescGZIP(), []int{166}
 }
 
 func (x *GetMemoryMatchSessionResp) GetSessionId() int64 {
@@ -11771,7 +11867,7 @@ type GetMemoryMatchRoundReq struct {
 
 func (x *GetMemoryMatchRoundReq) Reset() {
 	*x = GetMemoryMatchRoundReq{}
-	mi := &file_play_proto_msgTypes[165]
+	mi := &file_play_proto_msgTypes[167]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11783,7 +11879,7 @@ func (x *GetMemoryMatchRoundReq) String() string {
 func (*GetMemoryMatchRoundReq) ProtoMessage() {}
 
 func (x *GetMemoryMatchRoundReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[165]
+	mi := &file_play_proto_msgTypes[167]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11796,7 +11892,7 @@ func (x *GetMemoryMatchRoundReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemoryMatchRoundReq.ProtoReflect.Descriptor instead.
 func (*GetMemoryMatchRoundReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{165}
+	return file_play_proto_rawDescGZIP(), []int{167}
 }
 
 func (x *GetMemoryMatchRoundReq) GetSessionId() int64 {
@@ -11833,7 +11929,7 @@ type GetMemoryMatchSessionByRequestReq struct {
 
 func (x *GetMemoryMatchSessionByRequestReq) Reset() {
 	*x = GetMemoryMatchSessionByRequestReq{}
-	mi := &file_play_proto_msgTypes[166]
+	mi := &file_play_proto_msgTypes[168]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11845,7 +11941,7 @@ func (x *GetMemoryMatchSessionByRequestReq) String() string {
 func (*GetMemoryMatchSessionByRequestReq) ProtoMessage() {}
 
 func (x *GetMemoryMatchSessionByRequestReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[166]
+	mi := &file_play_proto_msgTypes[168]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11858,7 +11954,7 @@ func (x *GetMemoryMatchSessionByRequestReq) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetMemoryMatchSessionByRequestReq.ProtoReflect.Descriptor instead.
 func (*GetMemoryMatchSessionByRequestReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{166}
+	return file_play_proto_rawDescGZIP(), []int{168}
 }
 
 func (x *GetMemoryMatchSessionByRequestReq) GetRequestId() string {
@@ -11889,7 +11985,7 @@ type GetMemoryMatchSessionByRequestResp struct {
 
 func (x *GetMemoryMatchSessionByRequestResp) Reset() {
 	*x = GetMemoryMatchSessionByRequestResp{}
-	mi := &file_play_proto_msgTypes[167]
+	mi := &file_play_proto_msgTypes[169]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11901,7 +11997,7 @@ func (x *GetMemoryMatchSessionByRequestResp) String() string {
 func (*GetMemoryMatchSessionByRequestResp) ProtoMessage() {}
 
 func (x *GetMemoryMatchSessionByRequestResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[167]
+	mi := &file_play_proto_msgTypes[169]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11914,7 +12010,7 @@ func (x *GetMemoryMatchSessionByRequestResp) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use GetMemoryMatchSessionByRequestResp.ProtoReflect.Descriptor instead.
 func (*GetMemoryMatchSessionByRequestResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{167}
+	return file_play_proto_rawDescGZIP(), []int{169}
 }
 
 func (x *GetMemoryMatchSessionByRequestResp) GetSessionId() int64 {
@@ -11982,7 +12078,7 @@ type GetMemoryMatchRoundResp struct {
 
 func (x *GetMemoryMatchRoundResp) Reset() {
 	*x = GetMemoryMatchRoundResp{}
-	mi := &file_play_proto_msgTypes[168]
+	mi := &file_play_proto_msgTypes[170]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11994,7 +12090,7 @@ func (x *GetMemoryMatchRoundResp) String() string {
 func (*GetMemoryMatchRoundResp) ProtoMessage() {}
 
 func (x *GetMemoryMatchRoundResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[168]
+	mi := &file_play_proto_msgTypes[170]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12007,7 +12103,7 @@ func (x *GetMemoryMatchRoundResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemoryMatchRoundResp.ProtoReflect.Descriptor instead.
 func (*GetMemoryMatchRoundResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{168}
+	return file_play_proto_rawDescGZIP(), []int{170}
 }
 
 func (x *GetMemoryMatchRoundResp) GetRoundNo() int64 {
@@ -12129,7 +12225,7 @@ type ApplyMemoryMatchPairReq struct {
 
 func (x *ApplyMemoryMatchPairReq) Reset() {
 	*x = ApplyMemoryMatchPairReq{}
-	mi := &file_play_proto_msgTypes[169]
+	mi := &file_play_proto_msgTypes[171]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12141,7 +12237,7 @@ func (x *ApplyMemoryMatchPairReq) String() string {
 func (*ApplyMemoryMatchPairReq) ProtoMessage() {}
 
 func (x *ApplyMemoryMatchPairReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[169]
+	mi := &file_play_proto_msgTypes[171]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12154,7 +12250,7 @@ func (x *ApplyMemoryMatchPairReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApplyMemoryMatchPairReq.ProtoReflect.Descriptor instead.
 func (*ApplyMemoryMatchPairReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{169}
+	return file_play_proto_rawDescGZIP(), []int{171}
 }
 
 func (x *ApplyMemoryMatchPairReq) GetSessionId() int64 {
@@ -12208,7 +12304,7 @@ type ApplyMemoryMatchPairResp struct {
 
 func (x *ApplyMemoryMatchPairResp) Reset() {
 	*x = ApplyMemoryMatchPairResp{}
-	mi := &file_play_proto_msgTypes[170]
+	mi := &file_play_proto_msgTypes[172]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12220,7 +12316,7 @@ func (x *ApplyMemoryMatchPairResp) String() string {
 func (*ApplyMemoryMatchPairResp) ProtoMessage() {}
 
 func (x *ApplyMemoryMatchPairResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[170]
+	mi := &file_play_proto_msgTypes[172]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12233,7 +12329,7 @@ func (x *ApplyMemoryMatchPairResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApplyMemoryMatchPairResp.ProtoReflect.Descriptor instead.
 func (*ApplyMemoryMatchPairResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{170}
+	return file_play_proto_rawDescGZIP(), []int{172}
 }
 
 func (x *ApplyMemoryMatchPairResp) GetRound() *GetMemoryMatchRoundResp {
@@ -12254,7 +12350,7 @@ type ApplyMemoryMatchDestinyDrawReq struct {
 
 func (x *ApplyMemoryMatchDestinyDrawReq) Reset() {
 	*x = ApplyMemoryMatchDestinyDrawReq{}
-	mi := &file_play_proto_msgTypes[171]
+	mi := &file_play_proto_msgTypes[173]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12266,7 +12362,7 @@ func (x *ApplyMemoryMatchDestinyDrawReq) String() string {
 func (*ApplyMemoryMatchDestinyDrawReq) ProtoMessage() {}
 
 func (x *ApplyMemoryMatchDestinyDrawReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[171]
+	mi := &file_play_proto_msgTypes[173]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12279,7 +12375,7 @@ func (x *ApplyMemoryMatchDestinyDrawReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApplyMemoryMatchDestinyDrawReq.ProtoReflect.Descriptor instead.
 func (*ApplyMemoryMatchDestinyDrawReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{171}
+	return file_play_proto_rawDescGZIP(), []int{173}
 }
 
 func (x *ApplyMemoryMatchDestinyDrawReq) GetSessionId() int64 {
@@ -12312,7 +12408,7 @@ type ApplyMemoryMatchDestinyDrawResp struct {
 
 func (x *ApplyMemoryMatchDestinyDrawResp) Reset() {
 	*x = ApplyMemoryMatchDestinyDrawResp{}
-	mi := &file_play_proto_msgTypes[172]
+	mi := &file_play_proto_msgTypes[174]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12324,7 +12420,7 @@ func (x *ApplyMemoryMatchDestinyDrawResp) String() string {
 func (*ApplyMemoryMatchDestinyDrawResp) ProtoMessage() {}
 
 func (x *ApplyMemoryMatchDestinyDrawResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[172]
+	mi := &file_play_proto_msgTypes[174]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12337,7 +12433,7 @@ func (x *ApplyMemoryMatchDestinyDrawResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApplyMemoryMatchDestinyDrawResp.ProtoReflect.Descriptor instead.
 func (*ApplyMemoryMatchDestinyDrawResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{172}
+	return file_play_proto_rawDescGZIP(), []int{174}
 }
 
 func (x *ApplyMemoryMatchDestinyDrawResp) GetRound() *GetMemoryMatchRoundResp {
@@ -12358,7 +12454,7 @@ type CompleteMemoryMatchRoundReq struct {
 
 func (x *CompleteMemoryMatchRoundReq) Reset() {
 	*x = CompleteMemoryMatchRoundReq{}
-	mi := &file_play_proto_msgTypes[173]
+	mi := &file_play_proto_msgTypes[175]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12370,7 +12466,7 @@ func (x *CompleteMemoryMatchRoundReq) String() string {
 func (*CompleteMemoryMatchRoundReq) ProtoMessage() {}
 
 func (x *CompleteMemoryMatchRoundReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[173]
+	mi := &file_play_proto_msgTypes[175]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12383,7 +12479,7 @@ func (x *CompleteMemoryMatchRoundReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteMemoryMatchRoundReq.ProtoReflect.Descriptor instead.
 func (*CompleteMemoryMatchRoundReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{173}
+	return file_play_proto_rawDescGZIP(), []int{175}
 }
 
 func (x *CompleteMemoryMatchRoundReq) GetSessionId() int64 {
@@ -12418,7 +12514,7 @@ type CompleteMemoryMatchRoundResp struct {
 
 func (x *CompleteMemoryMatchRoundResp) Reset() {
 	*x = CompleteMemoryMatchRoundResp{}
-	mi := &file_play_proto_msgTypes[174]
+	mi := &file_play_proto_msgTypes[176]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12430,7 +12526,7 @@ func (x *CompleteMemoryMatchRoundResp) String() string {
 func (*CompleteMemoryMatchRoundResp) ProtoMessage() {}
 
 func (x *CompleteMemoryMatchRoundResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[174]
+	mi := &file_play_proto_msgTypes[176]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12443,7 +12539,7 @@ func (x *CompleteMemoryMatchRoundResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteMemoryMatchRoundResp.ProtoReflect.Descriptor instead.
 func (*CompleteMemoryMatchRoundResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{174}
+	return file_play_proto_rawDescGZIP(), []int{176}
 }
 
 func (x *CompleteMemoryMatchRoundResp) GetRound() *GetMemoryMatchRoundResp {
@@ -12477,7 +12573,7 @@ type SkipMemoryMatchReq struct {
 
 func (x *SkipMemoryMatchReq) Reset() {
 	*x = SkipMemoryMatchReq{}
-	mi := &file_play_proto_msgTypes[175]
+	mi := &file_play_proto_msgTypes[177]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12489,7 +12585,7 @@ func (x *SkipMemoryMatchReq) String() string {
 func (*SkipMemoryMatchReq) ProtoMessage() {}
 
 func (x *SkipMemoryMatchReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[175]
+	mi := &file_play_proto_msgTypes[177]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12502,7 +12598,7 @@ func (x *SkipMemoryMatchReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SkipMemoryMatchReq.ProtoReflect.Descriptor instead.
 func (*SkipMemoryMatchReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{175}
+	return file_play_proto_rawDescGZIP(), []int{177}
 }
 
 func (x *SkipMemoryMatchReq) GetSessionId() int64 {
@@ -12530,7 +12626,7 @@ type SkipMemoryMatchResp struct {
 
 func (x *SkipMemoryMatchResp) Reset() {
 	*x = SkipMemoryMatchResp{}
-	mi := &file_play_proto_msgTypes[176]
+	mi := &file_play_proto_msgTypes[178]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12542,7 +12638,7 @@ func (x *SkipMemoryMatchResp) String() string {
 func (*SkipMemoryMatchResp) ProtoMessage() {}
 
 func (x *SkipMemoryMatchResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[176]
+	mi := &file_play_proto_msgTypes[178]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12555,7 +12651,7 @@ func (x *SkipMemoryMatchResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SkipMemoryMatchResp.ProtoReflect.Descriptor instead.
 func (*SkipMemoryMatchResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{176}
+	return file_play_proto_rawDescGZIP(), []int{178}
 }
 
 func (x *SkipMemoryMatchResp) GetSessionId() int64 {
@@ -12596,7 +12692,7 @@ type LockMemoryMatchReq struct {
 
 func (x *LockMemoryMatchReq) Reset() {
 	*x = LockMemoryMatchReq{}
-	mi := &file_play_proto_msgTypes[177]
+	mi := &file_play_proto_msgTypes[179]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12608,7 +12704,7 @@ func (x *LockMemoryMatchReq) String() string {
 func (*LockMemoryMatchReq) ProtoMessage() {}
 
 func (x *LockMemoryMatchReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[177]
+	mi := &file_play_proto_msgTypes[179]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12621,7 +12717,7 @@ func (x *LockMemoryMatchReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LockMemoryMatchReq.ProtoReflect.Descriptor instead.
 func (*LockMemoryMatchReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{177}
+	return file_play_proto_rawDescGZIP(), []int{179}
 }
 
 func (x *LockMemoryMatchReq) GetRequestId() string {
@@ -12683,7 +12779,7 @@ type LockMemoryMatchResp struct {
 
 func (x *LockMemoryMatchResp) Reset() {
 	*x = LockMemoryMatchResp{}
-	mi := &file_play_proto_msgTypes[178]
+	mi := &file_play_proto_msgTypes[180]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12695,7 +12791,7 @@ func (x *LockMemoryMatchResp) String() string {
 func (*LockMemoryMatchResp) ProtoMessage() {}
 
 func (x *LockMemoryMatchResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[178]
+	mi := &file_play_proto_msgTypes[180]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12708,7 +12804,7 @@ func (x *LockMemoryMatchResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LockMemoryMatchResp.ProtoReflect.Descriptor instead.
 func (*LockMemoryMatchResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{178}
+	return file_play_proto_rawDescGZIP(), []int{180}
 }
 
 func (x *LockMemoryMatchResp) GetSessionId() int64 {
@@ -12738,7 +12834,7 @@ type SettleMemoryMatchReq struct {
 
 func (x *SettleMemoryMatchReq) Reset() {
 	*x = SettleMemoryMatchReq{}
-	mi := &file_play_proto_msgTypes[179]
+	mi := &file_play_proto_msgTypes[181]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12750,7 +12846,7 @@ func (x *SettleMemoryMatchReq) String() string {
 func (*SettleMemoryMatchReq) ProtoMessage() {}
 
 func (x *SettleMemoryMatchReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[179]
+	mi := &file_play_proto_msgTypes[181]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12763,7 +12859,7 @@ func (x *SettleMemoryMatchReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SettleMemoryMatchReq.ProtoReflect.Descriptor instead.
 func (*SettleMemoryMatchReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{179}
+	return file_play_proto_rawDescGZIP(), []int{181}
 }
 
 func (x *SettleMemoryMatchReq) GetRequestId() string {
@@ -12811,7 +12907,7 @@ type SettleMemoryMatchResp struct {
 
 func (x *SettleMemoryMatchResp) Reset() {
 	*x = SettleMemoryMatchResp{}
-	mi := &file_play_proto_msgTypes[180]
+	mi := &file_play_proto_msgTypes[182]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12823,7 +12919,7 @@ func (x *SettleMemoryMatchResp) String() string {
 func (*SettleMemoryMatchResp) ProtoMessage() {}
 
 func (x *SettleMemoryMatchResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[180]
+	mi := &file_play_proto_msgTypes[182]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12836,7 +12932,7 @@ func (x *SettleMemoryMatchResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SettleMemoryMatchResp.ProtoReflect.Descriptor instead.
 func (*SettleMemoryMatchResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{180}
+	return file_play_proto_rawDescGZIP(), []int{182}
 }
 
 func (x *SettleMemoryMatchResp) GetSessionId() int64 {
@@ -12865,7 +12961,7 @@ type GrantMemoryMatchPrizesReq struct {
 
 func (x *GrantMemoryMatchPrizesReq) Reset() {
 	*x = GrantMemoryMatchPrizesReq{}
-	mi := &file_play_proto_msgTypes[181]
+	mi := &file_play_proto_msgTypes[183]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12877,7 +12973,7 @@ func (x *GrantMemoryMatchPrizesReq) String() string {
 func (*GrantMemoryMatchPrizesReq) ProtoMessage() {}
 
 func (x *GrantMemoryMatchPrizesReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[181]
+	mi := &file_play_proto_msgTypes[183]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12890,7 +12986,7 @@ func (x *GrantMemoryMatchPrizesReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrantMemoryMatchPrizesReq.ProtoReflect.Descriptor instead.
 func (*GrantMemoryMatchPrizesReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{181}
+	return file_play_proto_rawDescGZIP(), []int{183}
 }
 
 func (x *GrantMemoryMatchPrizesReq) GetRequestId() string {
@@ -12930,7 +13026,7 @@ type GrantMemoryMatchPrizesResp struct {
 
 func (x *GrantMemoryMatchPrizesResp) Reset() {
 	*x = GrantMemoryMatchPrizesResp{}
-	mi := &file_play_proto_msgTypes[182]
+	mi := &file_play_proto_msgTypes[184]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12942,7 +13038,7 @@ func (x *GrantMemoryMatchPrizesResp) String() string {
 func (*GrantMemoryMatchPrizesResp) ProtoMessage() {}
 
 func (x *GrantMemoryMatchPrizesResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[182]
+	mi := &file_play_proto_msgTypes[184]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12955,7 +13051,7 @@ func (x *GrantMemoryMatchPrizesResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GrantMemoryMatchPrizesResp.ProtoReflect.Descriptor instead.
 func (*GrantMemoryMatchPrizesResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{182}
+	return file_play_proto_rawDescGZIP(), []int{184}
 }
 
 func (x *GrantMemoryMatchPrizesResp) GetStatus() string {
@@ -12975,7 +13071,7 @@ type CheckPrizesGrantedReq struct {
 
 func (x *CheckPrizesGrantedReq) Reset() {
 	*x = CheckPrizesGrantedReq{}
-	mi := &file_play_proto_msgTypes[183]
+	mi := &file_play_proto_msgTypes[185]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12987,7 +13083,7 @@ func (x *CheckPrizesGrantedReq) String() string {
 func (*CheckPrizesGrantedReq) ProtoMessage() {}
 
 func (x *CheckPrizesGrantedReq) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[183]
+	mi := &file_play_proto_msgTypes[185]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13000,7 +13096,7 @@ func (x *CheckPrizesGrantedReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckPrizesGrantedReq.ProtoReflect.Descriptor instead.
 func (*CheckPrizesGrantedReq) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{183}
+	return file_play_proto_rawDescGZIP(), []int{185}
 }
 
 func (x *CheckPrizesGrantedReq) GetRequestId() string {
@@ -13019,7 +13115,7 @@ type CheckPrizesGrantedResp struct {
 
 func (x *CheckPrizesGrantedResp) Reset() {
 	*x = CheckPrizesGrantedResp{}
-	mi := &file_play_proto_msgTypes[184]
+	mi := &file_play_proto_msgTypes[186]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13031,7 +13127,7 @@ func (x *CheckPrizesGrantedResp) String() string {
 func (*CheckPrizesGrantedResp) ProtoMessage() {}
 
 func (x *CheckPrizesGrantedResp) ProtoReflect() protoreflect.Message {
-	mi := &file_play_proto_msgTypes[184]
+	mi := &file_play_proto_msgTypes[186]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13044,7 +13140,7 @@ func (x *CheckPrizesGrantedResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckPrizesGrantedResp.ProtoReflect.Descriptor instead.
 func (*CheckPrizesGrantedResp) Descriptor() ([]byte, []int) {
-	return file_play_proto_rawDescGZIP(), []int{184}
+	return file_play_proto_rawDescGZIP(), []int{186}
 }
 
 func (x *CheckPrizesGrantedResp) GetGranted() bool {
@@ -13159,7 +13255,12 @@ const file_play_proto_rawDesc = "" +
 	"\x06poolId\x18\x01 \x01(\x03R\x06poolId\"V\n" +
 	"\x12RetirePlayPoolResp\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12(\n" +
-	"\x0fretiredVersions\x18\x02 \x01(\x03R\x0fretiredVersions\"I\n" +
+	"\x0fretiredVersions\x18\x02 \x01(\x03R\x0fretiredVersions\"A\n" +
+	"\x0fVoidPlayPoolReq\x12\x16\n" +
+	"\x06poolId\x18\x01 \x01(\x03R\x06poolId\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\"*\n" +
+	"\x10VoidPlayPoolResp\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\tR\x06status\"I\n" +
 	"\x15GetPlayPoolVersionReq\x12\x16\n" +
 	"\x06poolId\x18\x01 \x01(\x03R\x06poolId\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\x03R\aversion\"\xd3\x02\n" +
@@ -14136,7 +14237,7 @@ const file_play_proto_rawDesc = "" +
 	"\x17MemoryMatchDeckStrategy\x12*\n" +
 	"&MEMORY_MATCH_DECK_STRATEGY_UNSPECIFIED\x10\x00\x12&\n" +
 	"\"MEMORY_MATCH_DECK_STRATEGY_DYNAMIC\x10\x01\x12$\n" +
-	" MEMORY_MATCH_DECK_STRATEGY_EXACT\x10\x022\x89\"\n" +
+	" MEMORY_MATCH_DECK_STRATEGY_EXACT\x10\x022\xc8\"\n" +
 	"\x04Play\x121\n" +
 	"\bPlayLock\x12\x11.play.PlayLockReq\x1a\x12.play.PlayLockResp\x127\n" +
 	"\vPlayRelease\x12\x11.play.PlayLockReq\x1a\x15.play.PlayReleaseResp\x127\n" +
@@ -14148,7 +14249,8 @@ const file_play_proto_rawDesc = "" +
 	"\x0fPlayListRecords\x12\x18.play.PlayListRecordsReq\x1a\x19.play.PlayListRecordsResp\x12R\n" +
 	"\x13CreatePlayPoolDraft\x12\x1c.play.CreatePlayPoolDraftReq\x1a\x1d.play.CreatePlayPoolDraftResp\x12F\n" +
 	"\x0fPublishPlayPool\x12\x18.play.PublishPlayPoolReq\x1a\x19.play.PublishPlayPoolResp\x12C\n" +
-	"\x0eRetirePlayPool\x12\x17.play.RetirePlayPoolReq\x1a\x18.play.RetirePlayPoolResp\x12O\n" +
+	"\x0eRetirePlayPool\x12\x17.play.RetirePlayPoolReq\x1a\x18.play.RetirePlayPoolResp\x12=\n" +
+	"\fVoidPlayPool\x12\x15.play.VoidPlayPoolReq\x1a\x16.play.VoidPlayPoolResp\x12O\n" +
 	"\x12GetPlayPoolVersion\x12\x1b.play.GetPlayPoolVersionReq\x1a\x1c.play.GetPlayPoolVersionResp\x12@\n" +
 	"\rListPlayPools\x12\x16.play.ListPlayPoolsReq\x1a\x17.play.ListPlayPoolsResp\x12F\n" +
 	"\x0fListPrizeGrades\x12\x18.play.ListPrizeGradesReq\x1a\x19.play.ListPrizeGradesResp\x12O\n" +
@@ -14206,7 +14308,7 @@ func file_play_proto_rawDescGZIP() []byte {
 }
 
 var file_play_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_play_proto_msgTypes = make([]protoimpl.MessageInfo, 185)
+var file_play_proto_msgTypes = make([]protoimpl.MessageInfo, 187)
 var file_play_proto_goTypes = []any{
 	(PlayMode)(0),                              // 0: play.PlayMode
 	(PlayPoolStatus)(0),                        // 1: play.PlayPoolStatus
@@ -14229,175 +14331,177 @@ var file_play_proto_goTypes = []any{
 	(*PublishPlayPoolResp)(nil),                // 18: play.PublishPlayPoolResp
 	(*RetirePlayPoolReq)(nil),                  // 19: play.RetirePlayPoolReq
 	(*RetirePlayPoolResp)(nil),                 // 20: play.RetirePlayPoolResp
-	(*GetPlayPoolVersionReq)(nil),              // 21: play.GetPlayPoolVersionReq
-	(*GetPlayPoolVersionResp)(nil),             // 22: play.GetPlayPoolVersionResp
-	(*PlayPoolSummary)(nil),                    // 23: play.PlayPoolSummary
-	(*ListPlayPoolsReq)(nil),                   // 24: play.ListPlayPoolsReq
-	(*ListPlayPoolsResp)(nil),                  // 25: play.ListPlayPoolsResp
-	(*PrizeGrade)(nil),                         // 26: play.PrizeGrade
-	(*ListPrizeGradesReq)(nil),                 // 27: play.ListPrizeGradesReq
-	(*ListPrizeGradesResp)(nil),                // 28: play.ListPrizeGradesResp
-	(*AdminPlayPool)(nil),                      // 29: play.AdminPlayPool
-	(*ListAdminPlayPoolsReq)(nil),              // 30: play.ListAdminPlayPoolsReq
-	(*ListAdminPlayPoolsResp)(nil),             // 31: play.ListAdminPlayPoolsResp
-	(*UpdateAdminPlayPoolReq)(nil),             // 32: play.UpdateAdminPlayPoolReq
-	(*SaveAdminPlayPoolWeightsReq)(nil),        // 33: play.SaveAdminPlayPoolWeightsReq
-	(*AdminPlayPoolWeight)(nil),                // 34: play.AdminPlayPoolWeight
-	(*SaveAdminPlayPoolWeightsResp)(nil),       // 35: play.SaveAdminPlayPoolWeightsResp
-	(*DeleteAdminPlayPoolsReq)(nil),            // 36: play.DeleteAdminPlayPoolsReq
-	(*DeleteAdminPlayPoolsResp)(nil),           // 37: play.DeleteAdminPlayPoolsResp
-	(*PlayPoolReferenceItem)(nil),              // 38: play.PlayPoolReferenceItem
-	(*QueryPlayPoolReferencesReq)(nil),         // 39: play.QueryPlayPoolReferencesReq
-	(*QueryPlayPoolReferencesResp)(nil),        // 40: play.QueryPlayPoolReferencesResp
-	(*PrizeItem)(nil),                          // 41: play.PrizeItem
-	(*DigBoxItem)(nil),                         // 42: play.DigBoxItem
-	(*ListDigBoxesReq)(nil),                    // 43: play.ListDigBoxesReq
-	(*ListDigBoxesResp)(nil),                   // 44: play.ListDigBoxesResp
-	(*GetDigBoxSessionReq)(nil),                // 45: play.GetDigBoxSessionReq
-	(*GetDigBoxSessionResp)(nil),               // 46: play.GetDigBoxSessionResp
-	(*LockDigBoxReq)(nil),                      // 47: play.LockDigBoxReq
-	(*LockDigBoxResp)(nil),                     // 48: play.LockDigBoxResp
-	(*ReleaseDigBoxReq)(nil),                   // 49: play.ReleaseDigBoxReq
-	(*ReleaseDigBoxResp)(nil),                  // 50: play.ReleaseDigBoxResp
-	(*SettleDigBoxReq)(nil),                    // 51: play.SettleDigBoxReq
-	(*SettleDigBoxResp)(nil),                   // 52: play.SettleDigBoxResp
-	(*GrantDigPrizesReq)(nil),                  // 53: play.GrantDigPrizesReq
-	(*GrantDigPrizesResp)(nil),                 // 54: play.GrantDigPrizesResp
-	(*ListDigRecordsReq)(nil),                  // 55: play.ListDigRecordsReq
-	(*DigRecordItem)(nil),                      // 56: play.DigRecordItem
-	(*ListDigRecordsResp)(nil),                 // 57: play.ListDigRecordsResp
-	(*FullCarSeatItem)(nil),                    // 58: play.FullCarSeatItem
-	(*FullCarAwardItem)(nil),                   // 59: play.FullCarAwardItem
-	(*GetFullCarReq)(nil),                      // 60: play.GetFullCarReq
-	(*GetFullCarResp)(nil),                     // 61: play.GetFullCarResp
-	(*LockFullCarReq)(nil),                     // 62: play.LockFullCarReq
-	(*LockFullCarResp)(nil),                    // 63: play.LockFullCarResp
-	(*ReleaseFullCarReq)(nil),                  // 64: play.ReleaseFullCarReq
-	(*ReleaseFullCarResp)(nil),                 // 65: play.ReleaseFullCarResp
-	(*SettleFullCarReq)(nil),                   // 66: play.SettleFullCarReq
-	(*SettleFullCarResp)(nil),                  // 67: play.SettleFullCarResp
-	(*GrantFullCarPrizesReq)(nil),              // 68: play.GrantFullCarPrizesReq
-	(*GrantFullCarPrizesResp)(nil),             // 69: play.GrantFullCarPrizesResp
-	(*ListFullCarRecordsReq)(nil),              // 70: play.ListFullCarRecordsReq
-	(*FullCarRecordItem)(nil),                  // 71: play.FullCarRecordItem
-	(*ListFullCarRecordsResp)(nil),             // 72: play.ListFullCarRecordsResp
-	(*GashaponSpecialPrizeItem)(nil),           // 73: play.GashaponSpecialPrizeItem
-	(*GashaponEntryOutcome)(nil),               // 74: play.GashaponEntryOutcome
-	(*GetGashaponReq)(nil),                     // 75: play.GetGashaponReq
-	(*GetGashaponResp)(nil),                    // 76: play.GetGashaponResp
-	(*LockGashaponReq)(nil),                    // 77: play.LockGashaponReq
-	(*LockGashaponResp)(nil),                   // 78: play.LockGashaponResp
-	(*ReleaseGashaponReq)(nil),                 // 79: play.ReleaseGashaponReq
-	(*ReleaseGashaponResp)(nil),                // 80: play.ReleaseGashaponResp
-	(*SettleGashaponReq)(nil),                  // 81: play.SettleGashaponReq
-	(*SettleGashaponResp)(nil),                 // 82: play.SettleGashaponResp
-	(*GrantGashaponPrizesReq)(nil),             // 83: play.GrantGashaponPrizesReq
-	(*GrantGashaponPrizesResp)(nil),            // 84: play.GrantGashaponPrizesResp
-	(*ListGashaponRecordsReq)(nil),             // 85: play.ListGashaponRecordsReq
-	(*GashaponRecordItem)(nil),                 // 86: play.GashaponRecordItem
-	(*ListGashaponRecordsResp)(nil),            // 87: play.ListGashaponRecordsResp
-	(*AssignGashaponLuckyUserReq)(nil),         // 88: play.AssignGashaponLuckyUserReq
-	(*AssignGashaponLuckyUserResp)(nil),        // 89: play.AssignGashaponLuckyUserResp
-	(*ComboChainSharedPrizeItem)(nil),          // 90: play.ComboChainSharedPrizeItem
-	(*GetComboChainReq)(nil),                   // 91: play.GetComboChainReq
-	(*GetComboChainResp)(nil),                  // 92: play.GetComboChainResp
-	(*LockComboChainReq)(nil),                  // 93: play.LockComboChainReq
-	(*LockComboChainResp)(nil),                 // 94: play.LockComboChainResp
-	(*ReleaseComboChainReq)(nil),               // 95: play.ReleaseComboChainReq
-	(*ReleaseComboChainResp)(nil),              // 96: play.ReleaseComboChainResp
-	(*SettleComboChainReq)(nil),                // 97: play.SettleComboChainReq
-	(*SettleComboChainResp)(nil),               // 98: play.SettleComboChainResp
-	(*GrantComboChainPrizesReq)(nil),           // 99: play.GrantComboChainPrizesReq
-	(*GrantComboChainPrizesResp)(nil),          // 100: play.GrantComboChainPrizesResp
-	(*ListComboChainRecordsReq)(nil),           // 101: play.ListComboChainRecordsReq
-	(*ComboChainRecordItem)(nil),               // 102: play.ComboChainRecordItem
-	(*ListComboChainRecordsResp)(nil),          // 103: play.ListComboChainRecordsResp
-	(*GroupBuyLuckyPrizeItem)(nil),             // 104: play.GroupBuyLuckyPrizeItem
-	(*GetGroupBuyReq)(nil),                     // 105: play.GetGroupBuyReq
-	(*GetGroupBuyResp)(nil),                    // 106: play.GetGroupBuyResp
-	(*LockGroupBuyReq)(nil),                    // 107: play.LockGroupBuyReq
-	(*LockGroupBuyResp)(nil),                   // 108: play.LockGroupBuyResp
-	(*ReleaseGroupBuyReq)(nil),                 // 109: play.ReleaseGroupBuyReq
-	(*ReleaseGroupBuyResp)(nil),                // 110: play.ReleaseGroupBuyResp
-	(*SettleGroupBuyReq)(nil),                  // 111: play.SettleGroupBuyReq
-	(*SettleGroupBuyResp)(nil),                 // 112: play.SettleGroupBuyResp
-	(*GrantGroupBuyPrizesReq)(nil),             // 113: play.GrantGroupBuyPrizesReq
-	(*GrantGroupBuyPrizesResp)(nil),            // 114: play.GrantGroupBuyPrizesResp
-	(*ListGroupBuyRecordsReq)(nil),             // 115: play.ListGroupBuyRecordsReq
-	(*GroupBuyRecordItem)(nil),                 // 116: play.GroupBuyRecordItem
-	(*ListGroupBuyRecordsResp)(nil),            // 117: play.ListGroupBuyRecordsResp
-	(*MemoryMatchFaceItem)(nil),                // 118: play.MemoryMatchFaceItem
-	(*MemoryMatchFacePreset)(nil),              // 119: play.MemoryMatchFacePreset
-	(*MemoryMatchBackPreset)(nil),              // 120: play.MemoryMatchBackPreset
-	(*MemoryMatchEntryItem)(nil),               // 121: play.MemoryMatchEntryItem
-	(*MemoryMatchChampionInfo)(nil),            // 122: play.MemoryMatchChampionInfo
-	(*MemoryMatchConfigItem)(nil),              // 123: play.MemoryMatchConfigItem
-	(*MemoryMatchConfigSummary)(nil),           // 124: play.MemoryMatchConfigSummary
-	(*ListMemoryMatchConfigsReq)(nil),          // 125: play.ListMemoryMatchConfigsReq
-	(*ListMemoryMatchConfigsResp)(nil),         // 126: play.ListMemoryMatchConfigsResp
-	(*CollectionSet)(nil),                      // 127: play.CollectionSet
-	(*CollectionRewardStat)(nil),               // 128: play.CollectionRewardStat
-	(*ListCollectionSetsReq)(nil),              // 129: play.ListCollectionSetsReq
-	(*ListCollectionSetsResp)(nil),             // 130: play.ListCollectionSetsResp
-	(*CreateCollectionSetReq)(nil),             // 131: play.CreateCollectionSetReq
-	(*UpdateCollectionSetReq)(nil),             // 132: play.UpdateCollectionSetReq
-	(*SetCollectionSetStatusReq)(nil),          // 133: play.SetCollectionSetStatusReq
-	(*GetCollectionSetDataReq)(nil),            // 134: play.GetCollectionSetDataReq
-	(*GetCollectionSetDataResp)(nil),           // 135: play.GetCollectionSetDataResp
-	(*GetMemoryMatchConfigReq)(nil),            // 136: play.GetMemoryMatchConfigReq
-	(*GetMemoryMatchConfigResp)(nil),           // 137: play.GetMemoryMatchConfigResp
-	(*MemoryMatchGlobalRules)(nil),             // 138: play.MemoryMatchGlobalRules
-	(*GetMemoryMatchGlobalRulesReq)(nil),       // 139: play.GetMemoryMatchGlobalRulesReq
-	(*GetMemoryMatchGlobalRulesResp)(nil),      // 140: play.GetMemoryMatchGlobalRulesResp
-	(*SaveMemoryMatchGlobalRulesReq)(nil),      // 141: play.SaveMemoryMatchGlobalRulesReq
-	(*SaveMemoryMatchGlobalRulesResp)(nil),     // 142: play.SaveMemoryMatchGlobalRulesResp
-	(*MemoryMatchDeckTemplate)(nil),            // 143: play.MemoryMatchDeckTemplate
-	(*ListMemoryMatchDeckTemplatesReq)(nil),    // 144: play.ListMemoryMatchDeckTemplatesReq
-	(*ListMemoryMatchDeckTemplatesResp)(nil),   // 145: play.ListMemoryMatchDeckTemplatesResp
-	(*SaveMemoryMatchDeckTemplateReq)(nil),     // 146: play.SaveMemoryMatchDeckTemplateReq
-	(*SaveMemoryMatchDeckTemplateResp)(nil),    // 147: play.SaveMemoryMatchDeckTemplateResp
-	(*DeleteMemoryMatchDeckTemplateReq)(nil),   // 148: play.DeleteMemoryMatchDeckTemplateReq
-	(*DeleteMemoryMatchDeckTemplateResp)(nil),  // 149: play.DeleteMemoryMatchDeckTemplateResp
-	(*MemoryMatchAppearanceItem)(nil),          // 150: play.MemoryMatchAppearanceItem
-	(*ListMemoryMatchAppearancesReq)(nil),      // 151: play.ListMemoryMatchAppearancesReq
-	(*ListMemoryMatchAppearancesResp)(nil),     // 152: play.ListMemoryMatchAppearancesResp
-	(*SaveMemoryMatchAppearanceReq)(nil),       // 153: play.SaveMemoryMatchAppearanceReq
-	(*SaveMemoryMatchAppearanceResp)(nil),      // 154: play.SaveMemoryMatchAppearanceResp
-	(*DeleteMemoryMatchAppearanceReq)(nil),     // 155: play.DeleteMemoryMatchAppearanceReq
-	(*DeleteMemoryMatchAppearanceResp)(nil),    // 156: play.DeleteMemoryMatchAppearanceResp
-	(*MemoryMatchAppearanceView)(nil),          // 157: play.MemoryMatchAppearanceView
-	(*GetMemoryMatchAppearanceReq)(nil),        // 158: play.GetMemoryMatchAppearanceReq
-	(*GetMemoryMatchAppearanceResp)(nil),       // 159: play.GetMemoryMatchAppearanceResp
-	(*SetMemoryMatchAppearanceReq)(nil),        // 160: play.SetMemoryMatchAppearanceReq
-	(*SetMemoryMatchAppearanceResp)(nil),       // 161: play.SetMemoryMatchAppearanceResp
-	(*SelectMemoryMatchDestinyReq)(nil),        // 162: play.SelectMemoryMatchDestinyReq
-	(*SelectMemoryMatchDestinyResp)(nil),       // 163: play.SelectMemoryMatchDestinyResp
-	(*SelectMemoryMatchSecondDestinyReq)(nil),  // 164: play.SelectMemoryMatchSecondDestinyReq
-	(*SelectMemoryMatchSecondDestinyResp)(nil), // 165: play.SelectMemoryMatchSecondDestinyResp
-	(*MemoryMatchRoundBrief)(nil),              // 166: play.MemoryMatchRoundBrief
-	(*MemoryMatchSettlementView)(nil),          // 167: play.MemoryMatchSettlementView
-	(*GetMemoryMatchSessionReq)(nil),           // 168: play.GetMemoryMatchSessionReq
-	(*GetMemoryMatchSessionResp)(nil),          // 169: play.GetMemoryMatchSessionResp
-	(*GetMemoryMatchRoundReq)(nil),             // 170: play.GetMemoryMatchRoundReq
-	(*GetMemoryMatchSessionByRequestReq)(nil),  // 171: play.GetMemoryMatchSessionByRequestReq
-	(*GetMemoryMatchSessionByRequestResp)(nil), // 172: play.GetMemoryMatchSessionByRequestResp
-	(*GetMemoryMatchRoundResp)(nil),            // 173: play.GetMemoryMatchRoundResp
-	(*ApplyMemoryMatchPairReq)(nil),            // 174: play.ApplyMemoryMatchPairReq
-	(*ApplyMemoryMatchPairResp)(nil),           // 175: play.ApplyMemoryMatchPairResp
-	(*ApplyMemoryMatchDestinyDrawReq)(nil),     // 176: play.ApplyMemoryMatchDestinyDrawReq
-	(*ApplyMemoryMatchDestinyDrawResp)(nil),    // 177: play.ApplyMemoryMatchDestinyDrawResp
-	(*CompleteMemoryMatchRoundReq)(nil),        // 178: play.CompleteMemoryMatchRoundReq
-	(*CompleteMemoryMatchRoundResp)(nil),       // 179: play.CompleteMemoryMatchRoundResp
-	(*SkipMemoryMatchReq)(nil),                 // 180: play.SkipMemoryMatchReq
-	(*SkipMemoryMatchResp)(nil),                // 181: play.SkipMemoryMatchResp
-	(*LockMemoryMatchReq)(nil),                 // 182: play.LockMemoryMatchReq
-	(*LockMemoryMatchResp)(nil),                // 183: play.LockMemoryMatchResp
-	(*SettleMemoryMatchReq)(nil),               // 184: play.SettleMemoryMatchReq
-	(*SettleMemoryMatchResp)(nil),              // 185: play.SettleMemoryMatchResp
-	(*GrantMemoryMatchPrizesReq)(nil),          // 186: play.GrantMemoryMatchPrizesReq
-	(*GrantMemoryMatchPrizesResp)(nil),         // 187: play.GrantMemoryMatchPrizesResp
-	(*CheckPrizesGrantedReq)(nil),              // 188: play.CheckPrizesGrantedReq
-	(*CheckPrizesGrantedResp)(nil),             // 189: play.CheckPrizesGrantedResp
+	(*VoidPlayPoolReq)(nil),                    // 21: play.VoidPlayPoolReq
+	(*VoidPlayPoolResp)(nil),                   // 22: play.VoidPlayPoolResp
+	(*GetPlayPoolVersionReq)(nil),              // 23: play.GetPlayPoolVersionReq
+	(*GetPlayPoolVersionResp)(nil),             // 24: play.GetPlayPoolVersionResp
+	(*PlayPoolSummary)(nil),                    // 25: play.PlayPoolSummary
+	(*ListPlayPoolsReq)(nil),                   // 26: play.ListPlayPoolsReq
+	(*ListPlayPoolsResp)(nil),                  // 27: play.ListPlayPoolsResp
+	(*PrizeGrade)(nil),                         // 28: play.PrizeGrade
+	(*ListPrizeGradesReq)(nil),                 // 29: play.ListPrizeGradesReq
+	(*ListPrizeGradesResp)(nil),                // 30: play.ListPrizeGradesResp
+	(*AdminPlayPool)(nil),                      // 31: play.AdminPlayPool
+	(*ListAdminPlayPoolsReq)(nil),              // 32: play.ListAdminPlayPoolsReq
+	(*ListAdminPlayPoolsResp)(nil),             // 33: play.ListAdminPlayPoolsResp
+	(*UpdateAdminPlayPoolReq)(nil),             // 34: play.UpdateAdminPlayPoolReq
+	(*SaveAdminPlayPoolWeightsReq)(nil),        // 35: play.SaveAdminPlayPoolWeightsReq
+	(*AdminPlayPoolWeight)(nil),                // 36: play.AdminPlayPoolWeight
+	(*SaveAdminPlayPoolWeightsResp)(nil),       // 37: play.SaveAdminPlayPoolWeightsResp
+	(*DeleteAdminPlayPoolsReq)(nil),            // 38: play.DeleteAdminPlayPoolsReq
+	(*DeleteAdminPlayPoolsResp)(nil),           // 39: play.DeleteAdminPlayPoolsResp
+	(*PlayPoolReferenceItem)(nil),              // 40: play.PlayPoolReferenceItem
+	(*QueryPlayPoolReferencesReq)(nil),         // 41: play.QueryPlayPoolReferencesReq
+	(*QueryPlayPoolReferencesResp)(nil),        // 42: play.QueryPlayPoolReferencesResp
+	(*PrizeItem)(nil),                          // 43: play.PrizeItem
+	(*DigBoxItem)(nil),                         // 44: play.DigBoxItem
+	(*ListDigBoxesReq)(nil),                    // 45: play.ListDigBoxesReq
+	(*ListDigBoxesResp)(nil),                   // 46: play.ListDigBoxesResp
+	(*GetDigBoxSessionReq)(nil),                // 47: play.GetDigBoxSessionReq
+	(*GetDigBoxSessionResp)(nil),               // 48: play.GetDigBoxSessionResp
+	(*LockDigBoxReq)(nil),                      // 49: play.LockDigBoxReq
+	(*LockDigBoxResp)(nil),                     // 50: play.LockDigBoxResp
+	(*ReleaseDigBoxReq)(nil),                   // 51: play.ReleaseDigBoxReq
+	(*ReleaseDigBoxResp)(nil),                  // 52: play.ReleaseDigBoxResp
+	(*SettleDigBoxReq)(nil),                    // 53: play.SettleDigBoxReq
+	(*SettleDigBoxResp)(nil),                   // 54: play.SettleDigBoxResp
+	(*GrantDigPrizesReq)(nil),                  // 55: play.GrantDigPrizesReq
+	(*GrantDigPrizesResp)(nil),                 // 56: play.GrantDigPrizesResp
+	(*ListDigRecordsReq)(nil),                  // 57: play.ListDigRecordsReq
+	(*DigRecordItem)(nil),                      // 58: play.DigRecordItem
+	(*ListDigRecordsResp)(nil),                 // 59: play.ListDigRecordsResp
+	(*FullCarSeatItem)(nil),                    // 60: play.FullCarSeatItem
+	(*FullCarAwardItem)(nil),                   // 61: play.FullCarAwardItem
+	(*GetFullCarReq)(nil),                      // 62: play.GetFullCarReq
+	(*GetFullCarResp)(nil),                     // 63: play.GetFullCarResp
+	(*LockFullCarReq)(nil),                     // 64: play.LockFullCarReq
+	(*LockFullCarResp)(nil),                    // 65: play.LockFullCarResp
+	(*ReleaseFullCarReq)(nil),                  // 66: play.ReleaseFullCarReq
+	(*ReleaseFullCarResp)(nil),                 // 67: play.ReleaseFullCarResp
+	(*SettleFullCarReq)(nil),                   // 68: play.SettleFullCarReq
+	(*SettleFullCarResp)(nil),                  // 69: play.SettleFullCarResp
+	(*GrantFullCarPrizesReq)(nil),              // 70: play.GrantFullCarPrizesReq
+	(*GrantFullCarPrizesResp)(nil),             // 71: play.GrantFullCarPrizesResp
+	(*ListFullCarRecordsReq)(nil),              // 72: play.ListFullCarRecordsReq
+	(*FullCarRecordItem)(nil),                  // 73: play.FullCarRecordItem
+	(*ListFullCarRecordsResp)(nil),             // 74: play.ListFullCarRecordsResp
+	(*GashaponSpecialPrizeItem)(nil),           // 75: play.GashaponSpecialPrizeItem
+	(*GashaponEntryOutcome)(nil),               // 76: play.GashaponEntryOutcome
+	(*GetGashaponReq)(nil),                     // 77: play.GetGashaponReq
+	(*GetGashaponResp)(nil),                    // 78: play.GetGashaponResp
+	(*LockGashaponReq)(nil),                    // 79: play.LockGashaponReq
+	(*LockGashaponResp)(nil),                   // 80: play.LockGashaponResp
+	(*ReleaseGashaponReq)(nil),                 // 81: play.ReleaseGashaponReq
+	(*ReleaseGashaponResp)(nil),                // 82: play.ReleaseGashaponResp
+	(*SettleGashaponReq)(nil),                  // 83: play.SettleGashaponReq
+	(*SettleGashaponResp)(nil),                 // 84: play.SettleGashaponResp
+	(*GrantGashaponPrizesReq)(nil),             // 85: play.GrantGashaponPrizesReq
+	(*GrantGashaponPrizesResp)(nil),            // 86: play.GrantGashaponPrizesResp
+	(*ListGashaponRecordsReq)(nil),             // 87: play.ListGashaponRecordsReq
+	(*GashaponRecordItem)(nil),                 // 88: play.GashaponRecordItem
+	(*ListGashaponRecordsResp)(nil),            // 89: play.ListGashaponRecordsResp
+	(*AssignGashaponLuckyUserReq)(nil),         // 90: play.AssignGashaponLuckyUserReq
+	(*AssignGashaponLuckyUserResp)(nil),        // 91: play.AssignGashaponLuckyUserResp
+	(*ComboChainSharedPrizeItem)(nil),          // 92: play.ComboChainSharedPrizeItem
+	(*GetComboChainReq)(nil),                   // 93: play.GetComboChainReq
+	(*GetComboChainResp)(nil),                  // 94: play.GetComboChainResp
+	(*LockComboChainReq)(nil),                  // 95: play.LockComboChainReq
+	(*LockComboChainResp)(nil),                 // 96: play.LockComboChainResp
+	(*ReleaseComboChainReq)(nil),               // 97: play.ReleaseComboChainReq
+	(*ReleaseComboChainResp)(nil),              // 98: play.ReleaseComboChainResp
+	(*SettleComboChainReq)(nil),                // 99: play.SettleComboChainReq
+	(*SettleComboChainResp)(nil),               // 100: play.SettleComboChainResp
+	(*GrantComboChainPrizesReq)(nil),           // 101: play.GrantComboChainPrizesReq
+	(*GrantComboChainPrizesResp)(nil),          // 102: play.GrantComboChainPrizesResp
+	(*ListComboChainRecordsReq)(nil),           // 103: play.ListComboChainRecordsReq
+	(*ComboChainRecordItem)(nil),               // 104: play.ComboChainRecordItem
+	(*ListComboChainRecordsResp)(nil),          // 105: play.ListComboChainRecordsResp
+	(*GroupBuyLuckyPrizeItem)(nil),             // 106: play.GroupBuyLuckyPrizeItem
+	(*GetGroupBuyReq)(nil),                     // 107: play.GetGroupBuyReq
+	(*GetGroupBuyResp)(nil),                    // 108: play.GetGroupBuyResp
+	(*LockGroupBuyReq)(nil),                    // 109: play.LockGroupBuyReq
+	(*LockGroupBuyResp)(nil),                   // 110: play.LockGroupBuyResp
+	(*ReleaseGroupBuyReq)(nil),                 // 111: play.ReleaseGroupBuyReq
+	(*ReleaseGroupBuyResp)(nil),                // 112: play.ReleaseGroupBuyResp
+	(*SettleGroupBuyReq)(nil),                  // 113: play.SettleGroupBuyReq
+	(*SettleGroupBuyResp)(nil),                 // 114: play.SettleGroupBuyResp
+	(*GrantGroupBuyPrizesReq)(nil),             // 115: play.GrantGroupBuyPrizesReq
+	(*GrantGroupBuyPrizesResp)(nil),            // 116: play.GrantGroupBuyPrizesResp
+	(*ListGroupBuyRecordsReq)(nil),             // 117: play.ListGroupBuyRecordsReq
+	(*GroupBuyRecordItem)(nil),                 // 118: play.GroupBuyRecordItem
+	(*ListGroupBuyRecordsResp)(nil),            // 119: play.ListGroupBuyRecordsResp
+	(*MemoryMatchFaceItem)(nil),                // 120: play.MemoryMatchFaceItem
+	(*MemoryMatchFacePreset)(nil),              // 121: play.MemoryMatchFacePreset
+	(*MemoryMatchBackPreset)(nil),              // 122: play.MemoryMatchBackPreset
+	(*MemoryMatchEntryItem)(nil),               // 123: play.MemoryMatchEntryItem
+	(*MemoryMatchChampionInfo)(nil),            // 124: play.MemoryMatchChampionInfo
+	(*MemoryMatchConfigItem)(nil),              // 125: play.MemoryMatchConfigItem
+	(*MemoryMatchConfigSummary)(nil),           // 126: play.MemoryMatchConfigSummary
+	(*ListMemoryMatchConfigsReq)(nil),          // 127: play.ListMemoryMatchConfigsReq
+	(*ListMemoryMatchConfigsResp)(nil),         // 128: play.ListMemoryMatchConfigsResp
+	(*CollectionSet)(nil),                      // 129: play.CollectionSet
+	(*CollectionRewardStat)(nil),               // 130: play.CollectionRewardStat
+	(*ListCollectionSetsReq)(nil),              // 131: play.ListCollectionSetsReq
+	(*ListCollectionSetsResp)(nil),             // 132: play.ListCollectionSetsResp
+	(*CreateCollectionSetReq)(nil),             // 133: play.CreateCollectionSetReq
+	(*UpdateCollectionSetReq)(nil),             // 134: play.UpdateCollectionSetReq
+	(*SetCollectionSetStatusReq)(nil),          // 135: play.SetCollectionSetStatusReq
+	(*GetCollectionSetDataReq)(nil),            // 136: play.GetCollectionSetDataReq
+	(*GetCollectionSetDataResp)(nil),           // 137: play.GetCollectionSetDataResp
+	(*GetMemoryMatchConfigReq)(nil),            // 138: play.GetMemoryMatchConfigReq
+	(*GetMemoryMatchConfigResp)(nil),           // 139: play.GetMemoryMatchConfigResp
+	(*MemoryMatchGlobalRules)(nil),             // 140: play.MemoryMatchGlobalRules
+	(*GetMemoryMatchGlobalRulesReq)(nil),       // 141: play.GetMemoryMatchGlobalRulesReq
+	(*GetMemoryMatchGlobalRulesResp)(nil),      // 142: play.GetMemoryMatchGlobalRulesResp
+	(*SaveMemoryMatchGlobalRulesReq)(nil),      // 143: play.SaveMemoryMatchGlobalRulesReq
+	(*SaveMemoryMatchGlobalRulesResp)(nil),     // 144: play.SaveMemoryMatchGlobalRulesResp
+	(*MemoryMatchDeckTemplate)(nil),            // 145: play.MemoryMatchDeckTemplate
+	(*ListMemoryMatchDeckTemplatesReq)(nil),    // 146: play.ListMemoryMatchDeckTemplatesReq
+	(*ListMemoryMatchDeckTemplatesResp)(nil),   // 147: play.ListMemoryMatchDeckTemplatesResp
+	(*SaveMemoryMatchDeckTemplateReq)(nil),     // 148: play.SaveMemoryMatchDeckTemplateReq
+	(*SaveMemoryMatchDeckTemplateResp)(nil),    // 149: play.SaveMemoryMatchDeckTemplateResp
+	(*DeleteMemoryMatchDeckTemplateReq)(nil),   // 150: play.DeleteMemoryMatchDeckTemplateReq
+	(*DeleteMemoryMatchDeckTemplateResp)(nil),  // 151: play.DeleteMemoryMatchDeckTemplateResp
+	(*MemoryMatchAppearanceItem)(nil),          // 152: play.MemoryMatchAppearanceItem
+	(*ListMemoryMatchAppearancesReq)(nil),      // 153: play.ListMemoryMatchAppearancesReq
+	(*ListMemoryMatchAppearancesResp)(nil),     // 154: play.ListMemoryMatchAppearancesResp
+	(*SaveMemoryMatchAppearanceReq)(nil),       // 155: play.SaveMemoryMatchAppearanceReq
+	(*SaveMemoryMatchAppearanceResp)(nil),      // 156: play.SaveMemoryMatchAppearanceResp
+	(*DeleteMemoryMatchAppearanceReq)(nil),     // 157: play.DeleteMemoryMatchAppearanceReq
+	(*DeleteMemoryMatchAppearanceResp)(nil),    // 158: play.DeleteMemoryMatchAppearanceResp
+	(*MemoryMatchAppearanceView)(nil),          // 159: play.MemoryMatchAppearanceView
+	(*GetMemoryMatchAppearanceReq)(nil),        // 160: play.GetMemoryMatchAppearanceReq
+	(*GetMemoryMatchAppearanceResp)(nil),       // 161: play.GetMemoryMatchAppearanceResp
+	(*SetMemoryMatchAppearanceReq)(nil),        // 162: play.SetMemoryMatchAppearanceReq
+	(*SetMemoryMatchAppearanceResp)(nil),       // 163: play.SetMemoryMatchAppearanceResp
+	(*SelectMemoryMatchDestinyReq)(nil),        // 164: play.SelectMemoryMatchDestinyReq
+	(*SelectMemoryMatchDestinyResp)(nil),       // 165: play.SelectMemoryMatchDestinyResp
+	(*SelectMemoryMatchSecondDestinyReq)(nil),  // 166: play.SelectMemoryMatchSecondDestinyReq
+	(*SelectMemoryMatchSecondDestinyResp)(nil), // 167: play.SelectMemoryMatchSecondDestinyResp
+	(*MemoryMatchRoundBrief)(nil),              // 168: play.MemoryMatchRoundBrief
+	(*MemoryMatchSettlementView)(nil),          // 169: play.MemoryMatchSettlementView
+	(*GetMemoryMatchSessionReq)(nil),           // 170: play.GetMemoryMatchSessionReq
+	(*GetMemoryMatchSessionResp)(nil),          // 171: play.GetMemoryMatchSessionResp
+	(*GetMemoryMatchRoundReq)(nil),             // 172: play.GetMemoryMatchRoundReq
+	(*GetMemoryMatchSessionByRequestReq)(nil),  // 173: play.GetMemoryMatchSessionByRequestReq
+	(*GetMemoryMatchSessionByRequestResp)(nil), // 174: play.GetMemoryMatchSessionByRequestResp
+	(*GetMemoryMatchRoundResp)(nil),            // 175: play.GetMemoryMatchRoundResp
+	(*ApplyMemoryMatchPairReq)(nil),            // 176: play.ApplyMemoryMatchPairReq
+	(*ApplyMemoryMatchPairResp)(nil),           // 177: play.ApplyMemoryMatchPairResp
+	(*ApplyMemoryMatchDestinyDrawReq)(nil),     // 178: play.ApplyMemoryMatchDestinyDrawReq
+	(*ApplyMemoryMatchDestinyDrawResp)(nil),    // 179: play.ApplyMemoryMatchDestinyDrawResp
+	(*CompleteMemoryMatchRoundReq)(nil),        // 180: play.CompleteMemoryMatchRoundReq
+	(*CompleteMemoryMatchRoundResp)(nil),       // 181: play.CompleteMemoryMatchRoundResp
+	(*SkipMemoryMatchReq)(nil),                 // 182: play.SkipMemoryMatchReq
+	(*SkipMemoryMatchResp)(nil),                // 183: play.SkipMemoryMatchResp
+	(*LockMemoryMatchReq)(nil),                 // 184: play.LockMemoryMatchReq
+	(*LockMemoryMatchResp)(nil),                // 185: play.LockMemoryMatchResp
+	(*SettleMemoryMatchReq)(nil),               // 186: play.SettleMemoryMatchReq
+	(*SettleMemoryMatchResp)(nil),              // 187: play.SettleMemoryMatchResp
+	(*GrantMemoryMatchPrizesReq)(nil),          // 188: play.GrantMemoryMatchPrizesReq
+	(*GrantMemoryMatchPrizesResp)(nil),         // 189: play.GrantMemoryMatchPrizesResp
+	(*CheckPrizesGrantedReq)(nil),              // 190: play.CheckPrizesGrantedReq
+	(*CheckPrizesGrantedResp)(nil),             // 191: play.CheckPrizesGrantedResp
 }
 var file_play_proto_depIdxs = []int32{
 	0,   // 0: play.PlayLockReq.mode:type_name -> play.PlayMode
@@ -14406,72 +14510,72 @@ var file_play_proto_depIdxs = []int32{
 	0,   // 3: play.PlayListRecordsReq.mode:type_name -> play.PlayMode
 	14,  // 4: play.CreatePlayPoolDraftReq.prizes:type_name -> play.PlayPoolPrize
 	14,  // 5: play.GetPlayPoolVersionResp.prizes:type_name -> play.PlayPoolPrize
-	23,  // 6: play.ListPlayPoolsResp.items:type_name -> play.PlayPoolSummary
-	26,  // 7: play.ListPrizeGradesResp.items:type_name -> play.PrizeGrade
-	29,  // 8: play.ListAdminPlayPoolsResp.items:type_name -> play.AdminPlayPool
-	34,  // 9: play.SaveAdminPlayPoolWeightsReq.weights:type_name -> play.AdminPlayPoolWeight
-	38,  // 10: play.QueryPlayPoolReferencesResp.items:type_name -> play.PlayPoolReferenceItem
-	42,  // 11: play.ListDigBoxesResp.items:type_name -> play.DigBoxItem
-	41,  // 12: play.DigRecordItem.prizes:type_name -> play.PrizeItem
-	56,  // 13: play.ListDigRecordsResp.items:type_name -> play.DigRecordItem
-	41,  // 14: play.FullCarAwardItem.prize:type_name -> play.PrizeItem
-	58,  // 15: play.GetFullCarResp.seats:type_name -> play.FullCarSeatItem
-	59,  // 16: play.GetFullCarResp.awards:type_name -> play.FullCarAwardItem
-	71,  // 17: play.ListFullCarRecordsResp.items:type_name -> play.FullCarRecordItem
-	41,  // 18: play.GashaponSpecialPrizeItem.prize:type_name -> play.PrizeItem
-	73,  // 19: play.GetGashaponResp.specialPrizes:type_name -> play.GashaponSpecialPrizeItem
-	74,  // 20: play.SettleGashaponResp.regularPrizes:type_name -> play.GashaponEntryOutcome
-	41,  // 21: play.SettleGashaponResp.specialAwards:type_name -> play.PrizeItem
-	74,  // 22: play.GashaponRecordItem.entries:type_name -> play.GashaponEntryOutcome
-	86,  // 23: play.ListGashaponRecordsResp.items:type_name -> play.GashaponRecordItem
-	41,  // 24: play.ComboChainSharedPrizeItem.prize:type_name -> play.PrizeItem
-	41,  // 25: play.GetComboChainResp.globalSlots:type_name -> play.PrizeItem
-	90,  // 26: play.GetComboChainResp.sharedPrizes:type_name -> play.ComboChainSharedPrizeItem
-	41,  // 27: play.SettleComboChainResp.awards:type_name -> play.PrizeItem
-	41,  // 28: play.ComboChainRecordItem.awards:type_name -> play.PrizeItem
-	102, // 29: play.ListComboChainRecordsResp.items:type_name -> play.ComboChainRecordItem
-	41,  // 30: play.GroupBuyLuckyPrizeItem.prize:type_name -> play.PrizeItem
-	104, // 31: play.GetGroupBuyResp.luckyPrizes:type_name -> play.GroupBuyLuckyPrizeItem
-	41,  // 32: play.SettleGroupBuyResp.awards:type_name -> play.PrizeItem
-	41,  // 33: play.GroupBuyRecordItem.awards:type_name -> play.PrizeItem
-	116, // 34: play.ListGroupBuyRecordsResp.items:type_name -> play.GroupBuyRecordItem
-	118, // 35: play.MemoryMatchFacePreset.faces:type_name -> play.MemoryMatchFaceItem
-	41,  // 36: play.MemoryMatchEntryItem.prize:type_name -> play.PrizeItem
+	25,  // 6: play.ListPlayPoolsResp.items:type_name -> play.PlayPoolSummary
+	28,  // 7: play.ListPrizeGradesResp.items:type_name -> play.PrizeGrade
+	31,  // 8: play.ListAdminPlayPoolsResp.items:type_name -> play.AdminPlayPool
+	36,  // 9: play.SaveAdminPlayPoolWeightsReq.weights:type_name -> play.AdminPlayPoolWeight
+	40,  // 10: play.QueryPlayPoolReferencesResp.items:type_name -> play.PlayPoolReferenceItem
+	44,  // 11: play.ListDigBoxesResp.items:type_name -> play.DigBoxItem
+	43,  // 12: play.DigRecordItem.prizes:type_name -> play.PrizeItem
+	58,  // 13: play.ListDigRecordsResp.items:type_name -> play.DigRecordItem
+	43,  // 14: play.FullCarAwardItem.prize:type_name -> play.PrizeItem
+	60,  // 15: play.GetFullCarResp.seats:type_name -> play.FullCarSeatItem
+	61,  // 16: play.GetFullCarResp.awards:type_name -> play.FullCarAwardItem
+	73,  // 17: play.ListFullCarRecordsResp.items:type_name -> play.FullCarRecordItem
+	43,  // 18: play.GashaponSpecialPrizeItem.prize:type_name -> play.PrizeItem
+	75,  // 19: play.GetGashaponResp.specialPrizes:type_name -> play.GashaponSpecialPrizeItem
+	76,  // 20: play.SettleGashaponResp.regularPrizes:type_name -> play.GashaponEntryOutcome
+	43,  // 21: play.SettleGashaponResp.specialAwards:type_name -> play.PrizeItem
+	76,  // 22: play.GashaponRecordItem.entries:type_name -> play.GashaponEntryOutcome
+	88,  // 23: play.ListGashaponRecordsResp.items:type_name -> play.GashaponRecordItem
+	43,  // 24: play.ComboChainSharedPrizeItem.prize:type_name -> play.PrizeItem
+	43,  // 25: play.GetComboChainResp.globalSlots:type_name -> play.PrizeItem
+	92,  // 26: play.GetComboChainResp.sharedPrizes:type_name -> play.ComboChainSharedPrizeItem
+	43,  // 27: play.SettleComboChainResp.awards:type_name -> play.PrizeItem
+	43,  // 28: play.ComboChainRecordItem.awards:type_name -> play.PrizeItem
+	104, // 29: play.ListComboChainRecordsResp.items:type_name -> play.ComboChainRecordItem
+	43,  // 30: play.GroupBuyLuckyPrizeItem.prize:type_name -> play.PrizeItem
+	106, // 31: play.GetGroupBuyResp.luckyPrizes:type_name -> play.GroupBuyLuckyPrizeItem
+	43,  // 32: play.SettleGroupBuyResp.awards:type_name -> play.PrizeItem
+	43,  // 33: play.GroupBuyRecordItem.awards:type_name -> play.PrizeItem
+	118, // 34: play.ListGroupBuyRecordsResp.items:type_name -> play.GroupBuyRecordItem
+	120, // 35: play.MemoryMatchFacePreset.faces:type_name -> play.MemoryMatchFaceItem
+	43,  // 36: play.MemoryMatchEntryItem.prize:type_name -> play.PrizeItem
 	4,   // 37: play.MemoryMatchConfigItem.deckStrategy:type_name -> play.MemoryMatchDeckStrategy
-	119, // 38: play.MemoryMatchConfigItem.facePresets:type_name -> play.MemoryMatchFacePreset
-	120, // 39: play.MemoryMatchConfigItem.backPresets:type_name -> play.MemoryMatchBackPreset
-	121, // 40: play.MemoryMatchConfigItem.entries:type_name -> play.MemoryMatchEntryItem
-	124, // 41: play.ListMemoryMatchConfigsResp.configs:type_name -> play.MemoryMatchConfigSummary
-	127, // 42: play.ListCollectionSetsResp.items:type_name -> play.CollectionSet
-	128, // 43: play.GetCollectionSetDataResp.rewards:type_name -> play.CollectionRewardStat
-	123, // 44: play.GetMemoryMatchConfigResp.config:type_name -> play.MemoryMatchConfigItem
-	122, // 45: play.GetMemoryMatchConfigResp.champion:type_name -> play.MemoryMatchChampionInfo
-	157, // 46: play.GetMemoryMatchConfigResp.appearance:type_name -> play.MemoryMatchAppearanceView
-	138, // 47: play.GetMemoryMatchGlobalRulesResp.rules:type_name -> play.MemoryMatchGlobalRules
-	138, // 48: play.SaveMemoryMatchGlobalRulesReq.rules:type_name -> play.MemoryMatchGlobalRules
-	138, // 49: play.SaveMemoryMatchGlobalRulesResp.rules:type_name -> play.MemoryMatchGlobalRules
-	143, // 50: play.ListMemoryMatchDeckTemplatesResp.items:type_name -> play.MemoryMatchDeckTemplate
-	143, // 51: play.SaveMemoryMatchDeckTemplateReq.template:type_name -> play.MemoryMatchDeckTemplate
-	143, // 52: play.SaveMemoryMatchDeckTemplateResp.template:type_name -> play.MemoryMatchDeckTemplate
-	150, // 53: play.ListMemoryMatchAppearancesResp.items:type_name -> play.MemoryMatchAppearanceItem
-	150, // 54: play.SaveMemoryMatchAppearanceReq.item:type_name -> play.MemoryMatchAppearanceItem
-	150, // 55: play.SaveMemoryMatchAppearanceResp.item:type_name -> play.MemoryMatchAppearanceItem
-	157, // 56: play.GetMemoryMatchAppearanceResp.appearance:type_name -> play.MemoryMatchAppearanceView
-	157, // 57: play.SetMemoryMatchAppearanceResp.appearance:type_name -> play.MemoryMatchAppearanceView
+	121, // 38: play.MemoryMatchConfigItem.facePresets:type_name -> play.MemoryMatchFacePreset
+	122, // 39: play.MemoryMatchConfigItem.backPresets:type_name -> play.MemoryMatchBackPreset
+	123, // 40: play.MemoryMatchConfigItem.entries:type_name -> play.MemoryMatchEntryItem
+	126, // 41: play.ListMemoryMatchConfigsResp.configs:type_name -> play.MemoryMatchConfigSummary
+	129, // 42: play.ListCollectionSetsResp.items:type_name -> play.CollectionSet
+	130, // 43: play.GetCollectionSetDataResp.rewards:type_name -> play.CollectionRewardStat
+	125, // 44: play.GetMemoryMatchConfigResp.config:type_name -> play.MemoryMatchConfigItem
+	124, // 45: play.GetMemoryMatchConfigResp.champion:type_name -> play.MemoryMatchChampionInfo
+	159, // 46: play.GetMemoryMatchConfigResp.appearance:type_name -> play.MemoryMatchAppearanceView
+	140, // 47: play.GetMemoryMatchGlobalRulesResp.rules:type_name -> play.MemoryMatchGlobalRules
+	140, // 48: play.SaveMemoryMatchGlobalRulesReq.rules:type_name -> play.MemoryMatchGlobalRules
+	140, // 49: play.SaveMemoryMatchGlobalRulesResp.rules:type_name -> play.MemoryMatchGlobalRules
+	145, // 50: play.ListMemoryMatchDeckTemplatesResp.items:type_name -> play.MemoryMatchDeckTemplate
+	145, // 51: play.SaveMemoryMatchDeckTemplateReq.template:type_name -> play.MemoryMatchDeckTemplate
+	145, // 52: play.SaveMemoryMatchDeckTemplateResp.template:type_name -> play.MemoryMatchDeckTemplate
+	152, // 53: play.ListMemoryMatchAppearancesResp.items:type_name -> play.MemoryMatchAppearanceItem
+	152, // 54: play.SaveMemoryMatchAppearanceReq.item:type_name -> play.MemoryMatchAppearanceItem
+	152, // 55: play.SaveMemoryMatchAppearanceResp.item:type_name -> play.MemoryMatchAppearanceItem
+	159, // 56: play.GetMemoryMatchAppearanceResp.appearance:type_name -> play.MemoryMatchAppearanceView
+	159, // 57: play.SetMemoryMatchAppearanceResp.appearance:type_name -> play.MemoryMatchAppearanceView
 	3,   // 58: play.MemoryMatchRoundBrief.state:type_name -> play.MemoryMatchRoundState
-	41,  // 59: play.MemoryMatchSettlementView.prize:type_name -> play.PrizeItem
+	43,  // 59: play.MemoryMatchSettlementView.prize:type_name -> play.PrizeItem
 	2,   // 60: play.GetMemoryMatchSessionResp.state:type_name -> play.MemoryMatchSessionState
-	166, // 61: play.GetMemoryMatchSessionResp.rounds:type_name -> play.MemoryMatchRoundBrief
-	167, // 62: play.GetMemoryMatchSessionResp.settlement:type_name -> play.MemoryMatchSettlementView
+	168, // 61: play.GetMemoryMatchSessionResp.rounds:type_name -> play.MemoryMatchRoundBrief
+	169, // 62: play.GetMemoryMatchSessionResp.settlement:type_name -> play.MemoryMatchSettlementView
 	2,   // 63: play.GetMemoryMatchSessionByRequestResp.state:type_name -> play.MemoryMatchSessionState
 	3,   // 64: play.GetMemoryMatchRoundResp.state:type_name -> play.MemoryMatchRoundState
-	173, // 65: play.ApplyMemoryMatchPairResp.round:type_name -> play.GetMemoryMatchRoundResp
-	173, // 66: play.ApplyMemoryMatchDestinyDrawResp.round:type_name -> play.GetMemoryMatchRoundResp
-	173, // 67: play.CompleteMemoryMatchRoundResp.round:type_name -> play.GetMemoryMatchRoundResp
+	175, // 65: play.ApplyMemoryMatchPairResp.round:type_name -> play.GetMemoryMatchRoundResp
+	175, // 66: play.ApplyMemoryMatchDestinyDrawResp.round:type_name -> play.GetMemoryMatchRoundResp
+	175, // 67: play.CompleteMemoryMatchRoundResp.round:type_name -> play.GetMemoryMatchRoundResp
 	2,   // 68: play.CompleteMemoryMatchRoundResp.sessionState:type_name -> play.MemoryMatchSessionState
-	167, // 69: play.CompleteMemoryMatchRoundResp.settlement:type_name -> play.MemoryMatchSettlementView
+	169, // 69: play.CompleteMemoryMatchRoundResp.settlement:type_name -> play.MemoryMatchSettlementView
 	2,   // 70: play.SkipMemoryMatchResp.sessionState:type_name -> play.MemoryMatchSessionState
-	167, // 71: play.SkipMemoryMatchResp.settlement:type_name -> play.MemoryMatchSettlementView
+	169, // 71: play.SkipMemoryMatchResp.settlement:type_name -> play.MemoryMatchSettlementView
 	2,   // 72: play.SettleMemoryMatchResp.state:type_name -> play.MemoryMatchSessionState
 	5,   // 73: play.Play.PlayLock:input_type -> play.PlayLockReq
 	5,   // 74: play.Play.PlayRelease:input_type -> play.PlayLockReq
@@ -14483,102 +14587,104 @@ var file_play_proto_depIdxs = []int32{
 	15,  // 80: play.Play.CreatePlayPoolDraft:input_type -> play.CreatePlayPoolDraftReq
 	17,  // 81: play.Play.PublishPlayPool:input_type -> play.PublishPlayPoolReq
 	19,  // 82: play.Play.RetirePlayPool:input_type -> play.RetirePlayPoolReq
-	21,  // 83: play.Play.GetPlayPoolVersion:input_type -> play.GetPlayPoolVersionReq
-	24,  // 84: play.Play.ListPlayPools:input_type -> play.ListPlayPoolsReq
-	27,  // 85: play.Play.ListPrizeGrades:input_type -> play.ListPrizeGradesReq
-	30,  // 86: play.Play.ListAdminPlayPools:input_type -> play.ListAdminPlayPoolsReq
-	32,  // 87: play.Play.UpdateAdminPlayPool:input_type -> play.UpdateAdminPlayPoolReq
-	33,  // 88: play.Play.SaveAdminPlayPoolWeights:input_type -> play.SaveAdminPlayPoolWeightsReq
-	36,  // 89: play.Play.DeleteAdminPlayPools:input_type -> play.DeleteAdminPlayPoolsReq
-	39,  // 90: play.Play.QueryPlayPoolReferences:input_type -> play.QueryPlayPoolReferencesReq
-	43,  // 91: play.Play.ListDigBoxes:input_type -> play.ListDigBoxesReq
-	45,  // 92: play.Play.GetDigBoxSession:input_type -> play.GetDigBoxSessionReq
-	60,  // 93: play.Play.GetFullCar:input_type -> play.GetFullCarReq
-	75,  // 94: play.Play.GetGashapon:input_type -> play.GetGashaponReq
-	88,  // 95: play.Play.AssignGashaponLuckyUser:input_type -> play.AssignGashaponLuckyUserReq
-	91,  // 96: play.Play.GetComboChain:input_type -> play.GetComboChainReq
-	105, // 97: play.Play.GetGroupBuy:input_type -> play.GetGroupBuyReq
-	136, // 98: play.Play.GetMemoryMatchConfig:input_type -> play.GetMemoryMatchConfigReq
-	125, // 99: play.Play.ListMemoryMatchConfigs:input_type -> play.ListMemoryMatchConfigsReq
-	129, // 100: play.Play.ListCollectionSets:input_type -> play.ListCollectionSetsReq
-	131, // 101: play.Play.CreateCollectionSet:input_type -> play.CreateCollectionSetReq
-	132, // 102: play.Play.UpdateCollectionSet:input_type -> play.UpdateCollectionSetReq
-	133, // 103: play.Play.SetCollectionSetStatus:input_type -> play.SetCollectionSetStatusReq
-	134, // 104: play.Play.GetCollectionSetData:input_type -> play.GetCollectionSetDataReq
-	139, // 105: play.Play.GetMemoryMatchGlobalRules:input_type -> play.GetMemoryMatchGlobalRulesReq
-	141, // 106: play.Play.SaveMemoryMatchGlobalRules:input_type -> play.SaveMemoryMatchGlobalRulesReq
-	144, // 107: play.Play.ListMemoryMatchDeckTemplates:input_type -> play.ListMemoryMatchDeckTemplatesReq
-	146, // 108: play.Play.SaveMemoryMatchDeckTemplate:input_type -> play.SaveMemoryMatchDeckTemplateReq
-	148, // 109: play.Play.DeleteMemoryMatchDeckTemplate:input_type -> play.DeleteMemoryMatchDeckTemplateReq
-	151, // 110: play.Play.ListMemoryMatchAppearances:input_type -> play.ListMemoryMatchAppearancesReq
-	153, // 111: play.Play.SaveMemoryMatchAppearance:input_type -> play.SaveMemoryMatchAppearanceReq
-	155, // 112: play.Play.DeleteMemoryMatchAppearance:input_type -> play.DeleteMemoryMatchAppearanceReq
-	158, // 113: play.Play.GetMemoryMatchAppearance:input_type -> play.GetMemoryMatchAppearanceReq
-	160, // 114: play.Play.SetMemoryMatchAppearance:input_type -> play.SetMemoryMatchAppearanceReq
-	162, // 115: play.Play.SelectMemoryMatchDestiny:input_type -> play.SelectMemoryMatchDestinyReq
-	164, // 116: play.Play.SelectMemoryMatchSecondDestiny:input_type -> play.SelectMemoryMatchSecondDestinyReq
-	168, // 117: play.Play.GetMemoryMatchSession:input_type -> play.GetMemoryMatchSessionReq
-	171, // 118: play.Play.GetMemoryMatchSessionByRequest:input_type -> play.GetMemoryMatchSessionByRequestReq
-	170, // 119: play.Play.GetMemoryMatchRound:input_type -> play.GetMemoryMatchRoundReq
-	174, // 120: play.Play.ApplyMemoryMatchPair:input_type -> play.ApplyMemoryMatchPairReq
-	176, // 121: play.Play.ApplyMemoryMatchDestinyDraw:input_type -> play.ApplyMemoryMatchDestinyDrawReq
-	178, // 122: play.Play.CompleteMemoryMatchRound:input_type -> play.CompleteMemoryMatchRoundReq
-	180, // 123: play.Play.SkipMemoryMatch:input_type -> play.SkipMemoryMatchReq
-	188, // 124: play.Play.CheckPrizesGranted:input_type -> play.CheckPrizesGrantedReq
-	6,   // 125: play.Play.PlayLock:output_type -> play.PlayLockResp
-	7,   // 126: play.Play.PlayRelease:output_type -> play.PlayReleaseResp
-	9,   // 127: play.Play.PlaySettle:output_type -> play.PlaySettleResp
-	9,   // 128: play.Play.PlaySettleRevert:output_type -> play.PlaySettleResp
-	11,  // 129: play.Play.PlayGrant:output_type -> play.PlayGrantResp
-	11,  // 130: play.Play.PlayGrantRevert:output_type -> play.PlayGrantResp
-	13,  // 131: play.Play.PlayListRecords:output_type -> play.PlayListRecordsResp
-	16,  // 132: play.Play.CreatePlayPoolDraft:output_type -> play.CreatePlayPoolDraftResp
-	18,  // 133: play.Play.PublishPlayPool:output_type -> play.PublishPlayPoolResp
-	20,  // 134: play.Play.RetirePlayPool:output_type -> play.RetirePlayPoolResp
-	22,  // 135: play.Play.GetPlayPoolVersion:output_type -> play.GetPlayPoolVersionResp
-	25,  // 136: play.Play.ListPlayPools:output_type -> play.ListPlayPoolsResp
-	28,  // 137: play.Play.ListPrizeGrades:output_type -> play.ListPrizeGradesResp
-	31,  // 138: play.Play.ListAdminPlayPools:output_type -> play.ListAdminPlayPoolsResp
-	29,  // 139: play.Play.UpdateAdminPlayPool:output_type -> play.AdminPlayPool
-	35,  // 140: play.Play.SaveAdminPlayPoolWeights:output_type -> play.SaveAdminPlayPoolWeightsResp
-	37,  // 141: play.Play.DeleteAdminPlayPools:output_type -> play.DeleteAdminPlayPoolsResp
-	40,  // 142: play.Play.QueryPlayPoolReferences:output_type -> play.QueryPlayPoolReferencesResp
-	44,  // 143: play.Play.ListDigBoxes:output_type -> play.ListDigBoxesResp
-	46,  // 144: play.Play.GetDigBoxSession:output_type -> play.GetDigBoxSessionResp
-	61,  // 145: play.Play.GetFullCar:output_type -> play.GetFullCarResp
-	76,  // 146: play.Play.GetGashapon:output_type -> play.GetGashaponResp
-	89,  // 147: play.Play.AssignGashaponLuckyUser:output_type -> play.AssignGashaponLuckyUserResp
-	92,  // 148: play.Play.GetComboChain:output_type -> play.GetComboChainResp
-	106, // 149: play.Play.GetGroupBuy:output_type -> play.GetGroupBuyResp
-	137, // 150: play.Play.GetMemoryMatchConfig:output_type -> play.GetMemoryMatchConfigResp
-	126, // 151: play.Play.ListMemoryMatchConfigs:output_type -> play.ListMemoryMatchConfigsResp
-	130, // 152: play.Play.ListCollectionSets:output_type -> play.ListCollectionSetsResp
-	127, // 153: play.Play.CreateCollectionSet:output_type -> play.CollectionSet
-	127, // 154: play.Play.UpdateCollectionSet:output_type -> play.CollectionSet
-	127, // 155: play.Play.SetCollectionSetStatus:output_type -> play.CollectionSet
-	135, // 156: play.Play.GetCollectionSetData:output_type -> play.GetCollectionSetDataResp
-	140, // 157: play.Play.GetMemoryMatchGlobalRules:output_type -> play.GetMemoryMatchGlobalRulesResp
-	142, // 158: play.Play.SaveMemoryMatchGlobalRules:output_type -> play.SaveMemoryMatchGlobalRulesResp
-	145, // 159: play.Play.ListMemoryMatchDeckTemplates:output_type -> play.ListMemoryMatchDeckTemplatesResp
-	147, // 160: play.Play.SaveMemoryMatchDeckTemplate:output_type -> play.SaveMemoryMatchDeckTemplateResp
-	149, // 161: play.Play.DeleteMemoryMatchDeckTemplate:output_type -> play.DeleteMemoryMatchDeckTemplateResp
-	152, // 162: play.Play.ListMemoryMatchAppearances:output_type -> play.ListMemoryMatchAppearancesResp
-	154, // 163: play.Play.SaveMemoryMatchAppearance:output_type -> play.SaveMemoryMatchAppearanceResp
-	156, // 164: play.Play.DeleteMemoryMatchAppearance:output_type -> play.DeleteMemoryMatchAppearanceResp
-	159, // 165: play.Play.GetMemoryMatchAppearance:output_type -> play.GetMemoryMatchAppearanceResp
-	161, // 166: play.Play.SetMemoryMatchAppearance:output_type -> play.SetMemoryMatchAppearanceResp
-	163, // 167: play.Play.SelectMemoryMatchDestiny:output_type -> play.SelectMemoryMatchDestinyResp
-	165, // 168: play.Play.SelectMemoryMatchSecondDestiny:output_type -> play.SelectMemoryMatchSecondDestinyResp
-	169, // 169: play.Play.GetMemoryMatchSession:output_type -> play.GetMemoryMatchSessionResp
-	172, // 170: play.Play.GetMemoryMatchSessionByRequest:output_type -> play.GetMemoryMatchSessionByRequestResp
-	173, // 171: play.Play.GetMemoryMatchRound:output_type -> play.GetMemoryMatchRoundResp
-	175, // 172: play.Play.ApplyMemoryMatchPair:output_type -> play.ApplyMemoryMatchPairResp
-	177, // 173: play.Play.ApplyMemoryMatchDestinyDraw:output_type -> play.ApplyMemoryMatchDestinyDrawResp
-	179, // 174: play.Play.CompleteMemoryMatchRound:output_type -> play.CompleteMemoryMatchRoundResp
-	181, // 175: play.Play.SkipMemoryMatch:output_type -> play.SkipMemoryMatchResp
-	189, // 176: play.Play.CheckPrizesGranted:output_type -> play.CheckPrizesGrantedResp
-	125, // [125:177] is the sub-list for method output_type
-	73,  // [73:125] is the sub-list for method input_type
+	21,  // 83: play.Play.VoidPlayPool:input_type -> play.VoidPlayPoolReq
+	23,  // 84: play.Play.GetPlayPoolVersion:input_type -> play.GetPlayPoolVersionReq
+	26,  // 85: play.Play.ListPlayPools:input_type -> play.ListPlayPoolsReq
+	29,  // 86: play.Play.ListPrizeGrades:input_type -> play.ListPrizeGradesReq
+	32,  // 87: play.Play.ListAdminPlayPools:input_type -> play.ListAdminPlayPoolsReq
+	34,  // 88: play.Play.UpdateAdminPlayPool:input_type -> play.UpdateAdminPlayPoolReq
+	35,  // 89: play.Play.SaveAdminPlayPoolWeights:input_type -> play.SaveAdminPlayPoolWeightsReq
+	38,  // 90: play.Play.DeleteAdminPlayPools:input_type -> play.DeleteAdminPlayPoolsReq
+	41,  // 91: play.Play.QueryPlayPoolReferences:input_type -> play.QueryPlayPoolReferencesReq
+	45,  // 92: play.Play.ListDigBoxes:input_type -> play.ListDigBoxesReq
+	47,  // 93: play.Play.GetDigBoxSession:input_type -> play.GetDigBoxSessionReq
+	62,  // 94: play.Play.GetFullCar:input_type -> play.GetFullCarReq
+	77,  // 95: play.Play.GetGashapon:input_type -> play.GetGashaponReq
+	90,  // 96: play.Play.AssignGashaponLuckyUser:input_type -> play.AssignGashaponLuckyUserReq
+	93,  // 97: play.Play.GetComboChain:input_type -> play.GetComboChainReq
+	107, // 98: play.Play.GetGroupBuy:input_type -> play.GetGroupBuyReq
+	138, // 99: play.Play.GetMemoryMatchConfig:input_type -> play.GetMemoryMatchConfigReq
+	127, // 100: play.Play.ListMemoryMatchConfigs:input_type -> play.ListMemoryMatchConfigsReq
+	131, // 101: play.Play.ListCollectionSets:input_type -> play.ListCollectionSetsReq
+	133, // 102: play.Play.CreateCollectionSet:input_type -> play.CreateCollectionSetReq
+	134, // 103: play.Play.UpdateCollectionSet:input_type -> play.UpdateCollectionSetReq
+	135, // 104: play.Play.SetCollectionSetStatus:input_type -> play.SetCollectionSetStatusReq
+	136, // 105: play.Play.GetCollectionSetData:input_type -> play.GetCollectionSetDataReq
+	141, // 106: play.Play.GetMemoryMatchGlobalRules:input_type -> play.GetMemoryMatchGlobalRulesReq
+	143, // 107: play.Play.SaveMemoryMatchGlobalRules:input_type -> play.SaveMemoryMatchGlobalRulesReq
+	146, // 108: play.Play.ListMemoryMatchDeckTemplates:input_type -> play.ListMemoryMatchDeckTemplatesReq
+	148, // 109: play.Play.SaveMemoryMatchDeckTemplate:input_type -> play.SaveMemoryMatchDeckTemplateReq
+	150, // 110: play.Play.DeleteMemoryMatchDeckTemplate:input_type -> play.DeleteMemoryMatchDeckTemplateReq
+	153, // 111: play.Play.ListMemoryMatchAppearances:input_type -> play.ListMemoryMatchAppearancesReq
+	155, // 112: play.Play.SaveMemoryMatchAppearance:input_type -> play.SaveMemoryMatchAppearanceReq
+	157, // 113: play.Play.DeleteMemoryMatchAppearance:input_type -> play.DeleteMemoryMatchAppearanceReq
+	160, // 114: play.Play.GetMemoryMatchAppearance:input_type -> play.GetMemoryMatchAppearanceReq
+	162, // 115: play.Play.SetMemoryMatchAppearance:input_type -> play.SetMemoryMatchAppearanceReq
+	164, // 116: play.Play.SelectMemoryMatchDestiny:input_type -> play.SelectMemoryMatchDestinyReq
+	166, // 117: play.Play.SelectMemoryMatchSecondDestiny:input_type -> play.SelectMemoryMatchSecondDestinyReq
+	170, // 118: play.Play.GetMemoryMatchSession:input_type -> play.GetMemoryMatchSessionReq
+	173, // 119: play.Play.GetMemoryMatchSessionByRequest:input_type -> play.GetMemoryMatchSessionByRequestReq
+	172, // 120: play.Play.GetMemoryMatchRound:input_type -> play.GetMemoryMatchRoundReq
+	176, // 121: play.Play.ApplyMemoryMatchPair:input_type -> play.ApplyMemoryMatchPairReq
+	178, // 122: play.Play.ApplyMemoryMatchDestinyDraw:input_type -> play.ApplyMemoryMatchDestinyDrawReq
+	180, // 123: play.Play.CompleteMemoryMatchRound:input_type -> play.CompleteMemoryMatchRoundReq
+	182, // 124: play.Play.SkipMemoryMatch:input_type -> play.SkipMemoryMatchReq
+	190, // 125: play.Play.CheckPrizesGranted:input_type -> play.CheckPrizesGrantedReq
+	6,   // 126: play.Play.PlayLock:output_type -> play.PlayLockResp
+	7,   // 127: play.Play.PlayRelease:output_type -> play.PlayReleaseResp
+	9,   // 128: play.Play.PlaySettle:output_type -> play.PlaySettleResp
+	9,   // 129: play.Play.PlaySettleRevert:output_type -> play.PlaySettleResp
+	11,  // 130: play.Play.PlayGrant:output_type -> play.PlayGrantResp
+	11,  // 131: play.Play.PlayGrantRevert:output_type -> play.PlayGrantResp
+	13,  // 132: play.Play.PlayListRecords:output_type -> play.PlayListRecordsResp
+	16,  // 133: play.Play.CreatePlayPoolDraft:output_type -> play.CreatePlayPoolDraftResp
+	18,  // 134: play.Play.PublishPlayPool:output_type -> play.PublishPlayPoolResp
+	20,  // 135: play.Play.RetirePlayPool:output_type -> play.RetirePlayPoolResp
+	22,  // 136: play.Play.VoidPlayPool:output_type -> play.VoidPlayPoolResp
+	24,  // 137: play.Play.GetPlayPoolVersion:output_type -> play.GetPlayPoolVersionResp
+	27,  // 138: play.Play.ListPlayPools:output_type -> play.ListPlayPoolsResp
+	30,  // 139: play.Play.ListPrizeGrades:output_type -> play.ListPrizeGradesResp
+	33,  // 140: play.Play.ListAdminPlayPools:output_type -> play.ListAdminPlayPoolsResp
+	31,  // 141: play.Play.UpdateAdminPlayPool:output_type -> play.AdminPlayPool
+	37,  // 142: play.Play.SaveAdminPlayPoolWeights:output_type -> play.SaveAdminPlayPoolWeightsResp
+	39,  // 143: play.Play.DeleteAdminPlayPools:output_type -> play.DeleteAdminPlayPoolsResp
+	42,  // 144: play.Play.QueryPlayPoolReferences:output_type -> play.QueryPlayPoolReferencesResp
+	46,  // 145: play.Play.ListDigBoxes:output_type -> play.ListDigBoxesResp
+	48,  // 146: play.Play.GetDigBoxSession:output_type -> play.GetDigBoxSessionResp
+	63,  // 147: play.Play.GetFullCar:output_type -> play.GetFullCarResp
+	78,  // 148: play.Play.GetGashapon:output_type -> play.GetGashaponResp
+	91,  // 149: play.Play.AssignGashaponLuckyUser:output_type -> play.AssignGashaponLuckyUserResp
+	94,  // 150: play.Play.GetComboChain:output_type -> play.GetComboChainResp
+	108, // 151: play.Play.GetGroupBuy:output_type -> play.GetGroupBuyResp
+	139, // 152: play.Play.GetMemoryMatchConfig:output_type -> play.GetMemoryMatchConfigResp
+	128, // 153: play.Play.ListMemoryMatchConfigs:output_type -> play.ListMemoryMatchConfigsResp
+	132, // 154: play.Play.ListCollectionSets:output_type -> play.ListCollectionSetsResp
+	129, // 155: play.Play.CreateCollectionSet:output_type -> play.CollectionSet
+	129, // 156: play.Play.UpdateCollectionSet:output_type -> play.CollectionSet
+	129, // 157: play.Play.SetCollectionSetStatus:output_type -> play.CollectionSet
+	137, // 158: play.Play.GetCollectionSetData:output_type -> play.GetCollectionSetDataResp
+	142, // 159: play.Play.GetMemoryMatchGlobalRules:output_type -> play.GetMemoryMatchGlobalRulesResp
+	144, // 160: play.Play.SaveMemoryMatchGlobalRules:output_type -> play.SaveMemoryMatchGlobalRulesResp
+	147, // 161: play.Play.ListMemoryMatchDeckTemplates:output_type -> play.ListMemoryMatchDeckTemplatesResp
+	149, // 162: play.Play.SaveMemoryMatchDeckTemplate:output_type -> play.SaveMemoryMatchDeckTemplateResp
+	151, // 163: play.Play.DeleteMemoryMatchDeckTemplate:output_type -> play.DeleteMemoryMatchDeckTemplateResp
+	154, // 164: play.Play.ListMemoryMatchAppearances:output_type -> play.ListMemoryMatchAppearancesResp
+	156, // 165: play.Play.SaveMemoryMatchAppearance:output_type -> play.SaveMemoryMatchAppearanceResp
+	158, // 166: play.Play.DeleteMemoryMatchAppearance:output_type -> play.DeleteMemoryMatchAppearanceResp
+	161, // 167: play.Play.GetMemoryMatchAppearance:output_type -> play.GetMemoryMatchAppearanceResp
+	163, // 168: play.Play.SetMemoryMatchAppearance:output_type -> play.SetMemoryMatchAppearanceResp
+	165, // 169: play.Play.SelectMemoryMatchDestiny:output_type -> play.SelectMemoryMatchDestinyResp
+	167, // 170: play.Play.SelectMemoryMatchSecondDestiny:output_type -> play.SelectMemoryMatchSecondDestinyResp
+	171, // 171: play.Play.GetMemoryMatchSession:output_type -> play.GetMemoryMatchSessionResp
+	174, // 172: play.Play.GetMemoryMatchSessionByRequest:output_type -> play.GetMemoryMatchSessionByRequestResp
+	175, // 173: play.Play.GetMemoryMatchRound:output_type -> play.GetMemoryMatchRoundResp
+	177, // 174: play.Play.ApplyMemoryMatchPair:output_type -> play.ApplyMemoryMatchPairResp
+	179, // 175: play.Play.ApplyMemoryMatchDestinyDraw:output_type -> play.ApplyMemoryMatchDestinyDrawResp
+	181, // 176: play.Play.CompleteMemoryMatchRound:output_type -> play.CompleteMemoryMatchRoundResp
+	183, // 177: play.Play.SkipMemoryMatch:output_type -> play.SkipMemoryMatchResp
+	191, // 178: play.Play.CheckPrizesGranted:output_type -> play.CheckPrizesGrantedResp
+	126, // [126:179] is the sub-list for method output_type
+	73,  // [73:126] is the sub-list for method input_type
 	73,  // [73:73] is the sub-list for extension type_name
 	73,  // [73:73] is the sub-list for extension extendee
 	0,   // [0:73] is the sub-list for field type_name
@@ -14595,7 +14701,7 @@ func file_play_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_play_proto_rawDesc), len(file_play_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   185,
+			NumMessages:   187,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

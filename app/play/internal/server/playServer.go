@@ -75,6 +75,11 @@ func (s *PlayServer) RetirePlayPool(ctx context.Context, in *play.RetirePlayPool
 	return l.RetirePlayPool(in)
 }
 
+func (s *PlayServer) VoidPlayPool(ctx context.Context, in *play.VoidPlayPoolReq) (*play.VoidPlayPoolResp, error) {
+	l := logic.NewVoidPlayPoolLogic(ctx, s.svcCtx)
+	return l.VoidPlayPool(in)
+}
+
 func (s *PlayServer) GetPlayPoolVersion(ctx context.Context, in *play.GetPlayPoolVersionReq) (*play.GetPlayPoolVersionResp, error) {
 	l := logic.NewGetPlayPoolVersionLogic(ctx, s.svcCtx)
 	return l.GetPlayPoolVersion(in)

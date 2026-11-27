@@ -719,6 +719,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: pool.RetirePlayPoolHandler(serverCtx),
 				},
 				{
+					// 作废统一玩赏池（gacha.pool:publish）；reason 走 query 参数
+					Method:  http.MethodPost,
+					Path:    "/gacha/play-pools/:poolId/void",
+					Handler: pool.VoidPlayPoolHandler(serverCtx),
+				},
+				{
 					// 创建统一玩赏池草稿（gacha.pool:create；幂等键走 Idempotency-Key 头）
 					Method:  http.MethodPost,
 					Path:    "/gacha/play-pools/drafts",

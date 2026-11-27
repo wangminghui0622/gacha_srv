@@ -29,6 +29,7 @@ const (
 	Play_CreatePlayPoolDraft_FullMethodName            = "/play.Play/CreatePlayPoolDraft"
 	Play_PublishPlayPool_FullMethodName                = "/play.Play/PublishPlayPool"
 	Play_RetirePlayPool_FullMethodName                 = "/play.Play/RetirePlayPool"
+	Play_VoidPlayPool_FullMethodName                   = "/play.Play/VoidPlayPool"
 	Play_GetPlayPoolVersion_FullMethodName             = "/play.Play/GetPlayPoolVersion"
 	Play_ListPlayPools_FullMethodName                  = "/play.Play/ListPlayPools"
 	Play_ListPrizeGrades_FullMethodName                = "/play.Play/ListPrizeGrades"
@@ -89,6 +90,7 @@ type PlayClient interface {
 	CreatePlayPoolDraft(ctx context.Context, in *CreatePlayPoolDraftReq, opts ...grpc.CallOption) (*CreatePlayPoolDraftResp, error)
 	PublishPlayPool(ctx context.Context, in *PublishPlayPoolReq, opts ...grpc.CallOption) (*PublishPlayPoolResp, error)
 	RetirePlayPool(ctx context.Context, in *RetirePlayPoolReq, opts ...grpc.CallOption) (*RetirePlayPoolResp, error)
+	VoidPlayPool(ctx context.Context, in *VoidPlayPoolReq, opts ...grpc.CallOption) (*VoidPlayPoolResp, error)
 	GetPlayPoolVersion(ctx context.Context, in *GetPlayPoolVersionReq, opts ...grpc.CallOption) (*GetPlayPoolVersionResp, error)
 	ListPlayPools(ctx context.Context, in *ListPlayPoolsReq, opts ...grpc.CallOption) (*ListPlayPoolsResp, error)
 	// 赏级配置（赏别列表，控制台只读）
@@ -237,6 +239,15 @@ func (c *playClient) PublishPlayPool(ctx context.Context, in *PublishPlayPoolReq
 func (c *playClient) RetirePlayPool(ctx context.Context, in *RetirePlayPoolReq, opts ...grpc.CallOption) (*RetirePlayPoolResp, error) {
 	out := new(RetirePlayPoolResp)
 	err := c.cc.Invoke(ctx, Play_RetirePlayPool_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playClient) VoidPlayPool(ctx context.Context, in *VoidPlayPoolReq, opts ...grpc.CallOption) (*VoidPlayPoolResp, error) {
+	out := new(VoidPlayPoolResp)
+	err := c.cc.Invoke(ctx, Play_VoidPlayPool_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -637,6 +648,7 @@ type PlayServer interface {
 	CreatePlayPoolDraft(context.Context, *CreatePlayPoolDraftReq) (*CreatePlayPoolDraftResp, error)
 	PublishPlayPool(context.Context, *PublishPlayPoolReq) (*PublishPlayPoolResp, error)
 	RetirePlayPool(context.Context, *RetirePlayPoolReq) (*RetirePlayPoolResp, error)
+	VoidPlayPool(context.Context, *VoidPlayPoolReq) (*VoidPlayPoolResp, error)
 	GetPlayPoolVersion(context.Context, *GetPlayPoolVersionReq) (*GetPlayPoolVersionResp, error)
 	ListPlayPools(context.Context, *ListPlayPoolsReq) (*ListPlayPoolsResp, error)
 	// 赏级配置（赏别列表，控制台只读）
@@ -727,6 +739,9 @@ func (UnimplementedPlayServer) PublishPlayPool(context.Context, *PublishPlayPool
 }
 func (UnimplementedPlayServer) RetirePlayPool(context.Context, *RetirePlayPoolReq) (*RetirePlayPoolResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RetirePlayPool not implemented")
+}
+func (UnimplementedPlayServer) VoidPlayPool(context.Context, *VoidPlayPoolReq) (*VoidPlayPoolResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VoidPlayPool not implemented")
 }
 func (UnimplementedPlayServer) GetPlayPoolVersion(context.Context, *GetPlayPoolVersionReq) (*GetPlayPoolVersionResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPlayPoolVersion not implemented")
@@ -1043,6 +1058,24 @@ func _Play_RetirePlayPool_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PlayServer).RetirePlayPool(ctx, req.(*RetirePlayPoolReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Play_VoidPlayPool_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VoidPlayPoolReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlayServer).VoidPlayPool(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Play_VoidPlayPool_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlayServer).VoidPlayPool(ctx, req.(*VoidPlayPoolReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1849,6 +1882,10 @@ var Play_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RetirePlayPool",
 			Handler:    _Play_RetirePlayPool_Handler,
+		},
+		{
+			MethodName: "VoidPlayPool",
+			Handler:    _Play_VoidPlayPool_Handler,
 		},
 		{
 			MethodName: "GetPlayPoolVersion",
