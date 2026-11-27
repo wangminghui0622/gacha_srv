@@ -5,7 +5,7 @@
         v-for="(row, rowIndex) in legendRows"
         :key="rowIndex"
         class="legend-row"
-        :class="{ 'legend-row-compact': rowIndex === 2 }"
+        :class="{ 'legend-row-compact': rowIndex === 1 }"
       >
         <button
           v-for="item in row"
@@ -142,7 +142,7 @@ const selectedMap = reactive<Record<string, boolean>>({ ...defaultSelected })
 
 const legendRows = computed(() => {
   const items = defs.map((def, index) => ({ name: def.name, index }))
-  return [items.slice(0, 12), items.slice(12, 22), items.slice(22)]
+  return [items.slice(0, 22), items.slice(22)]
 })
 
 function seriesColor(index: number): string {
