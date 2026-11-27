@@ -284,7 +284,7 @@ onBeforeUnmount(() => {
 .legend-grid {
   display: grid;
   align-items: start;
-  column-gap: 6px;
+  column-gap: 12px;
   row-gap: 6px;
   width: 100%;
 }
