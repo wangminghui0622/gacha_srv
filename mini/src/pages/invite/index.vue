@@ -17,8 +17,14 @@ const rewardPoints = ref(0)
 const records = ref<Array<{ id: number; nickname: string; createdAt: number; reward: number }>>([])
 
 const inviteCode = computed(() => {
-  const raw = auth.user?.publicUserId || (auth.user?.userId ? String(auth.user.userId) : '')
-  return raw ? raw.replace(/^u/, '').slice(0, 8) : 'JIXIANG1'
+  const userId = Number(auth.user?.userId || 0)
+  const raw = (auth.user?.publicUserId || '').replace(/^u/, '')
+  // 后端邀请体系接入前，用 publicId + userId base36 后缀生成稳定展示码；
+  // 接入后改为后端下发的真实邀请码。
+  const suffix = userId.toString(36).toUpperCase().padStart(4, '0')
+  const base = raw || (userId ? String(userId) : 'JIXIANG')
+  const code = `${base}${suffix}`
+  return code.length >= 12 ? code.slice(0, 16) : code.padEnd(12, suffix)
 })
 
 async function loadProfile() {
@@ -484,10 +490,10 @@ page {
 .code-value {
   flex: 1;
   min-width: 0;
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: 800;
   color: #ffffff;
-  letter-spacing: 2rpx;
+  letter-spacing: 1rpx;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
