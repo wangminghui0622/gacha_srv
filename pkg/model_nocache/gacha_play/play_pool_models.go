@@ -2,19 +2,7 @@ package gacha_play
 
 import "time"
 
-// PlayPool 统一玩赏池主表（所有玩法共用）。
-type PlayPool struct {
-	Id          int64     `gorm:"column:id;primaryKey;autoIncrement"`
-	Mode        string    `gorm:"column:mode"`
-	Name        string    `gorm:"column:name"`
-	NextVersion int64     `gorm:"column:next_version"`
-	CreatedAt   time.Time `gorm:"column:created_at"`
-	UpdatedAt   time.Time `gorm:"column:updated_at"`
-}
-
-func (PlayPool) TableName() string { return "play_pools" }
-
-// PlayPoolVersion 统一玩赏池版本。
+// PlayPoolVersion 统一玩赏池版本（仅作为内存投影结构，不再落库）。
 type PlayPoolVersion struct {
 	PoolId      int64      `gorm:"column:pool_id;primaryKey"`
 	Version     int64      `gorm:"column:version;primaryKey"`
@@ -59,14 +47,3 @@ type PlayPoolPrize struct {
 }
 
 func (PlayPoolPrize) TableName() string { return "play_pool_prizes" }
-
-// PlayPoolDraft 统一玩赏池草稿幂等记录。
-type PlayPoolDraft struct {
-	IdempotencyKey string    `gorm:"column:idempotency_key;primaryKey"`
-	PoolId         int64     `gorm:"column:pool_id"`
-	Version        int64     `gorm:"column:version"`
-	RequestHash    string    `gorm:"column:request_hash"`
-	CreatedAt      time.Time `gorm:"column:created_at"`
-}
-
-func (PlayPoolDraft) TableName() string { return "play_pool_drafts" }

@@ -270,51 +270,6 @@ func validatePlayPoolDraft(in *play.CreatePlayPoolDraftReq) error {
 	return nil
 }
 
-// modelPlayPoolPrize 把 proto 草稿行转成落库行（草稿写入/投影共用）。
-func modelPlayPoolPrize(p *play.PlayPoolPrize) gamemodelnc.PlayPoolPrize {
-	remaining := p.Remaining
-	if remaining == 0 && p.Quantity != 0 {
-		remaining = p.Quantity
-	}
-	prizeType := p.PrizeType
-	if prizeType == 0 {
-		prizeType = 1
-	}
-	isPrize := int32(0)
-	if p.IsPrize {
-		isPrize = 1
-	}
-	parentIndex := int32(-1)
-	if p.HasParent {
-		parentIndex = int32(p.ParentIndex)
-	}
-	extra := strings.TrimSpace(p.ExtraJson)
-	if extra == "" {
-		extra = "{}"
-	}
-	return gamemodelnc.PlayPoolPrize{
-		PrizeIndex:       int32(p.PrizeIndex),
-		PrizeGrade:       p.PrizeGrade,
-		SpecialKind:      strings.ToUpper(p.SpecialKind),
-		PrizeType:        int32(prizeType),
-		Name:             p.Name,
-		SkuId:            p.SkuId,
-		ChildPoolId:      p.ChildPoolId,
-		Weight:           p.Weight,
-		Quantity:         int32(p.Quantity),
-		Remaining:        int32(remaining),
-		IsPrize:          isPrize,
-		TargetValue:      int32(p.TargetValue),
-		CashFen:          p.CashFen,
-		PointsAmount:     p.PointsAmount,
-		CouponTemplateNo: p.CouponTemplateNo,
-		CostFen:          p.CostFen,
-		ImageUrl:         p.ImageUrl,
-		ParentIndex:      parentIndex,
-		ExtraJson:        extra,
-	}
-}
-
 func validateGashaponPool(in *play.CreatePlayPoolDraftReq) error {
 	specials := 0
 	for _, p := range in.Prizes {
