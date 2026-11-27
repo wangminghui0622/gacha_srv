@@ -1,28 +1,43 @@
 <template>
   <div class="revenue-chart-wrap">
     <div class="custom-legend">
-      <div class="legend-scroll">
-        <div
-          class="legend-grid"
-          :style="{ gridTemplateColumns: `repeat(${totalColumns}, minmax(0, 1fr))` }"
+      <div class="legend-row legend-row-first">
+        <button
+          v-for="item in firstRowItems"
+          :key="item.name"
+          type="button"
+          class="legend-item legend-item-first"
+          :class="{ 'is-selected': selectedMap[item.name] }"
+          :title="item.name"
+          @click="toggle(item.name)"
         >
-          <button
-            v-for="item in legendItems"
-            :key="item.name"
-            type="button"
-            class="legend-item"
-            :class="{ 'is-selected': selectedMap[item.name] }"
-            :style="{ gridRow: item.row, gridColumn: item.column }"
-            :title="item.name"
-            @click="toggle(item.name)"
-          >
-            <span
-              class="legend-dot"
-              :style="{ backgroundColor: selectedMap[item.name] ? seriesColor(item.index) : '#d9d9d9' }"
-            />
-            <span class="legend-text">{{ item.name }}</span>
-          </button>
-        </div>
+          <span
+            class="legend-dot"
+            :style="{ backgroundColor: selectedMap[item.name] ? seriesColor(item.index) : '#d9d9d9' }"
+          />
+          <span class="legend-text">{{ item.name }}</span>
+        </button>
+      </div>
+      <div
+        class="legend-row legend-row-second"
+        :style="{ gridTemplateColumns: `repeat(${totalColumns}, minmax(0, 1fr))` }"
+      >
+        <button
+          v-for="item in secondRowItems"
+          :key="item.name"
+          type="button"
+          class="legend-item"
+          :class="{ 'is-selected': selectedMap[item.name] }"
+          :style="{ gridColumn: item.column }"
+          :title="item.name"
+          @click="toggle(item.name)"
+        >
+          <span
+            class="legend-dot"
+            :style="{ backgroundColor: selectedMap[item.name] ? seriesColor(item.index) : '#d9d9d9' }"
+          />
+          <span class="legend-text">{{ item.name }}</span>
+        </button>
       </div>
     </div>
     <div class="chart-box">
@@ -152,6 +167,9 @@ const legendItems = computed(() =>
   }),
 )
 
+const firstRowItems = computed(() => legendItems.value.filter((item) => item.row === 1))
+const secondRowItems = computed(() => legendItems.value.filter((item) => item.row === 2))
+
 function seriesColor(index: number): string {
   if (index < colors.length) {
     return colors[index] ?? '#1677ff'
@@ -278,26 +296,32 @@ onBeforeUnmount(() => {
 
 .custom-legend {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.legend-scroll {
+.legend-row {
   width: 100%;
-  overflow: visible;
 }
 
-.legend-grid {
+.legend-row-first {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.legend-row-second {
   display: grid;
   align-items: start;
   column-gap: 12px;
-  row-gap: 6px;
-  width: 100%;
 }
 
 .legend-item {
   display: inline-flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 2px;
-  width: 100%;
   min-width: 0;
   padding: 0;
   border: 0;
@@ -306,12 +330,30 @@ onBeforeUnmount(() => {
   font-size: 14px;
   line-height: 18px;
   text-align: left;
-  white-space: normal;
   cursor: pointer;
+}
+
+.legend-row-first .legend-item {
+  flex: 0 0 auto;
+  width: auto;
+  white-space: nowrap;
+}
+
+.legend-row-second .legend-item {
+  width: 100%;
+  align-items: flex-start;
+  white-space: normal;
 }
 
 .legend-text {
   min-width: 0;
+}
+
+.legend-row-first .legend-text {
+  white-space: nowrap;
+}
+
+.legend-row-second .legend-text {
   overflow-wrap: anywhere;
 }
 
@@ -323,8 +365,15 @@ onBeforeUnmount(() => {
   flex: 0 0 auto;
   width: 6px;
   height: 6px;
-  margin-top: 6px;
   border-radius: 50%;
+}
+
+.legend-row-first .legend-dot {
+  margin-top: 0;
+}
+
+.legend-row-second .legend-dot {
+  margin-top: 6px;
 }
 
 .chart-box {
