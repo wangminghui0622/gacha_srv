@@ -2,13 +2,18 @@
   <div class="revenue-chart-wrap">
     <div class="custom-legend">
       <div class="legend-scroll">
-        <div class="legend-grid">
+        <div
+          class="legend-grid"
+          :style="{ gridTemplateColumns: `repeat(${totalColumns}, minmax(0, 1fr))` }"
+        >
           <button
             v-for="item in legendItems"
             :key="item.name"
             type="button"
             class="legend-item"
             :class="{ 'is-selected': selectedMap[item.name] }"
+            :style="{ gridRow: item.row, gridColumn: item.column }"
+            :title="item.name"
             @click="toggle(item.name)"
           >
             <span
@@ -74,18 +79,12 @@ const defs: SeriesDef[] = [
   { name: '渗透率(新)', axis: 1, kind: 'rate', value: (r) => r.penetrationNewBps / 100 },
   // 第 3 行：剩余指标
   { name: '渗透率(旧)', axis: 1, kind: 'rate', value: (r) => r.penetrationOldBps / 100 },
-  { name: '微信充值', axis: 0, kind: 'money', value: (r) => r.wechatPayFen / 100 },
   { name: '支付宝充值', axis: 0, kind: 'money', value: (r) => r.alipayPayFen / 100 },
   { name: '汇付充值', axis: 0, kind: 'money', value: (r) => r.huifuPayFen / 100 },
-  { name: '退微信充值', axis: 0, kind: 'money', value: (r) => r.wechatRefundFen / 100 },
   { name: '退支付宝充值', axis: 0, kind: 'money', value: (r) => r.alipayRefundFen / 100 },
   { name: '退汇付充值', axis: 0, kind: 'money', value: (r) => r.huifuRefundFen / 100 },
-  { name: '微信赠送', axis: 0, kind: 'money', value: (r) => r.wechatGiftFen / 100 },
   { name: '支付宝赠送', axis: 0, kind: 'money', value: (r) => r.alipayGiftFen / 100 },
   { name: '汇付赠送', axis: 0, kind: 'money', value: (r) => r.huifuGiftFen / 100 },
-  { name: '退微信赠送', axis: 0, kind: 'money', value: (r) => r.wechatGiftRefundFen / 100 },
-  { name: '退支付宝赠送', axis: 0, kind: 'money', value: (r) => r.alipayGiftRefundFen / 100 },
-  { name: '退汇付赠送', axis: 0, kind: 'money', value: (r) => r.huifuGiftRefundFen / 100 },
   { name: '退款(¥)率', axis: 1, kind: 'rate', value: (r) => r.refundRateBps / 100 },
   { name: '总税收', axis: 0, kind: 'money', value: (r) => r.taxFen / 100 },
   { name: '税收(新)', axis: 0, kind: 'money', value: (r) => r.newTaxFen / 100 },
@@ -97,7 +96,6 @@ const defs: SeriesDef[] = [
   { name: '吉豆余额', axis: 0, kind: 'count', value: (r) => r.bonusBalanceFen },
   { name: '积分余额', axis: 0, kind: 'count', value: (r) => r.loyaltyPointBalance },
   { name: '吉祥值余额', axis: 0, kind: 'count', value: (r) => r.redeemPointBalance },
-  { name: '总吉祥币付费', axis: 0, kind: 'money', value: (r) => r.platformCurrencyPayFen / 100 },
 ]
 
 const colors = [
@@ -134,7 +132,21 @@ for (const name of ['注册数', '日活', '总付费', '付费用户数', '渗�
 
 const selectedMap = reactive<Record<string, boolean>>({ ...defaultSelected })
 
-const legendItems = computed(() => defs.map((def, index) => ({ name: def.name, index })))
+// 第一行固定到“arpu(旧)”，第二行从“渗透率”开始，逐列与第一行左对齐。
+const splitIndex = (() => {
+  const index = defs.findIndex((def) => def.name === 'arpu(旧)')
+  return index >= 0 ? index + 1 : Math.ceil(defs.length / 2)
+})()
+const totalColumns = Math.max(splitIndex, defs.length - splitIndex)
+
+const legendItems = computed(() =>
+  defs.map((def, index) => ({
+    name: def.name,
+    index,
+    row: index < splitIndex ? 1 : 2,
+    column: index < splitIndex ? index + 1 : index - splitIndex + 1,
+  })),
+)
 
 function seriesColor(index: number): string {
   if (index < colors.length) {
@@ -270,33 +282,33 @@ onBeforeUnmount(() => {
 }
 
 .legend-grid {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 12px;
+  display: grid;
+  align-items: start;
+  column-gap: 6px;
+  row-gap: 6px;
   width: 100%;
 }
 
 .legend-item {
   display: inline-flex;
-  flex: 0 0 auto;
   align-items: flex-start;
-  gap: 4px;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
   padding: 0;
   border: 0;
   background: transparent;
   color: #8c8c8c;
   font-size: 14px;
-  line-height: 20px;
+  line-height: 18px;
   text-align: left;
-  white-space: nowrap;
+  white-space: normal;
   cursor: pointer;
 }
 
 .legend-text {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 .legend-item.is-selected {
@@ -305,8 +317,8 @@ onBeforeUnmount(() => {
 
 .legend-dot {
   flex: 0 0 auto;
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   margin-top: 6px;
   border-radius: 50%;
 }
