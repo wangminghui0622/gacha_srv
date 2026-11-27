@@ -673,10 +673,14 @@ page {
 }
 
 .hero-dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18rpx;
   display: flex;
   justify-content: center;
   gap: 8rpx;
-  margin-top: 12rpx;
+  z-index: 2;
 }
 
 .hero-dot {
