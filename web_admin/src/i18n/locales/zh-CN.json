@@ -222,6 +222,7 @@
     "statusDraft": "初始化",
     "statusPublished": "进行中",
     "statusRetired": "已结束",
+    "statusVoid": "已作废",
     "sortDesc": "创建时间倒序",
     "sortAsc": "创建时间正序",
     "modeGashapon": "吉祥赏",

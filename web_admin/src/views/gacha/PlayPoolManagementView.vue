@@ -321,6 +321,7 @@ const statusOptions = computed(() => [
   { label: t('poolAdmin.statusDraft'), value: 'draft' },
   { label: t('poolAdmin.statusPublished'), value: 'published' },
   { label: t('poolAdmin.statusRetired'), value: 'retired' },
+  { label: t('poolAdmin.statusVoid'), value: 'void' },
 ])
 const sortOptions = computed(() => [
   { label: t('poolAdmin.sortDesc'), value: 'desc' },
@@ -860,6 +861,7 @@ function referenceStatusText(status?: string | number): string {
     case 1: return '初始化'
     case 2: return '进行中'
     case 3: return '已下线'
+    case 4: return '已作废'
     default: return '-'
   }
 }
@@ -869,6 +871,7 @@ function referenceStatusColor(status?: string | number): string {
     case 1: return 'default'
     case 2: return 'green'
     case 3: return 'orange'
+    case 4: return 'red'
     default: return 'default'
   }
 }
@@ -930,6 +933,7 @@ function statusText(status?: string | number): string {
   switch (String(status ?? '')) {
     case '2': return t('poolAdmin.statusPublished')
     case '3': return t('poolAdmin.statusRetired')
+    case '4': return t('poolAdmin.statusVoid')
     default: return t('poolAdmin.statusDraft')
   }
 }

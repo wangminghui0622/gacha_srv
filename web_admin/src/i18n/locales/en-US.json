@@ -222,6 +222,7 @@
     "statusDraft": "Initialized",
     "statusPublished": "In progress",
     "statusRetired": "Ended",
+    "statusVoid": "Voided",
     "sortDesc": "Created newest first",
     "sortAsc": "Created oldest first",
     "modeGashapon": "Fortune",

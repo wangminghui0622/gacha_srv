@@ -85,8 +85,10 @@ func legacyPoolStatus(status int64) int64 {
 		return 1
 	case playpool.StatusLive:
 		return 2
-	case playpool.StatusOffline, playpool.StatusVoid:
+	case playpool.StatusOffline:
 		return 3
+	case playpool.StatusVoid:
+		return 4
 	default:
 		return status
 	}
