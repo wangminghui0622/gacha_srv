@@ -73,6 +73,7 @@ const defs: SeriesDef[] = [
   { name: '渗透率(新)', axis: 1, kind: 'rate', value: (r) => r.penetrationNewBps / 100 },
   // 第 3 行：剩余指标
   { name: '渗透率(旧)', axis: 1, kind: 'rate', value: (r) => r.penetrationOldBps / 100 },
+  { name: '微信充值', axis: 0, kind: 'money', value: (r) => r.wechatPayFen / 100 },
   { name: '支付宝充值', axis: 0, kind: 'money', value: (r) => r.alipayPayFen / 100 },
   { name: '汇付充值', axis: 0, kind: 'money', value: (r) => r.huifuPayFen / 100 },
   { name: '退支付宝充值', axis: 0, kind: 'money', value: (r) => r.alipayRefundFen / 100 },
@@ -262,7 +263,7 @@ onBeforeUnmount(() => {
 .legend-grid {
   display: grid;
   grid-template-columns: repeat(16, max-content);
-  column-gap: 6px;
+  column-gap: 5px;
   row-gap: 6px;
   justify-content: space-between;
   width: 100%;
