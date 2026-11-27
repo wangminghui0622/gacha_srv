@@ -132,9 +132,9 @@ for (const name of ['注册数', '日活', '总付费', '付费用户数', '渗�
 
 const selectedMap = reactive<Record<string, boolean>>({ ...defaultSelected })
 
-// 第一行固定到“arpu(旧)”，第二行从“渗透率”开始，逐列与第一行左对齐。
+// 第一行固定到“付费用户数(旧)”，第二行从“arpu”开始，逐列与第一行左对齐。
 const splitIndex = (() => {
-  const index = defs.findIndex((def) => def.name === 'arpu(旧)')
+  const index = defs.findIndex((def) => def.name === '付费用户数(旧)')
   return index >= 0 ? index + 1 : Math.ceil(defs.length / 2)
 })()
 const totalColumns = Math.max(splitIndex, defs.length - splitIndex)
