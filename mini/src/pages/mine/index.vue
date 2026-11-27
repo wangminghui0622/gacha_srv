@@ -168,7 +168,8 @@ function onLogout() {
 </script>
 
 <template>
-  <view class="mine-page" :style="{ paddingTop: `${statusBarHeight}px` }">
+  <view class="mine-root">
+    <view class="mine-page" :style="{ paddingTop: `${statusBarHeight}px` }">
     <view class="top-glow" />
     <view class="stripe-glow" />
 
@@ -262,12 +263,18 @@ function onLogout() {
       </view>
     </view>
 
+    </view>
+    <BottomTabBar active="mine" />
   </view>
-  <BottomTabBar active="mine" />
 </template>
 
 <style scoped lang="scss">
 page {
+  background: #050706;
+}
+
+.mine-root {
+  min-height: 100vh;
   background: #050706;
 }
 

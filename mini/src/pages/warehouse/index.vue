@@ -233,7 +233,8 @@ function goDraw() {
 </script>
 
 <template>
-  <view class="warehouse-page" :style="{ paddingTop: `${statusBarHeight}px` }">
+  <view class="warehouse-root">
+    <view class="warehouse-page" :style="{ paddingTop: `${statusBarHeight}px` }">
     <view class="top-glow" />
 
     <view class="warehouse-header" :style="capsuleRight ? { paddingRight: `${capsuleRight}px` } : undefined">
@@ -304,19 +305,25 @@ function goDraw() {
       </view>
     </view>
 
-  </view>
-
-  <view class="ship-bar">
-    <view class="ship-btn" @click="shipSelected">
-      {{ selectedCount > 0 ? t('warehouse.shipWithCount', { n: selectedCount }) : t('warehouse.ship') }}
     </view>
-  </view>
 
-  <BottomTabBar active="warehouse" />
+    <view class="ship-bar">
+      <view class="ship-btn" @click="shipSelected">
+        {{ selectedCount > 0 ? t('warehouse.shipWithCount', { n: selectedCount }) : t('warehouse.ship') }}
+      </view>
+    </view>
+
+    <BottomTabBar active="warehouse" />
+  </view>
 </template>
 
 <style scoped lang="scss">
 page {
+  background: #050706;
+}
+
+.warehouse-root {
+  min-height: 100vh;
   background: #050706;
 }
 

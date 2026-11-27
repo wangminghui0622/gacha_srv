@@ -297,7 +297,8 @@ function onQuickTap(key: string) {
 </script>
 
 <template>
-  <view class="home-page" :style="{ paddingTop: `${statusBarHeight}px` }">
+  <view class="home-root">
+    <view class="home-page" :style="{ paddingTop: `${statusBarHeight}px` }">
     <view class="bg-glow bg-glow-a" />
     <view class="bg-glow bg-glow-b" />
 
@@ -429,12 +430,18 @@ function onQuickTap(key: string) {
       </view>
     </template>
 
+    </view>
+    <BottomTabBar active="home" />
   </view>
-  <BottomTabBar active="home" />
 </template>
 
 <style scoped lang="scss">
 page {
+  background: #050706;
+}
+
+.home-root {
+  min-height: 100vh;
   background: #050706;
 }
 
