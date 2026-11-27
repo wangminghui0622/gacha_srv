@@ -86,8 +86,6 @@ const defs: SeriesDef[] = [
   { name: '退微信赠送', axis: 0, kind: 'money', value: (r) => r.wechatGiftRefundFen / 100 },
   { name: '退支付宝赠送', axis: 0, kind: 'money', value: (r) => r.alipayGiftRefundFen / 100 },
   { name: '退汇付赠送', axis: 0, kind: 'money', value: (r) => r.huifuGiftRefundFen / 100 },
-  { name: '总退款(¥)', axis: 0, kind: 'money', value: (r) => r.refundAmountFen / 100 },
-  { name: '退款(¥)用户数', axis: 0, kind: 'count', value: (r) => r.refundUsers },
   { name: '退款(¥)率', axis: 1, kind: 'rate', value: (r) => r.refundRateBps / 100 },
   { name: '总税收', axis: 0, kind: 'money', value: (r) => r.taxFen / 100 },
   { name: '税收(新)', axis: 0, kind: 'money', value: (r) => r.newTaxFen / 100 },
@@ -96,7 +94,6 @@ const defs: SeriesDef[] = [
   { name: '营收率', axis: 1, kind: 'rate', value: (r) => r.revenueRateBps / 100 },
   { name: '营收ARPU', axis: 0, kind: 'money', value: (r) => r.revenueArpuFen / 100 },
   { name: 'WalletBalance', axis: 0, kind: 'money', value: (r) => r.walletBalanceFen / 100 },
-  { name: '余额余额', axis: 0, kind: 'money', value: (r) => r.walletBalanceFen / 100 },
   { name: '吉豆余额', axis: 0, kind: 'count', value: (r) => r.bonusBalanceFen },
   { name: '积分余额', axis: 0, kind: 'count', value: (r) => r.loyaltyPointBalance },
   { name: '吉祥值余额', axis: 0, kind: 'count', value: (r) => r.redeemPointBalance },
@@ -273,20 +270,18 @@ onBeforeUnmount(() => {
 }
 
 .legend-grid {
-  display: grid;
-  grid-template-columns: repeat(13, max-content);
-  column-gap: 12px;
-  row-gap: 6px;
-  justify-content: start;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
   width: 100%;
 }
 
 .legend-item {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: flex-start;
   gap: 4px;
-  width: 100%;
-  min-width: 0;
   padding: 0;
   border: 0;
   background: transparent;
