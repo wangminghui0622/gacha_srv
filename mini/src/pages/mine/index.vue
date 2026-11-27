@@ -262,8 +262,8 @@ function onLogout() {
       </view>
     </view>
 
-    <BottomTabBar active="mine" />
   </view>
+  <BottomTabBar active="mine" />
 </template>
 
 <style scoped lang="scss">

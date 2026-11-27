@@ -7,6 +7,7 @@ import BottomTabBar from '@/components/BottomTabBar.vue'
 import HorizontalScroll from '@/components/HorizontalScroll.vue'
 import * as drawApi from '@/services/draw'
 import * as gashaponApi from '@/services/gashapon'
+import * as rollingApi from '@/services/rolling'
 import * as userApi from '@/services/user'
 import { useAuthStore } from '@/store/authStore'
 
@@ -57,7 +58,8 @@ const gashapon = ref<GashaponDetailResponse | null>(null)
 const activeCategory = ref<CategoryKey>('hot')
 const bannerIndex = ref(0)
 
-const notices = computed(() => [t('home.notice1'), t('home.notice2'), t('home.notice3')])
+const liveNotices = ref<string[]>([])
+const notices = computed(() => [t('home.notice1'), t('home.notice2'), t('home.notice3'), ...liveNotices.value])
 
 const categories = computed(() => [
   { key: 'hot' as const, label: t('home.categories.hot') },
@@ -166,9 +168,10 @@ async function refreshProfile() {
 
 async function load() {
   loading.value = true
-  const [boxResult, gasResult] = await Promise.allSettled([
+  const [boxResult, gasResult, winsResult] = await Promise.allSettled([
     drawApi.listBoxes(),
     gashaponApi.getGashapon(1),
+    rollingApi.listRecentWins({ marqueeOnly: true, limit: 5 }),
   ])
   if (boxResult.status === 'fulfilled') {
     boxes.value = boxResult.value.list ?? []
@@ -176,6 +179,14 @@ async function load() {
     boxes.value = []
   }
   gashapon.value = gasResult.status === 'fulfilled' ? gasResult.value : null
+  if (winsResult.status === 'fulfilled') {
+    liveNotices.value = (winsResult.value.wins ?? []).map((win) => {
+      const suffix = String(win.userId).padStart(4, '0').slice(-4)
+      return `${t('rolling.userMask', { suffix })} ${t('rolling.winText', { entry: win.entryName })}`
+    })
+  } else {
+    liveNotices.value = []
+  }
   loading.value = false
 }
 
@@ -418,8 +429,8 @@ function onQuickTap(key: string) {
       </view>
     </template>
 
-    <BottomTabBar active="home" />
   </view>
+  <BottomTabBar active="home" />
 </template>
 
 <style scoped lang="scss">

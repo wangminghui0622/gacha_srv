@@ -304,14 +304,15 @@ function goDraw() {
       </view>
     </view>
 
-    <view class="ship-bar">
-      <view class="ship-btn" @click="shipSelected">
-        {{ selectedCount > 0 ? t('warehouse.shipWithCount', { n: selectedCount }) : t('warehouse.ship') }}
-      </view>
-    </view>
-
-    <BottomTabBar active="warehouse" />
   </view>
+
+  <view class="ship-bar">
+    <view class="ship-btn" @click="shipSelected">
+      {{ selectedCount > 0 ? t('warehouse.shipWithCount', { n: selectedCount }) : t('warehouse.ship') }}
+    </view>
+  </view>
+
+  <BottomTabBar active="warehouse" />
 </template>
 
 <style scoped lang="scss">

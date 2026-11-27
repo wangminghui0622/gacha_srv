@@ -57,8 +57,12 @@ function switchTo(tab: (typeof tabs.value)[number]) {
   z-index: 80;
   display: flex;
   align-items: center;
+  height: 112rpx;
+  height: calc(112rpx + constant(safe-area-inset-bottom));
   height: calc(112rpx + env(safe-area-inset-bottom));
-  padding: 0 40rpx env(safe-area-inset-bottom);
+  padding: 0 40rpx;
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
   background: rgba(9, 13, 10, 0.97);
   border-top: 1rpx solid rgba(255, 255, 255, 0.06);
   box-sizing: border-box;
