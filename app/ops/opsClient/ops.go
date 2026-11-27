@@ -35,6 +35,9 @@ type (
 	MarketReportReply                     = ops.MarketReportReply
 	MarketReportRequest                   = ops.MarketReportRequest
 	MarketReportRow                       = ops.MarketReportRow
+	OrderReportReply                      = ops.OrderReportReply
+	OrderReportRequest                    = ops.OrderReportRequest
+	OrderReportRow                        = ops.OrderReportRow
 	ApproveTaskPlanPublicationRequest     = ops.ApproveTaskPlanPublicationRequest
 	AttributeValue                        = ops.AttributeValue
 	AuthorizationDecision                 = ops.AuthorizationDecision
@@ -164,6 +167,8 @@ type (
 		GetRealtimeReport(ctx context.Context, in *RealtimeReportRequest, opts ...grpc.CallOption) (*RealtimeReportReply, error)
 		// 市场报表（读 gacha_report.market_daily）
 		GetMarketReport(ctx context.Context, in *MarketReportRequest, opts ...grpc.CallOption) (*MarketReportReply, error)
+		// 订单报表（按日期+用户聚合抽赏订单成本价）
+		GetOrderReport(ctx context.Context, in *OrderReportRequest, opts ...grpc.CallOption) (*OrderReportReply, error)
 		// 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
 		ApplyMetricEvent(ctx context.Context, in *ApplyMetricEventRequest, opts ...grpc.CallOption) (*ApplyMetricEventReply, error)
 	}
@@ -378,6 +383,12 @@ func (m *defaultOps) GetRealtimeReport(ctx context.Context, in *RealtimeReportRe
 func (m *defaultOps) GetMarketReport(ctx context.Context, in *MarketReportRequest, opts ...grpc.CallOption) (*MarketReportReply, error) {
 	client := ops.NewOpsClient(m.cli.Conn())
 	return client.GetMarketReport(ctx, in, opts...)
+}
+
+// 订单报表（按日期+用户聚合抽赏订单成本价）
+func (m *defaultOps) GetOrderReport(ctx context.Context, in *OrderReportRequest, opts ...grpc.CallOption) (*OrderReportReply, error) {
+	client := ops.NewOpsClient(m.cli.Conn())
+	return client.GetOrderReport(ctx, in, opts...)
 }
 
 // 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）

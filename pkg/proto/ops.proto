@@ -69,6 +69,8 @@ service Ops {
     rpc GetRealtimeReport(RealtimeReportRequest) returns (RealtimeReportReply);
     // 市场报表（读 gacha_report.market_daily；无数据日期补 0）
     rpc GetMarketReport(MarketReportRequest) returns (MarketReportReply);
+    // 订单报表（按日期+用户聚合抽赏订单成本价）
+    rpc GetOrderReport(OrderReportRequest) returns (OrderReportReply);
     // 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
     rpc ApplyMetricEvent(ApplyMetricEventRequest) returns (ApplyMetricEventReply);
 }
@@ -840,5 +842,29 @@ message MarketReportRow {
 
 message MarketReportReply {
     repeated MarketReportRow rows = 1;
+}
+
+// ── 订单报表（按日期+用户聚合抽赏订单）──
+message OrderReportRequest {
+    string start_date = 1;
+    string end_date = 2;
+    // 对内数字用户ID或对外 public_id；空=不过滤
+    string user_id = 3;
+    // 用户昵称模糊匹配；空=不过滤
+    string nickname = 4;
+    // 手机号精确匹配解析出的用户ID；0=不过滤
+    int64 phone_user_id = 5;
+}
+
+message OrderReportRow {
+    string date = 1;
+    int64 user_id = 2;
+    string nickname = 3;
+    // 成本价（分）：当日该用户抽赏订单实付合计
+    int64 cost_fen = 4;
+}
+
+message OrderReportReply {
+    repeated OrderReportRow rows = 1;
 }
 

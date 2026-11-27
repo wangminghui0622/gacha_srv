@@ -198,6 +198,7 @@ func All() []Operation {
 		{ID: "console.reporting.revenue", Resource: "reporting.metric", Action: "read", Method: "GET", Path: "/reporting/revenue", Title: "营收报表"},
 		{ID: "console.reporting.realtime", Resource: "reporting.metric", Action: "read", Method: "GET", Path: "/reporting/realtime", Title: "实时报表"},
 		{ID: "console.reporting.market", Resource: "reporting.metric", Action: "read", Method: "GET", Path: "/reporting/market", Title: "市场报表"},
+		{ID: "console.reporting.orders", Resource: "reporting.metric", Action: "read", Method: "GET", Path: "/reporting/orders", Title: "订单报表"},
 		{ID: "console.reporting.save", Resource: "reporting.dashboard", Action: "write", Method: "POST", Path: "/reporting/dashboards", Title: "保存看板"},
 		{ID: "console.reporting.get", Resource: "reporting.dashboard", Action: "read", Method: "GET", Path: "/reporting/dashboards/:dashboardId", Title: "读取看板"},
 		{ID: "console.reporting.publish", Resource: "reporting.dashboard", Action: "publish", Method: "POST", Path: "/reporting/dashboards/:dashboardId/publish", Title: "发布看板"},

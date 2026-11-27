@@ -224,6 +224,12 @@ func (s *OpsServer) GetMarketReport(ctx context.Context, in *ops.MarketReportReq
 	return l.GetMarketReport(in)
 }
 
+// 订单报表（按日期+用户聚合抽赏订单成本价）
+func (s *OpsServer) GetOrderReport(ctx context.Context, in *ops.OrderReportRequest) (*ops.OrderReportReply, error) {
+	l := logic.NewGetOrderReportLogic(ctx, s.svcCtx)
+	return l.GetOrderReport(in)
+}
+
 // 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
 func (s *OpsServer) ApplyMetricEvent(ctx context.Context, in *ops.ApplyMetricEventRequest) (*ops.ApplyMetricEventReply, error) {
 	l := logic.NewApplyMetricEventLogic(ctx, s.svcCtx)

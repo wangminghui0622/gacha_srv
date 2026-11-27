@@ -57,6 +57,7 @@ const (
 	Ops_GetRevenueReport_FullMethodName               = "/ops.Ops/GetRevenueReport"
 	Ops_GetRealtimeReport_FullMethodName              = "/ops.Ops/GetRealtimeReport"
 	Ops_GetMarketReport_FullMethodName                = "/ops.Ops/GetMarketReport"
+	Ops_GetOrderReport_FullMethodName                 = "/ops.Ops/GetOrderReport"
 	Ops_ApplyMetricEvent_FullMethodName               = "/ops.Ops/ApplyMetricEvent"
 )
 
@@ -113,6 +114,8 @@ type OpsClient interface {
 	GetRealtimeReport(ctx context.Context, in *RealtimeReportRequest, opts ...grpc.CallOption) (*RealtimeReportReply, error)
 	// 市场报表（读 gacha_report.market_daily；无数据日期补 0）
 	GetMarketReport(ctx context.Context, in *MarketReportRequest, opts ...grpc.CallOption) (*MarketReportReply, error)
+	// 订单报表（按日期+用户聚合抽赏订单成本价）
+	GetOrderReport(ctx context.Context, in *OrderReportRequest, opts ...grpc.CallOption) (*OrderReportReply, error)
 	// 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
 	ApplyMetricEvent(ctx context.Context, in *ApplyMetricEventRequest, opts ...grpc.CallOption) (*ApplyMetricEventReply, error)
 }
@@ -467,6 +470,15 @@ func (c *opsClient) GetMarketReport(ctx context.Context, in *MarketReportRequest
 	return out, nil
 }
 
+func (c *opsClient) GetOrderReport(ctx context.Context, in *OrderReportRequest, opts ...grpc.CallOption) (*OrderReportReply, error) {
+	out := new(OrderReportReply)
+	err := c.cc.Invoke(ctx, Ops_GetOrderReport_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *opsClient) ApplyMetricEvent(ctx context.Context, in *ApplyMetricEventRequest, opts ...grpc.CallOption) (*ApplyMetricEventReply, error) {
 	out := new(ApplyMetricEventReply)
 	err := c.cc.Invoke(ctx, Ops_ApplyMetricEvent_FullMethodName, in, out, opts...)
@@ -529,6 +541,8 @@ type OpsServer interface {
 	GetRealtimeReport(context.Context, *RealtimeReportRequest) (*RealtimeReportReply, error)
 	// 市场报表（读 gacha_report.market_daily；无数据日期补 0）
 	GetMarketReport(context.Context, *MarketReportRequest) (*MarketReportReply, error)
+	// 订单报表（按日期+用户聚合抽赏订单成本价）
+	GetOrderReport(context.Context, *OrderReportRequest) (*OrderReportReply, error)
 	// 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
 	ApplyMetricEvent(context.Context, *ApplyMetricEventRequest) (*ApplyMetricEventReply, error)
 	mustEmbedUnimplementedOpsServer()
@@ -651,6 +665,9 @@ func (UnimplementedOpsServer) GetRealtimeReport(context.Context, *RealtimeReport
 }
 func (UnimplementedOpsServer) GetMarketReport(context.Context, *MarketReportRequest) (*MarketReportReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMarketReport not implemented")
+}
+func (UnimplementedOpsServer) GetOrderReport(context.Context, *OrderReportRequest) (*OrderReportReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOrderReport not implemented")
 }
 func (UnimplementedOpsServer) ApplyMetricEvent(context.Context, *ApplyMetricEventRequest) (*ApplyMetricEventReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ApplyMetricEvent not implemented")
@@ -1352,6 +1369,24 @@ func _Ops_GetMarketReport_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Ops_GetOrderReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OrderReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OpsServer).GetOrderReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Ops_GetOrderReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OpsServer).GetOrderReport(ctx, req.(*OrderReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Ops_ApplyMetricEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ApplyMetricEventRequest)
 	if err := dec(in); err != nil {
@@ -1528,6 +1563,10 @@ var Ops_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMarketReport",
 			Handler:    _Ops_GetMarketReport_Handler,
+		},
+		{
+			MethodName: "GetOrderReport",
+			Handler:    _Ops_GetOrderReport_Handler,
 		},
 		{
 			MethodName: "ApplyMetricEvent",

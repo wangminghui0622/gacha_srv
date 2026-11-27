@@ -610,7 +610,7 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     title: 'nav.reportOrders',
     showInMenu: false,
     backFallback: '/dashboard',
-    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+    component: () => import('@/views/reporting/OrderReportView.vue'),
   },
   {
     name: 'query-item-flow',
