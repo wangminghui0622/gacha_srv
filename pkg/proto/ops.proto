@@ -65,6 +65,8 @@ service Ops {
     rpc GetRetentionReport(RetentionReportRequest) returns (RetentionReportReply);
     // 营收报表（读 gacha_report.revenue_daily；ops-rpc 定时聚合）
     rpc GetRevenueReport(RevenueReportRequest) returns (RevenueReportReply);
+    // 实时报表（今天/昨天 10 分钟桶；ops-rpc 直接查询业务库）
+    rpc GetRealtimeReport(RealtimeReportRequest) returns (RealtimeReportReply);
     // 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
     rpc ApplyMetricEvent(ApplyMetricEventRequest) returns (ApplyMetricEventReply);
 }
@@ -784,5 +786,38 @@ message RevenueReportRow {
 
 message RevenueReportReply {
     repeated RevenueReportRow rows = 1;
+}
+
+// ── 实时报表（今天/昨天 10 分钟桶）──
+message RealtimeReportRequest {}
+
+message RealtimeSummary {
+    int64 total_registrations = 1;
+    int64 total_paying_users = 2;
+    int64 total_pay_fen = 3;
+    int64 total_recharge_users = 4;
+    int64 total_recharge_fen = 5;
+    int64 total_refund_fen = 6;
+    int64 arppu_fen = 7;
+    int64 today_registrations = 8;
+    int64 today_pay_fen = 9;
+    int64 today_recharge_fen = 10;
+}
+
+message RealtimeSeries {
+    string name = 1;
+    string kind = 2; // count | money
+    repeated int64 values = 3;
+}
+
+message RealtimeChart {
+    string title = 1;
+    repeated RealtimeSeries series = 2;
+}
+
+message RealtimeReportReply {
+    RealtimeSummary summary = 1;
+    repeated string labels = 2;
+    repeated RealtimeChart charts = 3;
 }
 

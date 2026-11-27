@@ -586,7 +586,7 @@ export const consoleRouteCatalog: ConsoleRouteDef[] = [
     title: 'nav.reportRealtime',
     showInMenu: false,
     backFallback: '/dashboard',
-    component: () => import('@/views/common/ModulePlaceholderView.vue'),
+    component: () => import('@/views/reporting/RealtimeReportView.vue'),
   },
   {
     name: 'report-market',

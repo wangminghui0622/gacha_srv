@@ -27,6 +27,11 @@ type (
 	RevenueReportReply                    = ops.RevenueReportReply
 	RevenueReportRequest                  = ops.RevenueReportRequest
 	RevenueReportRow                      = ops.RevenueReportRow
+	RealtimeChart                         = ops.RealtimeChart
+	RealtimeReportReply                   = ops.RealtimeReportReply
+	RealtimeReportRequest                 = ops.RealtimeReportRequest
+	RealtimeSeries                        = ops.RealtimeSeries
+	RealtimeSummary                       = ops.RealtimeSummary
 	ApproveTaskPlanPublicationRequest     = ops.ApproveTaskPlanPublicationRequest
 	AttributeValue                        = ops.AttributeValue
 	AuthorizationDecision                 = ops.AuthorizationDecision
@@ -152,6 +157,8 @@ type (
 		GetRetentionReport(ctx context.Context, in *RetentionReportRequest, opts ...grpc.CallOption) (*RetentionReportReply, error)
 		// 营收报表（读 gacha_report.revenue_daily）
 		GetRevenueReport(ctx context.Context, in *RevenueReportRequest, opts ...grpc.CallOption) (*RevenueReportReply, error)
+		// 实时报表（今天/昨天 10 分钟桶）
+		GetRealtimeReport(ctx context.Context, in *RealtimeReportRequest, opts ...grpc.CallOption) (*RealtimeReportReply, error)
 		// 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
 		ApplyMetricEvent(ctx context.Context, in *ApplyMetricEventRequest, opts ...grpc.CallOption) (*ApplyMetricEventReply, error)
 	}
@@ -354,6 +361,12 @@ func (m *defaultOps) GetRetentionReport(ctx context.Context, in *RetentionReport
 func (m *defaultOps) GetRevenueReport(ctx context.Context, in *RevenueReportRequest, opts ...grpc.CallOption) (*RevenueReportReply, error) {
 	client := ops.NewOpsClient(m.cli.Conn())
 	return client.GetRevenueReport(ctx, in, opts...)
+}
+
+// 实时报表（今天/昨天 10 分钟桶）
+func (m *defaultOps) GetRealtimeReport(ctx context.Context, in *RealtimeReportRequest, opts ...grpc.CallOption) (*RealtimeReportReply, error) {
+	client := ops.NewOpsClient(m.cli.Conn())
+	return client.GetRealtimeReport(ctx, in, opts...)
 }
 
 // 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）

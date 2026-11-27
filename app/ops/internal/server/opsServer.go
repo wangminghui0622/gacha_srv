@@ -212,6 +212,12 @@ func (s *OpsServer) GetRevenueReport(ctx context.Context, in *ops.RevenueReportR
 	return l.GetRevenueReport(in)
 }
 
+// 实时报表（今天/昨天 10 分钟桶）
+func (s *OpsServer) GetRealtimeReport(ctx context.Context, in *ops.RealtimeReportRequest) (*ops.RealtimeReportReply, error) {
+	l := logic.NewGetRealtimeReportLogic(ctx, s.svcCtx)
+	return l.GetRealtimeReport(in)
+}
+
 // 指标事件应用（M15d：integration 指标管线接入；内部 RPC 无 HTTP 路由）
 func (s *OpsServer) ApplyMetricEvent(ctx context.Context, in *ops.ApplyMetricEventRequest) (*ops.ApplyMetricEventReply, error) {
 	l := logic.NewApplyMetricEventLogic(ctx, s.svcCtx)
