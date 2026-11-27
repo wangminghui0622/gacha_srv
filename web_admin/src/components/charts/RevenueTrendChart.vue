@@ -67,8 +67,8 @@ const defs: SeriesDef[] = [
   { name: '付费用户数(旧)', axis: 0, kind: 'count', value: (r) => r.oldPayingUsers },
   { name: 'arpu', axis: 0, kind: 'money', value: (r) => r.arpuFen / 100 },
   { name: 'arppu', axis: 0, kind: 'money', value: (r) => r.arppuFen / 100 },
-  { name: 'arpu(新)', axis: 0, kind: 'money', value: (r) => r.arpuNewFen / 100 },
-  { name: 'arpu(旧)', axis: 0, kind: 'money', value: (r) => r.arpuOldFen / 100 },
+  { name: 'arppu(新)', axis: 0, kind: 'money', value: (r) => (r.newPayingUsers > 0 ? r.newPayAmountFen / r.newPayingUsers / 100 : 0) },
+  { name: 'arppu(旧)', axis: 0, kind: 'money', value: (r) => (r.oldPayingUsers > 0 ? r.oldPayAmountFen / r.oldPayingUsers / 100 : 0) },
   { name: '渗透率', axis: 1, kind: 'rate', value: (r) => r.penetrationBps / 100 },
   { name: '渗透率(新)', axis: 1, kind: 'rate', value: (r) => r.penetrationNewBps / 100 },
   // 第 3 行：剩余指标
