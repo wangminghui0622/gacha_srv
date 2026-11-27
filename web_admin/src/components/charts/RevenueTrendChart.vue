@@ -1,34 +1,13 @@
 <template>
   <div class="revenue-chart-wrap">
     <div class="custom-legend">
-      <div class="legend-row legend-row-first">
+      <div class="legend-grid">
         <button
-          v-for="item in firstRowItems"
-          :key="item.name"
-          type="button"
-          class="legend-item legend-item-first"
-          :class="{ 'is-selected': selectedMap[item.name] }"
-          :title="item.name"
-          @click="toggle(item.name)"
-        >
-          <span
-            class="legend-dot"
-            :style="{ backgroundColor: selectedMap[item.name] ? seriesColor(item.index) : '#d9d9d9' }"
-          />
-          <span class="legend-text">{{ item.name }}</span>
-        </button>
-      </div>
-      <div
-        class="legend-row legend-row-second"
-        :style="{ gridTemplateColumns: `repeat(${totalColumns}, minmax(0, 1fr))` }"
-      >
-        <button
-          v-for="item in secondRowItems"
+          v-for="item in legendItems"
           :key="item.name"
           type="button"
           class="legend-item"
           :class="{ 'is-selected': selectedMap[item.name] }"
-          :style="{ gridColumn: item.column }"
           :title="item.name"
           @click="toggle(item.name)"
         >
@@ -148,27 +127,9 @@ for (const name of ['注册数', '日活', '总付费', '付费用户数', '渗�
 const selectedMap = reactive<Record<string, boolean>>({ ...defaultSelected })
 
 // 第一行固定到“付费用户数(旧)”，第二行从“arpu”开始，逐列与第一行左对齐。
-const splitIndex = (() => {
-  const index = defs.findIndex((def) => def.name === '付费用户数(旧)')
-  return index >= 0 ? index + 1 : Math.ceil(defs.length / 2)
-})()
-const totalColumns = Math.max(splitIndex, defs.length - splitIndex)
-
-const legendItems = computed(() =>
-  defs.map((def, index) => {
-    const row = index < splitIndex ? 1 : 2
-    // 第一行项目少：均匀占用 24 列中的 16 列，用空列把间距拉开；
-    // 第二行 24 个项目仍逐列占满，列起点与第一行保持一致。
-    const column =
-      row === 1
-        ? Math.round((index * (totalColumns - 1)) / Math.max(1, splitIndex - 1)) + 1
-        : index - splitIndex + 1
-    return { name: def.name, index, row, column }
-  }),
-)
-
-const firstRowItems = computed(() => legendItems.value.filter((item) => item.row === 1))
-const secondRowItems = computed(() => legendItems.value.filter((item) => item.row === 2))
+// 16 列自动排布：前 16 个为第一行，之后 16 个为第二行，剩余 8 个为第三行。
+// 三行共用同一组列，保证每列左侧竖向对齐。
+const legendItems = computed(() => defs.map((def, index) => ({ name: def.name, index })))
 
 function seriesColor(index: number): string {
   if (index < colors.length) {
@@ -296,26 +257,15 @@ onBeforeUnmount(() => {
 
 .custom-legend {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
 }
 
-.legend-row {
-  width: 100%;
-}
-
-.legend-row-first {
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.legend-row-second {
+.legend-grid {
   display: grid;
-  align-items: start;
-  column-gap: 12px;
+  grid-template-columns: repeat(16, max-content);
+  column-gap: 6px;
+  row-gap: 6px;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .legend-item {
@@ -330,31 +280,13 @@ onBeforeUnmount(() => {
   font-size: 14px;
   line-height: 18px;
   text-align: left;
-  cursor: pointer;
-}
-
-.legend-row-first .legend-item {
-  flex: 0 0 auto;
-  width: auto;
   white-space: nowrap;
-}
-
-.legend-row-second .legend-item {
-  width: 100%;
-  align-items: flex-start;
-  white-space: normal;
+  cursor: pointer;
 }
 
 .legend-text {
   min-width: 0;
-}
-
-.legend-row-first .legend-text {
   white-space: nowrap;
-}
-
-.legend-row-second .legend-text {
-  overflow-wrap: anywhere;
 }
 
 .legend-item.is-selected {
@@ -366,14 +298,6 @@ onBeforeUnmount(() => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-}
-
-.legend-row-first .legend-dot {
-  margin-top: 0;
-}
-
-.legend-row-second .legend-dot {
-  margin-top: 6px;
 }
 
 .chart-box {
