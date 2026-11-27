@@ -42,6 +42,14 @@ page {
     box-shadow: 0 0 80px rgba(0, 0, 0, 0.55);
   }
 
+  .home-top,
+  .warehouse-top {
+    left: 50% !important;
+    right: auto !important;
+    width: 390px !important;
+    transform: translateX(-50%);
+  }
+
   .bottom-tabbar {
     left: 50% !important;
     right: auto !important;

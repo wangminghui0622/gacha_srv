@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { onPullDownRefresh, onShow } from '@dcloudio/uni-app'
+import { computed, nextTick, ref } from 'vue'
+import { onPullDownRefresh, onReady, onShow } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 
 import BottomTabBar from '@/components/BottomTabBar.vue'
@@ -51,6 +51,25 @@ try {
 } catch {
   capsuleRight.value = 0
 }
+
+const rpxScale = (sys.windowWidth || 375) / 750
+const topHeight = ref((sys.statusBarHeight || 0) + Math.ceil(180 * rpxScale))
+
+function measureTop() {
+  uni.createSelectorQuery()
+    .select('.home-top')
+    .boundingClientRect((rect) => {
+      const info = Array.isArray(rect) ? rect[0] : rect
+      if (info && info.height) {
+        topHeight.value = Math.ceil(info.height)
+      }
+    })
+    .exec()
+}
+
+onReady(() => {
+  nextTick(() => measureTop())
+})
 
 const loading = ref(true)
 const boxes = ref<BoxItem[]>([])
@@ -298,48 +317,52 @@ function onQuickTap(key: string) {
 
 <template>
   <view class="home-root">
-    <view class="home-page" :style="{ paddingTop: `${statusBarHeight}px` }">
-    <view class="bg-layer">
-      <view class="bg-glow bg-glow-a" />
-      <view class="bg-glow bg-glow-b" />
-    </view>
-
-    <view class="home-header" :style="capsuleRight ? { paddingRight: `${capsuleRight}px` } : undefined">
-      <view class="brand-wrap">
-        <text class="brand-text">{{ t('home.brand') }}</text>
-        <view class="brand-underline" />
-      </view>
-      <view class="notice-pill">
-        <text class="notice-icon">📢</text>
-        <swiper class="notice-swiper" vertical circular autoplay :interval="2800" :duration="450" :disable-touch="true">
-          <swiper-item v-for="notice in notices" :key="notice">
-            <text class="notice-text">{{ notice }}</text>
-          </swiper-item>
-        </swiper>
-      </view>
-      <view class="search-btn" @click="goSearch">
-        <uni-icons type="search" size="21" color="#f4f8f2" />
-      </view>
-    </view>
-
-    <view class="category-sticky" :style="{ top: `${statusBarHeight}px` }">
-      <HorizontalScroll class="category-scroll">
-        <view class="category-inner">
-          <view
-            v-for="cat in categories"
-            :key="cat.key"
-            class="category-item"
-            :class="{ active: activeCategory === cat.key }"
-            @click="onCategoryTap(cat.key)"
-          >
-            <text>{{ cat.label }}</text>
-            <view v-if="activeCategory === cat.key" class="cat-underline" />
-          </view>
+    <view class="home-top" :style="{ paddingTop: `${statusBarHeight}px` }">
+      <view class="home-header" :style="capsuleRight ? { paddingRight: `${capsuleRight}px` } : undefined">
+        <view class="brand-wrap">
+          <text class="brand-text">{{ t('home.brand') }}</text>
+          <view class="brand-underline" />
         </view>
-      </HorizontalScroll>
+        <view class="notice-pill">
+          <text class="notice-icon">📢</text>
+          <swiper class="notice-swiper" vertical circular autoplay :interval="2800" :duration="450" :disable-touch="true">
+            <swiper-item v-for="notice in notices" :key="notice">
+              <text class="notice-text">{{ notice }}</text>
+            </swiper-item>
+          </swiper>
+        </view>
+        <view class="search-btn" @click="goSearch">
+          <uni-icons type="search" size="21" color="#f4f8f2" />
+        </view>
+      </view>
+
+      <view class="category-sticky">
+        <HorizontalScroll class="category-scroll">
+          <view class="category-inner">
+            <view
+              v-for="cat in categories"
+              :key="cat.key"
+              class="category-item"
+              :class="{ active: activeCategory === cat.key }"
+              @click="onCategoryTap(cat.key)"
+            >
+              <text>{{ cat.label }}</text>
+              <view v-if="activeCategory === cat.key" class="cat-underline" />
+            </view>
+          </view>
+        </HorizontalScroll>
+      </view>
     </view>
 
-    <view class="hero-wrap">
+    <view class="top-spacer" :style="{ height: `${topHeight}px` }" />
+
+    <view class="home-page">
+      <view class="bg-layer">
+        <view class="bg-glow bg-glow-a" />
+        <view class="bg-glow bg-glow-b" />
+      </view>
+
+      <view class="hero-wrap">
       <swiper
         class="hero-swiper"
         circular
@@ -447,6 +470,24 @@ page {
 .home-root {
   min-height: 100vh;
   background: #050706;
+}
+
+.home-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  box-sizing: border-box;
+  background:
+    radial-gradient(circle at 22% 0%, rgba(107, 255, 52, 0.16), transparent 36%),
+    repeating-linear-gradient(118deg, rgba(255, 255, 255, 0.012) 0 2rpx, transparent 2rpx 96rpx),
+    #050706;
+  box-shadow: 0 10rpx 24rpx rgba(0, 0, 0, 0.24);
+}
+
+.top-spacer {
+  width: 100%;
 }
 
 .home-page {
@@ -581,10 +622,10 @@ page {
 }
 
 .category-sticky {
-  position: sticky;
-  z-index: 30;
+  position: relative;
+  z-index: 2;
   padding-top: 22rpx;
-  background: #050706;
+  background: transparent;
 }
 
 .category-scroll {

@@ -11,6 +11,7 @@
 			"style": {
 				"navigationStyle": "custom",
 				"navigationBarTitleText": "吉祥赏",
+				"navigationBarTextStyle": "white",
 				"enablePullDownRefresh": true,
 				"backgroundColor": "#050706",
 				"backgroundTextStyle": "light"
@@ -21,6 +22,7 @@
 			"style": {
 				"navigationStyle": "custom",
 				"navigationBarTitleText": "我的",
+				"navigationBarTextStyle": "white",
 				"enablePullDownRefresh": true,
 				"backgroundColor": "#050706",
 				"backgroundTextStyle": "light"
@@ -135,6 +137,7 @@
 			"style": {
 				"navigationStyle": "custom",
 				"navigationBarTitleText": "我的吉仓",
+				"navigationBarTextStyle": "white",
 				"enablePullDownRefresh": true,
 				"backgroundColor": "#050706",
 				"backgroundTextStyle": "light"
@@ -145,6 +148,7 @@
 			"style": {
 				"navigationStyle": "custom",
 				"navigationBarTitleText": "全部赏盒",
+				"navigationBarTextStyle": "white",
 				"backgroundColor": "#050706",
 				"backgroundTextStyle": "light"
 			}

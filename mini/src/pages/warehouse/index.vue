@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { onPullDownRefresh, onShow } from '@dcloudio/uni-app'
+import { computed, nextTick, ref } from 'vue'
+import { onPullDownRefresh, onReady, onShow } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 
 import BottomTabBar from '@/components/BottomTabBar.vue'
@@ -45,6 +45,25 @@ try {
 } catch {
   capsuleRight.value = 0
 }
+
+const rpxScale = (sys.windowWidth || 375) / 750
+const topHeight = ref((sys.statusBarHeight || 0) + Math.ceil(292 * rpxScale))
+
+function measureTop() {
+  uni.createSelectorQuery()
+    .select('.warehouse-top')
+    .boundingClientRect((rect) => {
+      const info = Array.isArray(rect) ? rect[0] : rect
+      if (info && info.height) {
+        topHeight.value = Math.ceil(info.height)
+      }
+    })
+    .exec()
+}
+
+onReady(() => {
+  nextTick(() => measureTop())
+})
 
 const loading = ref(true)
 const items = ref<WarehouseItem[]>([])
@@ -234,51 +253,55 @@ function goDraw() {
 
 <template>
   <view class="warehouse-root">
-    <view class="warehouse-page" :style="{ paddingTop: `${statusBarHeight}px` }">
-    <view class="bg-layer">
-      <view class="top-glow" />
-    </view>
-
-    <view class="warehouse-header" :style="capsuleRight ? { paddingRight: `${capsuleRight}px` } : undefined">
-      <view class="title-wrap">
-        <text class="page-title">{{ t('warehouse.myTitle') }}</text>
-        <view class="title-underline" />
-      </view>
-      <view class="rules-pill" @click="showRules">
-        <text>{{ t('warehouse.rules') }}</text>
-        <view class="rules-dot">!</view>
-      </view>
-    </view>
-
-    <view class="filter-sticky" :style="{ top: `${statusBarHeight}px` }">
-      <view class="tab-shell">
-        <view
-          v-for="tab in tabs"
-          :key="tab.key"
-          class="tab-item"
-          :class="{ active: activeTab === tab.key }"
-          @click="onTabTap(tab.key)"
-        >
-          {{ tab.label }}
+    <view class="warehouse-top" :style="{ paddingTop: `${statusBarHeight}px` }">
+      <view class="warehouse-header" :style="capsuleRight ? { paddingRight: `${capsuleRight}px` } : undefined">
+        <view class="title-wrap">
+          <text class="page-title">{{ t('warehouse.myTitle') }}</text>
+          <view class="title-underline" />
+        </view>
+        <view class="rules-pill" @click="showRules">
+          <text>{{ t('warehouse.rules') }}</text>
+          <view class="rules-dot">!</view>
         </view>
       </view>
 
-      <view class="sort-row">
-        <view class="sort-group">
-          <view class="sort-btn" :class="{ active: sortBy === 'time' }" @click="onSortTap('time')">
-            <text>{{ t('warehouse.sortTime') }}</text>
-            <text class="sort-arrows">{{ sortBy === 'time' ? (sortAsc ? '↑' : '↓') : '↕' }}</text>
-          </view>
-          <view class="sort-btn" :class="{ active: sortBy === 'grade' }" @click="onSortTap('grade')">
-            <text>{{ t('warehouse.sortGrade') }}</text>
-            <text class="sort-arrows">{{ sortBy === 'grade' ? (sortAsc ? '↑' : '↓') : '↕' }}</text>
+      <view class="filter-sticky">
+        <view class="tab-shell">
+          <view
+            v-for="tab in tabs"
+            :key="tab.key"
+            class="tab-item"
+            :class="{ active: activeTab === tab.key }"
+            @click="onTabTap(tab.key)"
+          >
+            {{ tab.label }}
           </view>
         </view>
-        <view class="count-pill">{{ t('warehouse.count', { n: totalCount }) }}</view>
+
+        <view class="sort-row">
+          <view class="sort-group">
+            <view class="sort-btn" :class="{ active: sortBy === 'time' }" @click="onSortTap('time')">
+              <text>{{ t('warehouse.sortTime') }}</text>
+              <text class="sort-arrows">{{ sortBy === 'time' ? (sortAsc ? '↑' : '↓') : '↕' }}</text>
+            </view>
+            <view class="sort-btn" :class="{ active: sortBy === 'grade' }" @click="onSortTap('grade')">
+              <text>{{ t('warehouse.sortGrade') }}</text>
+              <text class="sort-arrows">{{ sortBy === 'grade' ? (sortAsc ? '↑' : '↓') : '↕' }}</text>
+            </view>
+          </view>
+          <view class="count-pill">{{ t('warehouse.count', { n: totalCount }) }}</view>
+        </view>
       </view>
     </view>
 
-    <view v-if="loading" class="status-box">
+    <view class="top-spacer" :style="{ height: `${topHeight}px` }" />
+
+    <view class="warehouse-page">
+      <view class="bg-layer">
+        <view class="top-glow" />
+      </view>
+
+      <view v-if="loading" class="status-box">
       <text class="status-text">{{ t('common.loading') }}</text>
     </view>
 
@@ -329,6 +352,24 @@ page {
 .warehouse-root {
   min-height: 100vh;
   background: #050706;
+}
+
+.warehouse-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  box-sizing: border-box;
+  background:
+    radial-gradient(circle at 22% 0%, rgba(128, 255, 46, 0.14), transparent 34%),
+    repeating-linear-gradient(118deg, rgba(255, 255, 255, 0.012) 0 2rpx, transparent 2rpx 96rpx),
+    #050706;
+  box-shadow: 0 10rpx 24rpx rgba(0, 0, 0, 0.24);
+}
+
+.top-spacer {
+  width: 100%;
 }
 
 .warehouse-page {
@@ -424,12 +465,12 @@ page {
 }
 
 .filter-sticky {
-  position: sticky;
-  z-index: 30;
+  position: relative;
+  z-index: 2;
   margin-top: 20rpx;
   padding-top: 14rpx;
   padding-bottom: 4rpx;
-  background: #050706;
+  background: transparent;
 }
 
 .tab-shell {
