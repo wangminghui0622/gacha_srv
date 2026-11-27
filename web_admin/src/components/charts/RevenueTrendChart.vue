@@ -274,7 +274,7 @@ onBeforeUnmount(() => {
 
 .legend-grid {
   display: grid;
-  grid-template-columns: repeat(12, max-content);
+  grid-template-columns: repeat(13, max-content);
   column-gap: 12px;
   row-gap: 6px;
   justify-content: start;
