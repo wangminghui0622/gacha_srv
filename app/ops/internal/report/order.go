@@ -45,6 +45,9 @@ func QueryOrder(db *gorm.DB, start, end time.Time, userID, nickname string, phon
 			if id > 0 {
 				where = append(where, "r.user_id = ?")
 				args = append(args, id)
+			} else {
+				// 0/负数不是有效用户ID，直接返回空结果，避免退化成全量查询。
+				where = append(where, "1 = 0")
 			}
 		} else {
 			where = append(where, "u.public_id = ?")
