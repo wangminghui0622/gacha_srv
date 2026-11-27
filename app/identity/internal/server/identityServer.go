@@ -43,6 +43,22 @@ func (s *IdentityServer) GetProfile(ctx context.Context, in *identity.GetProfile
 	return l.GetProfile(in)
 }
 
+// 邀请关系
+func (s *IdentityServer) GetInviteInfo(ctx context.Context, in *identity.GetInviteInfoReq) (*identity.GetInviteInfoResp, error) {
+	l := logic.NewGetInviteInfoLogic(ctx, s.svcCtx)
+	return l.GetInviteInfo(in)
+}
+
+func (s *IdentityServer) BindInviteCode(ctx context.Context, in *identity.BindInviteCodeReq) (*identity.BindInviteCodeResp, error) {
+	l := logic.NewBindInviteCodeLogic(ctx, s.svcCtx)
+	return l.BindInviteCode(in)
+}
+
+func (s *IdentityServer) ListInviteRecords(ctx context.Context, in *identity.ListInviteRecordsReq) (*identity.ListInviteRecordsResp, error) {
+	l := logic.NewListInviteRecordsLogic(ctx, s.svcCtx)
+	return l.ListInviteRecords(in)
+}
+
 // ── M15a 手机号/微信登录（请求形状照抄 server_v2，响应维持本仓 LoginResp）──
 func (s *IdentityServer) RequestPhoneLoginCode(ctx context.Context, in *identity.RequestPhoneLoginCodeReq) (*identity.RequestPhoneLoginCodeResp, error) {
 	l := logic.NewRequestPhoneLoginCodeLogic(ctx, s.svcCtx)

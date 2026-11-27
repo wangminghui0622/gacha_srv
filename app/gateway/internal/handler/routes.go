@@ -8,15 +8,15 @@ import (
 
 	campaign "gacha_srv/app/gateway/internal/handler/campaign"
 	combochain "gacha_srv/app/gateway/internal/handler/combochain"
+	coupon "gacha_srv/app/gateway/internal/handler/coupon"
 	dig "gacha_srv/app/gateway/internal/handler/dig"
 	draw "gacha_srv/app/gateway/internal/handler/draw"
 	fullcar "gacha_srv/app/gateway/internal/handler/fullcar"
-	coupon "gacha_srv/app/gateway/internal/handler/coupon"
 	gashapon "gacha_srv/app/gateway/internal/handler/gashapon"
 	groupbuy "gacha_srv/app/gateway/internal/handler/groupbuy"
+	identity "gacha_srv/app/gateway/internal/handler/identity"
 	memorymatch "gacha_srv/app/gateway/internal/handler/memorymatch"
 	task "gacha_srv/app/gateway/internal/handler/task"
-	identity "gacha_srv/app/gateway/internal/handler/identity"
 	"gacha_srv/app/gateway/internal/svc"
 
 	"github.com/zeromicro/go-zero/rest"
@@ -42,6 +42,12 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodGet,
 				Path:    "/rolling-draw/recent-wins",
 				Handler: draw.RollingRecentWinsHandler(serverCtx),
+			},
+			{
+				// 邀请二维码图片（公开，按邀请码生成 PNG）
+				Method:  http.MethodGet,
+				Path:    "/invite/qrcode",
+				Handler: identity.InviteQrHandler(),
 			},
 		},
 		rest.WithPrefix("/gacha/api/v1"),
@@ -404,6 +410,24 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Method:  http.MethodPost,
 					Path:    "/user/recharge",
 					Handler: identity.RechargeHandler(serverCtx),
+				},
+				{
+					// 我的邀请信息
+					Method:  http.MethodGet,
+					Path:    "/user/invite",
+					Handler: identity.InviteInfoHandler(serverCtx),
+				},
+				{
+					// 绑定邀请码
+					Method:  http.MethodPost,
+					Path:    "/user/invite/bind",
+					Handler: identity.BindInviteCodeHandler(serverCtx),
+				},
+				{
+					// 我的邀请记录
+					Method:  http.MethodGet,
+					Path:    "/user/invite/records",
+					Handler: identity.InviteRecordsHandler(serverCtx),
 				},
 			}...,
 		),

@@ -29,6 +29,18 @@ ThirdpartyRpc:
       - ${ETCD_ENDPOINTS}
     Key: thirdparty.rpc
 
+# 钱包服务（邀请奖励吉祥值入账）
+MoneyRpc:
+  Etcd:
+    Hosts:
+      - ${ETCD_ENDPOINTS}
+    Key: money.rpc
+
+# 邀请奖励：每成功邀请 1 人奖励 10 吉祥值，邀请人需在 10 天内打开邀请页领取
+Invite:
+  RewardPoints: 10
+  RewardValidDays: 10
+
 Log:
   ServiceName: identity-rpc
   Mode: console

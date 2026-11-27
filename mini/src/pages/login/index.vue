@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 
 import * as userApi from '@/services/user'
@@ -18,7 +18,33 @@ const loading = ref(false)
 // M15a 手机号登录（tenantId 与 web 一致恒 1）
 const phoneForm = reactive({ tenantId: 1, phone: '', code: '888888' })
 
-// 登录成功：写令牌 → 拉资料入 store → 进首页（reLaunch 清栈，登录页出栈）
+const PENDING_INVITE_KEY = 'pending_invite_code'
+
+// 分享链接携带 inviteCode 时先暂存，登录成功后绑定邀请关系
+onLoad((query) => {
+  const raw = query?.inviteCode
+  if (!raw) return
+  try {
+    uni.setStorageSync(PENDING_INVITE_KEY, decodeURIComponent(String(raw)))
+  } catch {
+    // 忽略存储异常
+  }
+})
+
+async function bindPendingInvite() {
+  const raw = uni.getStorageSync(PENDING_INVITE_KEY)
+  const code = typeof raw === 'string' ? raw.trim() : ''
+  if (!code) return
+  try {
+    await userApi.bindInviteCode(code)
+  } catch {
+    // 邀请码无效/已绑定其他邀请人：不阻断登录
+  } finally {
+    uni.removeStorageSync(PENDING_INVITE_KEY)
+  }
+}
+
+// 登录成功：写令牌 → 拉资料入 store → 绑定邀请码 → 进首页（reLaunch 清栈，登录页出栈）
 async function afterAuth(token: string) {
   auth.setAuth(token)
   try {
@@ -26,6 +52,7 @@ async function afterAuth(token: string) {
   } catch {
     // 资料失败不阻断进首页（401 由适配器统一处理）
   }
+  await bindPendingInvite()
   uni.showToast({ title: t('auth.loginSuccess'), icon: 'success' })
   setTimeout(() => uni.reLaunch({ url: '/pages/index/index' }), 600)
 }
@@ -39,6 +66,7 @@ onShow(async () => {
   if (!tokenStorage.get()) return
   try {
     auth.setUser(await userApi.getProfile())
+    await bindPendingInvite()
     uni.reLaunch({ url: '/pages/index/index' })
   } catch {
     // 401 已由适配器清令牌；其余错误留在登录页

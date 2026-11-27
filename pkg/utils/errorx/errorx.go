@@ -249,6 +249,10 @@ const (
 	CodeConsoleDataScopeDenied = 10025 // 数据范围不足（DATA_SCOPE_DENIED）
 	// M15d 指标事件（ApplyMetricEvent 内部 RPC）
 	CodeMetricEventInvalid = 10026 // 指标事件非法（event_id/tenant 缺失）
+	// 邀请关系
+	CodeInviteCodeInvalid  = 10027 // 邀请码无效
+	CodeInviteAlreadyBound = 10028 // 该用户已绑定其他邀请人
+	CodeInviteSelf         = 10029 // 不能邀请自己
 )
 
 // CodeError 业务错误：对外出口必须经过 FromError 归一

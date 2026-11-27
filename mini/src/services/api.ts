@@ -112,3 +112,8 @@ export function post<T>(url: string, data?: unknown, config?: RequestConfig): Pr
 export function put<T>(url: string, data?: unknown, config?: RequestConfig): Promise<T> {
   return request<T>('PUT', url, data, config)
 }
+
+/** 图片/二维码等非 JSON 资源地址（H5 相对路径，小程序绝对地址） */
+export function apiAssetUrl(path: string): string {
+  return BASE_URL + path
+}

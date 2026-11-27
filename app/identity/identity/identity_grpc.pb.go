@@ -23,6 +23,9 @@ const (
 	Identity_Login_FullMethodName                   = "/identity.Identity/Login"
 	Identity_VerifyToken_FullMethodName             = "/identity.Identity/VerifyToken"
 	Identity_GetProfile_FullMethodName              = "/identity.Identity/GetProfile"
+	Identity_GetInviteInfo_FullMethodName           = "/identity.Identity/GetInviteInfo"
+	Identity_BindInviteCode_FullMethodName          = "/identity.Identity/BindInviteCode"
+	Identity_ListInviteRecords_FullMethodName       = "/identity.Identity/ListInviteRecords"
 	Identity_RequestPhoneLoginCode_FullMethodName   = "/identity.Identity/RequestPhoneLoginCode"
 	Identity_LoginWithPhoneCode_FullMethodName      = "/identity.Identity/LoginWithPhoneCode"
 	Identity_LoginWithWeChatCode_FullMethodName     = "/identity.Identity/LoginWithWeChatCode"
@@ -50,6 +53,10 @@ type IdentityClient interface {
 	Login(ctx context.Context, in *LoginReq, opts ...grpc.CallOption) (*LoginResp, error)
 	VerifyToken(ctx context.Context, in *VerifyTokenReq, opts ...grpc.CallOption) (*VerifyTokenResp, error)
 	GetProfile(ctx context.Context, in *GetProfileReq, opts ...grpc.CallOption) (*GetProfileResp, error)
+	// ── 邀请关系 ──
+	GetInviteInfo(ctx context.Context, in *GetInviteInfoReq, opts ...grpc.CallOption) (*GetInviteInfoResp, error)
+	BindInviteCode(ctx context.Context, in *BindInviteCodeReq, opts ...grpc.CallOption) (*BindInviteCodeResp, error)
+	ListInviteRecords(ctx context.Context, in *ListInviteRecordsReq, opts ...grpc.CallOption) (*ListInviteRecordsResp, error)
 	// ── M15a 手机号/微信登录（请求形状照抄 server_v2，响应维持本仓 LoginResp）──
 	RequestPhoneLoginCode(ctx context.Context, in *RequestPhoneLoginCodeReq, opts ...grpc.CallOption) (*RequestPhoneLoginCodeResp, error)
 	LoginWithPhoneCode(ctx context.Context, in *LoginWithPhoneCodeReq, opts ...grpc.CallOption) (*LoginResp, error)
@@ -112,6 +119,33 @@ func (c *identityClient) VerifyToken(ctx context.Context, in *VerifyTokenReq, op
 func (c *identityClient) GetProfile(ctx context.Context, in *GetProfileReq, opts ...grpc.CallOption) (*GetProfileResp, error) {
 	out := new(GetProfileResp)
 	err := c.cc.Invoke(ctx, Identity_GetProfile_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityClient) GetInviteInfo(ctx context.Context, in *GetInviteInfoReq, opts ...grpc.CallOption) (*GetInviteInfoResp, error) {
+	out := new(GetInviteInfoResp)
+	err := c.cc.Invoke(ctx, Identity_GetInviteInfo_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityClient) BindInviteCode(ctx context.Context, in *BindInviteCodeReq, opts ...grpc.CallOption) (*BindInviteCodeResp, error) {
+	out := new(BindInviteCodeResp)
+	err := c.cc.Invoke(ctx, Identity_BindInviteCode_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityClient) ListInviteRecords(ctx context.Context, in *ListInviteRecordsReq, opts ...grpc.CallOption) (*ListInviteRecordsResp, error) {
+	out := new(ListInviteRecordsResp)
+	err := c.cc.Invoke(ctx, Identity_ListInviteRecords_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -279,6 +313,10 @@ type IdentityServer interface {
 	Login(context.Context, *LoginReq) (*LoginResp, error)
 	VerifyToken(context.Context, *VerifyTokenReq) (*VerifyTokenResp, error)
 	GetProfile(context.Context, *GetProfileReq) (*GetProfileResp, error)
+	// ── 邀请关系 ──
+	GetInviteInfo(context.Context, *GetInviteInfoReq) (*GetInviteInfoResp, error)
+	BindInviteCode(context.Context, *BindInviteCodeReq) (*BindInviteCodeResp, error)
+	ListInviteRecords(context.Context, *ListInviteRecordsReq) (*ListInviteRecordsResp, error)
 	// ── M15a 手机号/微信登录（请求形状照抄 server_v2，响应维持本仓 LoginResp）──
 	RequestPhoneLoginCode(context.Context, *RequestPhoneLoginCodeReq) (*RequestPhoneLoginCodeResp, error)
 	LoginWithPhoneCode(context.Context, *LoginWithPhoneCodeReq) (*LoginResp, error)
@@ -319,6 +357,15 @@ func (UnimplementedIdentityServer) VerifyToken(context.Context, *VerifyTokenReq)
 }
 func (UnimplementedIdentityServer) GetProfile(context.Context, *GetProfileReq) (*GetProfileResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProfile not implemented")
+}
+func (UnimplementedIdentityServer) GetInviteInfo(context.Context, *GetInviteInfoReq) (*GetInviteInfoResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetInviteInfo not implemented")
+}
+func (UnimplementedIdentityServer) BindInviteCode(context.Context, *BindInviteCodeReq) (*BindInviteCodeResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BindInviteCode not implemented")
+}
+func (UnimplementedIdentityServer) ListInviteRecords(context.Context, *ListInviteRecordsReq) (*ListInviteRecordsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListInviteRecords not implemented")
 }
 func (UnimplementedIdentityServer) RequestPhoneLoginCode(context.Context, *RequestPhoneLoginCodeReq) (*RequestPhoneLoginCodeResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RequestPhoneLoginCode not implemented")
@@ -452,6 +499,60 @@ func _Identity_GetProfile_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IdentityServer).GetProfile(ctx, req.(*GetProfileReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Identity_GetInviteInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInviteInfoReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServer).GetInviteInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Identity_GetInviteInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServer).GetInviteInfo(ctx, req.(*GetInviteInfoReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Identity_BindInviteCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BindInviteCodeReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServer).BindInviteCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Identity_BindInviteCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServer).BindInviteCode(ctx, req.(*BindInviteCodeReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Identity_ListInviteRecords_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListInviteRecordsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServer).ListInviteRecords(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Identity_ListInviteRecords_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServer).ListInviteRecords(ctx, req.(*ListInviteRecordsReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -784,6 +885,18 @@ var Identity_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProfile",
 			Handler:    _Identity_GetProfile_Handler,
+		},
+		{
+			MethodName: "GetInviteInfo",
+			Handler:    _Identity_GetInviteInfo_Handler,
+		},
+		{
+			MethodName: "BindInviteCode",
+			Handler:    _Identity_BindInviteCode_Handler,
+		},
+		{
+			MethodName: "ListInviteRecords",
+			Handler:    _Identity_ListInviteRecords_Handler,
 		},
 		{
 			MethodName: "RequestPhoneLoginCode",

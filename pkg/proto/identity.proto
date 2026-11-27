@@ -11,6 +11,10 @@ service Identity {
     rpc Login(LoginReq) returns (LoginResp);
     rpc VerifyToken(VerifyTokenReq) returns (VerifyTokenResp);
     rpc GetProfile(GetProfileReq) returns (GetProfileResp);
+    // ── 邀请关系 ──
+    rpc GetInviteInfo(GetInviteInfoReq) returns (GetInviteInfoResp);
+    rpc BindInviteCode(BindInviteCodeReq) returns (BindInviteCodeResp);
+    rpc ListInviteRecords(ListInviteRecordsReq) returns (ListInviteRecordsResp);
     // ── M15a 手机号/微信登录（请求形状照抄 server_v2，响应维持本仓 LoginResp）──
     rpc RequestPhoneLoginCode(RequestPhoneLoginCodeReq) returns (RequestPhoneLoginCodeResp);
     rpc LoginWithPhoneCode(LoginWithPhoneCodeReq) returns (LoginResp);
@@ -77,6 +81,47 @@ message GetProfileResp {
     string username = 2; // 用户名
     string nickname = 3; // 昵称
     string publicUserId = 4; // 对外字符串用户ID
+}
+
+// ── 邀请关系 ──
+message GetInviteInfoReq {
+    int64 userId = 1;
+}
+
+message GetInviteInfoResp {
+    string code = 1;            // 我的邀请码
+    int64 invitedCount = 2;     // 已邀请好友数
+    int64 rewardPoints = 3;     // 已发放吉祥值
+    int64 pendingPoints = 4;    // 待领取吉祥值
+}
+
+message BindInviteCodeReq {
+    int64 userId = 1;           // 被邀请人（网关从 JWT 取）
+    string code = 2;            // 邀请码
+}
+
+message BindInviteCodeResp {
+    bool bound = 1;
+    bool alreadyBound = 2;
+}
+
+message InviteRecordItem {
+    int64 inviteeUserId = 1;
+    string inviteePublicId = 2;
+    string inviteeNickname = 3;
+    int64 rewardPoints = 4;
+    int32 status = 5;           // 0=待领取 1=已发放 2=已过期
+    int64 boundAtUnix = 6;
+    int64 rewardAtUnix = 7;
+    int64 expiresAtUnix = 8;
+}
+
+message ListInviteRecordsReq {
+    int64 userId = 1;
+}
+
+message ListInviteRecordsResp {
+    repeated InviteRecordItem items = 1;
 }
 
 // ══════════ M15a 手机号/微信登录（契约照抄 server_v2 identity，字段序号一致）══════════

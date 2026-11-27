@@ -589,6 +589,12 @@
     "recordsEmpty": "No invite records yet\nInvite your friends now",
     "inviteBtn": "Invite friends",
     "shareTitle": "Jixiang Shang invite",
-    "shareText": "Join me on Jixiang Shang! My invite code: {code}"
+    "shareText": "Join me on Jixiang Shang! My invite code: {code}",
+    "statusPending": "Pending",
+    "statusGranted": "Granted",
+    "statusExpired": "Expired",
+    "loadError": "Failed to load invite info",
+    "codeLoading": "Loading invite code",
+    "recordFallback": "Friend"
   }
 }

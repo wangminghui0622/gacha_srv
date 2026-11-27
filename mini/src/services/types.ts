@@ -64,6 +64,34 @@ export interface UserProfile {
   balance: string
 }
 
+// ── 邀请关系 ──
+export interface InviteInfo {
+  code: string
+  invitedCount: number
+  rewardPoints: number
+  pendingPoints: number
+}
+
+export interface BindInviteResult {
+  bound: boolean
+  alreadyBound: boolean
+}
+
+export interface InviteRecordItem {
+  inviteeUserId: number
+  inviteePublicId: string
+  inviteeNickname: string
+  rewardPoints: number
+  status: number // 0=待领取 1=已发放 2=已过期
+  boundAtUnix: number
+  rewardAtUnix: number
+  expiresAtUnix: number
+}
+
+export interface InviteRecordsResponse {
+  list: InviteRecordItem[]
+}
+
 // 与后端 RechargeResp 对齐
 export interface RechargeResponse {
   balance: string

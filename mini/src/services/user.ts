@@ -6,6 +6,9 @@ import type {
   PhoneCodeRequest,
   PhoneCodeResponse,
   PhoneLoginRequest,
+  BindInviteResult,
+  InviteInfo,
+  InviteRecordsResponse,
   RechargeResponse,
   RegisterRequest,
   UserProfile,
@@ -54,4 +57,20 @@ export function recharge(amount: string, idempotencyKey: string): Promise<Rechar
   return post<RechargeResponse>('/user/recharge', { amount }, {
     headers: { 'Idempotency-Key': idempotencyKey },
   })
+}
+
+// ── 邀请关系 ──
+/** 我的邀请码/邀请统计 */
+export function getInviteInfo(): Promise<InviteInfo> {
+  return get<InviteInfo>('/user/invite')
+}
+
+/** 绑定邀请码（登录后调用；被邀请人只能绑定一次） */
+export function bindInviteCode(code: string): Promise<BindInviteResult> {
+  return post<BindInviteResult>('/user/invite/bind', { code })
+}
+
+/** 我的邀请记录 */
+export function listInviteRecords(): Promise<InviteRecordsResponse> {
+  return get<InviteRecordsResponse>('/user/invite/records')
 }

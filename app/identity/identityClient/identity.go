@@ -32,6 +32,13 @@ type (
 	FindUserPhoneExactResp      = identity.FindUserPhoneExactResp
 	GetProfileReq               = identity.GetProfileReq
 	GetProfileResp              = identity.GetProfileResp
+	GetInviteInfoReq            = identity.GetInviteInfoReq
+	GetInviteInfoResp           = identity.GetInviteInfoResp
+	BindInviteCodeReq           = identity.BindInviteCodeReq
+	BindInviteCodeResp          = identity.BindInviteCodeResp
+	InviteRecordItem            = identity.InviteRecordItem
+	ListInviteRecordsReq        = identity.ListInviteRecordsReq
+	ListInviteRecordsResp       = identity.ListInviteRecordsResp
 	GetThirdPartyIdentityReq    = identity.GetThirdPartyIdentityReq
 	GetThirdPartyIdentityResp   = identity.GetThirdPartyIdentityResp
 	LinkThirdPartyIdentityReq   = identity.LinkThirdPartyIdentityReq
@@ -61,6 +68,10 @@ type (
 		Login(ctx context.Context, in *LoginReq, opts ...grpc.CallOption) (*LoginResp, error)
 		VerifyToken(ctx context.Context, in *VerifyTokenReq, opts ...grpc.CallOption) (*VerifyTokenResp, error)
 		GetProfile(ctx context.Context, in *GetProfileReq, opts ...grpc.CallOption) (*GetProfileResp, error)
+		// 邀请关系
+		GetInviteInfo(ctx context.Context, in *GetInviteInfoReq, opts ...grpc.CallOption) (*GetInviteInfoResp, error)
+		BindInviteCode(ctx context.Context, in *BindInviteCodeReq, opts ...grpc.CallOption) (*BindInviteCodeResp, error)
+		ListInviteRecords(ctx context.Context, in *ListInviteRecordsReq, opts ...grpc.CallOption) (*ListInviteRecordsResp, error)
 		// ── M15a 手机号/微信登录（请求形状照抄 server_v2，响应维持本仓 LoginResp）──
 		RequestPhoneLoginCode(ctx context.Context, in *RequestPhoneLoginCodeReq, opts ...grpc.CallOption) (*RequestPhoneLoginCodeResp, error)
 		LoginWithPhoneCode(ctx context.Context, in *LoginWithPhoneCodeReq, opts ...grpc.CallOption) (*LoginResp, error)
@@ -112,6 +123,22 @@ func (m *defaultIdentity) VerifyToken(ctx context.Context, in *VerifyTokenReq, o
 func (m *defaultIdentity) GetProfile(ctx context.Context, in *GetProfileReq, opts ...grpc.CallOption) (*GetProfileResp, error) {
 	client := identity.NewIdentityClient(m.cli.Conn())
 	return client.GetProfile(ctx, in, opts...)
+}
+
+// 邀请关系
+func (m *defaultIdentity) GetInviteInfo(ctx context.Context, in *GetInviteInfoReq, opts ...grpc.CallOption) (*GetInviteInfoResp, error) {
+	client := identity.NewIdentityClient(m.cli.Conn())
+	return client.GetInviteInfo(ctx, in, opts...)
+}
+
+func (m *defaultIdentity) BindInviteCode(ctx context.Context, in *BindInviteCodeReq, opts ...grpc.CallOption) (*BindInviteCodeResp, error) {
+	client := identity.NewIdentityClient(m.cli.Conn())
+	return client.BindInviteCode(ctx, in, opts...)
+}
+
+func (m *defaultIdentity) ListInviteRecords(ctx context.Context, in *ListInviteRecordsReq, opts ...grpc.CallOption) (*ListInviteRecordsResp, error) {
+	client := identity.NewIdentityClient(m.cli.Conn())
+	return client.ListInviteRecords(ctx, in, opts...)
 }
 
 // ── M15a 手机号/微信登录（请求形状照抄 server_v2，响应维持本仓 LoginResp）──

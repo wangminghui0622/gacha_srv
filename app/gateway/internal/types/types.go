@@ -225,6 +225,38 @@ type UserProfile struct {
 	Balance      string `json:"balance"`
 }
 
+// ── 邀请关系 ──
+type InviteInfoResp struct {
+	Code          string `json:"code"`
+	InvitedCount  int64  `json:"invitedCount"`
+	RewardPoints  int64  `json:"rewardPoints"`
+	PendingPoints int64  `json:"pendingPoints"`
+}
+
+type BindInviteCodeReq struct {
+	Code string `json:"code" validate:"required,min=4,max=32"`
+}
+
+type BindInviteCodeResp struct {
+	Bound        bool `json:"bound"`
+	AlreadyBound bool `json:"alreadyBound"`
+}
+
+type InviteRecordItem struct {
+	InviteeUserId   int64  `json:"inviteeUserId"`
+	InviteePublicId string `json:"inviteePublicId"`
+	InviteeNickname string `json:"inviteeNickname"`
+	RewardPoints    int64  `json:"rewardPoints"`
+	Status          int32  `json:"status"`
+	BoundAtUnix     int64  `json:"boundAtUnix"`
+	RewardAtUnix    int64  `json:"rewardAtUnix"`
+	ExpiresAtUnix   int64  `json:"expiresAtUnix"`
+}
+
+type InviteRecordsResp struct {
+	List []InviteRecordItem `json:"list"`
+}
+
 type WarehouseItem struct {
 	ItemId    int64  `json:"itemId"`
 	RecordId  int64  `json:"recordId"`

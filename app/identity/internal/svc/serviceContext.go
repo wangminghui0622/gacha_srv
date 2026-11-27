@@ -7,6 +7,7 @@ import (
 	"gacha_srv/app/identity/internal/config"
 	"gacha_srv/app/identity/internal/phonecrypto"
 	"gacha_srv/app/identity/internal/repo"
+	"gacha_srv/app/money/moneyClient"
 	"gacha_srv/app/thirdparty/thirdpartyClient"
 	"gacha_srv/pkg/model_nocache/gacha_identity"
 	"gacha_srv/pkg/utils/errorx"
@@ -27,6 +28,8 @@ type ServiceContext struct {
 	ThirdPartyRepo *repo.ThirdPartyRepo
 	// ThirdpartyRpc 第三方服务客户端（验证码/微信 code 交换）
 	ThirdpartyRpc thirdpartyClient.Thirdparty
+	// MoneyRpc 钱包服务（邀请奖励吉祥值入账）
+	MoneyRpc moneyClient.Money
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -77,6 +80,8 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	// ClientErrorInterceptor：下游业务码还原为 CodeError，跨服务不失真
 	thirdpartyRpc := thirdpartyClient.NewThirdparty(zrpc.MustNewClient(c.ThirdpartyRpc,
 		zrpc.WithUnaryClientInterceptor(errorx.ClientErrorInterceptor)))
+	moneyRpc := moneyClient.NewMoney(zrpc.MustNewClient(c.MoneyRpc,
+		zrpc.WithUnaryClientInterceptor(errorx.ClientErrorInterceptor)))
 
 	return &ServiceContext{
 		Config:         c,
@@ -85,5 +90,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		PhoneRepo:      repo.NewPhoneRepo(db, phoneCodec),
 		ThirdPartyRepo: repo.NewThirdPartyRepo(db),
 		ThirdpartyRpc:  thirdpartyRpc,
+		MoneyRpc:       moneyRpc,
 	}
 }

@@ -141,6 +141,32 @@ CREATE TABLE IF NOT EXISTS `user_profiles` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户后台资料';
 
 
+-- 用户邀请码（每个用户唯一，首次打开邀请页时生成）
+CREATE TABLE IF NOT EXISTS `user_invite_codes` (
+  `user_id` bigint NOT NULL COMMENT '用户ID（关联 user_users.id）',
+  `code` varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL COMMENT '邀请码（大小写敏感）',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `uk_invite_code` (`code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户邀请码表';
+
+
+-- 邀请关系（被邀请人唯一；奖励由邀请人打开邀请页时结算）
+CREATE TABLE IF NOT EXISTS `user_invite_records` (
+  `invitee_user_id` bigint NOT NULL COMMENT '被邀请人用户ID（关联 user_users.id）',
+  `inviter_user_id` bigint NOT NULL COMMENT '邀请人用户ID（关联 user_users.id）',
+  `invite_code` varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL COMMENT '使用的邀请码',
+  `reward_points` bigint NOT NULL DEFAULT '0' COMMENT '邀请奖励吉祥值',
+  `status` tinyint NOT NULL DEFAULT '0' COMMENT '状态：0=待领取 1=已发放 2=已过期',
+  `bound_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '绑定时间',
+  `reward_at` datetime DEFAULT NULL COMMENT '奖励发放时间',
+  `expires_at` datetime NOT NULL COMMENT '奖励领取截止时间',
+  PRIMARY KEY (`invitee_user_id`),
+  KEY `idx_inviter_user_id` (`inviter_user_id`),
+  KEY `idx_status_expires` (`status`,`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户邀请关系表';
+
+
 CREATE TABLE IF NOT EXISTS `user_finance_settings` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增主键',
   `user_id` bigint NOT NULL COMMENT '用户ID（关联 user_users.id）',

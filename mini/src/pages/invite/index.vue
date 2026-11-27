@@ -3,8 +3,12 @@ import { computed, ref } from 'vue'
 import { onShareAppMessage, onShow } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 
+import { apiAssetUrl } from '@/services/api'
 import * as userApi from '@/services/user'
 import { useAuthStore } from '@/store/authStore'
+import { formatUnix } from '@/utils/format'
+
+import type { InviteInfo, InviteRecordItem } from '@/services/types'
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -12,32 +16,59 @@ const auth = useAuthStore()
 const sys = uni.getSystemInfoSync()
 const statusBarHeight = ref(sys.statusBarHeight || 0)
 
-const invitedCount = ref(0)
-const rewardPoints = ref(0)
-const records = ref<Array<{ id: number; nickname: string; createdAt: number; reward: number }>>([])
+const loading = ref(false)
+const info = ref<InviteInfo | null>(null)
+const records = ref<InviteRecordItem[]>([])
+const qrError = ref(false)
 
-const inviteCode = computed(() => {
-  const userId = Number(auth.user?.userId || 0)
-  const raw = (auth.user?.publicUserId || '').replace(/^u/, '')
-  // 后端邀请体系接入前，用 publicId + userId base36 后缀生成稳定展示码；
-  // 接入后改为后端下发的真实邀请码。
-  const suffix = userId.toString(36).toUpperCase().padStart(4, '0')
-  const base = raw || (userId ? String(userId) : 'JIXIANG')
-  const code = `${base}${suffix}`
-  return code.length >= 12 ? code.slice(0, 16) : code.padEnd(12, suffix)
+const inviteCode = computed(() => info.value?.code || '')
+const invitedCount = computed(() => info.value?.invitedCount ?? 0)
+const rewardPoints = computed(() => info.value?.rewardPoints ?? 0)
+const qrUrl = computed(() => {
+  if (!inviteCode.value || qrError.value) {
+    return '/static/art/invite-qr.png'
+  }
+  return apiAssetUrl(`/invite/qrcode?code=${encodeURIComponent(inviteCode.value)}`)
 })
 
-async function loadProfile() {
-  if (auth.user) return
+function statusText(status: number): string {
+  if (status === 1) return t('invite.statusGranted')
+  if (status === 2) return t('invite.statusExpired')
+  return t('invite.statusPending')
+}
+
+function statusClass(status: number): string {
+  if (status === 1) return 'granted'
+  if (status === 2) return 'expired'
+  return 'pending'
+}
+
+async function load() {
+  loading.value = true
+  qrError.value = false
   try {
-    auth.setUser(await userApi.getProfile())
+    if (!auth.user) {
+      try {
+        auth.setUser(await userApi.getProfile())
+      } catch {
+        // 401 由请求适配器统一处理
+      }
+    }
+    const [infoResp, recordsResp] = await Promise.all([
+      userApi.getInviteInfo(),
+      userApi.listInviteRecords(),
+    ])
+    info.value = infoResp
+    records.value = recordsResp.list ?? []
   } catch {
-    // 401 由请求适配器统一处理
+    toast(t('invite.loadError'))
+  } finally {
+    loading.value = false
   }
 }
 
 onShow(() => {
-  void loadProfile()
+  void load()
 })
 
 function toast(message: string) {
@@ -45,6 +76,10 @@ function toast(message: string) {
 }
 
 function copyCode() {
+  if (!inviteCode.value) {
+    toast(t('invite.codeLoading'))
+    return
+  }
   uni.setClipboardData({
     data: inviteCode.value,
     success: () => toast(t('invite.copied')),
@@ -52,10 +87,18 @@ function copyCode() {
 }
 
 function copyInvite() {
+  if (!inviteCode.value) {
+    toast(t('invite.codeLoading'))
+    return
+  }
   uni.setClipboardData({
     data: t('invite.shareText', { code: inviteCode.value }),
     success: () => toast(t('invite.copied')),
   })
+}
+
+function onQrError() {
+  qrError.value = true
 }
 
 function showRules() {
@@ -75,7 +118,9 @@ function goBack() {
 // #ifdef MP-WEIXIN
 onShareAppMessage(() => ({
   title: t('invite.shareTitle'),
-  path: `/pages/login/index?inviteCode=${inviteCode.value}`,
+  path: inviteCode.value
+    ? `/pages/login/index?inviteCode=${inviteCode.value}`
+    : '/pages/login/index',
 }))
 // #endif
 </script>
@@ -111,7 +156,7 @@ onShareAppMessage(() => ({
           <view class="qr-corner bl" />
           <view class="qr-corner br" />
           <view class="qr-inner">
-            <image class="qr-img" src="/static/art/invite-qr.png" mode="aspectFit" />
+            <image class="qr-img" :src="qrUrl" mode="aspectFit" @error="onQrError" />
             <view class="qr-logo">吉</view>
             <view class="qr-mini">
               <uni-icons type="weixin" size="18" color="#ffffff" />
@@ -121,7 +166,7 @@ onShareAppMessage(() => ({
 
         <view class="code-bar">
           <text class="code-label">{{ t('invite.myCode') }}：</text>
-          <text class="code-value">{{ inviteCode }}</text>
+          <text class="code-value">{{ inviteCode || '--' }}</text>
           <view class="copy-btn" @click="copyCode">
             <view class="copy-icon">
               <view class="copy-sheet copy-sheet-back" />
@@ -180,9 +225,17 @@ onShareAppMessage(() => ({
           <view class="card-underline" />
         </view>
         <view v-if="records.length" class="records-list">
-          <view v-for="record in records" :key="record.id" class="record-row">
-            <text class="record-name">{{ record.nickname }}</text>
-            <text class="record-reward">+{{ record.reward }}</text>
+          <view v-for="record in records" :key="record.inviteeUserId" class="record-row">
+            <view class="record-main">
+              <text class="record-name">
+                {{ record.inviteeNickname || record.inviteePublicId || t('invite.recordFallback') }}
+              </text>
+              <text class="record-time">{{ formatUnix(record.boundAtUnix) }}</text>
+            </view>
+            <view class="record-right">
+              <text class="record-reward">+{{ record.rewardPoints }} 吉祥值</text>
+              <text class="record-status" :class="statusClass(record.status)">{{ statusText(record.status) }}</text>
+            </view>
           </view>
         </view>
         <view v-else class="records-empty">
@@ -670,19 +723,65 @@ page {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16rpx;
   padding: 18rpx 8rpx;
   border-bottom: 1rpx solid rgba(255, 255, 255, 0.08);
 }
 
+.record-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
 .record-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   font-size: 26rpx;
   color: #f4ecff;
 }
 
+.record-time {
+  font-size: 20rpx;
+  color: #b9a6e8;
+}
+
+.record-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6rpx;
+  flex-shrink: 0;
+}
+
 .record-reward {
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 700;
   color: #b6ff3b;
+}
+
+.record-status {
+  padding: 2rpx 10rpx;
+  border-radius: 999rpx;
+  font-size: 19rpx;
+}
+
+.record-status.pending {
+  color: #ffd76a;
+  background: rgba(255, 215, 106, 0.12);
+}
+
+.record-status.granted {
+  color: #b6ff3b;
+  background: rgba(182, 255, 59, 0.12);
+}
+
+.record-status.expired {
+  color: #a99bbf;
+  background: rgba(169, 155, 191, 0.12);
 }
 
 .page-bottom-space {
