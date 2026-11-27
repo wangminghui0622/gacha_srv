@@ -25,6 +25,40 @@ page {
   font-size: 28rpx;
 }
 
+/* #ifdef H5 */
+/* 桌面 H5 预览：把小程序限制在手机宽度，避免 rpx 在宽屏下被拉成长条 */
+@media (min-width: 600px) {
+  html,
+  body {
+    background: #050706;
+  }
+
+  uni-page-body {
+    width: 390px;
+    max-width: 390px;
+    min-height: 100vh;
+    margin: 0 auto;
+    background: #050706;
+    overflow-x: hidden;
+    box-shadow: 0 0 80px rgba(0, 0, 0, 0.55);
+  }
+
+  .bottom-tabbar {
+    left: 50% !important;
+    right: auto !important;
+    width: 390px !important;
+    transform: translateX(-50%);
+  }
+
+  .ship-bar {
+    left: 50% !important;
+    right: auto !important;
+    width: 342px !important;
+    transform: translateX(-50%);
+  }
+}
+/* #endif */
+
 .gacha-card {
   background: var(--color-card);
   border-radius: 16rpx;
