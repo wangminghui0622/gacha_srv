@@ -86,6 +86,7 @@ const defs: SeriesDef[] = [
   { name: '退支付宝赠送', axis: 0, kind: 'money', value: (r) => r.alipayGiftRefundFen / 100 },
   { name: '退汇付赠送', axis: 0, kind: 'money', value: (r) => r.huifuGiftRefundFen / 100 },
   { name: '总退款(¥)', axis: 0, kind: 'money', value: (r) => r.refundAmountFen / 100 },
+  { name: '退款(¥)用户数', axis: 0, kind: 'count', value: (r) => r.refundUsers },
   { name: '退款(¥)率', axis: 1, kind: 'rate', value: (r) => r.refundRateBps / 100 },
   { name: '总税收', axis: 0, kind: 'money', value: (r) => r.taxFen / 100 },
   { name: '税收(新)', axis: 0, kind: 'money', value: (r) => r.newTaxFen / 100 },
@@ -269,7 +270,7 @@ onBeforeUnmount(() => {
 .legend-grid {
   display: grid;
   grid-template-columns: repeat(16, max-content);
-  column-gap: 5px;
+  column-gap: 4px;
   row-gap: 6px;
   justify-content: space-between;
   width: 100%;
