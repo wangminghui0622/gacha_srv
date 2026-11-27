@@ -33,7 +33,7 @@ play_pool_requests
   idempotency_key, pool_id, request_hash, created_at
 ```
 
-每个玩法自己的当前配置和奖池（不再有 version 列）：
+每个玩法自己的当前配置和奖池，**所有玩法表结构完全一致**（模式差异只体现在 `config_json` 和代码校验/投影）：
 
 ```text
 play_memorymatch_pools / play_memorymatch_prizes
@@ -43,6 +43,33 @@ play_combochain_pools  / play_combochain_prizes
 play_dig_pools         / play_dig_prizes
 play_groupbuy_pools    / play_groupbuy_prizes
 ```
+
+统一字段：
+
+```text
+play_<mode>_pools
+  pool_id, price_fen, config_json, created_at, updated_at
+
+play_<mode>_prizes
+  id, pool_id, prize_index, name, prize_type, sku_id,
+  cash_fen, points_amount, coupon_template_no,
+  weight, quantity, is_prize, image_url, cost_fen,
+  special_kind, target_value, parent_index, total_pair_count, extra_json,
+  created_at, updated_at
+```
+
+模式只解释自己关心的字段：
+
+```text
+memorymatch : total_pair_count
+gashapon    : special_kind(LAST/MVP/LUCKY), target_value(Lucky顺序)
+fullcar     : special_kind(SETTLEMENT), target_value(结算档位)
+combochain  : special_kind(GLOBAL/...), target_value(槽位/阈值), extra_json
+dig         : target_value(格子索引)
+groupbuy    : special_kind(LUCKY/LUCKY_CHILD), target_value(父位序)
+```
+
+所有玩法共用同一套生命周期、历史、幂等和审核逻辑。
 
 运行表保持现状，生效时覆盖：
 
