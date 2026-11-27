@@ -303,3 +303,10 @@ CREATE TABLE IF NOT EXISTS `play_groupbuy_prizes` (
   KEY `idx_pool_target` (`pool_id`,`target_value`),
   KEY `idx_pool_pairs` (`pool_id`,`total_pair_count`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='拼团赏当前奖档';
+
+-- ── 旧模型清理：新代码已切换到 play_pool_catalog + play_<mode>_pools/prizes ──
+-- 旧表在切换前已清空；这里直接删除，避免两套模型并存。
+DROP TABLE IF EXISTS `play_pool_versions`;
+DROP TABLE IF EXISTS `play_pool_prizes`;
+DROP TABLE IF EXISTS `play_pool_drafts`;
+DROP TABLE IF EXISTS `play_pools`;
