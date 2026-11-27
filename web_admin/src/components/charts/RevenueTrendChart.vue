@@ -12,15 +12,11 @@
             type="button"
             class="legend-item"
             :class="{ 'is-selected': selectedMap[item.name] }"
-            :style="{ gridRow: item.row, gridColumn: item.column }"
+            :style="{ gridRow: item.row, gridColumn: item.column, color: selectedMap[item.name] ? seriesColor(item.index) : '#8c8c8c' }"
             :title="item.name"
             @click="toggle(item.name)"
           >
-            <span
-              class="legend-dot"
-              :style="{ backgroundColor: selectedMap[item.name] ? seriesColor(item.index) : '#d9d9d9' }"
-            />
-            <span class="legend-text">{{ item.name }}</span>
+            <span class="legend-text">{{ item.label }}</span>
           </button>
         </div>
       </div>
@@ -98,6 +94,39 @@ const defs: SeriesDef[] = [
   { name: '吉祥值余额', axis: 0, kind: 'count', value: (r) => r.redeemPointBalance },
 ]
 
+// 图例列宽有限，长指标用短名；完整名称在 title 和图表 tooltip 中。
+const shortNames: Record<string, string> = {
+  '日活(新)': '新日活',
+  '日活(旧)': '旧日活',
+  '有效用户数(7天)': '7日有效',
+  '有效用户数(15天)': '15有效',
+  '前1天流失率': '1日流失',
+  '前3天流失率': '3日流失',
+  '总付费(新)': '新付费',
+  '总付费(旧)': '旧付费',
+  '退款金额': '退款额',
+  '退款人数': '退款人',
+  '付费用户数': '付费数',
+  '付费用户数(新)': '新付费数',
+  '付费用户数(旧)': '旧付费数',
+  'arpu(新)': '新arpu',
+  'arpu(旧)': '旧arpu',
+  '渗透率(新)': '新渗透',
+  '渗透率(旧)': '旧渗透',
+  '支付宝充值': '支付宝充',
+  '汇付充值': '汇付充',
+  '退支付宝充值': '退支付宝',
+  '退汇付充值': '退汇付',
+  '支付宝赠送': '支付宝赠',
+  '汇付赠送': '汇付赠',
+  '退款(¥)率': '退款率',
+  '税收(新)': '新税收',
+  '税收(旧)': '旧税收',
+  '营收ARPU': '营ARPU',
+  WalletBalance: '钱包余额',
+  '吉祥值余额': '吉祥值',
+}
+
 const colors = [
   '#d4a017',
   '#1677ff',
@@ -142,6 +171,7 @@ const totalColumns = Math.max(splitIndex, defs.length - splitIndex)
 const legendItems = computed(() =>
   defs.map((def, index) => ({
     name: def.name,
+    label: shortNames[def.name] ?? def.name,
     index,
     row: index < splitIndex ? 1 : 2,
     column: index < splitIndex ? index + 1 : index - splitIndex + 1,
@@ -291,8 +321,7 @@ onBeforeUnmount(() => {
 
 .legend-item {
   display: inline-flex;
-  align-items: flex-start;
-  gap: 2px;
+  align-items: center;
   width: 100%;
   min-width: 0;
   padding: 0;
@@ -302,25 +331,14 @@ onBeforeUnmount(() => {
   font-size: 14px;
   line-height: 18px;
   text-align: left;
-  white-space: normal;
+  white-space: nowrap;
   cursor: pointer;
 }
 
 .legend-text {
   min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.legend-item.is-selected {
-  color: #262626;
-}
-
-.legend-dot {
-  flex: 0 0 auto;
-  width: 6px;
-  height: 6px;
-  margin-top: 6px;
-  border-radius: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chart-box {
