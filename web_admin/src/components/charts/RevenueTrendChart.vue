@@ -274,9 +274,10 @@ onBeforeUnmount(() => {
 
 .legend-grid {
   display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  column-gap: 6px;
+  grid-template-columns: repeat(12, max-content);
+  column-gap: 12px;
   row-gap: 6px;
+  justify-content: start;
   width: 100%;
 }
 
