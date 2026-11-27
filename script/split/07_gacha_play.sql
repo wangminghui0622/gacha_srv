@@ -809,28 +809,28 @@ INSERT IGNORE INTO `prize_grades` (`sort`, `code`, `category`) VALUES
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS `memory_match_global_rules` (
-  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键（固定 1）',
-  `name` varchar(64) NOT NULL DEFAULT '' COMMENT '规则名称',
-  `pair_probability_mode` int NOT NULL DEFAULT '0' COMMENT '碰数概率模式：0=自然发牌（兼容旧模式） 1=按配箱数量精确分配',
-  `initial_hand_count` int NOT NULL DEFAULT '9' COMMENT '初始手牌数',
-  `pair_size` int NOT NULL DEFAULT '2' COMMENT '几张成碰',
-  `replenish_count` int NOT NULL DEFAULT '1' COMMENT '碰后补牌数',
-  `second_destiny_enabled` tinyint NOT NULL DEFAULT '1' COMMENT '第二次天命：1=开 0=关',
-  `destiny_double_enabled` tinyint NOT NULL DEFAULT '1' COMMENT '天命双倍：1=开 0=关',
-  `destiny_income` int NOT NULL DEFAULT '1' COMMENT '出天命收益',
-  `double_destiny_buff` int NOT NULL DEFAULT '1' COMMENT '双倍碰天命 buff',
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键（固定为 1）',
+  `name` varchar(64) NOT NULL DEFAULT '' COMMENT '全局规则名称',
+  `pair_probability_mode` int NOT NULL DEFAULT '0' COMMENT '碰数概率模式：0=自然发牌（兼容旧模式），1=按配箱数量精确分配',
+  `initial_hand_count` int NOT NULL DEFAULT '9' COMMENT '初始手牌数（牌桌最多 9 格）',
+  `pair_size` int NOT NULL DEFAULT '2' COMMENT '几张成碰（2-6）',
+  `replenish_count` int NOT NULL DEFAULT '1' COMMENT '每次成碰后的补牌数（0-54）',
+  `second_destiny_enabled` tinyint NOT NULL DEFAULT '1' COMMENT '第二命运开关：1=开启，0=关闭',
+  `destiny_double_enabled` tinyint NOT NULL DEFAULT '1' COMMENT '天命双倍开关：1=开启，0=关闭',
+  `destiny_income` int NOT NULL DEFAULT '1' COMMENT '出天命收益：出现第一命运图案时增加的收益/吉祥数',
+  `double_destiny_buff` int NOT NULL DEFAULT '1' COMMENT '双倍碰天命 buff 数值',
   `destiny_replenish_cost` int NOT NULL DEFAULT '1' COMMENT '天命补牌消耗',
-  `resume_enabled` tinyint NOT NULL DEFAULT '1' COMMENT '中断续玩：1=开 0=关',
-  `host_mode_enabled` tinyint NOT NULL DEFAULT '1' COMMENT '播主模式：1=开 0=关',
-  `host_min_pairs` int NOT NULL DEFAULT '6' COMMENT '上播碰数',
-  `host_share_bps` int NOT NULL DEFAULT '50' COMMENT '播主收益万分比',
-  `revenue_base` int NOT NULL DEFAULT '1' COMMENT '收益基准：1=实付金额',
-  `ledger_type` int NOT NULL DEFAULT '0' COMMENT '流水类型',
-  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态：1=启用 0=停用',
+  `resume_enabled` tinyint NOT NULL DEFAULT '1' COMMENT '中断续玩开关：1=开启，0=关闭',
+  `host_mode_enabled` tinyint NOT NULL DEFAULT '1' COMMENT '播主/擂主模式开关：1=开启，0=关闭',
+  `host_min_pairs` int NOT NULL DEFAULT '6' COMMENT '成为擂主所需的最低总碰数（host_mode_enabled=0 时不生效）',
+  `host_share_bps` int NOT NULL DEFAULT '50' COMMENT '擂主分成比例，万分比（50=0.50%，10000=100%）',
+  `revenue_base` int NOT NULL DEFAULT '1' COMMENT '擂主收益计算基准：1=实付金额，2=单抽标价',
+  `ledger_type` int NOT NULL DEFAULT '0' COMMENT '资金流水类型（透传记账，0=默认）',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态：1=启用，0=停用',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='对对碰全局玩法规则';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='对对碰全局玩法规则（固定 id=1）';
 
 CREATE TABLE IF NOT EXISTS `memory_match_deck_templates` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',

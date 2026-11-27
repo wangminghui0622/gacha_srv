@@ -11,26 +11,26 @@ import (
 
 // MemoryMatchGlobalRuleRow 对对碰全局玩法规则（固定 id=1）。
 type MemoryMatchGlobalRuleRow struct {
-	ID                   int64     `gorm:"column:id;primaryKey" json:"id"`
-	Name                 string    `gorm:"column:name;size:64;not null" json:"name"`
-	PairProbabilityMode  int64     `gorm:"column:pair_probability_mode;not null;default:0" json:"pairProbabilityMode"`
-	InitialHandCount     int64     `gorm:"column:initial_hand_count;not null;default:9" json:"initialHandCount"`
-	PairSize             int64     `gorm:"column:pair_size;not null;default:2" json:"pairSize"`
-	ReplenishCount       int64     `gorm:"column:replenish_count;not null;default:1" json:"replenishCount"`
-	SecondDestinyEnabled int64     `gorm:"column:second_destiny_enabled;not null;default:1" json:"secondDestinyEnabled"`
-	DestinyDoubleEnabled int64     `gorm:"column:destiny_double_enabled;not null;default:1" json:"destinyDoubleEnabled"`
-	DestinyIncome        int64     `gorm:"column:destiny_income;not null;default:1" json:"destinyIncome"`
-	DoubleDestinyBuff    int64     `gorm:"column:double_destiny_buff;not null;default:1" json:"doubleDestinyBuff"`
-	DestinyReplenishCost int64     `gorm:"column:destiny_replenish_cost;not null;default:1" json:"destinyReplenishCost"`
-	ResumeEnabled        int64     `gorm:"column:resume_enabled;not null;default:1" json:"resumeEnabled"`
-	HostModeEnabled      int64     `gorm:"column:host_mode_enabled;not null;default:1" json:"hostModeEnabled"`
-	HostMinPairs         int64     `gorm:"column:host_min_pairs;not null;default:6" json:"hostMinPairs"`
-	HostShareBps         int64     `gorm:"column:host_share_bps;not null;default:50" json:"hostShareBps"`
-	RevenueBase          int64     `gorm:"column:revenue_base;not null;default:1" json:"revenueBase"`
-	LedgerType           int64     `gorm:"column:ledger_type;not null;default:0" json:"ledgerType"`
-	Status               int64     `gorm:"column:status;not null;default:1" json:"status"`
-	CreatedAt            time.Time `gorm:"column:created_at" json:"createdAt"`
-	UpdatedAt            time.Time `gorm:"column:updated_at" json:"updatedAt"`
+	ID                   int64     `gorm:"column:id;primaryKey;comment:主键（固定为 1）" json:"id"`
+	Name                 string    `gorm:"column:name;size:64;not null;comment:全局规则名称" json:"name"`
+	PairProbabilityMode  int64     `gorm:"column:pair_probability_mode;not null;default:0;comment:碰数概率模式：0=自然发牌（兼容旧模式），1=按配箱数量精确分配" json:"pairProbabilityMode"`
+	InitialHandCount     int64     `gorm:"column:initial_hand_count;not null;default:9;comment:初始手牌数（牌桌最多 9 格）" json:"initialHandCount"`
+	PairSize             int64     `gorm:"column:pair_size;not null;default:2;comment:几张成碰（2-6）" json:"pairSize"`
+	ReplenishCount       int64     `gorm:"column:replenish_count;not null;default:1;comment:每次成碰后的补牌数（0-54）" json:"replenishCount"`
+	SecondDestinyEnabled int64     `gorm:"column:second_destiny_enabled;not null;default:1;comment:第二命运开关：1=开启，0=关闭" json:"secondDestinyEnabled"`
+	DestinyDoubleEnabled int64     `gorm:"column:destiny_double_enabled;not null;default:1;comment:天命双倍开关：1=开启，0=关闭" json:"destinyDoubleEnabled"`
+	DestinyIncome        int64     `gorm:"column:destiny_income;not null;default:1;comment:出天命收益：出现第一命运图案时增加的收益/吉祥数" json:"destinyIncome"`
+	DoubleDestinyBuff    int64     `gorm:"column:double_destiny_buff;not null;default:1;comment:双倍碰天命 buff 数值" json:"doubleDestinyBuff"`
+	DestinyReplenishCost int64     `gorm:"column:destiny_replenish_cost;not null;default:1;comment:天命补牌消耗" json:"destinyReplenishCost"`
+	ResumeEnabled        int64     `gorm:"column:resume_enabled;not null;default:1;comment:中断续玩开关：1=开启，0=关闭" json:"resumeEnabled"`
+	HostModeEnabled      int64     `gorm:"column:host_mode_enabled;not null;default:1;comment:播主/擂主模式开关：1=开启，0=关闭" json:"hostModeEnabled"`
+	HostMinPairs         int64     `gorm:"column:host_min_pairs;not null;default:6;comment:成为擂主所需的最低总碰数（host_mode_enabled=0 时不生效）" json:"hostMinPairs"`
+	HostShareBps         int64     `gorm:"column:host_share_bps;not null;default:50;comment:擂主分成比例，万分比（50=0.50%，10000=100%）" json:"hostShareBps"`
+	RevenueBase          int64     `gorm:"column:revenue_base;not null;default:1;comment:擂主收益计算基准：1=实付金额，2=单抽标价" json:"revenueBase"`
+	LedgerType           int64     `gorm:"column:ledger_type;not null;default:0;comment:资金流水类型（透传记账，0=默认）" json:"ledgerType"`
+	Status               int64     `gorm:"column:status;not null;default:1;comment:状态：1=启用，0=停用" json:"status"`
+	CreatedAt            time.Time `gorm:"column:created_at;comment:创建时间" json:"createdAt"`
+	UpdatedAt            time.Time `gorm:"column:updated_at;comment:更新时间" json:"updatedAt"`
 }
 
 func (MemoryMatchGlobalRuleRow) TableName() string { return "memory_match_global_rules" }
