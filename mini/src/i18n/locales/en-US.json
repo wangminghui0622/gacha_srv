@@ -567,5 +567,28 @@
     "copied": "Copied",
     "assetsTitle": "Asset details",
     "copy": "Copy"
+  },
+  "invite": {
+    "title": "Invite friends",
+    "subtitle": "Earn Jixiang points",
+    "rules": "Rules",
+    "rulesTitle": "Event rules",
+    "rulesText": "1. Share your invite QR code or invite code with friends.\n2. Your friend registers and logs in through your invite link.\n3. After your friend registers, you earn Jixiang points.\n4. Rewards must be claimed within 10 days after your friend registers.",
+    "myQr": "My invite QR code",
+    "myCode": "My invite code",
+    "copy": "Copy",
+    "copied": "Invite code copied",
+    "invitedCount": "Friends invited",
+    "rewardPoints": "Reward (Jixiang points)",
+    "rewardNote": "* Invite rewards must be claimed within 10 days",
+    "flow": "How it works",
+    "flowShare": "Share with friends\nor scan the QR code",
+    "flowLogin": "Your friend logs in\nthrough your link",
+    "flowReward": "You earn the reward",
+    "records": "Invite records",
+    "recordsEmpty": "No invite records yet\nInvite your friends now",
+    "inviteBtn": "Invite friends",
+    "shareTitle": "Jixiang Shang invite",
+    "shareText": "Join me on Jixiang Shang! My invite code: {code}"
   }
 }

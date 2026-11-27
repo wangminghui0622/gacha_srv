@@ -154,6 +154,16 @@
 			}
 		},
 		{
+			"path": "pages/invite/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "邀请好友",
+				"navigationBarTextStyle": "white",
+				"backgroundColor": "#1a083c",
+				"backgroundTextStyle": "light"
+			}
+		},
+		{
 			"path": "pages/recharge/index",
 			"style": {
 				"navigationBarTitleText": "充值"

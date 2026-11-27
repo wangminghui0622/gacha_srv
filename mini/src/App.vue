@@ -50,7 +50,8 @@ page {
     transform: translateX(-50%);
   }
 
-  .bottom-tabbar {
+  .bottom-tabbar,
+  .invite-bottom {
     left: 50% !important;
     right: auto !important;
     width: 390px !important;

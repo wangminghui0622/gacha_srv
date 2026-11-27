@@ -567,5 +567,28 @@
     "copied": "已复制",
     "assetsTitle": "资产明细",
     "copy": "复制"
+  },
+  "invite": {
+    "title": "邀请好友",
+    "subtitle": "领取吉祥值奖励",
+    "rules": "活动规则",
+    "rulesTitle": "活动规则",
+    "rulesText": "1. 分享邀请二维码或邀请码给好友；\n2. 好友通过你的邀请链接注册并登录；\n3. 好友完成注册后，你将获得吉祥值奖励；\n4. 邀请奖励需在好友注册后 10 天内领取，逾期失效。",
+    "myQr": "我的邀请二维码",
+    "myCode": "我的邀请码",
+    "copy": "复制",
+    "copied": "邀请码已复制",
+    "invitedCount": "已邀请好友（人）",
+    "rewardPoints": "邀请奖励（吉祥值）",
+    "rewardNote": "* 邀请的好友奖励10天内领取有效",
+    "flow": "活动流程",
+    "flowShare": "分享给好友\n或者扫描二维码",
+    "flowLogin": "好友通过你分享的\n链接登入平台",
+    "flowReward": "你获得奖励",
+    "records": "邀请记录",
+    "recordsEmpty": "还没有邀请记录\n快去邀请好友吧",
+    "inviteBtn": "邀请好友",
+    "shareTitle": "吉祥赏邀请",
+    "shareText": "我在吉祥赏等你！我的邀请码：{code}"
   }
 }

@@ -135,21 +135,8 @@ function showAbout() {
   })
 }
 
-function showInvite() {
-  const content = t('mine.inviteText', { id: publicId.value })
-  uni.showModal({
-    title: t('mine.inviteTitle'),
-    content,
-    confirmText: t('mine.copy'),
-    cancelText: t('common.cancel'),
-    success: (res) => {
-      if (!res.confirm) return
-      uni.setClipboardData({
-        data: content,
-        success: () => uni.showToast({ title: t('mine.copied'), icon: 'none' }),
-      })
-    },
-  })
+function goInvite() {
+  uni.navigateTo({ url: '/pages/invite/index' })
 }
 
 function onLogout() {
@@ -251,7 +238,7 @@ function onLogout() {
         <text class="menu-label">{{ t('mine.benefits') }}</text>
         <uni-icons type="right" size="15" color="#626b5f" />
       </view>
-      <view class="menu-row" @click="showInvite">
+      <view class="menu-row" @click="goInvite">
         <uni-icons type="sound" size="21" color="#f0f5ed" />
         <text class="menu-label">{{ t('mine.invite') }}</text>
         <uni-icons type="right" size="15" color="#626b5f" />
