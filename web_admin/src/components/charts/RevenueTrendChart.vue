@@ -99,6 +99,7 @@ const defs: SeriesDef[] = [
   { name: '吉豆余额', axis: 0, kind: 'count', value: (r) => r.bonusBalanceFen },
   { name: '积分余额', axis: 0, kind: 'count', value: (r) => r.loyaltyPointBalance },
   { name: '吉祥值余额', axis: 0, kind: 'count', value: (r) => r.redeemPointBalance },
+  { name: '总吉祥币付费', axis: 0, kind: 'money', value: (r) => r.platformCurrencyPayFen / 100 },
 ]
 
 const colors = [
