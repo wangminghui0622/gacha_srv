@@ -299,8 +299,10 @@ function onQuickTap(key: string) {
 <template>
   <view class="home-root">
     <view class="home-page" :style="{ paddingTop: `${statusBarHeight}px` }">
-    <view class="bg-glow bg-glow-a" />
-    <view class="bg-glow bg-glow-b" />
+    <view class="bg-layer">
+      <view class="bg-glow bg-glow-a" />
+      <view class="bg-glow bg-glow-b" />
+    </view>
 
     <view class="home-header" :style="capsuleRight ? { paddingRight: `${capsuleRight}px` } : undefined">
       <view class="brand-wrap">
@@ -320,20 +322,22 @@ function onQuickTap(key: string) {
       </view>
     </view>
 
-    <HorizontalScroll class="category-scroll">
-      <view class="category-inner">
-        <view
-          v-for="cat in categories"
-          :key="cat.key"
-          class="category-item"
-          :class="{ active: activeCategory === cat.key }"
-          @click="onCategoryTap(cat.key)"
-        >
-          <text>{{ cat.label }}</text>
-          <view v-if="activeCategory === cat.key" class="cat-underline" />
+    <view class="category-sticky" :style="{ top: `${statusBarHeight}px` }">
+      <HorizontalScroll class="category-scroll">
+        <view class="category-inner">
+          <view
+            v-for="cat in categories"
+            :key="cat.key"
+            class="category-item"
+            :class="{ active: activeCategory === cat.key }"
+            @click="onCategoryTap(cat.key)"
+          >
+            <text>{{ cat.label }}</text>
+            <view v-if="activeCategory === cat.key" class="cat-underline" />
+          </view>
         </view>
-      </view>
-    </HorizontalScroll>
+      </HorizontalScroll>
+    </view>
 
     <view class="hero-wrap">
       <swiper
@@ -446,6 +450,7 @@ page {
 }
 
 .home-page {
+  position: relative;
   min-height: 100vh;
   padding-bottom: 190rpx;
   background:
@@ -453,7 +458,17 @@ page {
     radial-gradient(circle at 95% 18%, rgba(25, 120, 72, 0.16), transparent 34%),
     repeating-linear-gradient(118deg, rgba(255, 255, 255, 0.012) 0 2rpx, transparent 2rpx 96rpx),
     #050706;
+}
+
+.bg-layer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .bg-glow {
@@ -565,10 +580,16 @@ page {
   border: 2rpx solid rgba(255, 255, 255, 0.18);
 }
 
+.category-sticky {
+  position: sticky;
+  z-index: 30;
+  padding-top: 22rpx;
+  background: #050706;
+}
+
 .category-scroll {
   position: relative;
   z-index: 2;
-  margin-top: 22rpx;
   width: 100%;
 }
 

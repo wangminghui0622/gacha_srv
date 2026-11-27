@@ -39,7 +39,6 @@ page {
     min-height: 100vh;
     margin: 0 auto;
     background: #050706;
-    overflow-x: hidden;
     box-shadow: 0 0 80px rgba(0, 0, 0, 0.55);
   }
 

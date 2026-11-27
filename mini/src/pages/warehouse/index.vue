@@ -235,7 +235,9 @@ function goDraw() {
 <template>
   <view class="warehouse-root">
     <view class="warehouse-page" :style="{ paddingTop: `${statusBarHeight}px` }">
-    <view class="top-glow" />
+    <view class="bg-layer">
+      <view class="top-glow" />
+    </view>
 
     <view class="warehouse-header" :style="capsuleRight ? { paddingRight: `${capsuleRight}px` } : undefined">
       <view class="title-wrap">
@@ -248,30 +250,32 @@ function goDraw() {
       </view>
     </view>
 
-    <view class="tab-shell">
-      <view
-        v-for="tab in tabs"
-        :key="tab.key"
-        class="tab-item"
-        :class="{ active: activeTab === tab.key }"
-        @click="onTabTap(tab.key)"
-      >
-        {{ tab.label }}
+    <view class="filter-sticky" :style="{ top: `${statusBarHeight}px` }">
+      <view class="tab-shell">
+        <view
+          v-for="tab in tabs"
+          :key="tab.key"
+          class="tab-item"
+          :class="{ active: activeTab === tab.key }"
+          @click="onTabTap(tab.key)"
+        >
+          {{ tab.label }}
+        </view>
       </view>
-    </view>
 
-    <view class="sort-row">
-      <view class="sort-group">
-        <view class="sort-btn" :class="{ active: sortBy === 'time' }" @click="onSortTap('time')">
-          <text>{{ t('warehouse.sortTime') }}</text>
-          <text class="sort-arrows">{{ sortBy === 'time' ? (sortAsc ? '↑' : '↓') : '↕' }}</text>
+      <view class="sort-row">
+        <view class="sort-group">
+          <view class="sort-btn" :class="{ active: sortBy === 'time' }" @click="onSortTap('time')">
+            <text>{{ t('warehouse.sortTime') }}</text>
+            <text class="sort-arrows">{{ sortBy === 'time' ? (sortAsc ? '↑' : '↓') : '↕' }}</text>
+          </view>
+          <view class="sort-btn" :class="{ active: sortBy === 'grade' }" @click="onSortTap('grade')">
+            <text>{{ t('warehouse.sortGrade') }}</text>
+            <text class="sort-arrows">{{ sortBy === 'grade' ? (sortAsc ? '↑' : '↓') : '↕' }}</text>
+          </view>
         </view>
-        <view class="sort-btn" :class="{ active: sortBy === 'grade' }" @click="onSortTap('grade')">
-          <text>{{ t('warehouse.sortGrade') }}</text>
-          <text class="sort-arrows">{{ sortBy === 'grade' ? (sortAsc ? '↑' : '↓') : '↕' }}</text>
-        </view>
+        <view class="count-pill">{{ t('warehouse.count', { n: totalCount }) }}</view>
       </view>
-      <view class="count-pill">{{ t('warehouse.count', { n: totalCount }) }}</view>
     </view>
 
     <view v-if="loading" class="status-box">
@@ -335,7 +339,17 @@ page {
     radial-gradient(circle at 22% 0%, rgba(128, 255, 46, 0.14), transparent 34%),
     repeating-linear-gradient(118deg, rgba(255, 255, 255, 0.012) 0 2rpx, transparent 2rpx 96rpx),
     #050706;
+}
+
+.bg-layer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .top-glow {
@@ -409,13 +423,22 @@ page {
   font-weight: 800;
 }
 
+.filter-sticky {
+  position: sticky;
+  z-index: 30;
+  margin-top: 20rpx;
+  padding-top: 14rpx;
+  padding-bottom: 4rpx;
+  background: #050706;
+}
+
 .tab-shell {
   position: relative;
   z-index: 2;
   display: flex;
   align-items: center;
   gap: 6rpx;
-  margin: 34rpx 28rpx 0;
+  margin: 0 28rpx;
   padding: 8rpx;
   border-radius: 999rpx;
   background: rgba(22, 28, 23, 0.94);
