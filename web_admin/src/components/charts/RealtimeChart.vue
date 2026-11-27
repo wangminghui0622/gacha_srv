@@ -100,7 +100,7 @@ function render() {
       series: data.map((item, index) => ({
         name: item.name,
         type: 'line',
-        smooth: false,
+        smooth: 0.35,
         symbol: 'none',
         data: item.values,
         lineStyle: { width: 1.3 },
