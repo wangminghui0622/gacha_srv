@@ -8,8 +8,7 @@
             :key="item.name"
             type="button"
             class="legend-item"
-            :class="{ 'is-selected': selectedMap[item.name], 'legend-item-compact': item.row === 2 }"
-            :style="{ gridRow: item.row, gridColumn: item.column }"
+            :class="{ 'is-selected': selectedMap[item.name] }"
             @click="toggle(item.name)"
           >
             <span
@@ -138,14 +137,7 @@ for (const name of ['注册数', '日活', '总付费', '付费用户数', '渗�
 
 const selectedMap = reactive<Record<string, boolean>>({ ...defaultSelected })
 
-const legendItems = computed(() =>
-  defs.map((def, index) => ({
-    name: def.name,
-    index,
-    row: index < 22 ? 1 : 2,
-    column: index < 22 ? index + 1 : index - 22 + 1,
-  })),
-)
+const legendItems = computed(() => defs.map((def, index) => ({ name: def.name, index })))
 
 function seriesColor(index: number): string {
   if (index < colors.length) {
@@ -277,24 +269,23 @@ onBeforeUnmount(() => {
 
 .legend-scroll {
   width: 100%;
-  overflow-x: auto;
-  padding-bottom: 6px;
+  overflow: visible;
 }
 
 .legend-grid {
   display: grid;
-  grid-template-columns: repeat(28, 140px);
-  column-gap: 16px;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  column-gap: 6px;
   row-gap: 6px;
-  align-items: center;
-  width: max-content;
+  width: 100%;
 }
 
 .legend-item {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 4px;
   width: 100%;
+  min-width: 0;
   padding: 0;
   border: 0;
   background: transparent;
@@ -306,6 +297,12 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
+.legend-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .legend-item.is-selected {
   color: #262626;
 }
@@ -314,12 +311,8 @@ onBeforeUnmount(() => {
   flex: 0 0 auto;
   width: 8px;
   height: 8px;
+  margin-top: 6px;
   border-radius: 50%;
-}
-
-.legend-item-compact {
-  font-size: 12px;
-  line-height: 18px;
 }
 
 .chart-box {
