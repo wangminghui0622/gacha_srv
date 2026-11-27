@@ -793,6 +793,7 @@ function addManualPrize() {
     extraJson: '{}',
   })
   prizeDraft.name = ''
+  if (form.mode === 'gashapon') prizeDraft.specialKind = ''
   message.success('已添加赏品')
 }
 
@@ -1547,6 +1548,7 @@ function confirmSkuSelection() {
   if (form.mode === 'memorymatch') normalizeMemoryMatchQuantities()
   skuModalOpen.value = false
   resetSkuPickerState()
+  if (form.mode === 'gashapon') prizeDraft.specialKind = ''
   message.success('赏品选择已更新')
   void nextTick(() => {
     window.setTimeout(() => {
