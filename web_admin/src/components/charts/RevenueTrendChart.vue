@@ -95,6 +95,7 @@ const defs: SeriesDef[] = [
   { name: '营收率', axis: 1, kind: 'rate', value: (r) => r.revenueRateBps / 100 },
   { name: '营收ARPU', axis: 0, kind: 'money', value: (r) => r.revenueArpuFen / 100 },
   { name: 'WalletBalance', axis: 0, kind: 'money', value: (r) => r.walletBalanceFen / 100 },
+  { name: '余额余额', axis: 0, kind: 'money', value: (r) => r.walletBalanceFen / 100 },
   { name: '吉豆余额', axis: 0, kind: 'count', value: (r) => r.bonusBalanceFen },
   { name: '积分余额', axis: 0, kind: 'count', value: (r) => r.loyaltyPointBalance },
   { name: '吉祥值余额', axis: 0, kind: 'count', value: (r) => r.redeemPointBalance },
