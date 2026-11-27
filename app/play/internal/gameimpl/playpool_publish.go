@@ -8,6 +8,7 @@ import (
 
 	"gacha_srv/app/catalog/catalog"
 	"gacha_srv/app/catalog/catalogClient"
+	"gacha_srv/app/play/internal/playpool"
 	"gacha_srv/app/play/internal/svc"
 	"gacha_srv/app/play/play"
 	gamemodelnc "gacha_srv/pkg/model_nocache/gacha_play"
@@ -18,101 +19,141 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// validatePlayPoolSKUs 发布前校验实物奖：存在、ACTIVE、PHYSICAL。
+// validatePlayPoolSKUs 生效前校验实物奖：存在、ACTIVE、PHYSICAL。
 // 管理后台按「商品」选择实物奖（prizes.skuId 存商品 ID），也兼容直接存 SKU ID，
 // 因此先按 SKU 查找，未命中再按商品查找。校验放在事务外（跨服务 RPC 不占用玩法库事务）。
-func validatePlayPoolSKUs(ctx context.Context, svcCtx *svc.ServiceContext, poolId, version int64) error {
-	// 单测/本地最小上下文未注入 CatalogRpc 时跳过（生产配置必填）。
+func validatePlayPoolSKUs(ctx context.Context, svcCtx *svc.ServiceContext, poolID int64) error {
 	if svcCtx.CatalogRpc == nil {
 		return nil
 	}
-	var prizes []gamemodelnc.PlayPoolPrize
-	if err := svcCtx.DB.Where("pool_id = ? AND version = ?", poolId, version).Find(&prizes).Error; err != nil {
+	p, err := playpool.Get(svcCtx.DB, poolID)
+	if err != nil {
 		return status.Error(codes.Internal, err.Error())
 	}
-	for _, p := range prizes {
-		if p.PrizeType != 2 {
+	for _, prize := range p.Prizes {
+		if prize.PrizeType != 2 {
 			continue
 		}
-		sku, err := svcCtx.CatalogRpc.GetSKU(ctx, &catalogClient.GetSKURequest{SkuId: uint64(p.SkuId)})
+		sku, err := svcCtx.CatalogRpc.GetSKU(ctx, &catalogClient.GetSKURequest{SkuId: uint64(prize.SkuID)})
 		if err == nil {
 			if sku.Status != catalog.ProductStatus_PRODUCT_STATUS_ACTIVE {
-				return status.Error(codes.InvalidArgument, fmt.Sprintf("奖品 %s 的 SKU 未上架", p.Name))
+				return status.Error(codes.InvalidArgument, fmt.Sprintf("奖品 %s 的 SKU 未上架", prize.Name))
 			}
 			if sku.FulfillmentMode != catalog.FulfillmentMode_FULFILLMENT_MODE_PHYSICAL {
-				return status.Error(codes.InvalidArgument, fmt.Sprintf("奖品 %s 的 SKU 不是实物履约", p.Name))
+				return status.Error(codes.InvalidArgument, fmt.Sprintf("奖品 %s 的 SKU 不是实物履约", prize.Name))
 			}
 			continue
 		}
-		// 兼容后台按商品选择：prizes.skuId 存的是商品 ID。
 		reply, productErr := svcCtx.CatalogRpc.ListProducts(ctx, &catalogClient.ListProductsRequest{
-			AfterProductId: uint64(p.SkuId) - 1,
+			AfterProductId: uint64(prize.SkuID) - 1,
 			PageSize:       1,
 		})
-		if productErr != nil || len(reply.Products) == 0 || reply.Products[0].ProductId != uint64(p.SkuId) {
-			return status.Error(codes.InvalidArgument, fmt.Sprintf("奖品 %s 的商品 %d 不存在或不可用", p.Name, p.SkuId))
+		if productErr != nil || len(reply.Products) == 0 || reply.Products[0].ProductId != uint64(prize.SkuID) {
+			return status.Error(codes.InvalidArgument, fmt.Sprintf("奖品 %s 的商品 %d 不存在或不可用", prize.Name, prize.SkuID))
 		}
 		if reply.Products[0].Status != catalog.ProductStatus_PRODUCT_STATUS_ACTIVE {
-			return status.Error(codes.InvalidArgument, fmt.Sprintf("奖品 %s 的商品未上架", p.Name))
+			return status.Error(codes.InvalidArgument, fmt.Sprintf("奖品 %s 的商品未上架", prize.Name))
 		}
 	}
 	return nil
 }
 
-// PublishPlayPool 发布统一玩赏池版本。
-//
-// 在同一事务内按 mode 投影到各玩法现有运行表（gashapon/fullcar/combochain/
-// dig/groupbuy/memorymatch），玩法运行态无需改动；重复发布幂等。
+// PublishPlayPool 生效当前配置：投影到各玩法运行表，状态置 LIVE。
+// 没有版本；重复调用幂等。旧参数 version 保留但忽略。
 func PublishPlayPool(ctx context.Context, svcCtx *svc.ServiceContext, in *play.PublishPlayPoolReq) (*play.PublishPlayPoolResp, error) {
-	if in.PoolId <= 0 || in.Version <= 0 {
-		return nil, status.Error(codes.InvalidArgument, "poolId/version 非法")
+	if in.PoolId <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "poolId 非法")
 	}
-	if err := validatePlayPoolSKUs(ctx, svcCtx, in.PoolId, in.Version); err != nil {
+	if err := validatePlayPoolSKUs(ctx, svcCtx, in.PoolId); err != nil {
 		return nil, err
 	}
-	out := "PUBLISHED"
 	err := svcCtx.DB.Transaction(func(tx *gorm.DB) error {
-		var v gamemodelnc.PlayPoolVersion
+		var cat playpool.CatalogRow
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
-			Where("pool_id = ? AND version = ?", in.PoolId, in.Version).First(&v).Error; err != nil {
+			Where("id = ?", in.PoolId).First(&cat).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return status.Error(codes.InvalidArgument, "赏池版本不存在")
+				return status.Error(codes.InvalidArgument, "赏池不存在")
 			}
 			return err
 		}
-		if v.Status == 2 { // 幂等：已发布
+		switch cat.Status {
+		case playpool.StatusLive:
 			return nil
+		case playpool.StatusVoid:
+			return status.Error(codes.InvalidArgument, "赏池已作废，不能上线")
+		case playpool.StatusDraft, playpool.StatusOffline:
+		default:
+			return status.Error(codes.InvalidArgument, "赏池状态不可上线")
 		}
-		if v.Status != 1 {
-			return status.Error(codes.InvalidArgument, "赏池版本状态不可发布")
-		}
-
-		var prizes []gamemodelnc.PlayPoolPrize
-		if err := tx.Where("pool_id = ? AND version = ?", in.PoolId, in.Version).
-			Order("prize_index ASC").Find(&prizes).Error; err != nil {
+		p, err := playpool.Get(tx, in.PoolId)
+		if err != nil {
 			return err
 		}
-		if len(prizes) == 0 {
+		if len(p.Prizes) == 0 {
 			return status.Error(codes.InvalidArgument, "赏池没有奖品")
 		}
-
-		if err := materializePlayPool(tx, &v, prizes); err != nil {
+		v := &gamemodelnc.PlayPoolVersion{
+			PoolId:      p.ID,
+			Version:     1,
+			Status:      2,
+			Mode:        p.Mode,
+			Name:        p.Name,
+			PriceFen:    p.PriceFen,
+			ConfigJson:  p.ConfigJSON,
+			ConfigHash:  "",
+			PublishedAt: nil,
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+		}
+		if err := materializePlayPool(tx, v, playPoolPrizesToLegacy(p)); err != nil {
 			return err
 		}
-
-		if err := tx.Model(&gamemodelnc.PlayPoolVersion{}).
-			Where("pool_id = ? AND version = ?", in.PoolId, in.Version).
-			Updates(map[string]interface{}{
-				"status":       2,
-				"published_at": time.Now(),
-				"updated_at":   time.Now(),
-			}).Error; err != nil {
+		if err := tx.Model(&playpool.CatalogRow{}).Where("id = ?", p.ID).Updates(map[string]any{
+			"status":       playpool.StatusLive,
+			"published_at": time.Now(),
+			"updated_at":   time.Now(),
+		}).Error; err != nil {
 			return err
 		}
-		return nil
+		return playpool.WriteHistory(tx, p.ID, p.Mode, "APPLY", "", "", "", p.OperatorID)
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &play.PublishPlayPoolResp{Status: out}, nil
+	return &play.PublishPlayPoolResp{Status: "PUBLISHED"}, nil
+}
+
+func playPoolPrizesToLegacy(p *playpool.Pool) []gamemodelnc.PlayPoolPrize {
+	out := make([]gamemodelnc.PlayPoolPrize, 0, len(p.Prizes))
+	for _, prize := range p.Prizes {
+		isPrize := int32(0)
+		if prize.IsPrize {
+			isPrize = 1
+		}
+		out = append(out, gamemodelnc.PlayPoolPrize{
+			PoolId:           p.ID,
+			Version:          1,
+			PrizeIndex:       int32(prize.Index),
+			PrizeGrade:       prize.PrizeGrade,
+			SpecialKind:      prize.SpecialKind,
+			PrizeType:        int32(prize.PrizeType),
+			Name:             prize.Name,
+			SkuId:            prize.SkuID,
+			ChildPoolId:      prize.ChildPoolID,
+			Weight:           prize.Weight,
+			Quantity:         int32(prize.Quantity),
+			Remaining:        int32(prize.Quantity),
+			IsPrize:          isPrize,
+			TargetValue:      int32(prize.TargetValue),
+			CashFen:          prize.CashFen,
+			PointsAmount:     prize.PointsAmount,
+			CouponTemplateNo: prize.CouponTemplateNo,
+			CostFen:          prize.CostFen,
+			ImageUrl:         prize.ImageURL,
+			ParentIndex:      int32(prize.ParentIndex),
+			ExtraJson:        prize.ExtraJSON,
+			CreatedAt:        time.Now(),
+		})
+	}
+	return out
 }

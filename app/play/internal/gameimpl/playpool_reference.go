@@ -2,6 +2,8 @@ package gameimpl
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"gacha_srv/app/play/internal/svc"
 	"gacha_srv/app/play/play"
@@ -16,7 +18,6 @@ type playPoolReferenceRow struct {
 	PoolID     int64  `gorm:"column:pool_id"`
 	PoolName   string `gorm:"column:pool_name"`
 	Mode       string `gorm:"column:mode"`
-	Periods    int64  `gorm:"column:periods"`
 	Status     int64  `gorm:"column:status"`
 	TagsJSON   string `gorm:"column:tags_json"`
 	PrizeGrade string `gorm:"column:prize_grade"`
@@ -33,7 +34,18 @@ func NewQueryPlayPoolReferencesLogic(ctx context.Context, svcCtx *svc.ServiceCon
 	return &QueryPlayPoolReferencesLogic{ctx: ctx, svcCtx: svcCtx, Logger: logx.WithContext(ctx)}
 }
 
-// QueryPlayPoolReferences 反查商品/池子被哪些奖池引用（每个池子取最新版本）。
+var playModesForReference = []string{"memorymatch", "gashapon", "fullcar", "combochain", "dig", "groupbuy"}
+
+func playPrizeUnionSQL() string {
+	parts := make([]string, 0, len(playModesForReference))
+	for _, mode := range playModesForReference {
+		parts = append(parts, fmt.Sprintf(
+			"SELECT pool_id, prize_grade, quantity, sku_id, child_pool_id, prize_type FROM play_%s_prizes", mode))
+	}
+	return strings.Join(parts, " UNION ALL ")
+}
+
+// QueryPlayPoolReferences 反查商品/池子被哪些奖池引用。
 func (l *QueryPlayPoolReferencesLogic) QueryPlayPoolReferences(in *play.QueryPlayPoolReferencesReq) (*play.QueryPlayPoolReferencesResp, error) {
 	if (in.RefType != 1 && in.RefType != 2) || in.RefId <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "引用类型或引用ID非法")
@@ -55,12 +67,8 @@ func (l *QueryPlayPoolReferencesLogic) QueryPlayPoolReferences(in *play.QueryPla
 		condition = "p.child_pool_id = ?"
 		source = "赏池"
 	}
-	from := " FROM play_pool_prizes p " +
-		"JOIN (SELECT pool_id, MAX(version) AS version FROM play_pool_versions GROUP BY pool_id) lv " +
-		"  ON lv.pool_id = p.pool_id AND lv.version = p.version " +
-		"JOIN play_pool_versions v ON v.pool_id = lv.pool_id AND v.version = lv.version " +
-		"JOIN play_pools h ON h.id = p.pool_id " +
-		"WHERE " + condition + " "
+	from := " FROM (" + playPrizeUnionSQL() + ") p " +
+		"JOIN play_pool_catalog c ON c.id = p.pool_id WHERE " + condition + " "
 
 	var total int64
 	if err := l.svcCtx.DB.Raw("SELECT COUNT(*) "+from, in.RefId).Scan(&total).Error; err != nil {
@@ -68,7 +76,7 @@ func (l *QueryPlayPoolReferencesLogic) QueryPlayPoolReferences(in *play.QueryPla
 	}
 
 	var rows []playPoolReferenceRow
-	query := "SELECT p.pool_id, h.name AS pool_name, h.mode, h.periods, v.status, h.tags_json, " +
+	query := "SELECT p.pool_id, c.name AS pool_name, c.mode, c.status, c.tags_json, " +
 		"p.prize_grade, p.quantity " + from + "ORDER BY p.pool_id DESC LIMIT ? OFFSET ?"
 	offset := (page - 1) * pageSize
 	if err := l.svcCtx.DB.Raw(query, in.RefId, pageSize, offset).Scan(&rows).Error; err != nil {
@@ -82,8 +90,8 @@ func (l *QueryPlayPoolReferencesLogic) QueryPlayPoolReferences(in *play.QueryPla
 			PoolId:     row.PoolID,
 			PoolName:   row.PoolName,
 			Mode:       row.Mode,
-			Periods:    row.Periods,
-			Status:     row.Status,
+			Periods:    0,
+			Status:     legacyPoolStatus(row.Status),
 			Tags:       decodePoolTags(row.TagsJSON),
 			Source:     source,
 			RefType:    in.RefType,

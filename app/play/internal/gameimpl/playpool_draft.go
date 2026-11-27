@@ -3,20 +3,18 @@ package gameimpl
 import (
 	"context"
 	"errors"
-	"time"
 
+	"gacha_srv/app/play/internal/playpool"
 	"gacha_srv/app/play/internal/svc"
 	"gacha_srv/app/play/play"
-	gamemodelnc "gacha_srv/pkg/model_nocache/gacha_play"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
-// CreatePlayPoolDraft 创建统一玩赏池草稿（所有玩法共用）。
-// 幂等键存在时：同 key 同请求返回原 pool/version；同 key 不同请求返回 Aborted。
+// CreatePlayPoolDraft 创建/更新玩法池。名称保留是为了兼容旧接口；
+// 新模型没有版本：poolId=0 新建，poolId>0 更新当前配置（仅 DRAFT/OFFLINE 可改）。
 func CreatePlayPoolDraft(ctx context.Context, svcCtx *svc.ServiceContext, in *play.CreatePlayPoolDraftReq) (*play.CreatePlayPoolDraftResp, error) {
 	if err := validatePlayPoolDraft(in); err != nil {
 		return nil, err
@@ -25,19 +23,25 @@ func CreatePlayPoolDraft(ctx context.Context, svcCtx *svc.ServiceContext, in *pl
 	if configJSON == "" {
 		configJSON = "{}"
 	}
+	adminJSON := in.AdminJson
+	if adminJSON == "" {
+		adminJSON = "{}"
+	}
+	tagsJSON, err := encodePoolTags(in.Tags)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "标签格式错误")
+	}
 	hash := hashPlayPoolDraft(in)
 
-	var outPoolId, outVersion int64
-	err := svcCtx.DB.Transaction(func(tx *gorm.DB) error {
-		// 幂等：同 key 已存在 → 校验请求哈希并返回原草稿
+	var outPoolID int64
+	err = svcCtx.DB.Transaction(func(tx *gorm.DB) error {
 		if in.IdempotencyKey != "" {
-			var d gamemodelnc.PlayPoolDraft
-			err := tx.Where("idempotency_key = ?", in.IdempotencyKey).First(&d).Error
+			req, err := playpool.GetRequest(tx, in.IdempotencyKey)
 			if err == nil {
-				if d.RequestHash != hash {
+				if req.RequestHash != hash {
 					return status.Error(codes.InvalidArgument, "幂等键冲突")
 				}
-				outPoolId, outVersion = d.PoolId, d.Version
+				outPoolID = req.PoolID
 				return nil
 			}
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -45,99 +49,100 @@ func CreatePlayPoolDraft(ctx context.Context, svcCtx *svc.ServiceContext, in *pl
 			}
 		}
 
-		var head gamemodelnc.PlayPool
+		pool := &playpool.Pool{
+			Mode:       in.Mode,
+			Name:       in.Name,
+			PriceFen:   in.PriceFen,
+			IPID:       int64(in.IpId),
+			TagsJSON:   tagsJSON,
+			Weight:     int(in.Weight),
+			AdminJSON:  adminJSON,
+			ConfigJSON: configJSON,
+			Prizes:     playPoolPrizesToDomain(in.Mode, in.Prizes),
+		}
 		if in.PoolId > 0 {
-			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
-				Where("id = ?", in.PoolId).First(&head).Error; err != nil {
+			existing, err := playpool.Get(tx, in.PoolId)
+			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return status.Error(codes.InvalidArgument, "赏池不存在")
 				}
 				return err
 			}
-			if head.Mode != in.Mode {
+			if existing.Mode != in.Mode {
 				return status.Error(codes.InvalidArgument, "赏池玩法不一致")
 			}
+			pool.ID = in.PoolId
+			pool.Status = existing.Status
+			if err := playpool.Update(tx, pool); err != nil {
+				return status.Error(codes.InvalidArgument, err.Error())
+			}
+			outPoolID = in.PoolId
 		} else {
-			head = gamemodelnc.PlayPool{
-				Mode:        in.Mode,
-				Name:        in.Name,
-				NextVersion: 1,
-				CreatedAt:   time.Now(),
-				UpdatedAt:   time.Now(),
-			}
-			if err := tx.Create(&head).Error; err != nil {
+			if err := playpool.Create(tx, pool); err != nil {
 				return err
 			}
+			outPoolID = pool.ID
 		}
-
-		version := head.NextVersion
-		tagsJSON, err := encodePoolTags(in.Tags)
-		if err != nil {
-			return status.Error(codes.InvalidArgument, "标签格式错误")
-		}
-		adminJSON := in.AdminJson
-		if adminJSON == "" {
-			adminJSON = "{}"
-		}
-		if err := tx.Model(&gamemodelnc.PlayPool{}).Where("id = ?", head.Id).Updates(map[string]interface{}{
-			"name":         in.Name,
-			"next_version": version + 1,
-			"ip_id":        in.IpId,
-			"tags_json":    tagsJSON,
-			"periods":      in.Periods,
-			"weight":       in.Weight,
-			"admin_json":   adminJSON,
-			"updated_at":   time.Now(),
-		}).Error; err != nil {
-			return err
-		}
-
-		ver := &gamemodelnc.PlayPoolVersion{
-			PoolId:     head.Id,
-			Version:    version,
-			Status:     1, // DRAFT
-			Mode:       in.Mode,
-			Name:       in.Name,
-			PriceFen:   in.PriceFen,
-			ConfigJson: configJSON,
-			ConfigHash: hash,
-			CreatedAt:  time.Now(),
-			UpdatedAt:  time.Now(),
-		}
-		if err := tx.Create(ver).Error; err != nil {
-			return err
-		}
-
-		for _, p := range in.Prizes {
-			row := modelPlayPoolPrize(p)
-			row.PoolId = head.Id
-			row.Version = version
-			row.CreatedAt = time.Now()
-			if err := tx.Create(&row).Error; err != nil {
-				return err
-			}
-		}
-
 		if in.IdempotencyKey != "" {
-			if err := tx.Create(&gamemodelnc.PlayPoolDraft{
-				IdempotencyKey: in.IdempotencyKey,
-				PoolId:         head.Id,
-				Version:        version,
-				RequestHash:    hash,
-				CreatedAt:      time.Now(),
-			}).Error; err != nil {
+			if err := playpool.PutRequest(tx, in.IdempotencyKey, outPoolID, hash); err != nil {
 				return err
 			}
 		}
-		outPoolId, outVersion = head.Id, version
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
 	return &play.CreatePlayPoolDraftResp{
-		PoolId:  outPoolId,
-		Version: outVersion,
+		PoolId:  outPoolID,
+		Version: 1,
 		Status:  "DRAFT",
 	}, nil
+}
+
+func playPoolPrizesToDomain(mode string, prizes []*play.PlayPoolPrize) []*playpool.Prize {
+	out := make([]*playpool.Prize, 0, len(prizes))
+	for _, p := range prizes {
+		if p == nil {
+			continue
+		}
+		prizeType := int(p.PrizeType)
+		if prizeType == 0 {
+			prizeType = 1
+		}
+		parentIndex := -1
+		if p.HasParent {
+			parentIndex = int(p.ParentIndex)
+		}
+		totalPairs := -1
+		if mode == "memorymatch" {
+			totalPairs = int(p.TargetValue)
+		}
+		extra := p.ExtraJson
+		if extra == "" {
+			extra = "{}"
+		}
+		out = append(out, &playpool.Prize{
+			Index:            int(p.PrizeIndex),
+			Name:             p.Name,
+			PrizeGrade:       p.PrizeGrade,
+			PrizeType:        prizeType,
+			SkuID:            p.SkuId,
+			ChildPoolID:      p.ChildPoolId,
+			CashFen:          p.CashFen,
+			PointsAmount:     p.PointsAmount,
+			CouponTemplateNo: p.CouponTemplateNo,
+			Weight:           p.Weight,
+			Quantity:         int(p.Quantity),
+			IsPrize:          p.IsPrize,
+			ImageURL:         p.ImageUrl,
+			CostFen:          p.CostFen,
+			SpecialKind:      p.SpecialKind,
+			TargetValue:      int(p.TargetValue),
+			ParentIndex:      parentIndex,
+			TotalPairCount:   totalPairs,
+			ExtraJSON:        extra,
+		})
+	}
+	return out
 }
