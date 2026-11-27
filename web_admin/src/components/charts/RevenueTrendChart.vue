@@ -140,12 +140,16 @@ const splitIndex = (() => {
 const totalColumns = Math.max(splitIndex, defs.length - splitIndex)
 
 const legendItems = computed(() =>
-  defs.map((def, index) => ({
-    name: def.name,
-    index,
-    row: index < splitIndex ? 1 : 2,
-    column: index < splitIndex ? index + 1 : index - splitIndex + 1,
-  })),
+  defs.map((def, index) => {
+    const row = index < splitIndex ? 1 : 2
+    // 第一行项目少：均匀占用 24 列中的 16 列，用空列把间距拉开；
+    // 第二行 24 个项目仍逐列占满，列起点与第一行保持一致。
+    const column =
+      row === 1
+        ? Math.round((index * (totalColumns - 1)) / Math.max(1, splitIndex - 1)) + 1
+        : index - splitIndex + 1
+    return { name: def.name, index, row, column }
+  }),
 )
 
 function seriesColor(index: number): string {
