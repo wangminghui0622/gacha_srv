@@ -1,26 +1,24 @@
 <template>
   <div class="revenue-chart-wrap">
     <div class="custom-legend">
-      <div
-        v-for="(row, rowIndex) in legendRows"
-        :key="rowIndex"
-        class="legend-row"
-        :class="{ 'legend-row-compact': rowIndex === 1 }"
-      >
-        <button
-          v-for="item in row"
-          :key="item.name"
-          type="button"
-          class="legend-item"
-          :class="{ 'is-selected': selectedMap[item.name] }"
-          @click="toggle(item.name)"
-        >
-          <span
-            class="legend-dot"
-            :style="{ backgroundColor: selectedMap[item.name] ? seriesColor(item.index) : '#d9d9d9' }"
-          />
-          <span class="legend-text">{{ item.name }}</span>
-        </button>
+      <div class="legend-scroll">
+        <div class="legend-grid">
+          <button
+            v-for="item in legendItems"
+            :key="item.name"
+            type="button"
+            class="legend-item"
+            :class="{ 'is-selected': selectedMap[item.name], 'legend-item-compact': item.row === 2 }"
+            :style="{ gridRow: item.row, gridColumn: item.column }"
+            @click="toggle(item.name)"
+          >
+            <span
+              class="legend-dot"
+              :style="{ backgroundColor: selectedMap[item.name] ? seriesColor(item.index) : '#d9d9d9' }"
+            />
+            <span class="legend-text">{{ item.name }}</span>
+          </button>
+        </div>
       </div>
     </div>
     <div class="chart-box">
@@ -140,10 +138,14 @@ for (const name of ['注册数', '日活', '总付费', '付费用户数', '渗�
 
 const selectedMap = reactive<Record<string, boolean>>({ ...defaultSelected })
 
-const legendRows = computed(() => {
-  const items = defs.map((def, index) => ({ name: def.name, index }))
-  return [items.slice(0, 22), items.slice(22)]
-})
+const legendItems = computed(() =>
+  defs.map((def, index) => ({
+    name: def.name,
+    index,
+    row: index < 22 ? 1 : 2,
+    column: index < 22 ? index + 1 : index - 22 + 1,
+  })),
+)
 
 function seriesColor(index: number): string {
   if (index < colors.length) {
@@ -270,34 +272,36 @@ onBeforeUnmount(() => {
 }
 
 .custom-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  width: 100%;
 }
 
-.legend-row {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 10px;
+.legend-scroll {
+  width: 100%;
   overflow-x: auto;
-  padding-bottom: 2px;
+  padding-bottom: 6px;
 }
 
-.legend-row-compact {
-  gap: 8px;
+.legend-grid {
+  display: grid;
+  grid-template-columns: repeat(28, 140px);
+  column-gap: 16px;
+  row-gap: 6px;
+  align-items: center;
+  width: max-content;
 }
 
 .legend-item {
   display: inline-flex;
-  flex: 0 0 auto;
   align-items: center;
   gap: 4px;
+  width: 100%;
   padding: 0;
   border: 0;
   background: transparent;
   color: #8c8c8c;
   font-size: 14px;
   line-height: 20px;
+  text-align: left;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -313,7 +317,7 @@ onBeforeUnmount(() => {
   border-radius: 50%;
 }
 
-.legend-row-compact .legend-item {
+.legend-item-compact {
   font-size: 12px;
   line-height: 18px;
 }
