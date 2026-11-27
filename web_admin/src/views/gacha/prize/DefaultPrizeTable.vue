@@ -8,6 +8,7 @@
     :show-reward="showReward"
     :show-record="showRecord"
     :show-quantity-input="showQuantityInput"
+    :show-lucky-stage="showLuckyStage"
     :actions-width="100"
     @toggle="emit('toggle', $event)"
     @target-change="(record, value) => emit('targetChange', record, value)"
@@ -33,6 +34,7 @@ defineProps<{
   showReward?: boolean
   showRecord?: boolean
   showQuantityInput?: boolean
+  showLuckyStage?: boolean
 }>()
 
 const emit = defineEmits<{

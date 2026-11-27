@@ -5,7 +5,7 @@
     :row-key="(record: DisplayPrize) => record.__rowKey"
     size="small"
     :locale="{ emptyText: '暂无数据' }"
-    :scroll="{ x: showRecord || showQuantityInput ? 900 : showSpecial ? 880 : 680 }"
+    :scroll="{ x: showLuckyStage ? 980 : showRecord || showQuantityInput ? 900 : showSpecial ? 880 : 680 }"
     :custom-row="customRow"
   >
     <a-table-column title="序号" width="50" align="center">
@@ -20,6 +20,21 @@
     </a-table-column>
     <a-table-column v-if="showReward" title="奖励" width="120" align="center">
       <template #default="{ record }">{{ rewardText(record) }}</template>
+    </a-table-column>
+    <a-table-column v-if="showLuckyStage" title="Lucky顺序" width="100" align="center">
+      <template #default="{ record }">
+        <div v-if="record.specialKind === 'LUCKY'" class="target-cell" @click.stop @mousedown.stop>
+          <a-input-number
+            :value="record.targetValue ?? 0"
+            :min="0"
+            :precision="0"
+            size="small"
+            style="width: 80px"
+            @change="(value: number | null) => emit('targetChange', record, value)"
+          />
+        </div>
+        <span v-else>—</span>
+      </template>
     </a-table-column>
     <a-table-column v-if="showTarget" title="目标碰数" width="110" align="center">
       <template #default="{ record }">
@@ -49,6 +64,7 @@
       <template #default="{ record }">
         <a-switch
           :checked="record.isPrize !== false"
+          :disabled="!!record.specialKind"
           size="small"
           @click.stop
           @change="(checked: boolean) => emit('recordChange', record, checked)"
@@ -102,8 +118,17 @@ withDefaults(
     showReward?: boolean
     showRecord?: boolean
     showQuantityInput?: boolean
+    showLuckyStage?: boolean
   }>(),
-  { actionsWidth: 100, showTarget: false, showSpecial: false, showReward: false, showRecord: false, showQuantityInput: false },
+  {
+    actionsWidth: 100,
+    showTarget: false,
+    showSpecial: false,
+    showReward: false,
+    showRecord: false,
+    showQuantityInput: false,
+    showLuckyStage: false,
+  },
 )
 
 const emit = defineEmits<{

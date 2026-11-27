@@ -144,8 +144,9 @@
                 :show-target="form.mode === 'memorymatch'"
                 :show-special="isSpecialMode"
                 :show-reward="isSpecialMode"
-                :show-record="isBoxMode"
+                :show-record="isBoxMode || form.mode === 'gashapon'"
                 :show-quantity-input="isBoxMode"
+                :show-lucky-stage="form.mode === 'gashapon'"
                 @toggle="togglePrizeExpand"
                 @remove="confirmRemove"
                 @target-change="setPrizeTarget"
@@ -201,6 +202,14 @@
                   v-model:value="specialDraft.rewardType"
                   :options="rewardTypeOptions"
                   style="width: 90px"
+                />
+                <a-input-number
+                  v-if="form.mode === 'gashapon' && specialDraft.kind === 'LUCKY'"
+                  v-model:value="specialDraft.luckyStage"
+                  :min="0"
+                  :precision="0"
+                  placeholder="Lucky顺序"
+                  style="width: 100px"
                 />
                 <a-input-number
                   v-if="specialDraft.rewardType === 'cash'"
@@ -748,6 +757,7 @@ const specialDraft = reactive({
   cashYuan: 0,
   pointsAmount: 0,
   couponTemplateNo: '',
+  luckyStage: 0,
   name: '',
 })
 
@@ -811,7 +821,12 @@ function addSpecialPrize() {
     quantity: 1,
     remaining: 1,
     isPrize: true,
-    targetValue: form.mode === 'fullcar' ? specialDraft.settlementType : 0,
+    targetValue:
+      form.mode === 'gashapon' && specialDraft.kind === 'LUCKY'
+        ? Math.max(0, Math.round(specialDraft.luckyStage))
+        : form.mode === 'fullcar'
+          ? specialDraft.settlementType
+          : 0,
     costFen: 0,
     extraJson: '{}',
   })
@@ -819,6 +834,7 @@ function addSpecialPrize() {
   specialDraft.cashYuan = 0
   specialDraft.pointsAmount = 0
   specialDraft.couponTemplateNo = ''
+  specialDraft.luckyStage = 0
 }
 
 watch(
